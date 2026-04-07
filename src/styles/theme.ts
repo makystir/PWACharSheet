@@ -1,0 +1,42 @@
+// Fantasy-themed design tokens for WFRP 4e Character Sheet
+export const theme = {
+  colors: {
+    bgPrimary: '#121212',
+    bgSecondary: '#1a1a1a',
+    bgTertiary: '#2a2a2a',
+    parchment: '#c8a96e',
+    parchmentDark: '#a8884e',
+    textPrimary: '#d4c4a0',
+    textSecondary: '#a89878',
+    textMuted: '#706858',
+    accent: '#c85050',
+    accentGold: '#c8a84c',
+    accentGoldDark: '#a08030',
+    border: '#333333',
+    borderLight: '#444444',
+    success: '#5a9a5a',
+    warning: '#c8a832',
+    danger: '#c85050',
+    cardBg: '#1e1e1e',
+    cardBorder: '#333333',
+    shadow: 'rgba(0, 0, 0, 0.5)',
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px',
+  },
+  fonts: {
+    heading: "'Cinzel', serif",
+    body: "'Inter', sans-serif",
+    mono: "ui-monospace, Consolas, monospace",
+  },
+  radii: {
+    sm: '4px',
+    md: '8px',
+    lg: '12px',
+  },
+} as const;

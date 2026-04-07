@@ -1,0 +1,18 @@
+import type { ArmourData } from '../types/character';
+
+export const ARMOURS: ArmourData[] = [
+  {name:"Leather Jack",locations:"Arms, Body",enc:"1",ap:1,qualities:"—"},
+  {name:"Leather Jerkin",locations:"Body",enc:"1",ap:1,qualities:"—"},
+  {name:"Leather Leggings",locations:"Legs",enc:"1",ap:1,qualities:"—"},
+  {name:"Leather Skullcap",locations:"Head",enc:"0",ap:1,qualities:"Partial"},
+  {name:"Boiled Leather Breastplate",locations:"Body",enc:"2",ap:2,qualities:"Weakpoints"},
+  {name:"Mail Chausses",locations:"Legs",enc:"3",ap:2,qualities:"Flexible"},
+  {name:"Mail Coat",locations:"Arms, Body",enc:"3",ap:2,qualities:"Flexible"},
+  {name:"Mail Coif",locations:"Head",enc:"2",ap:2,qualities:"Flexible, Partial"},
+  {name:"Mail Shirt",locations:"Body",enc:"2",ap:2,qualities:"Flexible"},
+  {name:"Plate Breastplate",locations:"Body",enc:"3",ap:2,qualities:"Impenetrable, Weakpoints"},
+  {name:"Open Helm",locations:"Head",enc:"1",ap:2,qualities:"Partial"},
+  {name:"Plate Bracers",locations:"Arms",enc:"3",ap:2,qualities:"Impenetrable, Weakpoints"},
+  {name:"Plate Leggings",locations:"Legs",enc:"3",ap:2,qualities:"Impenetrable, Weakpoints"},
+  {name:"Helm",locations:"Head",enc:"2",ap:2,qualities:"Impenetrable, Weakpoints"},
+];
