@@ -13,7 +13,7 @@ createRoot(document.getElementById('root')!).render(
 // vite-plugin-pwa is incompatible with Vite 8, so we use manual SW registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
+    navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {
       // Service worker registration failed — app works fine without it
     });
   });
