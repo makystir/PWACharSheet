@@ -56,3 +56,6 @@ npm test
 - Print-optimized layout for physical character sheets
 - Offline-capable PWA — works without network after first load
 - Dark fantasy-themed UI with responsive design (360px–2560px)
+=======
+# PWACharSheet
+progressive web app for whfrp4e character tracker 
