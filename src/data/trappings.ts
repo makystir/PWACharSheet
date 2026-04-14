@@ -16,4 +16,9 @@ export const TRAPPING_LIST: TrappingData[] = [
   {name:"Telescope",enc:"0"},{name:"Arrow (12)",enc:"0"},
   {name:"Bolt (12)",enc:"0"},{name:"Stone Bullet (12)",enc:"0"},
   {name:"Bullet and Powder (12)",enc:"0"},{name:"Elf Arrow",enc:"0"},
+  {name:"Ale Keg",enc:"3"},{name:"Battle Standard",enc:"2"},
+  {name:"Davrich Lamp",enc:"1"},{name:"Metal Foil Sheets",enc:"0"},
+  {name:"Miner's Helm",enc:"1"},{name:"Pilot's Licence",enc:"0"},
+  {name:"Reckoner's Log",enc:"1"},{name:"Runescribing Kit",enc:"2"},
+  {name:"Stone Tablet",enc:"1"},{name:"Toasting Tankard",enc:"0"},
 ];

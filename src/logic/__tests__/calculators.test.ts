@@ -268,6 +268,84 @@ describe('calculateArmourPoints', () => {
   });
 });
 
+// ─── Property 5: Rune AP bonus with stacking rules ──────────────────────────
+// Validates: Requirements 5.1, 5.2
+
+describe('calculateArmourPoints — rune AP integration', () => {
+  it('single armour with Rune of Stone (+1 AP) adds rune bonus to base AP', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', runes: ['rune-of-stone'] },
+    ];
+    const result = calculateArmourPoints(armour);
+    // base 1 + rune 1 = 2
+    expect(result.body).toBe(2);
+    expect(result.head).toBe(0);
+  });
+
+  it('armour with Master Rune of Steel (+3 AP) on multiple locations', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Runed Mail Coat', locations: 'Arms, Body', enc: '3', ap: 2, qualities: 'Flexible', runes: ['master-rune-of-steel'] },
+    ];
+    const result = calculateArmourPoints(armour);
+    // base 2 + rune 3 = 5 per covered location
+    expect(result.body).toBe(5);
+    expect(result.lArm).toBe(5);
+    expect(result.rArm).toBe(5);
+    expect(result.head).toBe(0);
+  });
+
+  it('two armour pieces on same location with rune bonuses — stacking rules apply to augmented values', () => {
+    const armour: ArmourItem[] = [
+      // Non-flexible: base 1 + Rune of Stone (+1) = effective 2
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', runes: ['rune-of-stone'] },
+      // Flexible: base 2 + Rune of Iron (+1) = effective 3
+      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', runes: ['rune-of-iron'] },
+    ];
+    const result = calculateArmourPoints(armour);
+    // Stacking: highest non-flexible (2) + highest flexible (3) = 5
+    expect(result.body).toBe(5);
+  });
+
+  it('two non-flexible armour on same location — highest augmented value wins', () => {
+    const armour: ArmourItem[] = [
+      // base 1 + Master Rune of Gromril (+2) = effective 3
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', runes: ['master-rune-of-gromril'] },
+      // base 2, no runes = effective 2
+      { name: 'Plate Breastplate', locations: 'Body', enc: '3', ap: 2, qualities: 'Impenetrable, Weakpoints' },
+    ];
+    const result = calculateArmourPoints(armour);
+    // Both non-flexible, highest augmented is 3
+    expect(result.body).toBe(3);
+  });
+
+  it('backward compatibility: armour without runes field works as before', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—' },
+      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible' },
+    ];
+    const result = calculateArmourPoints(armour);
+    // Non-flexible 1 + Flexible 2 = 3 (same as before rune feature)
+    expect(result.body).toBe(3);
+  });
+
+  it('backward compatibility: armour with empty runes array works as before', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Helm', locations: 'Head', enc: '2', ap: 2, qualities: 'Impenetrable, Weakpoints', runes: [] },
+    ];
+    const result = calculateArmourPoints(armour);
+    expect(result.head).toBe(2);
+  });
+
+  it('multiple runes on single armour piece stack their AP bonuses', () => {
+    const armour: ArmourItem[] = [
+      // base 1 + Rune of Stone (+1) + Rune of Iron (+1) = effective 3
+      { name: 'Runed Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', runes: ['rune-of-stone', 'rune-of-iron'] },
+    ];
+    const result = calculateArmourPoints(armour);
+    expect(result.body).toBe(3);
+  });
+});
+
 // ─── Property 10: Encumbrance calculation ────────────────────────────────────
 // Validates: Requirements 5.2
 

@@ -7,15 +7,16 @@ import type { PageSection } from '../layout/Navigation';
 // Property 1: Navigation section switching
 // **Validates: Requirements 2.2, 2.3**
 describe('Property 1: Navigation section switching', () => {
-  const sections: PageSection[] = ['character', 'combat', 'estate', 'advancement', 'settings'];
+  const sections: PageSection[] = ['character', 'combat', 'estate', 'endeavours', 'advancement', 'settings'];
 
-  it('renders all five navigation sections', () => {
+  it('renders all six navigation sections', () => {
     const onPageChange = vi.fn();
     render(<Navigation activePage="character" onPageChange={onPageChange} />);
 
     expect(screen.getByText('Character')).toBeInTheDocument();
     expect(screen.getByText('Combat')).toBeInTheDocument();
     expect(screen.getByText('Estate')).toBeInTheDocument();
+    expect(screen.getByText('Endeavours')).toBeInTheDocument();
     expect(screen.getByText('Advancement')).toBeInTheDocument();
     expect(screen.getByText('Settings')).toBeInTheDocument();
   });
@@ -72,8 +73,9 @@ describe('Property 2: Keyboard navigation', () => {
     { key: '1', section: 'character' },
     { key: '2', section: 'combat' },
     { key: '3', section: 'estate' },
-    { key: '4', section: 'advancement' },
-    { key: '5', section: 'settings' },
+    { key: '4', section: 'endeavours' },
+    { key: '5', section: 'advancement' },
+    { key: '6', section: 'settings' },
   ];
 
   it.each(shortcutMap)(
@@ -124,7 +126,7 @@ describe('Property 2: Keyboard navigation', () => {
 
     fireEvent.keyDown(window, { key: 'a' });
     fireEvent.keyDown(window, { key: '0' });
-    fireEvent.keyDown(window, { key: '6' });
+    fireEvent.keyDown(window, { key: '7' });
     expect(onPageChange).not.toHaveBeenCalled();
   });
 });

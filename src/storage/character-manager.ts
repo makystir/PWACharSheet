@@ -1,6 +1,7 @@
 import type { Character, CharacterIndex, CharacterSummary } from '../types/character';
 import { BLANK_CHARACTER } from '../types/character';
 import { getItem, setItem, removeItem } from './local-storage';
+import { migrateCorruptionData } from '../logic/corruption';
 
 const INDEX_KEY = 'wfrp4e-characters';
 const CHAR_KEY_PREFIX = 'wfrp4e-char-';
@@ -58,7 +59,10 @@ export function loadCharacter(id: string): Character | null {
   const raw = getItem(charKey(id));
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as Character;
+    const parsed = JSON.parse(raw) as Partial<Character>;
+    // Merge with BLANK_CHARACTER to fill in any fields added after the character was saved
+    const merged = { ...structuredClone(BLANK_CHARACTER), ...parsed };
+    return migrateCorruptionData(merged);
   } catch {
     return null;
   }

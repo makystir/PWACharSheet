@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { runMigration } from '../migration';
 import { BLANK_CHARACTER } from '../../types/character';
 import type { CharacterIndex } from '../../types/character';
+import { migrateCorruptionData } from '../../logic/corruption';
 
 let store: Map<string, string>;
 
@@ -171,5 +172,46 @@ describe('Migration: idempotency', () => {
     runMigration();
     const index = getIndex();
     expect(index.characters).toEqual([]);
+  });
+});
+
+
+/**
+ * Property 10: Migration preserves legacy mutation text
+ * Validates: Requirements 9.3, 9.4
+ */
+describe('Migration: corruption data (migrateCorruptionData)', () => {
+  it('converts non-empty muts string to a single Legacy mutation entry', () => {
+    const char = { ...structuredClone(BLANK_CHARACTER), muts: 'Tentacle arm', mutations: [] };
+    const result = migrateCorruptionData(char);
+    expect(result.mutations).toEqual([
+      { id: 1, type: 'physical', name: 'Legacy', effect: 'Tentacle arm' },
+    ]);
+  });
+
+  it('converts empty muts string to empty mutations array', () => {
+    const char = { ...structuredClone(BLANK_CHARACTER), muts: '', mutations: [] };
+    const result = migrateCorruptionData(char);
+    expect(result.mutations).toEqual([]);
+  });
+
+  it('converts whitespace-only muts string to empty mutations array', () => {
+    const char = { ...structuredClone(BLANK_CHARACTER), muts: '  ', mutations: [] };
+    const result = migrateCorruptionData(char);
+    expect(result.mutations).toEqual([]);
+  });
+
+  it('is idempotent — does not overwrite existing mutations array', () => {
+    const existingMutations = [
+      { id: 1, type: 'physical' as const, name: 'Fleshy Tentacle', effect: 'Gain the Tentacles Creature Trait' },
+      { id: 2, type: 'mental' as const, name: 'Hollow Heart', effect: '+10 Willpower, –10 Fellowship' },
+    ];
+    const char = {
+      ...structuredClone(BLANK_CHARACTER),
+      muts: 'Old text that should be ignored',
+      mutations: existingMutations,
+    };
+    const result = migrateCorruptionData(char);
+    expect(result.mutations).toEqual(existingMutations);
   });
 });

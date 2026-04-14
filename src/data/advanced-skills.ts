@@ -26,13 +26,16 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Language (Battle Tongue)', c: 'Int' }, { n: 'Language (Bretonnian)', c: 'Int' },
   { n: 'Language (Classical)', c: 'Int' }, { n: 'Language (Guilder)', c: 'Int' },
   { n: 'Language (Khazalid)', c: 'Int' }, { n: 'Language (Magick)', c: 'Int' },
-  { n: 'Language (Thief)', c: 'Int' }, { n: 'Language (Tilean)', c: 'Int' },
+  { n: 'Language (Norse)', c: 'Int' }, { n: 'Language (Thief)', c: 'Int' },
+  { n: 'Language (Tilean)', c: 'Int' },
   // Lore
   { n: 'Lore (Engineering)', c: 'Int' }, { n: 'Lore (Geology)', c: 'Int' },
   { n: 'Lore (Heraldry)', c: 'Int' }, { n: 'Lore (History)', c: 'Int' },
   { n: 'Lore (Law)', c: 'Int' }, { n: 'Lore (Magick)', c: 'Int' },
-  { n: 'Lore (Metallurgy)', c: 'Int' }, { n: 'Lore (Science)', c: 'Int' },
-  { n: 'Lore (Theology)', c: 'Int' },
+  { n: 'Lore (Metallurgy)', c: 'Int' }, { n: 'Lore (Runes)', c: 'Int' },
+  { n: 'Lore (Science)', c: 'Int' }, { n: 'Lore (Theology)', c: 'Int' },
+  // Melee
+  { n: 'Melee (Engineering)', c: 'WS' },
   // Perform
   { n: 'Perform (Acrobatics)', c: 'Ag' }, { n: 'Perform (Clowning)', c: 'Ag' },
   { n: 'Perform (Dancing)', c: 'Ag' }, { n: 'Perform (Firebreathing)', c: 'Ag' },
@@ -44,17 +47,19 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Pray', c: 'Fel' },
   // Ranged
   { n: 'Ranged (Blackpowder)', c: 'BS' }, { n: 'Ranged (Bow)', c: 'BS' },
-  { n: 'Ranged (Crossbow)', c: 'BS' }, { n: 'Ranged (Engineering)', c: 'BS' },
+  { n: 'Ranged (Catapult)', c: 'BS' }, { n: 'Ranged (Crossbow)', c: 'BS' }, { n: 'Ranged (Engineering)', c: 'BS' },
   { n: 'Ranged (Entangling)', c: 'BS' }, { n: 'Ranged (Explosives)', c: 'BS' },
   { n: 'Ranged (Sling)', c: 'BS' }, { n: 'Ranged (Throwing)', c: 'BS' },
-  // Research, Sail
+  // Research, Runesmithing, Sail
   { n: 'Research', c: 'Int' },
+  { n: 'Runesmithing', c: 'Dex' },
   { n: 'Sail (Barge)', c: 'Ag' }, { n: 'Sail (Caravel)', c: 'Ag' },
   { n: 'Sail (Cog)', c: 'Ag' }, { n: 'Sail (Frigate)', c: 'Ag' },
-  { n: 'Sail (Wolfship)', c: 'Ag' },
+  { n: 'Sail (Skycraft)', c: 'Ag' }, { n: 'Sail (Wolfship)', c: 'Ag' },
   // Secret Signs
+  { n: 'Secret Signs (Brotherhood of Grimnir)', c: 'Int' },
   { n: 'Secret Signs (Grey Order)', c: 'Int' }, { n: 'Secret Signs (Guild)', c: 'Int' },
-  { n: 'Secret Signs (Ranger)', c: 'Int' }, { n: 'Secret Signs (Scout)', c: 'Int' },
+  { n: 'Secret Signs (Miner)', c: 'Int' }, { n: 'Secret Signs (Ranger)', c: 'Int' }, { n: 'Secret Signs (Scout)', c: 'Int' },
   { n: 'Secret Signs (Thief)', c: 'Int' }, { n: 'Secret Signs (Vagabond)', c: 'Int' },
   // Other
   { n: 'Set Trap', c: 'Dex' },

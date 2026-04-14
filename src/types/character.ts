@@ -13,6 +13,7 @@ export interface ArmourItem {
   ap: number;
   qualities: string;
   worn?: boolean;
+  runes?: string[];
 }
 
 export interface ArmourPoints {
@@ -130,6 +131,21 @@ export interface AnimalTemplate {
 }
 
 
+export interface EndeavourEntry {
+  id: number;
+  type: string;
+  notes: string;
+  completed: boolean;
+}
+
+export interface DowntimePeriod {
+  id: number;
+  label: string;
+  slots: number;
+  entries: EndeavourEntry[];
+  statusWarning: boolean;
+}
+
 export interface Skill {
   n: string;  // Name
   c: string;  // Linked characteristic
@@ -224,6 +240,7 @@ export interface WeaponItem {
   rangeMod?: string;
   reload?: string;
   equipped?: boolean;
+  runes?: string[];
 }
 
 export interface SpellItem {
@@ -234,6 +251,11 @@ export interface SpellItem {
   duration: string;
   effect: string;
   memorized?: boolean;
+}
+
+export interface ChannellingProgress {
+  spellName: string;
+  accumulatedSL: number;
 }
 
 export interface AmmoItem {
@@ -292,6 +314,13 @@ export interface Holding {
   condition: number;
   staff: number;
   notes: string;
+}
+
+export interface MutationEntry {
+  id: number;
+  type: 'physical' | 'mental';
+  name: string;
+  effect: string;
 }
 
 export interface Estate {
@@ -369,12 +398,17 @@ export interface Character {
   wCur: number;
   weapons: WeaponItem[];
   spells: SpellItem[];
+  channellingProgress: ChannellingProgress[];
   ammo: AmmoItem[];
   corr: number;
   sin: number;
   muts: string;
+  mutations: MutationEntry[];
   companions: Companion[];
   estate: Estate;
+  endeavours: DowntimePeriod[];
+  portrait?: string;
+  knownRunes?: string[];
   log: string[];
 }
 
@@ -503,10 +537,12 @@ export const BLANK_CHARACTER: Character = {
   wCur: 0,
   weapons: [],
   spells: [],
+  channellingProgress: [],
   ammo: [],
   corr: 0,
   sin: 0,
   muts: '',
+  mutations: [],
   companions: [],
   estate: {
     name: '',
@@ -519,5 +555,8 @@ export const BLANK_CHARACTER: Character = {
     notes: [],
     holdings: [],
   },
+  endeavours: [],
+  portrait: '',
+  knownRunes: [],
   log: [],
 };

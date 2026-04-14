@@ -1,16 +1,23 @@
 import { useState, useEffect, Component } from 'react';
 import type { ReactNode } from 'react';
+import type { Character } from './types/character';
 import { Navigation } from './components/layout/Navigation';
 import { PageContainer } from './components/layout/PageContainer';
+import { useTheme } from './hooks/useTheme';
 import { PrintLayout } from './components/layout/PrintLayout';
 import { CharacterPage } from './components/pages/CharacterPage';
 import { CombatPage } from './components/pages/CombatPage';
 import { EstatePage } from './components/pages/EstatePage';
 import { AdvancementPage } from './components/pages/AdvancementPage';
+import { EndeavoursPage } from './components/pages/EndeavoursPage';
 import { SettingsPage } from './components/pages/SettingsPage';
+import { CharacterWizard } from './components/shared/CharacterWizard';
 import { useCharacterManager } from './hooks/useCharacterManager';
 import { useCharacter } from './hooks/useCharacter';
+import { useRollHistory } from './hooks/useRollHistory';
 import { runMigration } from './storage/migration';
+import { saveCharacter } from './storage/character-manager';
+import { WelcomeScreen } from './components/shared/WelcomeScreen';
 import type { PageSection } from './components/layout/Navigation';
 
 // Simple error boundary
@@ -67,96 +74,20 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
-function CharacterCreationPrompt({ onCreate }: { onCreate: (name: string) => void }) {
-  const [name, setName] = useState('');
-
-  const handleCreate = () => {
-    const trimmed = name.trim();
-    if (trimmed) {
-      onCreate(trimmed);
-    }
-  };
-
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100vh',
-      background: 'var(--bg-primary)',
-    }}>
-      <div style={{
-        background: 'var(--card-bg)',
-        border: '1px solid var(--card-border)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '32px',
-        textAlign: 'center',
-        maxWidth: '400px',
-        width: '90%',
-      }}>
-        <h1 style={{
-          fontFamily: 'var(--font-heading)',
-          color: 'var(--parchment)',
-          fontSize: '24px',
-          marginBottom: '8px',
-        }}>
-          WFRP 4e Character Sheet
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '14px' }}>
-          Create your first character to get started.
-        </p>
-        <input
-          type="text"
-          placeholder="Character name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
-          style={{
-            width: '100%',
-            padding: '10px 12px',
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            color: 'var(--text-primary)',
-            fontSize: '14px',
-            marginBottom: '12px',
-            outline: 'none',
-          }}
-          autoFocus
-        />
-        <button
-          type="button"
-          onClick={handleCreate}
-          disabled={!name.trim()}
-          style={{
-            width: '100%',
-            padding: '10px',
-            background: name.trim() ? 'var(--accent-gold)' : 'var(--border)',
-            color: name.trim() ? 'var(--bg-primary)' : 'var(--text-muted)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: name.trim() ? 'pointer' : 'default',
-          }}
-        >
-          Create Character
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function AppContent() {
   const manager = useCharacterManager();
   const [page, setPage] = useState<PageSection>('character');
 
-  // If no characters exist, show creation prompt
+  // If no characters exist, show welcome screen
   if (manager.characters.length === 0 || !manager.activeCharacter) {
     return (
-      <CharacterCreationPrompt
-        onCreate={(name) => {
+      <WelcomeScreen
+        onCreateCharacter={(name) => {
           manager.createCharacter(name);
+          manager.refresh();
+        }}
+        onWizardComplete={(character) => {
+          saveCharacter(manager.createCharacter(character.name), character);
           manager.refresh();
         }}
       />
@@ -182,23 +113,37 @@ function AppWithCharacter({
   setPage: (p: PageSection) => void;
 }) {
   const { character, update, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight } = useCharacter(manager.activeId, manager.activeCharacter!);
+  const { history: rollHistory, addRoll, clearHistory } = useRollHistory();
+  const { theme: currentTheme, setTheme } = useTheme();
+  const [showWizard, setShowWizard] = useState(false);
+
+  const handleWizardComplete = (wizardChar: Character) => {
+    const id = manager.createCharacter(wizardChar.name);
+    saveCharacter(id, wizardChar);
+    manager.switchCharacter(id);
+    manager.refresh();
+    setShowWizard(false);
+    setPage('character');
+  };
 
   const pageProps = { character, update, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight };
 
   const renderPage = () => {
     switch (page) {
       case 'character':
-        return <CharacterPage {...pageProps} />;
+        return <CharacterPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} />;
       case 'combat':
-        return <CombatPage {...pageProps} />;
+        return <CombatPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} />;
       case 'estate':
         return <EstatePage {...pageProps} />;
+      case 'endeavours':
+        return <EndeavoursPage {...pageProps} />;
       case 'advancement':
         return <AdvancementPage {...pageProps} />;
       case 'settings':
-        return <SettingsPage {...pageProps} manager={manager} />;
+        return <SettingsPage {...pageProps} currentTheme={currentTheme} onThemeChange={setTheme} />;
       default:
-        return <CharacterPage {...pageProps} />;
+        return <CharacterPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} />;
     }
   };
 
@@ -209,6 +154,13 @@ function AppWithCharacter({
           activePage={page}
           onPageChange={setPage}
           characterName={character.name}
+          characters={manager.characters}
+          activeId={manager.activeId}
+          onSwitchCharacter={(id) => { manager.switchCharacter(id, character); }}
+          onCreateCharacter={() => setShowWizard(true)}
+          onRenameCharacter={(id, name) => { manager.renameCharacter(id, name); manager.refresh(); }}
+          onDuplicateCharacter={(id) => { manager.duplicateCharacter(id); manager.refresh(); }}
+          onDeleteCharacter={(id) => { manager.deleteCharacter(id); manager.refresh(); }}
         />
         <PageContainer>
           <ErrorBoundary>
@@ -219,6 +171,12 @@ function AppWithCharacter({
       <div className="print-only" style={{ display: 'none' }}>
         <PrintLayout character={character} totalWounds={totalWounds} armourPoints={armourPoints} />
       </div>
+      {showWizard && (
+        <CharacterWizard
+          onComplete={handleWizardComplete}
+          onCancel={() => setShowWizard(false)}
+        />
+      )}
     </>
   );
 }

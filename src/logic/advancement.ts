@@ -162,18 +162,46 @@ export function advanceSkill(
 }
 
 /**
- * Check if a career level is complete.
- * A career level is complete when:
- * - All required characteristics have at least `threshold` advances
- * - At least `requiredSkillCount` skills from the career level have at least `threshold` advances
+ * WFRP 4e career completion advance thresholds by level.
+ * Level 1 = 5, Level 2 = 10, Level 3 = 15, Level 4 = 20.
+ */
+const CAREER_COMPLETION_THRESHOLDS: Record<number, number> = { 1: 5, 2: 10, 3: 15, 4: 20 };
+
+/**
+ * Check if a career skill name matches a character's skill.
+ * Handles grouped skills: career "Melee (Any)" matches character "Melee (Basic)",
+ * career "Melee (Basic)" matches character "Melee (Basic)" exactly,
+ * and career "Stealth" matches character "Stealth (Urban)" etc.
+ */
+export function careerSkillMatches(careerSkillName: string, characterSkillName: string): boolean {
+  if (careerSkillName === characterSkillName) return true;
+  // "(Any)" grouped skill: "Melee (Any)" matches any "Melee (...)"
+  if (careerSkillName.includes('(Any)')) {
+    const base = careerSkillName.replace('(Any)', '').trim();
+    return characterSkillName.startsWith(base + ' (') || characterSkillName === base;
+  }
+  // Ungrouped career skill matching a specialised character skill:
+  // e.g., career "Stealth" matches character "Stealth (Urban)"
+  if (!careerSkillName.includes('(') && characterSkillName.startsWith(careerSkillName + ' (')) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Check if a career level is complete per WFRP 4e rules (p.48).
+ *
+ * To complete a career level, you must have:
+ * - The level's required advances (5/10/15/20) in ALL career level characteristics
+ * - The level's required advances in at least 8 of the career level's available skills
+ * - At least 1 talent from the current career level
+ *
+ * Skills and talents gained from prior careers count towards completion.
  */
 export function isCareerLevelComplete(
   character: Character,
   careerName: string,
   level: number,
-  charThreshold: number = 1,
-  skillThreshold: number = 1,
-  requiredSkillCount?: number
 ): boolean {
   const scheme = CAREER_SCHEMES[careerName];
   if (!scheme) return false;
@@ -181,22 +209,275 @@ export function isCareerLevelComplete(
   const careerLevel = scheme[`level${level}` as keyof typeof scheme] as CareerLevel | undefined;
   if (!careerLevel) return false;
 
-  // Check characteristics
+  const threshold = CAREER_COMPLETION_THRESHOLDS[level];
+  if (!threshold) return false;
+
+  // Check characteristics: ALL must have >= threshold advances
   for (const charKey of careerLevel.characteristics) {
-    if (character.chars[charKey].a < charThreshold) return false;
+    if (character.chars[charKey].a < threshold) return false;
   }
 
-  // Check skills: need requiredSkillCount skills with >= skillThreshold advances
+  // Check skills: at least 8 (or all if fewer than 8) must have >= threshold advances
   const allSkills = [...character.bSkills, ...character.aSkills];
-  const skillCount = requiredSkillCount ?? careerLevel.skills.length;
+  const requiredSkillCount = Math.min(8, careerLevel.skills.length);
   let matchedSkills = 0;
 
-  for (const skillName of careerLevel.skills) {
-    const skill = allSkills.find(s => s.n === skillName);
-    if (skill && skill.a >= skillThreshold) {
+  for (const careerSkillName of careerLevel.skills) {
+    const skill = allSkills.find(s => careerSkillMatches(careerSkillName, s.n));
+    if (skill && skill.a >= threshold) {
       matchedSkills++;
     }
   }
 
-  return matchedSkills >= skillCount;
+  // Check talents: at least 1 from current career level
+  const hasTalent = careerLevel.talents.some(tn =>
+    character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' ('))
+  );
+
+  return matchedSkills >= requiredSkillCount && hasTalent;
+}
+
+/** Result of an undo operation */
+export interface UndoResult {
+  character: Character;
+  undoneEntry: AdvancementEntry;
+}
+
+/**
+ * Undo the most recent advancement log entry.
+ * Returns the updated character and the undone entry (for pushing onto redo stack),
+ * or null if the advancement log is empty.
+ *
+ * Handles: characteristic, skill, talent, career_level, career_switch.
+ */
+export function undoAdvancement(character: Character): UndoResult | null {
+  if (character.advancementLog.length === 0) return null;
+
+  const newLog = character.advancementLog.slice(0, -1);
+  const entry = character.advancementLog[character.advancementLog.length - 1];
+  const delta = entry.to - entry.from;
+
+  const base: Character = {
+    ...character,
+    xpCur: character.xpCur + entry.xpCost,
+    xpSpent: character.xpSpent - entry.xpCost,
+    advancementLog: newLog,
+  };
+
+  switch (entry.type) {
+    case 'characteristic': {
+      const key = entry.name as CharacteristicKey;
+      const newChars = { ...base.chars };
+      newChars[key] = { ...newChars[key], a: newChars[key].a - delta };
+      return { character: { ...base, chars: newChars }, undoneEntry: entry };
+    }
+
+    case 'skill': {
+      const bIdx = base.bSkills.findIndex(s => s.n === entry.name);
+      if (bIdx >= 0) {
+        const newSkills = [...base.bSkills];
+        newSkills[bIdx] = { ...newSkills[bIdx], a: newSkills[bIdx].a - delta };
+        return { character: { ...base, bSkills: newSkills }, undoneEntry: entry };
+      }
+      const aIdx = base.aSkills.findIndex(s => s.n === entry.name);
+      if (aIdx >= 0) {
+        const newSkills = [...base.aSkills];
+        newSkills[aIdx] = { ...newSkills[aIdx], a: newSkills[aIdx].a - delta };
+        return { character: { ...base, aSkills: newSkills }, undoneEntry: entry };
+      }
+      // Skill not found — return with only XP and log changes (defensive)
+      return { character: base, undoneEntry: entry };
+    }
+
+    case 'talent': {
+      const tIdx = base.talents.findIndex(t => t.n === entry.name);
+      if (tIdx >= 0) {
+        const newLevel = base.talents[tIdx].lvl - delta;
+        if (newLevel <= 0) {
+          const newTalents = base.talents.filter((_, i) => i !== tIdx);
+          return { character: { ...base, talents: newTalents }, undoneEntry: entry };
+        }
+        const newTalents = [...base.talents];
+        newTalents[tIdx] = { ...newTalents[tIdx], lvl: newLevel };
+        return { character: { ...base, talents: newTalents }, undoneEntry: entry };
+      }
+      // Talent not found — return with only XP and log changes (defensive)
+      return { character: base, undoneEntry: entry };
+    }
+
+    case 'career_level': {
+      // entry.name format: "CareerName → LevelTitle"
+      // entry.from = previous level number, entry.to = new level number
+      const prevLevelNum = entry.from;
+      const careerName = entry.name.split(' → ')[0];
+      const scheme = CAREER_SCHEMES[careerName];
+      if (!scheme) return { character: base, undoneEntry: entry };
+
+      const prevLevel = scheme[`level${prevLevelNum}` as keyof typeof scheme] as CareerLevel | undefined;
+      if (!prevLevel) return { character: base, undoneEntry: entry };
+
+      return {
+        character: {
+          ...base,
+          careerLevel: prevLevel.title,
+          status: prevLevel.status,
+        },
+        undoneEntry: entry,
+      };
+    }
+
+    case 'career_switch': {
+      // entry.name format: "OldCareer → NewCareer"
+      const parts = entry.name.split(' → ');
+      if (parts.length < 2) return null;
+      const oldCareerName = parts[0];
+      const oldScheme = CAREER_SCHEMES[oldCareerName];
+      if (!oldScheme) return null;
+
+      // Determine the old career level from the remaining log entries
+      // The last entry before this career_switch would have the careerLevel title
+      // from the old career. If no previous entries, default to level1.
+      let oldLevelTitle = oldScheme.level1.title;
+      let oldStatus = oldScheme.level1.status;
+      if (newLog.length > 0) {
+        const prevEntry = newLog[newLog.length - 1];
+        oldLevelTitle = prevEntry.careerLevel;
+        // Look up the status from the scheme
+        for (let lvl = 1; lvl <= 4; lvl++) {
+          const level = oldScheme[`level${lvl}` as keyof typeof oldScheme] as CareerLevel;
+          if (level.title === oldLevelTitle) {
+            oldStatus = level.status;
+            break;
+          }
+        }
+      }
+
+      // Trim the last segment from careerPath
+      const pathParts = base.careerPath.split(' → ');
+      const trimmedPath = pathParts.slice(0, -1).join(' → ');
+
+      return {
+        character: {
+          ...base,
+          career: oldCareerName,
+          class: oldScheme.class,
+          careerLevel: oldLevelTitle,
+          status: oldStatus,
+          careerPath: trimmedPath,
+        },
+        undoneEntry: entry,
+      };
+    }
+
+    default:
+      return { character: base, undoneEntry: entry };
+  }
+}
+
+/** Result of a redo operation */
+export interface RedoResult {
+  character: Character;
+}
+
+/**
+ * Redo a previously undone advancement entry.
+ * Returns the updated character, or null if xpCur is insufficient.
+ *
+ * Handles: characteristic, skill, talent, career_level, career_switch.
+ */
+export function redoAdvancement(character: Character, entry: AdvancementEntry): RedoResult | null {
+  if (character.xpCur < entry.xpCost) return null;
+
+  const delta = entry.to - entry.from;
+
+  const base: Character = {
+    ...character,
+    xpCur: character.xpCur - entry.xpCost,
+    xpSpent: character.xpSpent + entry.xpCost,
+    advancementLog: [...character.advancementLog, entry],
+  };
+
+  switch (entry.type) {
+    case 'characteristic': {
+      const key = entry.name as CharacteristicKey;
+      const newChars = { ...base.chars };
+      newChars[key] = { ...newChars[key], a: newChars[key].a + delta };
+      return { character: { ...base, chars: newChars } };
+    }
+
+    case 'skill': {
+      const bIdx = base.bSkills.findIndex(s => s.n === entry.name);
+      if (bIdx >= 0) {
+        const newSkills = [...base.bSkills];
+        newSkills[bIdx] = { ...newSkills[bIdx], a: newSkills[bIdx].a + delta };
+        return { character: { ...base, bSkills: newSkills } };
+      }
+      const aIdx = base.aSkills.findIndex(s => s.n === entry.name);
+      if (aIdx >= 0) {
+        const newSkills = [...base.aSkills];
+        newSkills[aIdx] = { ...newSkills[aIdx], a: newSkills[aIdx].a + delta };
+        return { character: { ...base, aSkills: newSkills } };
+      }
+      // Skill not found — return with only XP and log changes (defensive)
+      return { character: base };
+    }
+
+    case 'talent': {
+      const tIdx = base.talents.findIndex(t => t.n === entry.name);
+      if (tIdx >= 0) {
+        const newTalents = [...base.talents];
+        newTalents[tIdx] = { ...newTalents[tIdx], lvl: newTalents[tIdx].lvl + delta };
+        return { character: { ...base, talents: newTalents } };
+      }
+      // Talent doesn't exist — create it
+      const newTalents = [...base.talents, { n: entry.name, lvl: delta, desc: '' }];
+      return { character: { ...base, talents: newTalents } };
+    }
+
+    case 'career_level': {
+      // entry.name format: "CareerName → LevelTitle"
+      // entry.to = new level number
+      const careerName = entry.name.split(' → ')[0];
+      const scheme = CAREER_SCHEMES[careerName];
+      if (!scheme) return { character: base };
+
+      const newLevel = scheme[`level${entry.to}` as keyof typeof scheme] as CareerLevel | undefined;
+      if (!newLevel) return { character: base };
+
+      return {
+        character: {
+          ...base,
+          careerLevel: newLevel.title,
+          status: newLevel.status,
+        },
+      };
+    }
+
+    case 'career_switch': {
+      // entry.name format: "OldCareer → NewCareer"
+      const parts = entry.name.split(' → ');
+      if (parts.length < 2) return null;
+      const newCareerName = parts[1];
+      const newScheme = CAREER_SCHEMES[newCareerName];
+      if (!newScheme) return null;
+
+      const level1 = newScheme.level1;
+      const currentPath = base.careerPath;
+      const newPath = currentPath ? `${currentPath} → ${level1.title}` : level1.title;
+
+      return {
+        character: {
+          ...base,
+          career: newCareerName,
+          class: newScheme.class,
+          careerLevel: level1.title,
+          status: level1.status,
+          careerPath: newPath,
+        },
+      };
+    }
+
+    default:
+      return { character: base };
+  }
 }

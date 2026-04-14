@@ -1,14 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { User, Swords, Landmark, TrendingUp, Settings } from 'lucide-react';
+import { User, Swords, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import type { CharacterSummary } from '../../types/character';
 
-export type PageSection = 'character' | 'combat' | 'estate' | 'advancement' | 'settings';
+export type PageSection = 'character' | 'combat' | 'estate' | 'endeavours' | 'advancement' | 'settings';
 
 interface NavigationProps {
   activePage: PageSection;
   onPageChange: (page: PageSection) => void;
   characterName?: string;
+  characters?: CharacterSummary[];
+  activeId?: string;
+  onSwitchCharacter?: (id: string) => void;
+  onCreateCharacter?: () => void;
+  onRenameCharacter?: (id: string, name: string) => void;
+  onDuplicateCharacter?: (id: string) => void;
+  onDeleteCharacter?: (id: string) => void;
 }
 
 interface NavItem {
@@ -22,8 +30,9 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'character', label: 'Character', icon: User, shortcut: '1' },
   { id: 'combat', label: 'Combat', icon: Swords, shortcut: '2' },
   { id: 'estate', label: 'Estate', icon: Landmark, shortcut: '3' },
-  { id: 'advancement', label: 'Advancement', icon: TrendingUp, shortcut: '4' },
-  { id: 'settings', label: 'Settings', icon: Settings, shortcut: '5' },
+  { id: 'endeavours', label: 'Endeavours', icon: CalendarCheck, shortcut: '4' },
+  { id: 'advancement', label: 'Advancement', icon: TrendingUp, shortcut: '5' },
+  { id: 'settings', label: 'Settings', icon: Settings, shortcut: '6' },
 ];
 
 // Desktop sidebar styles
@@ -79,7 +88,11 @@ const shortcutStyle: CSSProperties = {
   opacity: 0.6,
 };
 
-export function Navigation({ activePage, onPageChange, characterName }: NavigationProps) {
+export function Navigation({ activePage, onPageChange, characterName, characters, activeId, onSwitchCharacter, onCreateCharacter, onRenameCharacter, onDuplicateCharacter, onDeleteCharacter }: NavigationProps) {
+  const [showSwitcher, setShowSwitcher] = useState(false);
+  const [renameId, setRenameId] = useState<string | null>(null);
+  const [renameName, setRenameName] = useState('');
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in inputs
@@ -104,8 +117,54 @@ export function Navigation({ activePage, onPageChange, characterName }: Navigati
           ⚔ WFRP 4e
         </div>
         {characterName && (
-          <div style={charNameStyle} title={characterName}>
-            {characterName || 'No Character'}
+          <div style={{ ...charNameStyle, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <button
+                type="button"
+                onClick={() => setShowSwitcher(!showSwitcher)}
+                style={{ background: 'none', border: 'none', color: 'var(--parchment)', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontSize: '14px', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                title="Switch character"
+              >
+                {characterName || 'No Character'}
+                {characters && characters.length > 0 && <ChevronDown size={14} style={{ flexShrink: 0, opacity: 0.6, transform: showSwitcher ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />}
+              </button>
+              {onCreateCharacter && (
+                <button
+                  type="button"
+                  onClick={onCreateCharacter}
+                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--accent-gold)', cursor: 'pointer', padding: '2px 6px', display: 'flex', alignItems: 'center', gap: '2px', fontSize: '11px', flexShrink: 0 }}
+                  title="New character"
+                  aria-label="Create new character"
+                >
+                  <Plus size={12} /> New
+                </button>
+              )}
+            </div>
+            {showSwitcher && characters && characters.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {characters.map(c => {
+                  const isActive = c.id === activeId;
+                  if (renameId === c.id) {
+                    return (
+                      <div key={c.id} style={{ display: 'flex', gap: '2px' }}>
+                        <input type="text" value={renameName} onChange={e => setRenameName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && renameName.trim()) { onRenameCharacter?.(c.id, renameName.trim()); setRenameId(null); } }} style={{ flex: 1, padding: '4px 6px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '12px' }} autoFocus />
+                        <button type="button" onClick={() => { if (renameName.trim()) { onRenameCharacter?.(c.id, renameName.trim()); setRenameId(null); } }} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--success)', cursor: 'pointer', padding: '2px 6px', fontSize: '10px' }}>✓</button>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '2px', background: isActive ? 'rgba(201,168,76,0.1)' : 'var(--bg-tertiary)', border: `1px solid ${isActive ? 'var(--accent-gold)' : 'var(--border)'}`, borderRadius: 'var(--radius-sm)', padding: '4px 6px' }}>
+                      <button type="button" onClick={() => { if (!isActive) { onSwitchCharacter?.(c.id); setShowSwitcher(false); } }} style={{ flex: 1, background: 'none', border: 'none', color: isActive ? 'var(--accent-gold)' : 'var(--text-secondary)', cursor: isActive ? 'default' : 'pointer', fontSize: '12px', textAlign: 'left', padding: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.name || 'Unnamed'}>
+                        {c.name || 'Unnamed'}
+                      </button>
+                      <button type="button" onClick={() => { setRenameId(c.id); setRenameName(c.name); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Rename">✎</button>
+                      <button type="button" onClick={() => onDuplicateCharacter?.(c.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Duplicate">⧉</button>
+                      {!isActive && <button type="button" onClick={() => onDeleteCharacter?.(c.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Delete">✕</button>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
         {NAV_ITEMS.map((item) => {

@@ -5,6 +5,7 @@ import {
   advanceCharacteristic,
   advanceSkill,
   isCareerLevelComplete,
+  careerSkillMatches,
 } from '../advancement';
 import type { Character, CharacteristicKey, CharacteristicValue } from '../../types/character';
 import { BLANK_CHARACTER } from '../../types/character';
@@ -290,33 +291,76 @@ describe('isCareerLevelComplete — Property 16', () => {
     expect(isCareerLevelComplete(char, 'Soldier', 1)).toBe(false);
   });
 
-  it('returns true when all characteristics and skills meet threshold', () => {
+  it('returns true when all characteristics, 8 skills, and 1 talent meet level 1 threshold (5 advances)', () => {
     const char = makeTestCharacter();
-    // Soldier level 1: characteristics WS, T, WP; skills: Athletics, Climb, Cool, Dodge, Endurance, Language (Battle), Melee (Basic), Play (Drum or Fife)
-    char.chars.WS.a = 1;
-    char.chars.T.a = 1;
-    char.chars.WP.a = 1;
+    // Soldier level 1: characteristics WS, T, WP; 8 skills; talents: Diceman, Marksman, Strong Back, Warrior Born
+    char.chars.WS.a = 5;
+    char.chars.T.a = 5;
+    char.chars.WP.a = 5;
     char.bSkills = [
-      { n: 'Athletics', c: 'Ag', a: 1 },
-      { n: 'Climb', c: 'S', a: 1 },
-      { n: 'Cool', c: 'WP', a: 1 },
-      { n: 'Dodge', c: 'Ag', a: 1 },
-      { n: 'Endurance', c: 'T', a: 1 },
-      { n: 'Melee (Basic)', c: 'WS', a: 1 },
+      { n: 'Athletics', c: 'Ag', a: 5 },
+      { n: 'Climb', c: 'S', a: 5 },
+      { n: 'Cool', c: 'WP', a: 5 },
+      { n: 'Dodge', c: 'Ag', a: 5 },
+      { n: 'Endurance', c: 'T', a: 5 },
+      { n: 'Melee (Basic)', c: 'WS', a: 5 },
     ];
     char.aSkills = [
-      { n: 'Language (Battle)', c: 'Int', a: 1 },
-      { n: 'Play (Drum or Fife)', c: 'Dex', a: 1 },
+      { n: 'Language (Battle)', c: 'Int', a: 5 },
+      { n: 'Play (Drum or Fife)', c: 'Dex', a: 5 },
     ];
+    char.talents = [{ n: 'Marksman', lvl: 1, desc: '' }];
     expect(isCareerLevelComplete(char, 'Soldier', 1)).toBe(true);
   });
 
-  it('returns false when characteristics are met but skills are not', () => {
+  it('returns false when characteristics have only 4 advances (need 5 for level 1)', () => {
+    const char = makeTestCharacter();
+    char.chars.WS.a = 4;
+    char.chars.T.a = 5;
+    char.chars.WP.a = 5;
+    char.bSkills = [
+      { n: 'Athletics', c: 'Ag', a: 5 },
+      { n: 'Climb', c: 'S', a: 5 },
+      { n: 'Cool', c: 'WP', a: 5 },
+      { n: 'Dodge', c: 'Ag', a: 5 },
+      { n: 'Endurance', c: 'T', a: 5 },
+      { n: 'Melee (Basic)', c: 'WS', a: 5 },
+    ];
+    char.aSkills = [
+      { n: 'Language (Battle)', c: 'Int', a: 5 },
+      { n: 'Play (Drum or Fife)', c: 'Dex', a: 5 },
+    ];
+    char.talents = [{ n: 'Marksman', lvl: 1, desc: '' }];
+    expect(isCareerLevelComplete(char, 'Soldier', 1)).toBe(false);
+  });
+
+  it('returns false when characteristics are met but no skills are advanced', () => {
     const char = makeTestCharacter();
     char.chars.WS.a = 5;
     char.chars.T.a = 5;
     char.chars.WP.a = 5;
-    // No skills advanced
+    char.talents = [{ n: 'Marksman', lvl: 1, desc: '' }];
+    expect(isCareerLevelComplete(char, 'Soldier', 1)).toBe(false);
+  });
+
+  it('returns false when characteristics and skills are met but no talent owned', () => {
+    const char = makeTestCharacter();
+    char.chars.WS.a = 5;
+    char.chars.T.a = 5;
+    char.chars.WP.a = 5;
+    char.bSkills = [
+      { n: 'Athletics', c: 'Ag', a: 5 },
+      { n: 'Climb', c: 'S', a: 5 },
+      { n: 'Cool', c: 'WP', a: 5 },
+      { n: 'Dodge', c: 'Ag', a: 5 },
+      { n: 'Endurance', c: 'T', a: 5 },
+      { n: 'Melee (Basic)', c: 'WS', a: 5 },
+    ];
+    char.aSkills = [
+      { n: 'Language (Battle)', c: 'Int', a: 5 },
+      { n: 'Play (Drum or Fife)', c: 'Dex', a: 5 },
+    ];
+    char.talents = [];
     expect(isCareerLevelComplete(char, 'Soldier', 1)).toBe(false);
   });
 
@@ -330,16 +374,52 @@ describe('isCareerLevelComplete — Property 16', () => {
     expect(isCareerLevelComplete(char, 'Soldier', 5)).toBe(false);
   });
 
-  it('supports custom threshold for required skill count', () => {
+  it('level 2 requires 10 advances in characteristics and skills', () => {
     const char = makeTestCharacter();
-    char.chars.WS.a = 1;
-    char.chars.T.a = 1;
-    char.chars.WP.a = 1;
+    // Soldier level 2 adds BS characteristic
+    char.chars.WS.a = 10;
+    char.chars.BS.a = 10;
+    char.chars.T.a = 10;
+    char.chars.WP.a = 10;
     char.bSkills = [
-      { n: 'Athletics', c: 'Ag', a: 1 },
-      { n: 'Cool', c: 'WP', a: 1 },
+      { n: 'Athletics', c: 'Ag', a: 10 },
+      { n: 'Climb', c: 'S', a: 10 },
+      { n: 'Cool', c: 'WP', a: 10 },
+      { n: 'Dodge', c: 'Ag', a: 10 },
+      { n: 'Endurance', c: 'T', a: 10 },
+      { n: 'Melee (Basic)', c: 'WS', a: 10 },
+      { n: 'Consume Alcohol', c: 'T', a: 10 },
+      { n: 'Gamble', c: 'Int', a: 10 },
     ];
-    // Only 2 skills meet threshold, but require only 2
-    expect(isCareerLevelComplete(char, 'Soldier', 1, 1, 1, 2)).toBe(true);
+    char.talents = [{ n: 'Drilled', lvl: 1, desc: '' }];
+    expect(isCareerLevelComplete(char, 'Soldier', 2)).toBe(true);
+  });
+});
+
+describe('careerSkillMatches — grouped skill matching', () => {
+  it('exact match', () => {
+    expect(careerSkillMatches('Athletics', 'Athletics')).toBe(true);
+    expect(careerSkillMatches('Melee (Basic)', 'Melee (Basic)')).toBe(true);
+  });
+
+  it('"(Any)" matches any specialisation', () => {
+    expect(careerSkillMatches('Melee (Any)', 'Melee (Basic)')).toBe(true);
+    expect(careerSkillMatches('Melee (Any)', 'Melee (Two-Handed)')).toBe(true);
+    expect(careerSkillMatches('Ranged (Any)', 'Ranged (Bow)')).toBe(true);
+  });
+
+  it('"(Any)" does not match unrelated skills', () => {
+    expect(careerSkillMatches('Melee (Any)', 'Ranged (Bow)')).toBe(false);
+    expect(careerSkillMatches('Melee (Any)', 'Athletics')).toBe(false);
+  });
+
+  it('ungrouped career skill matches specialised character skill', () => {
+    expect(careerSkillMatches('Stealth', 'Stealth (Urban)')).toBe(true);
+    expect(careerSkillMatches('Lore', 'Lore (Warfare)')).toBe(true);
+  });
+
+  it('does not match unrelated skills', () => {
+    expect(careerSkillMatches('Athletics', 'Climb')).toBe(false);
+    expect(careerSkillMatches('Melee (Basic)', 'Melee (Two-Handed)')).toBe(false);
   });
 });

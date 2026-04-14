@@ -1,4 +1,5 @@
 import type { CharacteristicKey, CharacteristicValue, ArmourItem, ArmourPoints } from '../types/character';
+import { getRuneAPBonus } from './runes';
 
 /**
  * Returns the bonus (tens digit) for a characteristic value.
@@ -80,10 +81,11 @@ export function calculateArmourPoints(armourList: ArmourItem[]): ArmourPoints {
     for (const armour of armourList) {
       const coveredLocations = parseLocations(armour.locations);
       if (coveredLocations.includes(loc)) {
+        const effectiveAP = armour.ap + getRuneAPBonus(armour.runes ?? []);
         if (isFlexible(armour)) {
-          highestFlexible = Math.max(highestFlexible, armour.ap);
+          highestFlexible = Math.max(highestFlexible, effectiveAP);
         } else {
-          highestNonFlexible = Math.max(highestNonFlexible, armour.ap);
+          highestNonFlexible = Math.max(highestNonFlexible, effectiveAP);
         }
       }
     }

@@ -56,6 +56,9 @@ function backfillCharacter(char: Character): Character {
     // Remove legacy empty placeholder slots (from old BLANK_CHARACTER)
     patched.aSkills = patched.aSkills.filter(s => s.n !== '');
   }
+  if (!patched.endeavours) {
+    patched.endeavours = [];
+  }
   // Always sync talent bonuses on load to ensure .b values are correct
   patched = syncTalentBonuses(patched);
   return patched;

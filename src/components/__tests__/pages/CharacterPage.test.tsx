@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { CharacterPage } from '../../pages/CharacterPage';
 import { BLANK_CHARACTER } from '../../../types/character';
 import type { Character, ArmourPoints } from '../../../types/character';
@@ -197,5 +198,99 @@ describe('CharacterPage', () => {
       // Bonus column shows talent bonus (0 = "—" for no talent)
     });
 
+  });
+});
+
+
+// ─── Skill Tooltip Tests (Task 8.2) ─────────────────────────────────────────
+
+describe('Skill tooltips', () => {
+  function renderCharPage(overrides: Partial<Character> = {}) {
+    const char = makeCharacter(overrides);
+    return render(
+      <CharacterPage
+        character={char}
+        update={vi.fn()}
+        updateCharacter={vi.fn()}
+        totalWounds={10}
+        armourPoints={defaultAP}
+        maxEncumbrance={5}
+        coinWeight={0}
+      />
+    );
+  }
+
+  it('clicking a basic skill name opens a tooltip with role="tooltip"', () => {
+    renderCharPage();
+    // "Athletics" is a basic skill with a known description
+    const athleticsBtn = screen.getByRole('button', { name: 'Athletics' });
+    fireEvent.click(athleticsBtn);
+
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toBeInTheDocument();
+    expect(tooltip).toHaveTextContent('Athletics');
+    expect(tooltip).toHaveTextContent('Description');
+  });
+
+  it('clicking a different skill closes the first tooltip and opens a new one', () => {
+    renderCharPage();
+    // Open tooltip for Athletics
+    fireEvent.click(screen.getByRole('button', { name: 'Athletics' }));
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Athletics');
+
+    // Click a different skill — Dodge
+    fireEvent.click(screen.getByRole('button', { name: 'Dodge' }));
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toHaveTextContent('Dodge');
+    // Only one tooltip should be visible
+    expect(screen.getAllByRole('tooltip')).toHaveLength(1);
+  });
+
+  it('pressing Escape dismisses the skill tooltip', () => {
+    renderCharPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Athletics' }));
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+});
+
+// ─── Talent Tooltip Tests (Task 8.3) ────────────────────────────────────────
+
+describe('Talent tooltips', () => {
+  function renderCharPageWithTalent() {
+    const char = makeCharacter({
+      talents: [
+        { n: 'Hardy', lvl: 2, desc: '' },
+      ],
+    });
+    return render(
+      <CharacterPage
+        character={char}
+        update={vi.fn()}
+        updateCharacter={vi.fn()}
+        totalWounds={10}
+        armourPoints={defaultAP}
+        maxEncumbrance={5}
+        coinWeight={0}
+      />
+    );
+  }
+
+  it('clicking the talent info button opens a tooltip with description and max level', () => {
+    renderCharPageWithTalent();
+    const infoBtn = screen.getByRole('button', { name: 'Info for Hardy' });
+    fireEvent.click(infoBtn);
+
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toBeInTheDocument();
+    expect(tooltip).toHaveTextContent('Hardy');
+    expect(tooltip).toHaveTextContent('Description');
+    // Hardy's DB description
+    expect(tooltip).toHaveTextContent('+TB Wounds permanently per level');
+    // Max field
+    expect(tooltip).toHaveTextContent('Max');
+    expect(tooltip).toHaveTextContent('T Bonus');
   });
 });
