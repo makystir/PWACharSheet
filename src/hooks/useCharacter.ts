@@ -68,11 +68,32 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
   const [character, setCharacter] = useState<Character>(() => backfillCharacter(initialCharacter));
   const characterIdRef = useRef(characterId);
 
+  // Track whether a reset is in progress to avoid spurious auto-saves
+  const isResettingRef = useRef(false);
+
   // Reset state when characterId or initialCharacter changes
   useEffect(() => {
     characterIdRef.current = characterId;
+    isResettingRef.current = true;
     setCharacter(backfillCharacter(initialCharacter));
   }, [characterId, initialCharacter]);
+
+  // Ref that always holds the most recent character state (for synchronous access in event handlers)
+  const latestCharRef = useRef(character);
+  useEffect(() => {
+    latestCharRef.current = character;
+  }, [character]);
+
+  // Tracks whether a debounced save is pending
+  const pendingRef = useRef(false);
+
+  // Flush any pending debounced save immediately (reused by beforeunload, visibilitychange, cleanup)
+  const flushSave = useCallback(() => {
+    if (pendingRef.current) {
+      saveCharacter(characterIdRef.current, latestCharRef.current);
+      pendingRef.current = false;
+    }
+  }, []);
 
   // Auto-save debounced 500ms
   const isFirstRender = useRef(true);
@@ -82,12 +103,41 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
       return;
     }
 
+    // Skip auto-save when character was reset from props (not a user edit)
+    if (isResettingRef.current) {
+      isResettingRef.current = false;
+      return;
+    }
+
+    pendingRef.current = true;
     const timer = setTimeout(() => {
-      saveCharacter(characterIdRef.current, character);
+      if (pendingRef.current) {
+        saveCharacter(characterIdRef.current, character);
+        pendingRef.current = false;
+      }
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      flushSave();
+    };
   }, [character]);
+
+  // Flush pending save when the browser tab is closed, page is reloaded, or app is backgrounded
+  useEffect(() => {
+    const handleBeforeUnload = () => flushSave();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushSave();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [flushSave]);
 
   const update = useCallback((field: string, value: unknown) => {
     setCharacter((prev) => {

@@ -90,6 +90,11 @@ function AppContent() {
           saveCharacter(manager.createCharacter(character.name), character);
           manager.refresh();
         }}
+        onImportCharacter={(character) => {
+          const id = manager.createCharacter(character.name);
+          saveCharacter(id, character);
+          manager.refresh();
+        }}
       />
     );
   }

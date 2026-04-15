@@ -1,8 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { WelcomeScreen } from '../shared/WelcomeScreen';
+import { importFromJSON } from '../../storage/export-import';
+
+vi.mock('../../storage/export-import', () => ({
+  importFromJSON: vi.fn(),
+}));
+
+const mockedImportFromJSON = vi.mocked(importFromJSON);
 
 // Mock CharacterWizard to avoid rendering the full wizard in tests
 vi.mock('../shared/CharacterWizard', () => ({
@@ -17,7 +24,12 @@ vi.mock('../shared/CharacterWizard', () => ({
 const defaultProps = {
   onCreateCharacter: vi.fn(),
   onWizardComplete: vi.fn(),
+  onImportCharacter: vi.fn(),
 };
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 function renderWelcome(overrides = {}) {
   const props = { ...defaultProps, ...overrides };
@@ -158,5 +170,138 @@ describe('Keyboard accessibility', () => {
     renderWelcome();
     fireEvent.click(screen.getByRole('button', { name: /quick start/i }));
     expect(screen.getByPlaceholderText(/character name/i)).toHaveFocus();
+  });
+});
+
+// ─── Helper: simulate file selection on hidden input ─────────────────────────
+
+function createFile(content: string, name = 'character.json') {
+  return new File([content], name, { type: 'application/json' });
+}
+
+function getHiddenFileInput(): HTMLInputElement {
+  // The hidden file input is the only input[type="file"] in the DOM
+  const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+  if (!input) throw new Error('Hidden file input not found');
+  return input;
+}
+
+// ─── Import from File Tests (Task 3) ────────────────────────────────────────
+
+describe('Import from File', () => {
+  // 3.1 "Import from File" button renders in initial view alongside existing buttons
+  it('renders "Import from File" button alongside existing buttons', () => {
+    renderWelcome();
+    expect(screen.getByRole('button', { name: /import from file/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create with wizard/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /quick start/i })).toBeInTheDocument();
+  });
+
+  // 3.2 clicking import button triggers the hidden file input
+  it('clicking import button triggers the hidden file input click', () => {
+    renderWelcome();
+    const fileInput = getHiddenFileInput();
+    const clickSpy = vi.spyOn(fileInput, 'click');
+
+    fireEvent.click(screen.getByRole('button', { name: /import from file/i }));
+    expect(clickSpy).toHaveBeenCalled();
+
+    clickSpy.mockRestore();
+  });
+
+  // 3.3 successful file import calls onImportCharacter with parsed character
+  it('successful file import calls onImportCharacter with parsed character', async () => {
+    const mockCharacter = { name: 'Imported Hero', species: 'Human', _v: 6, chars: {} };
+    mockedImportFromJSON.mockReturnValue({ success: true, character: mockCharacter as any });
+
+    const onImportCharacter = vi.fn();
+    renderWelcome({ onImportCharacter });
+
+    const fileInput = getHiddenFileInput();
+    const file = createFile(JSON.stringify(mockCharacter));
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(onImportCharacter).toHaveBeenCalledWith(mockCharacter);
+    });
+    expect(mockedImportFromJSON).toHaveBeenCalled();
+  });
+
+  // 3.4 failed file import displays error message with role="alert"
+  it('failed file import displays error message with role="alert"', async () => {
+    mockedImportFromJSON.mockReturnValue({ success: false, error: 'Missing required field: "name".' });
+
+    renderWelcome();
+
+    const fileInput = getHiddenFileInput();
+    const file = createFile('{"bad": "data"}');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      const alert = screen.getByRole('alert');
+      expect(alert).toBeInTheDocument();
+      expect(alert).toHaveTextContent('Missing required field: "name".');
+    });
+  });
+
+  // 3.5 error clears when import is retried
+  it('error clears when import is retried', async () => {
+    // First import fails
+    mockedImportFromJSON.mockReturnValue({ success: false, error: 'Invalid JSON: failed to parse.' });
+    renderWelcome();
+
+    const fileInput = getHiddenFileInput();
+    fireEvent.change(fileInput, { target: { files: [createFile('not json')] } });
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    // Second import succeeds — error should clear
+    const mockCharacter = { name: 'Retry Hero', species: 'Dwarf', _v: 6, chars: {} };
+    mockedImportFromJSON.mockReturnValue({ success: true, character: mockCharacter as any });
+
+    fireEvent.change(fileInput, { target: { files: [createFile(JSON.stringify(mockCharacter))] } });
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+  });
+
+  // 3.6 all three buttons remain visible after an import error
+  it('all three buttons remain visible after an import error', async () => {
+    mockedImportFromJSON.mockReturnValue({ success: false, error: 'Invalid data: expected a JSON object.' });
+
+    renderWelcome();
+
+    const fileInput = getHiddenFileInput();
+    fireEvent.change(fileInput, { target: { files: [createFile('[]')] } });
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('button', { name: /create with wizard/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /quick start/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /import from file/i })).toBeInTheDocument();
+  });
+
+  // 3.7 import button is reachable via keyboard tab navigation
+  it('import button is reachable via keyboard tab navigation', async () => {
+    renderWelcome();
+    const user = userEvent.setup();
+
+    // "Create with Wizard" receives auto-focus on mount
+    expect(screen.getByRole('button', { name: /create with wizard/i })).toHaveFocus();
+
+    // Tab to "Quick Start"
+    await user.tab();
+    expect(screen.getByRole('button', { name: /quick start/i })).toHaveFocus();
+
+    // Tab to "Import from File"
+    await user.tab();
+    expect(screen.getByRole('button', { name: /import from file/i })).toHaveFocus();
   });
 });

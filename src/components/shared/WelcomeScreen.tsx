@@ -1,19 +1,41 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Character } from '../../types/character';
 import { CharacterWizard } from './CharacterWizard';
+import { importFromJSON } from '../../storage/export-import';
 
 export interface WelcomeScreenProps {
   onCreateCharacter: (name: string) => void;
   onWizardComplete: (character: Character) => void;
+  onImportCharacter: (character: Character) => void;
 }
 
 export type WelcomeScreenMode = 'initial' | 'wizard' | 'quick-start';
 
-export function WelcomeScreen({ onCreateCharacter, onWizardComplete }: WelcomeScreenProps) {
+export function WelcomeScreen({ onCreateCharacter, onWizardComplete, onImportCharacter }: WelcomeScreenProps) {
   const [mode, setMode] = useState<WelcomeScreenMode>('initial');
   const [name, setName] = useState('');
+  const [importError, setImportError] = useState('');
   const wizardBtnRef = useRef<HTMLButtonElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImportError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const result = importFromJSON(text);
+      if (result.success && result.character) {
+        onImportCharacter(result.character);
+      } else {
+        setImportError(result.error || 'Import failed.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
 
   useEffect(() => {
     if (mode === 'initial' && wizardBtnRef.current) {
@@ -208,6 +230,49 @@ export function WelcomeScreen({ onCreateCharacter, onWizardComplete }: WelcomeSc
         >
           Quick Start
         </button>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            width: '100%',
+            padding: '12px',
+            background: 'var(--bg-secondary)',
+            color: 'var(--parchment)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '14px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            marginTop: '10px',
+            fontFamily: 'var(--font-heading)',
+          }}
+        >
+          Import from File
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleFileImport}
+          style={{ display: 'none' }}
+        />
+        {importError && (
+          <div
+            role="alert"
+            style={{
+              marginTop: '12px',
+              padding: '10px 12px',
+              color: 'var(--danger)',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--danger)',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '13px',
+              textAlign: 'left',
+            }}
+          >
+            {importError}
+          </div>
+        )}
       </div>
     </div>
   );

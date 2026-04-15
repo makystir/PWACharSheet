@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { User, Swords, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { CharacterSummary } from '../../types/character';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
 
 export type PageSection = 'character' | 'combat' | 'estate' | 'endeavours' | 'advancement' | 'settings';
 
@@ -92,6 +93,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState('');
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -159,7 +161,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
                       </button>
                       <button type="button" onClick={() => { setRenameId(c.id); setRenameName(c.name); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Rename">✎</button>
                       <button type="button" onClick={() => onDuplicateCharacter?.(c.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Duplicate">⧉</button>
-                      {!isActive && <button type="button" onClick={() => onDeleteCharacter?.(c.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Delete">✕</button>}
+                      {!isActive && <button type="button" onClick={() => setPendingDeleteId(c.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Delete">✕</button>}
                     </div>
                   );
                 })}
@@ -186,6 +188,22 @@ export function Navigation({ activePage, onPageChange, characterName, characters
           );
         })}
       </nav>
+
+      {pendingDeleteId && (() => {
+        const charToDelete = characters?.find(c => c.id === pendingDeleteId);
+        return (
+          <ConfirmDialog
+            message={`Delete "${charToDelete?.name || 'this character'}"? This cannot be undone.`}
+            confirmLabel="Delete"
+            cancelLabel="Cancel"
+            onConfirm={() => {
+              onDeleteCharacter?.(pendingDeleteId);
+              setPendingDeleteId(null);
+            }}
+            onCancel={() => setPendingDeleteId(null)}
+          />
+        );
+      })()}
 
       {/* Inline responsive styles */}
       <style>{`
