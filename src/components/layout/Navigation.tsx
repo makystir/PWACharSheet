@@ -161,7 +161,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
                       </button>
                       <button type="button" onClick={() => { setRenameId(c.id); setRenameName(c.name); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Rename">✎</button>
                       <button type="button" onClick={() => onDuplicateCharacter?.(c.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Duplicate">⧉</button>
-                      {!isActive && <button type="button" onClick={() => setPendingDeleteId(c.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Delete">✕</button>}
+                      <button type="button" onClick={() => setPendingDeleteId(c.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }} title="Delete">✕</button>
                     </div>
                   );
                 })}

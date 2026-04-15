@@ -130,15 +130,12 @@ export function duplicateCharacter(id: string): string {
 
 export function deleteCharacter(id: string): boolean {
   const index = getCharacterIndex();
-  if (index.characters.length <= 1) {
-    return false;
-  }
-
   index.characters = index.characters.filter((c) => c.id !== id);
   removeItem(charKey(id));
 
-  // If we deleted the active character, switch to the first remaining
-  if (index.activeId === id) {
+  if (index.characters.length === 0) {
+    index.activeId = '';
+  } else if (index.activeId === id) {
     index.activeId = index.characters[0].id;
   }
   saveCharacterIndex(index);

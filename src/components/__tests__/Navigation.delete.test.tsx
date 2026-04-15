@@ -25,7 +25,7 @@ function openSwitcher() {
 
 describe('Navigation delete confirmation', () => {
   // **Validates: Requirements 1.1**
-  it('shows delete button for non-active characters when multiple characters exist', () => {
+  it('shows delete button for all characters when multiple characters exist', () => {
     render(
       <Navigation
         activePage="character"
@@ -38,13 +38,13 @@ describe('Navigation delete confirmation', () => {
     );
     openSwitcher();
 
-    // charB and charC are non-active — each should have a Delete button
+    // All three characters should have a Delete button, including the active one
     const deleteButtons = screen.getAllByTitle('Delete');
-    expect(deleteButtons).toHaveLength(2);
+    expect(deleteButtons).toHaveLength(3);
   });
 
-  // **Validates: Requirements 1.1, 3.1**
-  it('hides delete button for the active character', () => {
+  // **Validates: Requirements 1.1**
+  it('shows delete button for the active character', () => {
     render(
       <Navigation
         activePage="character"
@@ -57,13 +57,13 @@ describe('Navigation delete confirmation', () => {
     );
     openSwitcher();
 
-    // Only one delete button should exist (for charB, the non-active one)
+    // Both characters should have a Delete button, including the active one
     const deleteButtons = screen.getAllByTitle('Delete');
-    expect(deleteButtons).toHaveLength(1);
+    expect(deleteButtons).toHaveLength(2);
   });
 
-  // **Validates: Requirements 1.2**
-  it('hides delete button when only one character exists', () => {
+  // **Validates: Requirements 1.1, 1.2**
+  it('shows delete button when only one character exists', () => {
     render(
       <Navigation
         activePage="character"
@@ -76,7 +76,8 @@ describe('Navigation delete confirmation', () => {
     );
     openSwitcher();
 
-    expect(screen.queryByTitle('Delete')).not.toBeInTheDocument();
+    const deleteButtons = screen.getAllByTitle('Delete');
+    expect(deleteButtons).toHaveLength(1);
   });
 
   // **Validates: Requirements 2.1**
@@ -93,12 +94,36 @@ describe('Navigation delete confirmation', () => {
     );
     openSwitcher();
 
-    // Click the delete button for charB (the only non-active character)
-    fireEvent.click(screen.getByTitle('Delete'));
+    // Click the delete button for charA (the active character, listed first)
+    const deleteButtons = screen.getAllByTitle('Delete');
+    fireEvent.click(deleteButtons[1]); // charB's delete button
 
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
     expect(dialog).toHaveTextContent('Delete "Gottfried"? This cannot be undone.');
+  });
+
+  // **Validates: Requirements 2.1**
+  it('clicking delete on the active character opens ConfirmDialog with the active character name', () => {
+    render(
+      <Navigation
+        activePage="character"
+        onPageChange={vi.fn()}
+        characterName="Brunhilde"
+        characters={[charA, charB]}
+        activeId="a"
+        onDeleteCharacter={vi.fn()}
+      />,
+    );
+    openSwitcher();
+
+    // Click the delete button for charA (the active character)
+    const deleteButtons = screen.getAllByTitle('Delete');
+    fireEvent.click(deleteButtons[0]);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveTextContent('Delete "Brunhilde"? This cannot be undone.');
   });
 
   // **Validates: Requirements 2.2**
@@ -116,11 +141,39 @@ describe('Navigation delete confirmation', () => {
     );
     openSwitcher();
 
-    fireEvent.click(screen.getByTitle('Delete'));
+    const deleteButtons = screen.getAllByTitle('Delete');
+    fireEvent.click(deleteButtons[1]); // charB's delete button
     // Confirm the deletion
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(onDelete).toHaveBeenCalledWith('b');
+    expect(onDelete).toHaveBeenCalledTimes(1);
+    // Dialog should be dismissed
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  // **Validates: Requirements 2.2**
+  it('confirming deletion of the active character calls onDeleteCharacter with the active character ID', () => {
+    const onDelete = vi.fn();
+    render(
+      <Navigation
+        activePage="character"
+        onPageChange={vi.fn()}
+        characterName="Brunhilde"
+        characters={[charA, charB]}
+        activeId="a"
+        onDeleteCharacter={onDelete}
+      />,
+    );
+    openSwitcher();
+
+    // Click the delete button for charA (the active character)
+    const deleteButtons = screen.getAllByTitle('Delete');
+    fireEvent.click(deleteButtons[0]);
+    // Confirm the deletion
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(onDelete).toHaveBeenCalledWith('a');
     expect(onDelete).toHaveBeenCalledTimes(1);
     // Dialog should be dismissed
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -141,7 +194,8 @@ describe('Navigation delete confirmation', () => {
     );
     openSwitcher();
 
-    fireEvent.click(screen.getByTitle('Delete'));
+    const deleteButtons = screen.getAllByTitle('Delete');
+    fireEvent.click(deleteButtons[0]);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     // Cancel the deletion

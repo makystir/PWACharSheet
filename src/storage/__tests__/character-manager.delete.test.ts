@@ -111,33 +111,43 @@ describe('deleteCharacter — active character', () => {
   });
 });
 
+/**
+ * Validates: Requirements 4.1, 5.3
+ */
 describe('deleteCharacter — last remaining character', () => {
-  it('returns false and does not delete', () => {
+  it('returns true and deletes the character', () => {
     const id = createCharacter('Only One');
 
     const result = deleteCharacter(id);
 
-    expect(result).toBe(false);
+    expect(result).toBe(true);
   });
 
-  it('leaves the index intact', () => {
+  it('sets activeId to empty string and empties the characters array', () => {
     const id = createCharacter('Only One');
 
     deleteCharacter(id);
 
     const index = getCharacterIndex();
-    expect(index.characters).toHaveLength(1);
-    expect(index.characters[0].id).toBe(id);
-    expect(index.activeId).toBe(id);
+    expect(index.characters).toHaveLength(0);
+    expect(index.activeId).toBe('');
   });
 
-  it('leaves the character data in localStorage', () => {
+  it('removes the character data from localStorage', () => {
     const id = createCharacter('Only One');
 
     deleteCharacter(id);
 
-    expect(store.has(`wfrp4e-char-${id}`)).toBe(true);
-    expect(loadCharacter(id)).not.toBeNull();
+    expect(store.has(`wfrp4e-char-${id}`)).toBe(false);
+    expect(loadCharacter(id)).toBeNull();
+  });
+
+  it('listCharacters returns an empty array after last-character deletion', () => {
+    const id = createCharacter('Only One');
+
+    deleteCharacter(id);
+
+    expect(listCharacters()).toEqual([]);
   });
 });
 

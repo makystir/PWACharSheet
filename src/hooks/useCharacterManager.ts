@@ -84,9 +84,8 @@ export function useCharacterManager(): UseCharacterManagerResult {
       setCharacters(listCharacters());
       const newActiveId = getActiveCharacterId();
       setActiveId(newActiveId);
-      // If we deleted the active character, load the new active one
-      if (id === activeId) {
-        const loaded = loadCharacter(newActiveId);
+      if (id === activeId || !newActiveId) {
+        const loaded = newActiveId ? loadCharacter(newActiveId) : null;
         setActiveCharacter_(loaded);
       }
     }
