@@ -1,109 +1,12 @@
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
 import type { OvercastOption } from '../../logic/spell-casting';
+import styles from './OvercastAllocator.module.css';
 
 interface OvercastAllocatorProps {
   options: OvercastOption[];
   availableSlots: number;
   onAllocate: (allocations: Record<string, number>) => void;
 }
-
-const headerStyle: CSSProperties = {
-  color: 'var(--accent-gold)',
-  fontSize: '13px',
-  fontWeight: 700,
-  fontFamily: "'Cinzel', serif",
-  margin: 0,
-  textAlign: 'center',
-};
-
-const rowStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '4px 0',
-};
-
-const labelStyle: CSSProperties = {
-  fontSize: '12px',
-  color: 'var(--text-primary)',
-  fontWeight: 600,
-  minWidth: '80px',
-};
-
-const disabledLabelStyle: CSSProperties = {
-  ...labelStyle,
-  color: 'var(--text-muted)',
-};
-
-const baseValueStyle: CSSProperties = {
-  fontSize: '11px',
-  color: 'var(--text-secondary)',
-  marginLeft: '4px',
-};
-
-const controlsStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-};
-
-const stepBtn: CSSProperties = {
-  width: '24px',
-  height: '24px',
-  padding: 0,
-  background: 'var(--bg-tertiary)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--text-primary)',
-  cursor: 'pointer',
-  fontSize: '14px',
-  fontWeight: 700,
-  lineHeight: 1,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const stepBtnDisabled: CSSProperties = {
-  ...stepBtn,
-  opacity: 0.3,
-  cursor: 'default',
-};
-
-const countStyle: CSSProperties = {
-  fontSize: '13px',
-  fontWeight: 700,
-  color: 'var(--text-primary)',
-  minWidth: '16px',
-  textAlign: 'center',
-};
-
-const totalStyle: CSSProperties = {
-  fontSize: '12px',
-  color: 'var(--text-secondary)',
-  textAlign: 'center',
-  marginTop: '4px',
-};
-
-const confirmBtn: CSSProperties = {
-  padding: '6px 16px',
-  background: 'var(--accent-gold)',
-  border: 'none',
-  borderRadius: 'var(--radius-sm)',
-  color: '#000',
-  cursor: 'pointer',
-  fontSize: '12px',
-  fontWeight: 600,
-  marginTop: '4px',
-  alignSelf: 'center',
-};
-
-const naStyle: CSSProperties = {
-  fontSize: '11px',
-  color: 'var(--text-muted)',
-  fontStyle: 'italic',
-};
 
 export function OvercastAllocator({ options, availableSlots, onAllocate }: OvercastAllocatorProps) {
   const initialAllocations: Record<string, number> = {};
@@ -128,33 +31,33 @@ export function OvercastAllocator({ options, availableSlots, onAllocate }: Overc
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <div style={headerStyle}>
+    <div className={styles.container}>
+      <div className={styles.header}>
         Overcasting ({availableSlots} slot{availableSlots !== 1 ? 's' : ''})
       </div>
 
       {options.map((opt) => (
-        <div key={opt.category} style={rowStyle}>
+        <div key={opt.category} className={styles.row}>
           {opt.enabled ? (
             <>
               <div>
-                <span style={labelStyle}>{opt.label}</span>
-                <span style={baseValueStyle}>({opt.baseValue})</span>
+                <span className={styles.label}>{opt.label}</span>
+                <span className={styles.baseValue}>({opt.baseValue})</span>
               </div>
-              <div style={controlsStyle}>
+              <div className={styles.controls}>
                 <button
                   type="button"
-                  style={(allocations[opt.category] ?? 0) <= 0 ? stepBtnDisabled : stepBtn}
+                  className={(allocations[opt.category] ?? 0) <= 0 ? styles.stepBtnDisabled : styles.stepBtn}
                   disabled={(allocations[opt.category] ?? 0) <= 0}
                   onClick={() => decrement(opt.category)}
                   aria-label={`Decrease ${opt.label}`}
                 >
                   −
                 </button>
-                <span style={countStyle}>{allocations[opt.category] ?? 0}</span>
+                <span className={styles.count}>{allocations[opt.category] ?? 0}</span>
                 <button
                   type="button"
-                  style={totalAllocated >= availableSlots ? stepBtnDisabled : stepBtn}
+                  className={totalAllocated >= availableSlots ? styles.stepBtnDisabled : styles.stepBtn}
                   disabled={totalAllocated >= availableSlots}
                   onClick={() => increment(opt.category)}
                   aria-label={`Increase ${opt.label}`}
@@ -165,20 +68,20 @@ export function OvercastAllocator({ options, availableSlots, onAllocate }: Overc
             </>
           ) : (
             <div>
-              <span style={disabledLabelStyle}>{opt.label}: </span>
-              <span style={naStyle}>N/A ({opt.baseValue})</span>
+              <span className={styles.disabledLabel}>{opt.label}: </span>
+              <span className={styles.naText}>N/A ({opt.baseValue})</span>
             </div>
           )}
         </div>
       ))}
 
-      <div style={totalStyle}>
+      <div className={styles.total}>
         Allocated: {totalAllocated} / {availableSlots}
       </div>
 
       <button
         type="button"
-        style={confirmBtn}
+        className={styles.confirmBtn}
         onClick={() => onAllocate(allocations)}
       >
         Confirm

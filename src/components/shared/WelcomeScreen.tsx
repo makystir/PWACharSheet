@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { Character } from '../../types/character';
 import { CharacterWizard } from './CharacterWizard';
 import { importFromJSON } from '../../storage/export-import';
+import styles from './WelcomeScreen.module.css';
 
 export interface WelcomeScreenProps {
   onCreateCharacter: (name: string) => void;
@@ -71,28 +72,9 @@ export function WelcomeScreen({ onCreateCharacter, onWizardComplete, onImportCha
     };
 
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: 'var(--bg-primary)',
-      }}>
-        <div style={{
-          background: 'var(--card-bg)',
-          border: '1px solid var(--card-border)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '32px',
-          textAlign: 'center',
-          maxWidth: '440px',
-          width: '90%',
-        }}>
-          <h2 style={{
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--parchment)',
-            fontSize: '20px',
-            marginBottom: '16px',
-          }}>
+      <div className={styles.centerScreen}>
+        <div className={styles.panel}>
+          <h2 className={styles.headingSmall}>
             Enter Character Name
           </h2>
           <input
@@ -102,54 +84,20 @@ export function WelcomeScreen({ onCreateCharacter, onWizardComplete, onImportCha
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--text-primary)',
-              fontSize: '14px',
-              marginBottom: '12px',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
+            className={styles.nameInput}
           />
           <button
             type="button"
             onClick={handleSubmit}
             disabled={!isValid}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: isValid ? 'var(--accent-gold)' : 'var(--border)',
-              color: isValid ? 'var(--bg-primary)' : 'var(--text-muted)',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: isValid ? 'pointer' : 'default',
-              marginBottom: '10px',
-              fontFamily: 'var(--font-heading)',
-            }}
+            className={isValid ? styles.primaryBtn : styles.primaryBtnDisabled}
           >
             Create Character
           </button>
           <button
             type="button"
             onClick={handleBack}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: 'var(--bg-secondary)',
-              color: 'var(--parchment)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'var(--font-heading)',
-            }}
+            className={styles.secondaryBtn}
           >
             Back
           </button>
@@ -160,92 +108,33 @@ export function WelcomeScreen({ onCreateCharacter, onWizardComplete, onImportCha
 
   // initial mode
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100vh',
-      background: 'var(--bg-primary)',
-    }}>
-      <div style={{
-        background: 'var(--card-bg)',
-        border: '1px solid var(--card-border)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '32px',
-        textAlign: 'center',
-        maxWidth: '440px',
-        width: '90%',
-      }}>
-        <h1 style={{
-          fontFamily: 'var(--font-heading)',
-          color: 'var(--parchment)',
-          fontSize: '24px',
-          marginBottom: '8px',
-        }}>
+    <div className={styles.centerScreen}>
+      <div className={styles.panel}>
+        <h1 className={styles.heading}>
           WFRP 4e Character Sheet
         </h1>
-        <p style={{
-          color: 'var(--text-secondary)',
-          marginBottom: '24px',
-          fontSize: '14px',
-          lineHeight: '1.5',
-        }}>
+        <p className={styles.subtitle}>
           Create a character using the guided wizard, or quick-start with just a name.
         </p>
         <button
           ref={wizardBtnRef}
           type="button"
           onClick={() => setMode('wizard')}
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: 'var(--accent-gold)',
-            color: 'var(--bg-primary)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            marginBottom: '10px',
-            fontFamily: 'var(--font-heading)',
-          }}
+          className={styles.primaryBtn}
         >
           Create with Wizard
         </button>
         <button
           type="button"
           onClick={() => setMode('quick-start')}
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: 'var(--bg-secondary)',
-            color: 'var(--parchment)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: 'var(--font-heading)',
-          }}
+          className={styles.secondaryBtn}
         >
           Quick Start
         </button>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: 'var(--bg-secondary)',
-            color: 'var(--parchment)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            marginTop: '10px',
-            fontFamily: 'var(--font-heading)',
-          }}
+          className={styles.importBtn}
         >
           Import from File
         </button>
@@ -259,16 +148,7 @@ export function WelcomeScreen({ onCreateCharacter, onWizardComplete, onImportCha
         {importError && (
           <div
             role="alert"
-            style={{
-              marginTop: '12px',
-              padding: '10px 12px',
-              color: 'var(--danger)',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--danger)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '13px',
-              textAlign: 'left',
-            }}
+            className={styles.importError}
           >
             {importError}
           </div>

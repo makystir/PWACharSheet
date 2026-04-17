@@ -5,6 +5,7 @@ import { SPECIES_DATA, SPECIES_OPTIONS } from '../../data/species';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { TALENT_DB } from '../../data/talents';
 import { getCareersByClass } from '../../logic/careers';
+import styles from './CharacterWizard.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -71,128 +72,6 @@ function getCareersForClassAndSpecies(className: string, species: string): strin
   const excluded = SPECIES_CAREER_EXCLUSIONS[species] || [];
   return all.filter(c => !excluded.includes(c));
 }
-
-// ─── Styles ──────────────────────────────────────────────────────────────────
-
-const overlay: React.CSSProperties = {
-  position: 'fixed', inset: 0, zIndex: 9999,
-  background: 'var(--bg-primary)',
-  display: 'flex', flexDirection: 'column',
-  overflow: 'hidden',
-};
-
-const header: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  padding: '12px 20px',
-  borderBottom: '1px solid var(--border)',
-  background: 'var(--bg-secondary)',
-  flexShrink: 0,
-};
-
-const headerTitle: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--parchment)',
-  letterSpacing: '1px',
-};
-
-const body: React.CSSProperties = {
-  flex: 1, overflow: 'auto', padding: '20px',
-};
-
-const footer: React.CSSProperties = {
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  padding: '12px 20px',
-  borderTop: '1px solid var(--border)',
-  background: 'var(--bg-secondary)',
-  flexShrink: 0,
-};
-
-const btn: React.CSSProperties = {
-  padding: '8px 20px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)',
-  cursor: 'pointer', fontSize: '14px', fontFamily: 'var(--font-body)',
-  background: 'var(--bg-tertiary)', color: 'var(--text-primary)',
-};
-
-const btnPrimary: React.CSSProperties = {
-  ...btn, background: 'var(--accent-gold)', color: 'var(--bg-primary)', fontWeight: 600,
-  border: '1px solid var(--accent-gold-dark)',
-};
-
-const btnDanger: React.CSSProperties = {
-  ...btn, color: 'var(--danger)',
-};
-
-const card: React.CSSProperties = {
-  background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-  borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '16px',
-};
-
-const label: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)', fontSize: '14px', color: 'var(--parchment)',
-  marginBottom: '6px', display: 'block', letterSpacing: '0.5px',
-};
-
-const input: React.CSSProperties = {
-  width: '100%', padding: '8px 12px', background: 'var(--bg-secondary)',
-  border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
-  color: 'var(--text-primary)', fontSize: '14px', fontFamily: 'var(--font-body)',
-  outline: 'none',
-};
-
-const select: React.CSSProperties = {
-  ...input, cursor: 'pointer',
-};
-
-const flavorText: React.CSSProperties = {
-  color: 'var(--text-secondary)', fontSize: '13px', fontStyle: 'italic',
-  lineHeight: 1.5, marginBottom: '12px', padding: '8px 12px',
-  borderLeft: '3px solid var(--accent-gold-dark)', background: 'rgba(200,168,76,0.05)',
-};
-
-const stepIndicator: React.CSSProperties = {
-  display: 'flex', gap: '4px', alignItems: 'center',
-};
-
-const stepDot = (active: boolean, completed: boolean): React.CSSProperties => ({
-  width: '28px', height: '28px', borderRadius: '50%',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontSize: '12px', fontWeight: 600,
-  background: active ? 'var(--accent-gold)' : completed ? 'var(--accent-gold-dark)' : 'var(--bg-tertiary)',
-  color: active || completed ? 'var(--bg-primary)' : 'var(--text-muted)',
-  border: `2px solid ${active ? 'var(--accent-gold)' : completed ? 'var(--accent-gold-dark)' : 'var(--border)'}`,
-  transition: 'all 0.2s',
-});
-
-const tag: React.CSSProperties = {
-  display: 'inline-block', padding: '2px 8px', borderRadius: '10px',
-  fontSize: '12px', background: 'rgba(200,168,76,0.15)', color: 'var(--accent-gold)',
-  marginRight: '4px', marginBottom: '4px',
-};
-
-const xpBadge: React.CSSProperties = {
-  display: 'inline-block', padding: '2px 10px', borderRadius: '10px',
-  fontSize: '12px', fontWeight: 600, background: 'rgba(90,154,90,0.2)',
-  color: 'var(--success)', marginLeft: '8px',
-};
-
-const gridRow: React.CSSProperties = {
-  display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-  gap: '8px', marginBottom: '12px',
-};
-
-const charCell: React.CSSProperties = {
-  background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-sm)', padding: '8px', textAlign: 'center',
-};
-
-const sectionTitle: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)', fontSize: '16px', color: 'var(--parchment)',
-  marginBottom: '12px', letterSpacing: '0.5px',
-};
-
-const subTitle: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)', fontSize: '13px', color: 'var(--parchment-dark)',
-  marginBottom: '8px',
-};
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -530,15 +409,15 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
 
   const renderStep1 = () => (
     <div>
-      <div style={sectionTitle}>Step 1: Name &amp; Species</div>
-      <p style={{ ...flavorText, borderLeft: 'none', padding: '0 0 12px 0', background: 'none' }}>
+      <div className={styles.sectionTitle}>Step 1: Name &amp; Species</div>
+      <p className={styles.flavorTextPlain}>
         Every hero begins with a name and a birthright. Choose wisely — the Old World is unforgiving.
       </p>
 
-      <div style={card}>
-        <label style={label}>Character Name</label>
+      <div className={styles.card}>
+        <label className={styles.label}>Character Name</label>
         <input
-          style={input}
+          className={styles.input}
           type="text"
           placeholder="Enter your character's name..."
           value={charName}
@@ -547,20 +426,20 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
         />
       </div>
 
-      <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <label style={{ ...label, marginBottom: 0 }}>Species</label>
+      <div className={styles.card}>
+        <div className={styles.flexBetween}>
+          <label className={styles.labelInline}>Species</label>
           <button
             type="button"
-            style={{ ...btn, fontSize: '12px', padding: '4px 12px' }}
+            className={styles.btnRollRandom}
             onClick={handleRandomSpecies}
             title="Roll d100 for random species (+20 XP)"
           >
-            🎲 Roll Random <span style={xpBadge}>+20 XP</span>
+            🎲 Roll Random <span className={styles.xpBadge}>+20 XP</span>
           </button>
         </div>
-        {speciesRolled && <div style={{ color: 'var(--success)', fontSize: '12px', marginBottom: '8px' }}>✓ Species rolled randomly — +20 XP bonus earned!</div>}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {speciesRolled && <div className={styles.statusSuccess}>✓ Species rolled randomly — +20 XP bonus earned!</div>}
+        <div className={styles.flexCol}>
           {SPECIES_OPTIONS.map(sp => (
             <button
               key={sp}
@@ -572,12 +451,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                 setSelectedCareer('');
                 setCareerRolled(false);
               }}
-              style={{
-                ...btn, textAlign: 'left', padding: '10px 14px',
-                background: species === sp ? 'rgba(200,168,76,0.15)' : 'var(--bg-secondary)',
-                border: `1px solid ${species === sp ? 'var(--accent-gold)' : 'var(--border)'}`,
-                color: species === sp ? 'var(--parchment)' : 'var(--text-primary)',
-              }}
+              className={species === sp ? styles.optionSelected : styles.option}
             >
               {sp}
             </button>
@@ -586,50 +460,51 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
       </div>
 
       {species && speciesData && (
-        <div style={card}>
-          <div style={flavorText}>{SPECIES_FLAVOR[species]}</div>
-          <div style={subTitle}>Racial Modifiers</div>
-          <div style={gridRow}>
+        <div className={styles.card}>
+          <div className={styles.flavorText}>{SPECIES_FLAVOR[species]}</div>
+          <div className={styles.subTitle}>Racial Modifiers</div>
+          <div className={styles.gridRow}>
             {ALL_CHARS.map(k => (
-              <div key={k} style={charCell}>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{k}</div>
-                <div style={{ fontSize: '16px', color: 'var(--parchment)', fontWeight: 600 }}>{speciesData.chars[k]}</div>
+              <div key={k} className={styles.charCell}>
+                <div className={styles.textMuted11}>{k}</div>
+                <div className={styles.charValue}>{speciesData.chars[k]}</div>
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-secondary)' }}>
-            <span>Fate: <strong style={{ color: 'var(--parchment)' }}>{speciesData.fate}</strong></span>
-            <span>Resilience: <strong style={{ color: 'var(--parchment)' }}>{speciesData.resilience}</strong></span>
-            <span>Extra Points: <strong style={{ color: 'var(--parchment)' }}>{speciesData.extraPoints}</strong></span>
-            <span>Movement: <strong style={{ color: 'var(--parchment)' }}>{speciesData.move}</strong></span>
+          <div className={styles.flexWrapGap16}>
+            <span>Fate: <strong className={styles.parchmentStrong}>{speciesData.fate}</strong></span>
+            <span>Resilience: <strong className={styles.parchmentStrong}>{speciesData.resilience}</strong></span>
+            <span>Extra Points: <strong className={styles.parchmentStrong}>{speciesData.extraPoints}</strong></span>
+            <span>Movement: <strong className={styles.parchmentStrong}>{speciesData.move}</strong></span>
           </div>
         </div>
       )}
     </div>
   );
 
+
   const renderStep2 = () => (
     <div>
-      <div style={sectionTitle}>Step 2: Class &amp; Career</div>
-      <p style={{ ...flavorText, borderLeft: 'none', padding: '0 0 12px 0', background: 'none' }}>
+      <div className={styles.sectionTitle}>Step 2: Class &amp; Career</div>
+      <p className={styles.flavorTextPlain}>
         Your career defines your place in the Old World. Will you be a scholar, a soldier, or something altogether more... disreputable?
       </p>
 
-      <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <label style={{ ...label, marginBottom: 0 }}>Class</label>
+      <div className={styles.card}>
+        <div className={styles.flexBetween}>
+          <label className={styles.labelInline}>Class</label>
           <button
             type="button"
-            style={{ ...btn, fontSize: '12px', padding: '4px 12px' }}
+            className={styles.btnRollRandom}
             onClick={handleRandomCareer}
             title="Roll randomly for career (+50 XP)"
           >
-            🎲 Roll Random Career <span style={xpBadge}>+50 XP</span>
+            🎲 Roll Random Career <span className={styles.xpBadge}>+50 XP</span>
           </button>
         </div>
-        {careerRolled && <div style={{ color: 'var(--success)', fontSize: '12px', marginBottom: '8px' }}>✓ Career rolled randomly — +50 XP bonus earned!</div>}
+        {careerRolled && <div className={styles.statusSuccess}>✓ Career rolled randomly — +50 XP bonus earned!</div>}
         <select
-          style={select}
+          className={styles.select}
           value={selectedClass}
           onChange={e => {
             setSelectedClass(e.target.value);
@@ -642,13 +517,13 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
             <option key={cls} value={cls}>{cls}</option>
           ))}
         </select>
-        {selectedClass && <div style={{ ...flavorText, marginTop: '8px' }}>{CLASS_FLAVOR[selectedClass]}</div>}
+        {selectedClass && <div className={`${styles.flavorText} ${styles.marginTop8}`}>{CLASS_FLAVOR[selectedClass]}</div>}
       </div>
 
       {selectedClass && (
-        <div style={card}>
-          <label style={label}>Career</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className={styles.card}>
+          <label className={styles.label}>Career</label>
+          <div className={styles.flexCol}>
             {availableCareers.map(career => {
               const scheme = CAREER_SCHEMES[career];
               const isSelected = selectedCareer === career;
@@ -660,15 +535,10 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                     setSelectedCareer(career);
                     if (careerRolled) setCareerRolled(false);
                   }}
-                  style={{
-                    ...btn, textAlign: 'left', padding: '10px 14px',
-                    background: isSelected ? 'rgba(200,168,76,0.15)' : 'var(--bg-secondary)',
-                    border: `1px solid ${isSelected ? 'var(--accent-gold)' : 'var(--border)'}`,
-                    color: isSelected ? 'var(--parchment)' : 'var(--text-primary)',
-                  }}
+                  className={isSelected ? styles.optionSelected : styles.option}
                 >
-                  <div style={{ fontWeight: 600 }}>{career}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  <div className={styles.boldLabel}>{career}</div>
+                  <div className={styles.careerDetailLabel}>
                     Level 1: {scheme.level1.title} — {scheme.level1.status}
                   </div>
                 </button>
@@ -679,22 +549,22 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
       )}
 
       {selectedCareer && careerLevel1 && (
-        <div style={card}>
-          <div style={sectionTitle}>{selectedCareer} — {careerLevel1.title}</div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-            Status: <strong style={{ color: 'var(--parchment)' }}>{careerLevel1.status}</strong>
+        <div className={styles.card}>
+          <div className={styles.sectionTitle}>{selectedCareer} — {careerLevel1.title}</div>
+          <div className={styles.careerDetailStatus}>
+            Status: <strong className={styles.parchmentStrong}>{careerLevel1.status}</strong>
           </div>
-          <div style={subTitle}>Advance Scheme</div>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '12px' }}>
-            {careerLevel1.characteristics.map(c => <span key={c} style={tag}>{c}</span>)}
+          <div className={styles.subTitle}>Advance Scheme</div>
+          <div className={`${styles.flexWrap} ${styles.marginBottom12}`}>
+            {careerLevel1.characteristics.map(c => <span key={c} className={styles.tag}>{c}</span>)}
           </div>
-          <div style={subTitle}>Career Skills</div>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '12px' }}>
-            {careerLevel1.skills.map(s => <span key={s} style={tag}>{s}</span>)}
+          <div className={styles.subTitle}>Career Skills</div>
+          <div className={`${styles.flexWrap} ${styles.marginBottom12}`}>
+            {careerLevel1.skills.map(s => <span key={s} className={styles.tag}>{s}</span>)}
           </div>
-          <div style={subTitle}>Career Talents</div>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-            {careerLevel1.talents.map(t => <span key={t} style={tag}>{t}</span>)}
+          <div className={styles.subTitle}>Career Talents</div>
+          <div className={styles.flexWrap}>
+            {careerLevel1.talents.map(t => <span key={t} className={styles.tag}>{t}</span>)}
           </div>
         </div>
       )}
@@ -706,14 +576,14 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
 
     return (
       <div>
-        <div style={sectionTitle}>Step 3: Characteristics</div>
-        <p style={{ ...flavorText, borderLeft: 'none', padding: '0 0 12px 0', background: 'none' }}>
+        <div className={styles.sectionTitle}>Step 3: Characteristics</div>
+        <p className={styles.flavorTextPlain}>
           Your raw attributes define what you are capable of. The dice are cruel, but fortune favours the bold.
         </p>
 
-        <div style={card}>
-          <div style={subTitle}>Generation Method</div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Generation Method</div>
+          <div className={styles.flexWrapLg}>
             {([
               ['random', 'Accept Random Rolls', '+50 XP'],
               ['rearrange', 'Rearrange Rolls', '+25 XP'],
@@ -726,37 +596,32 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                   setCharMethod(method);
                   if (method !== 'pointbuy' && !rolledValues) rollAllCharacteristics();
                 }}
-                style={{
-                  ...btn, padding: '8px 14px',
-                  background: charMethod === method ? 'rgba(200,168,76,0.15)' : 'var(--bg-secondary)',
-                  border: `1px solid ${charMethod === method ? 'var(--accent-gold)' : 'var(--border)'}`,
-                  color: charMethod === method ? 'var(--parchment)' : 'var(--text-primary)',
-                }}
+                className={charMethod === method ? styles.methodOptionSelected : styles.methodOption}
               >
-                {lbl} <span style={xpBadge}>{xp}</span>
+                {lbl} <span className={styles.xpBadge}>{xp}</span>
               </button>
             ))}
           </div>
 
           {charMethod !== 'pointbuy' && (
-            <button type="button" style={{ ...btn, marginBottom: '12px' }} onClick={rollAllCharacteristics}>
+            <button type="button" className={styles.btnReroll} onClick={rollAllCharacteristics}>
               🎲 Roll 2d10 for each
             </button>
           )}
 
           {charMethod === 'pointbuy' && (
-            <div style={{ fontSize: '13px', color: pointBuyTotal === 100 ? 'var(--success)' : 'var(--warning)', marginBottom: '8px' }}>
+            <div className={pointBuyTotal === 100 ? styles.statusSuccessLg : styles.statusWarning}>
               Points allocated: {pointBuyTotal} / 100 {pointBuyTotal === 100 ? '✓' : `(${100 - pointBuyTotal} remaining)`}
             </div>
           )}
 
           {charMethod === 'rearrange' && rearranged && (
-            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-              Click two characteristics to swap their rolled values. {swapFrom && <span style={{ color: 'var(--accent-gold)' }}>Swapping from {swapFrom}...</span>}
+            <div className={styles.swapHint}>
+              Click two characteristics to swap their rolled values. {swapFrom && <span className={styles.swapHighlight}>Swapping from {swapFrom}...</span>}
             </div>
           )}
 
-          <div style={gridRow}>
+          <div className={styles.gridRow}>
             {ALL_CHARS.map(k => {
               const specMod = speciesData?.chars[k] ?? 0;
               const baseVal = charMethod === 'pointbuy' ? pointBuy[k]
@@ -768,28 +633,24 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
               return (
                 <div
                   key={k}
-                  style={{
-                    ...charCell,
-                    cursor: charMethod === 'rearrange' ? 'pointer' : 'default',
-                    border: isSwapTarget ? '2px solid var(--accent-gold)' : '1px solid var(--border)',
-                  }}
+                  className={charMethod === 'rearrange' ? (isSwapTarget ? styles.charCellSwap : styles.charCellRearrange) : styles.charCell}
                   onClick={() => charMethod === 'rearrange' && handleRearrangeClick(k)}
                 >
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{k}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{CHAR_LABELS[k]}</div>
+                  <div className={styles.textMuted11}>{k}</div>
+                  <div className={styles.textMuted10}>{CHAR_LABELS[k]}</div>
                   {charMethod === 'pointbuy' ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '4px' }}>
-                      <button type="button" style={{ ...btn, padding: '2px 8px', fontSize: '12px' }}
+                    <div className={styles.flexCenter}>
+                      <button type="button" className={styles.btnMini}
                         onClick={() => setPointBuy(prev => ({ ...prev, [k]: Math.max(4, prev[k] - 1) }))}>−</button>
-                      <span style={{ fontSize: '16px', color: 'var(--parchment)', fontWeight: 600, minWidth: '24px', textAlign: 'center' }}>{pointBuy[k]}</span>
-                      <button type="button" style={{ ...btn, padding: '2px 8px', fontSize: '12px' }}
+                      <span className={styles.charValueCenter}>{pointBuy[k]}</span>
+                      <button type="button" className={styles.btnMini}
                         onClick={() => setPointBuy(prev => ({ ...prev, [k]: Math.min(18, prev[k] + 1) }))}>+</button>
                     </div>
                   ) : (
-                    <div style={{ fontSize: '16px', color: 'var(--parchment)', fontWeight: 600, marginTop: '4px' }}>{baseVal || '—'}</div>
+                    <div className={styles.charBaseValue}>{baseVal || '—'}</div>
                   )}
-                  <div style={{ fontSize: '10px', color: 'var(--accent-gold-dark)', marginTop: '2px' }}>+{specMod} species</div>
-                  <div style={{ fontSize: '14px', color: 'var(--text-primary)', fontWeight: 700, marginTop: '2px', borderTop: '1px solid var(--border)', paddingTop: '4px' }}>
+                  <div className={styles.speciesMod}>+{specMod} species</div>
+                  <div className={styles.charTotal}>
                     = {total || '—'}
                   </div>
                 </div>
@@ -799,23 +660,23 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
         </div>
 
         {/* Career characteristic advances */}
-        <div style={card}>
-          <div style={subTitle}>Career Characteristic Advances (5 points)</div>
-          <div style={{ fontSize: '13px', color: totalCharAdvances === 5 ? 'var(--success)' : 'var(--warning)', marginBottom: '8px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Career Characteristic Advances (5 points)</div>
+          <div className={totalCharAdvances === 5 ? styles.statusSuccessLg : styles.statusWarning}>
             Allocated: {totalCharAdvances} / 5 {totalCharAdvances === 5 ? '✓' : ''}
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+          <div className={styles.advanceHint}>
             Distribute 5 advances among your career's advance scheme characteristics: {careerCharacteristics.join(', ')}
           </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div className={styles.flexWrapLg}>
             {careerCharacteristics.map(k => (
-              <div key={k} style={{ ...charCell, minWidth: '80px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{k}</div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '4px' }}>
-                  <button type="button" style={{ ...btn, padding: '2px 8px', fontSize: '12px' }}
+              <div key={k} className={styles.charCellMin}>
+                <div className={styles.textMuted12}>{k}</div>
+                <div className={styles.flexCenter}>
+                  <button type="button" className={styles.btnMini}
                     onClick={() => setCharAdvances(prev => ({ ...prev, [k]: Math.max(0, (prev[k] ?? 0) - 1) }))}>−</button>
-                  <span style={{ fontSize: '14px', color: 'var(--parchment)', fontWeight: 600, minWidth: '20px', textAlign: 'center' }}>{charAdvances[k] ?? 0}</span>
-                  <button type="button" style={{ ...btn, padding: '2px 8px', fontSize: '12px' }}
+                  <span className={styles.charValueSm}>{charAdvances[k] ?? 0}</span>
+                  <button type="button" className={styles.btnMini}
                     onClick={() => setCharAdvances(prev => {
                       const cur = Object.values(prev).reduce((a, b) => a + b, 0);
                       if (cur >= 5) return prev;
@@ -830,24 +691,25 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
     );
   };
 
+
   const renderStep4 = () => {
     const careerSkills = careerLevel1?.skills ?? [];
     const careerTalents = careerLevel1?.talents ?? [];
 
     return (
       <div>
-        <div style={sectionTitle}>Step 4: Skills &amp; Talents</div>
-        <p style={{ ...flavorText, borderLeft: 'none', padding: '0 0 12px 0', background: 'none' }}>
+        <div className={styles.sectionTitle}>Step 4: Skills &amp; Talents</div>
+        <p className={styles.flavorTextPlain}>
           Your skills and talents set you apart from the common rabble. Choose carefully — they may save your life.
         </p>
 
         {/* Species Skills */}
-        <div style={card}>
-          <div style={subTitle}>Species Skills — Choose 3 for 5 Advances</div>
-          <div style={{ fontSize: '12px', color: speciesSkill5.length === 3 ? 'var(--success)' : 'var(--warning)', marginBottom: '8px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Species Skills — Choose 3 for 5 Advances</div>
+          <div className={speciesSkill5.length === 3 ? styles.statusSuccess : styles.statusWarning}>
             Selected: {speciesSkill5.length} / 3 {speciesSkill5.length === 3 ? '✓' : ''}
           </div>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div className={`${styles.flexWrap} ${styles.marginBottom12}`}>
             {speciesSkillList.map(skill => {
               const is5 = speciesSkill5.includes(skill);
               const is3 = speciesSkill3.includes(skill);
@@ -860,13 +722,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                     if (is5) setSpeciesSkill5(prev => prev.filter(s => s !== skill));
                     else if (speciesSkill5.length < 3) setSpeciesSkill5(prev => [...prev, skill]);
                   }}
-                  style={{
-                    ...btn, padding: '4px 10px', fontSize: '12px',
-                    background: is5 ? 'rgba(200,168,76,0.2)' : 'var(--bg-secondary)',
-                    border: `1px solid ${is5 ? 'var(--accent-gold)' : 'var(--border)'}`,
-                    color: is3 ? 'var(--text-muted)' : is5 ? 'var(--parchment)' : 'var(--text-primary)',
-                    opacity: is3 ? 0.5 : 1,
-                  }}
+                  className={is3 ? styles.skillBtnDisabled : is5 ? styles.skillBtnSelected5 : styles.skillBtn}
                 >
                   {skill} {is5 && '(+5)'}
                 </button>
@@ -874,11 +730,11 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
             })}
           </div>
 
-          <div style={subTitle}>Species Skills — Choose 3 for 3 Advances</div>
-          <div style={{ fontSize: '12px', color: speciesSkill3.length === 3 ? 'var(--success)' : 'var(--warning)', marginBottom: '8px' }}>
+          <div className={styles.subTitle}>Species Skills — Choose 3 for 3 Advances</div>
+          <div className={speciesSkill3.length === 3 ? styles.statusSuccess : styles.statusWarning}>
             Selected: {speciesSkill3.length} / 3 {speciesSkill3.length === 3 ? '✓' : ''}
           </div>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          <div className={styles.flexWrap}>
             {speciesSkillList.map(skill => {
               const is5 = speciesSkill5.includes(skill);
               const is3 = speciesSkill3.includes(skill);
@@ -891,13 +747,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                     if (is3) setSpeciesSkill3(prev => prev.filter(s => s !== skill));
                     else if (speciesSkill3.length < 3) setSpeciesSkill3(prev => [...prev, skill]);
                   }}
-                  style={{
-                    ...btn, padding: '4px 10px', fontSize: '12px',
-                    background: is3 ? 'rgba(90,154,90,0.15)' : 'var(--bg-secondary)',
-                    border: `1px solid ${is3 ? 'var(--success)' : 'var(--border)'}`,
-                    color: is5 ? 'var(--text-muted)' : is3 ? 'var(--success)' : 'var(--text-primary)',
-                    opacity: is5 ? 0.5 : 1,
-                  }}
+                  className={is5 ? styles.skillBtnDisabled : is3 ? styles.skillBtnSelected3 : styles.skillBtn}
                 >
                   {skill} {is3 && '(+3)'}
                 </button>
@@ -907,16 +757,16 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
         </div>
 
         {/* Species Talents */}
-        <div style={card}>
-          <div style={subTitle}>Species Talents</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Species Talents</div>
+          <div className={styles.flexCol}>
             {speciesTalentList.map((talent, i) => {
               const parsed = parseTalentOptions(talent);
               if (parsed.isChoice) {
                 return (
                   <div key={i}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Choose one:</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div className={styles.chooseOneLabel}>Choose one:</div>
+                    <div className={styles.flexCol}>
                       {parsed.options.map(opt => {
                         const desc = getTalentDesc(opt);
                         return (
@@ -924,15 +774,10 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                           key={opt}
                           type="button"
                           onClick={() => setSpeciesTalentChoices(prev => ({ ...prev, [i]: opt }))}
-                          style={{
-                            ...btn, padding: '8px 12px', fontSize: '12px', textAlign: 'left',
-                            background: (speciesTalentChoices[i] || parsed.options[0]) === opt ? 'rgba(200,168,76,0.2)' : 'var(--bg-secondary)',
-                            border: `1px solid ${(speciesTalentChoices[i] || parsed.options[0]) === opt ? 'var(--accent-gold)' : 'var(--border)'}`,
-                            color: (speciesTalentChoices[i] || parsed.options[0]) === opt ? 'var(--parchment)' : 'var(--text-primary)',
-                          }}
+                          className={(speciesTalentChoices[i] || parsed.options[0]) === opt ? styles.talentOptionSelected : styles.talentOption}
                         >
-                          <div style={{ fontWeight: 600 }}>{opt}</div>
-                          {desc && <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 400, marginTop: '2px' }}>{desc}</div>}
+                          <div className={styles.boldLabel}>{opt}</div>
+                          {desc && <div className={styles.talentDesc}>{desc}</div>}
                         </button>
                         );
                       })}
@@ -941,9 +786,9 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                 );
               }
               return (
-                <div key={i} style={{ padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', fontSize: '13px', color: 'var(--text-primary)' }}>
-                  <div style={{ fontWeight: 600 }}>{talent} <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 400 }}>(fixed)</span></div>
-                  {getTalentDesc(parsed.options[0]) && <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{getTalentDesc(parsed.options[0])}</div>}
+                <div key={i} className={styles.fixedTalentRow}>
+                  <div className={styles.boldLabel}>{talent} <span className={styles.fixedLabel}>(fixed)</span></div>
+                  {getTalentDesc(parsed.options[0]) && <div className={styles.talentDesc}>{getTalentDesc(parsed.options[0])}</div>}
                 </div>
               );
             })}
@@ -951,21 +796,21 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
         </div>
 
         {/* Career Skills */}
-        <div style={card}>
-          <div style={subTitle}>Career Skills — Allocate 40 Advances (max 10 each)</div>
-          <div style={{ fontSize: '12px', color: totalCareerSkillAdvances === 40 ? 'var(--success)' : 'var(--warning)', marginBottom: '8px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Career Skills — Allocate 40 Advances (max 10 each)</div>
+          <div className={totalCareerSkillAdvances === 40 ? styles.statusSuccess : styles.statusWarning}>
             Allocated: {totalCareerSkillAdvances} / 40 {totalCareerSkillAdvances === 40 ? '✓' : `(${40 - totalCareerSkillAdvances} remaining)`}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className={styles.flexCol}>
             {careerSkills.map(skill => {
               const adv = careerSkillAdvances[skill] ?? 0;
               return (
-                <div key={skill} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }}>
-                  <span style={{ flex: 1, fontSize: '13px', color: 'var(--text-primary)' }}>{skill}</span>
-                  <button type="button" style={{ ...btn, padding: '2px 8px', fontSize: '12px' }}
+                <div key={skill} className={styles.careerSkillRow}>
+                  <span className={styles.careerSkillName}>{skill}</span>
+                  <button type="button" className={styles.btnMini}
                     onClick={() => setCareerSkillAdvances(prev => ({ ...prev, [skill]: Math.max(0, (prev[skill] ?? 0) - 1) }))}>−</button>
-                  <span style={{ minWidth: '24px', textAlign: 'center', fontSize: '14px', color: 'var(--parchment)', fontWeight: 600 }}>{adv}</span>
-                  <button type="button" style={{ ...btn, padding: '2px 8px', fontSize: '12px' }}
+                  <span className={styles.charValueSm}>{adv}</span>
+                  <button type="button" className={styles.btnMini}
                     onClick={() => setCareerSkillAdvances(prev => {
                       const cur = Object.values(prev).reduce((a, b) => a + b, 0);
                       if (cur >= 40) return prev;
@@ -979,9 +824,9 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
         </div>
 
         {/* Career Talent */}
-        <div style={card}>
-          <div style={subTitle}>Career Talent — Choose 1</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Career Talent — Choose 1</div>
+          <div className={styles.flexCol}>
             {careerTalents.map(t => {
               const desc = getTalentDesc(t);
               return (
@@ -989,15 +834,10 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                 key={t}
                 type="button"
                 onClick={() => setSelectedCareerTalent(t)}
-                style={{
-                  ...btn, padding: '8px 12px', fontSize: '12px', textAlign: 'left',
-                  background: selectedCareerTalent === t ? 'rgba(200,168,76,0.2)' : 'var(--bg-secondary)',
-                  border: `1px solid ${selectedCareerTalent === t ? 'var(--accent-gold)' : 'var(--border)'}`,
-                  color: selectedCareerTalent === t ? 'var(--parchment)' : 'var(--text-primary)',
-                }}
+                className={selectedCareerTalent === t ? styles.talentOptionSelected : styles.talentOption}
               >
-                <div style={{ fontWeight: 600 }}>{t}</div>
-                {desc && <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 400, marginTop: '2px' }}>{desc}</div>}
+                <div className={styles.boldLabel}>{t}</div>
+                {desc && <div className={styles.talentDesc}>{desc}</div>}
               </button>
               );
             })}
@@ -1007,6 +847,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
     );
   };
 
+
   const renderStep5 = () => {
     const baseFate = speciesData?.fate ?? 0;
     const baseRes = speciesData?.resilience ?? 0;
@@ -1015,86 +856,87 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
 
     return (
       <div>
-        <div style={sectionTitle}>Step 5: Fate, Resilience &amp; Details</div>
-        <p style={{ ...flavorText, borderLeft: 'none', padding: '0 0 12px 0', background: 'none' }}>
+        <div className={styles.sectionTitle}>Step 5: Fate, Resilience &amp; Details</div>
+        <p className={styles.flavorTextPlain}>
           Fate protects you from death. Resilience steels your mind against madness. Choose how to spend your extra points wisely.
         </p>
 
-        <div style={card}>
-          <div style={subTitle}>Fate &amp; Resilience</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Fate &amp; Resilience</div>
+          <div className={`${styles.textMuted12} ${styles.marginBottom12}`}>
             Distribute {ep} extra point{ep !== 1 ? 's' : ''} between Fate and Resilience.
           </div>
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '12px' }}>
-            <div style={charCell}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Fate</div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Base: {baseFate}</div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '4px' }}>
-                <button type="button" style={{ ...btn, padding: '2px 8px', fontSize: '12px' }}
+          <div className={styles.flexGap24}>
+            <div className={styles.charCell}>
+              <div className={styles.textMuted12}>Fate</div>
+              <div className={styles.textMuted10}>Base: {baseFate}</div>
+              <div className={styles.flexCenter}>
+                <button type="button" className={styles.btnMini}
                   onClick={() => setExtraFate(prev => Math.max(0, prev - 1))}>−</button>
-                <span style={{ fontSize: '16px', color: 'var(--parchment)', fontWeight: 600, minWidth: '24px', textAlign: 'center' }}>+{extraFate}</span>
-                <button type="button" style={{ ...btn, padding: '2px 8px', fontSize: '12px' }}
+                <span className={styles.charValueCenter}>+{extraFate}</span>
+                <button type="button" className={styles.btnMini}
                   onClick={() => setExtraFate(prev => Math.min(ep, prev + 1))}>+</button>
               </div>
-              <div style={{ fontSize: '14px', color: 'var(--text-primary)', fontWeight: 700, marginTop: '4px' }}>
+              <div className={styles.fateResTotal}>
                 Total: {baseFate + extraFate}
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Fortune: {baseFate + extraFate}</div>
+              <div className={styles.textMuted10}>Fortune: {baseFate + extraFate}</div>
             </div>
-            <div style={charCell}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Resilience</div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Base: {baseRes}</div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '4px' }}>
-                <span style={{ fontSize: '16px', color: 'var(--parchment)', fontWeight: 600, minWidth: '24px', textAlign: 'center' }}>+{extraRes}</span>
+            <div className={styles.charCell}>
+              <div className={styles.textMuted12}>Resilience</div>
+              <div className={styles.textMuted10}>Base: {baseRes}</div>
+              <div className={styles.flexCenter}>
+                <span className={styles.charValueCenter}>+{extraRes}</span>
               </div>
-              <div style={{ fontSize: '14px', color: 'var(--text-primary)', fontWeight: 700, marginTop: '4px' }}>
+              <div className={styles.fateResTotal}>
                 Total: {baseRes + extraRes}
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Resolve: {baseRes + extraRes}</div>
+              <div className={styles.textMuted10}>Resolve: {baseRes + extraRes}</div>
             </div>
           </div>
         </div>
 
-        <div style={card}>
-          <div style={subTitle}>Personal Details</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Personal Details</div>
+          <div className={styles.detailsGrid}>
             <div>
-              <label style={label}>Age</label>
-              <input style={input} type="text" placeholder="e.g. 25" value={age} onChange={e => setAge(e.target.value)} />
+              <label className={styles.label}>Age</label>
+              <input className={styles.input} type="text" placeholder="e.g. 25" value={age} onChange={e => setAge(e.target.value)} />
             </div>
             <div>
-              <label style={label}>Height</label>
-              <input style={input} type="text" placeholder={`e.g. 5'10"`} value={height} onChange={e => setHeight(e.target.value)} />
+              <label className={styles.label}>Height</label>
+              <input className={styles.input} type="text" placeholder={`e.g. 5'10"`} value={height} onChange={e => setHeight(e.target.value)} />
             </div>
             <div>
-              <label style={label}>Hair</label>
-              <input style={input} type="text" placeholder="e.g. Dark Brown" value={hair} onChange={e => setHair(e.target.value)} />
+              <label className={styles.label}>Hair</label>
+              <input className={styles.input} type="text" placeholder="e.g. Dark Brown" value={hair} onChange={e => setHair(e.target.value)} />
             </div>
             <div>
-              <label style={label}>Eyes</label>
-              <input style={input} type="text" placeholder="e.g. Green" value={eyes} onChange={e => setEyes(e.target.value)} />
+              <label className={styles.label}>Eyes</label>
+              <input className={styles.input} type="text" placeholder="e.g. Green" value={eyes} onChange={e => setEyes(e.target.value)} />
             </div>
           </div>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={label}>Motivation</label>
-            <input style={input} type="text" placeholder="What drives your character?" value={motivation} onChange={e => setMotivation(e.target.value)} />
+          <div className={styles.marginBottom12}>
+            <label className={styles.label}>Motivation</label>
+            <input className={styles.input} type="text" placeholder="What drives your character?" value={motivation} onChange={e => setMotivation(e.target.value)} />
           </div>
         </div>
 
-        <div style={card}>
-          <div style={subTitle}>Ambitions</div>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={label}>Short-term Ambition</label>
-            <input style={input} type="text" placeholder="A goal for the next session or two..." value={ambShort} onChange={e => setAmbShort(e.target.value)} />
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Ambitions</div>
+          <div className={styles.marginBottom12}>
+            <label className={styles.label}>Short-term Ambition</label>
+            <input className={styles.input} type="text" placeholder="A goal for the next session or two..." value={ambShort} onChange={e => setAmbShort(e.target.value)} />
           </div>
           <div>
-            <label style={label}>Long-term Ambition</label>
-            <input style={input} type="text" placeholder="A grand aspiration for your character's story..." value={ambLong} onChange={e => setAmbLong(e.target.value)} />
+            <label className={styles.label}>Long-term Ambition</label>
+            <input className={styles.input} type="text" placeholder="A grand aspiration for your character's story..." value={ambLong} onChange={e => setAmbLong(e.target.value)} />
           </div>
         </div>
       </div>
     );
   };
+
 
   const renderStep6 = () => {
     const baseFate = speciesData?.fate ?? 0;
@@ -1105,26 +947,26 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
 
     return (
       <div>
-        <div style={sectionTitle}>Step 6: Review &amp; Create</div>
-        <p style={{ ...flavorText, borderLeft: 'none', padding: '0 0 12px 0', background: 'none' }}>
+        <div className={styles.sectionTitle}>Step 6: Review &amp; Create</div>
+        <p className={styles.flavorTextPlain}>
           Review your character before venturing forth into the grim darkness of the Old World.
         </p>
 
-        <div style={card}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <div className={styles.card}>
+          <div className={styles.reviewHeader}>
             <div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', color: 'var(--parchment)' }}>{charName}</div>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{species} — {selectedCareer} ({careerLevel1?.title})</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{careerScheme?.class} • {careerLevel1?.status}</div>
+              <div className={styles.reviewName}>{charName}</div>
+              <div className={styles.reviewCareer}>{species} — {selectedCareer} ({careerLevel1?.title})</div>
+              <div className={styles.reviewClass}>{careerScheme?.class} • {careerLevel1?.status}</div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Bonus XP</div>
-              <div style={{ fontSize: '20px', color: 'var(--success)', fontWeight: 700 }}>{totalBonusXP}</div>
+            <div className={styles.reviewXpRight}>
+              <div className={styles.reviewXpLabel}>Bonus XP</div>
+              <div className={styles.reviewXpValue}>{totalBonusXP}</div>
             </div>
           </div>
 
           {totalBonusXP > 0 && (
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', padding: '6px 10px', background: 'rgba(90,154,90,0.1)', borderRadius: 'var(--radius-sm)' }}>
+            <div className={styles.xpBreakdown}>
               {speciesXP > 0 && <span>Random species: +{speciesXP} XP • </span>}
               {careerXP > 0 && <span>Random career: +{careerXP} XP • </span>}
               {charXP > 0 && <span>Characteristics ({charMethod}): +{charXP} XP</span>}
@@ -1132,70 +974,70 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
           )}
         </div>
 
-        <div style={card}>
-          <div style={subTitle}>Characteristics</div>
-          <div style={gridRow}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Characteristics</div>
+          <div className={styles.gridRow}>
             {ALL_CHARS.map(k => (
-              <div key={k} style={charCell}>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{k}</div>
-                <div style={{ fontSize: '18px', color: 'var(--parchment)', fontWeight: 700 }}>{getFinalChar(k)}</div>
+              <div key={k} className={styles.charCell}>
+                <div className={styles.textMuted11}>{k}</div>
+                <div className={styles.charValueLg}>{getFinalChar(k)}</div>
                 {(charAdvances[k] ?? 0) > 0 && (
-                  <div style={{ fontSize: '10px', color: 'var(--success)' }}>+{charAdvances[k]} adv</div>
+                  <div className={styles.advBadge}>+{charAdvances[k]} adv</div>
                 )}
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-secondary)' }}>
-            <span>Move: <strong style={{ color: 'var(--parchment)' }}>{speciesData?.move ?? 4}</strong></span>
-            <span>Fate: <strong style={{ color: 'var(--parchment)' }}>{baseFate + extraFate}</strong></span>
-            <span>Fortune: <strong style={{ color: 'var(--parchment)' }}>{baseFate + extraFate}</strong></span>
-            <span>Resilience: <strong style={{ color: 'var(--parchment)' }}>{baseRes + extraRes}</strong></span>
-            <span>Resolve: <strong style={{ color: 'var(--parchment)' }}>{baseRes + extraRes}</strong></span>
+          <div className={styles.flexWrapGap16}>
+            <span>Move: <strong className={styles.parchmentStrong}>{speciesData?.move ?? 4}</strong></span>
+            <span>Fate: <strong className={styles.parchmentStrong}>{baseFate + extraFate}</strong></span>
+            <span>Fortune: <strong className={styles.parchmentStrong}>{baseFate + extraFate}</strong></span>
+            <span>Resilience: <strong className={styles.parchmentStrong}>{baseRes + extraRes}</strong></span>
+            <span>Resolve: <strong className={styles.parchmentStrong}>{baseRes + extraRes}</strong></span>
           </div>
         </div>
 
-        <div style={card}>
-          <div style={subTitle}>Skills</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Skills</div>
+          <div className={`${styles.flexCol} ${styles.marginBottom12}`}>
             {speciesSkill5.length > 0 && (
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Species (+5): {speciesSkill5.map(s => <span key={s} style={tag}>{s}</span>)}
+              <div className={styles.textMuted12}>
+                Species (+5): {speciesSkill5.map(s => <span key={s} className={styles.tag}>{s}</span>)}
               </div>
             )}
             {speciesSkill3.length > 0 && (
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Species (+3): {speciesSkill3.map(s => <span key={s} style={tag}>{s}</span>)}
+              <div className={styles.textMuted12}>
+                Species (+3): {speciesSkill3.map(s => <span key={s} className={styles.tag}>{s}</span>)}
               </div>
             )}
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Career Skills:</div>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          <div className={`${styles.textMuted12} ${styles.marginBottom12}`}>Career Skills:</div>
+          <div className={styles.flexWrap}>
             {Object.entries(careerSkillAdvances).filter(([, v]) => v > 0).map(([skill, adv]) => (
-              <span key={skill} style={tag}>{skill} +{adv}</span>
+              <span key={skill} className={styles.tag}>{skill} +{adv}</span>
             ))}
           </div>
         </div>
 
-        <div style={card}>
-          <div style={subTitle}>Talents</div>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-            {resolvedTalents.map(t => <span key={t} style={tag}>{t}</span>)}
-            {selectedCareerTalent && <span style={{ ...tag, background: 'rgba(90,154,90,0.15)', color: 'var(--success)' }}>{selectedCareerTalent} (career)</span>}
+        <div className={styles.card}>
+          <div className={styles.subTitle}>Talents</div>
+          <div className={styles.flexWrap}>
+            {resolvedTalents.map(t => <span key={t} className={styles.tag}>{t}</span>)}
+            {selectedCareerTalent && <span className={styles.tagCareer}>{selectedCareerTalent} (career)</span>}
           </div>
         </div>
 
         {(age || height || hair || eyes || motivation || ambShort || ambLong) && (
-          <div style={card}>
-            <div style={subTitle}>Details</div>
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-              {age && <span>Age: <strong style={{ color: 'var(--parchment)' }}>{age}</strong></span>}
-              {height && <span>Height: <strong style={{ color: 'var(--parchment)' }}>{height}</strong></span>}
-              {hair && <span>Hair: <strong style={{ color: 'var(--parchment)' }}>{hair}</strong></span>}
-              {eyes && <span>Eyes: <strong style={{ color: 'var(--parchment)' }}>{eyes}</strong></span>}
+          <div className={styles.card}>
+            <div className={styles.subTitle}>Details</div>
+            <div className={styles.reviewDetailRow}>
+              {age && <span>Age: <strong className={styles.parchmentStrong}>{age}</strong></span>}
+              {height && <span>Height: <strong className={styles.parchmentStrong}>{height}</strong></span>}
+              {hair && <span>Hair: <strong className={styles.parchmentStrong}>{hair}</strong></span>}
+              {eyes && <span>Eyes: <strong className={styles.parchmentStrong}>{eyes}</strong></span>}
             </div>
-            {motivation && <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Motivation: <em style={{ color: 'var(--parchment)' }}>{motivation}</em></div>}
-            {ambShort && <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Short-term: <em style={{ color: 'var(--parchment)' }}>{ambShort}</em></div>}
-            {ambLong && <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Long-term: <em style={{ color: 'var(--parchment)' }}>{ambLong}</em></div>}
+            {motivation && <div className={styles.reviewDetailText}>Motivation: <em className={styles.reviewEmphasis}>{motivation}</em></div>}
+            {ambShort && <div className={styles.reviewDetailText}>Short-term: <em className={styles.reviewEmphasis}>{ambShort}</em></div>}
+            {ambLong && <div className={styles.reviewDetailText}>Long-term: <em className={styles.reviewEmphasis}>{ambLong}</em></div>}
           </div>
         )}
       </div>
@@ -1207,29 +1049,29 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
   const STEP_LABELS = ['Name & Species', 'Class & Career', 'Characteristics', 'Skills & Talents', 'Fate & Details', 'Review'];
 
   return (
-    <div style={overlay}>
+    <div className={styles.overlay}>
       {/* Header */}
-      <div style={header}>
-        <div style={headerTitle}>⚔ Character Creation Wizard</div>
-        <div style={stepIndicator}>
+      <div className={styles.header}>
+        <div className={styles.headerTitle}>⚔ Character Creation Wizard</div>
+        <div className={styles.stepIndicator}>
           {STEP_LABELS.map((lbl, i) => {
             const num = (i + 1) as WizardStep;
             return (
-              <div key={num} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <div style={stepDot(step === num, step > num)} title={lbl}>{num}</div>
+              <div key={num} className={styles.stepDotWrapper}>
+                <div className={step === num ? styles.stepDotActive : step > num ? styles.stepDotCompleted : styles.stepDotDefault} title={lbl}>{num}</div>
                 {i < STEP_LABELS.length - 1 && (
-                  <div style={{ width: '12px', height: '2px', background: step > num ? 'var(--accent-gold-dark)' : 'var(--border)' }} />
+                  <div className={step > num ? styles.stepConnectorActive : styles.stepConnectorDefault} />
                 )}
               </div>
             );
           })}
         </div>
-        <button type="button" style={btnDanger} onClick={onCancel}>✕ Cancel</button>
+        <button type="button" className={styles.btnDanger} onClick={onCancel}>✕ Cancel</button>
       </div>
 
       {/* Body */}
-      <div style={body}>
-        <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      <div className={styles.body}>
+        <div className={styles.bodyInner}>
           {step === 1 && renderStep1()}
           {step === 2 && renderStep2()}
           {step === 3 && renderStep3()}
@@ -1240,23 +1082,23 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
       </div>
 
       {/* Footer */}
-      <div style={footer}>
-        <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+      <div className={styles.footer}>
+        <div className={styles.footerLabel}>
           Step {step} of 6: {STEP_LABELS[step - 1]}
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className={styles.footerActions}>
           {totalBonusXP > 0 && (
-            <span style={{ fontSize: '12px', color: 'var(--success)' }}>Bonus XP: +{totalBonusXP}</span>
+            <span className={styles.bonusXpLabel}>Bonus XP: +{totalBonusXP}</span>
           )}
           {step > 1 && (
-            <button type="button" style={btn} onClick={() => setStep((step - 1) as WizardStep)}>
+            <button type="button" className={styles.btn} onClick={() => setStep((step - 1) as WizardStep)}>
               ← Back
             </button>
           )}
           {step < 6 ? (
             <button
               type="button"
-              style={{ ...btnPrimary, opacity: canProceed() ? 1 : 0.5 }}
+              className={canProceed() ? styles.btnPrimary : styles.btnPrimaryDisabled}
               disabled={!canProceed()}
               onClick={() => setStep((step + 1) as WizardStep)}
             >
@@ -1265,7 +1107,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
           ) : (
             <button
               type="button"
-              style={{ ...btnPrimary, background: 'var(--success)', border: '1px solid var(--success)' }}
+              className={styles.btnCreate}
               onClick={() => onComplete(buildCharacter())}
             >
               ⚔ Create Character

@@ -35,6 +35,9 @@ describe('CharacterPage', () => {
         />
       );
 
+      // Navigate to the Abilities tab where advanced skills are rendered
+      fireEvent.click(screen.getByText('Abilities'));
+
       // Click the "Add from Rulebook" button in the Advanced Skills section to open picker
       const addFromRulebookButtons = screen.getAllByText('Add from Rulebook');
       fireEvent.click(addFromRulebookButtons[0]);
@@ -72,6 +75,9 @@ describe('CharacterPage', () => {
         />
       );
 
+      // Navigate to the Abilities tab where advanced skills are rendered
+      fireEvent.click(screen.getByText('Abilities'));
+
       // Click the first delete button (✕) in the advanced skills table
       const deleteButtons = screen.getAllByText('✕');
       fireEvent.click(deleteButtons[0]);
@@ -103,6 +109,9 @@ describe('CharacterPage', () => {
           coinWeight={0}
         />
       );
+
+      // Navigate to the Abilities tab where talents are rendered
+      fireEvent.click(screen.getByText('Abilities'));
 
       // Click "Add Custom" for talents (second Add Custom button — first is advanced skills)
       const addCustomButtons = screen.getAllByText('Add Custom');
@@ -137,6 +146,9 @@ describe('CharacterPage', () => {
           coinWeight={0}
         />
       );
+
+      // Navigate to the Abilities tab where spells are rendered
+      fireEvent.click(screen.getByText('Abilities'));
 
       // Click the last ✕ button (for spells section)
       const deleteButtons = screen.getAllByText('✕');
@@ -222,6 +234,8 @@ describe('Skill tooltips', () => {
 
   it('clicking a basic skill name opens a tooltip with role="tooltip"', () => {
     renderCharPage();
+    // Navigate to the Abilities tab where basic skills are rendered
+    fireEvent.click(screen.getByText('Abilities'));
     // "Athletics" is a basic skill with a known description
     const athleticsBtn = screen.getByRole('button', { name: 'Athletics' });
     fireEvent.click(athleticsBtn);
@@ -234,6 +248,8 @@ describe('Skill tooltips', () => {
 
   it('clicking a different skill closes the first tooltip and opens a new one', () => {
     renderCharPage();
+    // Navigate to the Abilities tab where basic skills are rendered
+    fireEvent.click(screen.getByText('Abilities'));
     // Open tooltip for Athletics
     fireEvent.click(screen.getByRole('button', { name: 'Athletics' }));
     expect(screen.getByRole('tooltip')).toHaveTextContent('Athletics');
@@ -248,6 +264,8 @@ describe('Skill tooltips', () => {
 
   it('pressing Escape dismisses the skill tooltip', () => {
     renderCharPage();
+    // Navigate to the Abilities tab where basic skills are rendered
+    fireEvent.click(screen.getByText('Abilities'));
     fireEvent.click(screen.getByRole('button', { name: 'Athletics' }));
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
@@ -280,6 +298,8 @@ describe('Talent tooltips', () => {
 
   it('clicking the talent info button opens a tooltip with description and max level', () => {
     renderCharPageWithTalent();
+    // Navigate to the Abilities tab where talents are rendered
+    fireEvent.click(screen.getByText('Abilities'));
     const infoBtn = screen.getByRole('button', { name: 'Info for Hardy' });
     fireEvent.click(infoBtn);
 

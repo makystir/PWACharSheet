@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Character, ArmourPoints, CharacteristicKey, CareerLevel, AdvancementEntry } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -7,13 +7,14 @@ import { Picker } from '../shared/Picker';
 import { Tooltip } from '../shared/Tooltip';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus } from '../../logic/advancement';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
 import { resolveTalentTooltip, resolveSkillTooltip } from '../../logic/tooltip-content';
 import type { TooltipContent } from '../../logic/tooltip-content';
 import { RuneLearningPanel } from '../shared/RuneLearningPanel';
 import { GraduationCap, TrendingUp, ScrollText, CheckCircle, Swords, BookOpen, Sparkles, Undo2, Redo2 } from 'lucide-react';
+import styles from './AdvancementPage.module.css';
 
 interface ActiveTooltip {
   type: 'talent' | 'skill';
@@ -39,17 +40,7 @@ const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
   I: 'Initiative', Ag: 'Agility', Dex: 'Dexterity', Int: 'Intelligence',
   WP: 'Willpower', Fel: 'Fellowship',
 };
-const sectionGap = { display: 'flex', flexDirection: 'column' as const, gap: '16px' };
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse' as const, fontSize: '13px' };
-const thStyle = { padding: '6px 8px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', textAlign: 'left' as const, fontSize: '11px', textTransform: 'uppercase' as const };
-const tdStyle = { padding: '4px 8px', borderBottom: '1px solid var(--border-light, rgba(255,255,255,0.05))' };
-const smallBtn = { padding: '4px 10px', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '13px' };
 
-const inCareerBg = 'rgba(76, 175, 80, 0.1)';
-const inCareerBorder = '1px solid rgba(76, 175, 80, 0.4)';
-const outCareerBg = 'rgba(201, 168, 76, 0.1)';
-const outCareerBorder = '1px solid rgba(201, 168, 76, 0.4)';
 
 export function AdvancementPage({ character, update, updateCharacter }: AdvancementPageProps) {
   const [showClassPicker, setShowClassPicker] = useState(false);
@@ -59,6 +50,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const [showSwitchCareerPicker, setShowSwitchCareerPicker] = useState(false);
   const [redoStack, setRedoStack] = useState<AdvancementEntry[]>([]);
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
+  const [hideZeroAdvSkills, setHideZeroAdvSkills] = useState(false);
 
   const handleTalentTooltip = (talentName: string, characterDesc: string, event: React.MouseEvent) => {
     const content = resolveTalentTooltip(talentName, characterDesc);
@@ -118,6 +110,14 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const careerChars = careerLevel?.characteristics ?? [];
   const careerSkills = careerLevel?.skills ?? [];
   const careerTalents = careerLevel?.talents ?? [];
+
+  // Sorted skills: career skills first, then alphabetical within each group
+  const sortedSkills = useMemo(
+    () => sortSkillsByCareerStatus(character.bSkills, character.aSkills, careerSkills),
+    [character.bSkills, character.aSkills, careerSkills]
+  );
+  const inCareerSkills = sortedSkills.filter(e => e.inCareer && (!hideZeroAdvSkills || e.skill.a > 0));
+  const outCareerSkills = sortedSkills.filter(e => !e.inCareer && (!hideZeroAdvSkills || e.skill.a > 0));
 
   // Career progress analysis — WFRP 4e completion thresholds: Level 1=5, 2=10, 3=15, 4=20
   const completionThreshold = ({ 1: 5, 2: 10, 3: 15, 4: 20 } as Record<number, number>)[careerLevelNum] ?? 5;
@@ -278,24 +278,24 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const levelTitles = scheme ? [scheme.level1.title, scheme.level2.title, scheme.level3.title, scheme.level4.title] : [];
 
   return (
-    <div style={sectionGap}>
+    <div className={styles.sectionGap}>
       {/* Career Selection */}
       <Card>
         <SectionHeader icon={GraduationCap} title="Career" action={
-          isComplete ? <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}><CheckCircle size={14} /> Complete</span> : undefined
+          isComplete ? <span className={styles.completeBadge}><CheckCircle size={14} /> Complete</span> : undefined
         } />
-        <div style={gridStyle}>
+        <div className={styles.gridAutoFill}>
           <div>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Class</span>
-            <button type="button" onClick={() => setShowClassPicker(true)} style={{ ...smallBtn, width: '100%', textAlign: 'left' }}>{character.class || 'Select Class'}</button>
+            <span className={styles.fieldLabel}>Class</span>
+            <button type="button" onClick={() => setShowClassPicker(true)} className={styles.smallBtnWide}>{character.class || 'Select Class'}</button>
           </div>
           <div>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Career</span>
-            <button type="button" onClick={() => setShowCareerPicker(true)} style={{ ...smallBtn, width: '100%', textAlign: 'left' }}>{character.career || 'Select Career'}</button>
+            <span className={styles.fieldLabel}>Career</span>
+            <button type="button" onClick={() => setShowCareerPicker(true)} className={styles.smallBtnWide}>{character.career || 'Select Career'}</button>
           </div>
           <div>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Level</span>
-            <button type="button" onClick={() => setShowLevelPicker(true)} style={{ ...smallBtn, width: '100%', textAlign: 'left' }}>{character.careerLevel || 'Select Level'}</button>
+            <span className={styles.fieldLabel}>Level</span>
+            <button type="button" onClick={() => setShowLevelPicker(true)} className={styles.smallBtnWide}>{character.careerLevel || 'Select Level'}</button>
           </div>
           <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
         </div>
@@ -304,7 +304,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {/* XP Tracking */}
       <Card>
         <SectionHeader icon={TrendingUp} title="Experience Points" />
-        <div style={gridStyle}>
+        <div className={styles.gridAutoFill}>
           <EditableField label="Current XP" value={character.xpCur} type="number" onSave={(v) => update('xpCur', v)} />
           <EditableField label="Spent XP" value={character.xpSpent} type="number" onSave={(v) => update('xpSpent', v)} />
           <EditableField label="Total XP" value={character.xpTotal} type="number" onSave={(v) => update('xpTotal', v)} />
@@ -315,33 +315,33 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {scheme && (
         <Card>
           <SectionHeader icon={CheckCircle} title="Career Progress" />
-          <div style={{ marginBottom: '12px', padding: '12px', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: '6px' }}>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: '16px', fontWeight: 700, color: 'var(--success)', marginBottom: '4px' }}>
+          <div className={styles.progressPanel}>
+            <div className={styles.progressTitle}>
               {character.career} — {character.careerLevel}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Level {careerLevelNum} • {character.class} • {character.status}</div>
+            <div className={styles.progressSubtitle}>Level {careerLevelNum} • {character.class} • {character.status}</div>
           </div>
 
           {!isMaxLevel && (
-            <div style={{ marginBottom: '16px', padding: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px' }}>
-              <div style={{ fontSize: '12px', color: charsMet ? 'var(--success)' : 'var(--accent-gold)', fontWeight: 600, marginBottom: '6px' }}>
+            <div className={styles.checklistPanel}>
+              <div className={charsMet ? styles.checklistItemMet : styles.checklistItemUnmet}>
                 {charsMet ? '✓' : '✗'} Characteristics ({charsProgress.filter(c => c.met).length}/{charsProgress.length} at {completionThreshold}+ advances)
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
+              <div className={styles.charBadgeRow}>
                 {charsProgress.map((c) => (
-                  <span key={c.name} title={CHAR_FULL_NAMES[c.name as CharacteristicKey] || c.name} style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '3px', background: c.met ? 'rgba(90,154,90,0.15)' : 'rgba(201,168,76,0.1)', border: `1px solid ${c.met ? 'var(--success)' : 'var(--border)'}`, color: c.met ? 'var(--success)' : 'var(--text-muted)' }}>
+                  <span key={c.name} title={CHAR_FULL_NAMES[c.name as CharacteristicKey] || c.name} className={c.met ? styles.charBadgeMet : styles.charBadgeUnmet}>
                     {c.name}: {c.advances}/{completionThreshold} {c.met ? '✓' : '✗'}
                   </span>
                 ))}
               </div>
-              <div style={{ fontSize: '12px', color: skillsMet ? 'var(--success)' : 'var(--accent-gold)', fontWeight: 600, marginBottom: '6px' }}>
+              <div className={skillsMet ? styles.checklistItemMet : styles.checklistItemUnmet}>
                 {skillsMet ? '✓' : '✗'} Skills: {skillsWithAdvances.length}/{Math.min(8, careerSkills.length)} needed at {completionThreshold}+ advances
               </div>
-              <div style={{ fontSize: '12px', color: talentsMet ? 'var(--success)' : 'var(--accent-gold)', fontWeight: 600, marginBottom: '10px' }}>
+              <div className={`${styles.talentChecklistItem} ${talentsMet ? styles.checklistItemMet : styles.checklistItemUnmet}`}>
                 {talentsMet ? '✓' : '✗'} Talent: {talentsOwned.length > 0 ? talentsOwned.join(', ') : 'none acquired'}
               </div>
               {readyToProgress && (
-                <div style={{ padding: '8px 12px', background: 'rgba(90,154,90,0.15)', border: '1px solid var(--success)', borderRadius: '4px', fontSize: '12px', color: 'var(--success)', fontWeight: 600, textAlign: 'center' }}>
+                <div className={styles.readyBanner}>
                   ✓ Ready to advance!
                 </div>
               )}
@@ -349,29 +349,22 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           )}
 
           {isMaxLevel && (
-            <div style={{ padding: '8px 12px', background: 'rgba(201,168,76,0.1)', border: '1px solid var(--accent-gold)', borderRadius: '4px', fontSize: '12px', color: 'var(--accent-gold)', fontWeight: 600, textAlign: 'center', marginBottom: '16px' }}>
+            <div className={styles.maxLevelBanner}>
               Max Level Reached
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div className={styles.careerActionsRow}>
             {!isMaxLevel && (
-              <button type="button" onClick={handleAdvanceLevel} disabled={!canAffordAdvance} style={{
-                flex: '1 1 auto', minWidth: '200px', padding: '12px 20px', borderRadius: '6px',
-                fontFamily: 'var(--font-heading)', fontSize: '13px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', cursor: canAffordAdvance ? 'pointer' : 'not-allowed',
-                background: (readyToProgress && canAffordAdvance) ? 'rgba(90,154,90,0.3)' : 'var(--bg-tertiary)',
-                border: (readyToProgress && canAffordAdvance) ? '2px solid var(--success)' : '1px solid var(--border)',
-                color: (readyToProgress && canAffordAdvance) ? '#fff' : 'var(--text-muted)',
-                opacity: canAffordAdvance ? 1 : 0.6,
-              }}>
+              <button type="button" onClick={handleAdvanceLevel} disabled={!canAffordAdvance} className={
+                readyToProgress && canAffordAdvance ? styles.advanceLevelBtnReady
+                  : canAffordAdvance ? styles.advanceLevelBtnAffordable
+                  : styles.advanceLevelBtnDisabled
+              }>
                 Advance Career Level ({advanceLevelCost} XP)
               </button>
             )}
-            <button type="button" onClick={() => setShowSwitchCareerPicker(true)} style={{
-              flex: '1 1 auto', minWidth: '200px', padding: '12px 20px', borderRadius: '6px',
-              fontFamily: 'var(--font-heading)', fontSize: '13px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', cursor: 'pointer',
-              background: 'rgba(201,168,76,0.2)', border: '2px solid var(--accent-gold)', color: 'var(--accent-gold)',
-            }}>
+            <button type="button" onClick={() => setShowSwitchCareerPicker(true)} className={styles.switchCareerBtn}>
               Switch Career
             </button>
           </div>
@@ -381,10 +374,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {/* Characteristics Advancement */}
       <Card>
         <SectionHeader icon={Swords} title="Advance Characteristics" />
-        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-          <span style={{ color: 'var(--success)' }}>In-Career</span> costs follow the WFRP 4e tiered table. <span style={{ color: 'var(--accent-gold)' }}>Out-of-Career</span> costs are double.
+        <div className={styles.charHelpText}>
+          <span className={styles.charHelpInCareer}>In-Career</span> costs follow the WFRP 4e tiered table. <span className={styles.charHelpOutCareer}>Out-of-Career</span> costs are double.
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
+        <div className={styles.charGrid}>
           {CHAR_KEYS.map((key) => {
             const c = character.chars[key];
             const inCareer = careerChars.includes(key);
@@ -393,26 +386,22 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             const canAfford = character.xpCur >= cost;
             const bulk = calculateBulkAdvancement('characteristic', c.a, character.xpCur, inCareer, 5);
             return (
-              <div key={key} style={{
-                background: inCareer ? inCareerBg : outCareerBg,
-                border: inCareer ? inCareerBorder : outCareerBorder,
-                borderRadius: '6px', padding: '10px',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '14px', fontWeight: 700, color: inCareer ? 'var(--success)' : 'var(--accent-gold)' }} title={CHAR_FULL_NAMES[key]}>{key}</span>
-                  <span style={{ fontSize: '10px', color: inCareer ? 'var(--success)' : 'var(--accent-gold)', textTransform: 'uppercase', fontWeight: 600 }}>{inCareer ? 'In-Career' : 'Out-of-Career'}</span>
+              <div key={key} className={inCareer ? styles.charCardInCareer : styles.charCardOutCareer}>
+                <div className={styles.charCardHeader}>
+                  <span className={inCareer ? styles.charNameInCareer : styles.charNameOutCareer} title={CHAR_FULL_NAMES[key]}>{key}</span>
+                  <span className={inCareer ? styles.charStatusInCareer : styles.charStatusOutCareer}>{inCareer ? 'In-Career' : 'Out-of-Career'}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Value: <strong style={{ color: 'var(--parchment)' }}>{currentValue}</strong></span>
-                  <span style={{ color: 'var(--text-secondary)' }}>Advances: <strong>{c.a}</strong></span>
+                <div className={styles.charStatsRow}>
+                  <span className={styles.charStatLabel}>Value: <strong className={styles.charStatValue}>{currentValue}</strong></span>
+                  <span className={styles.charStatLabel}>Advances: <strong>{c.a}</strong></span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', marginBottom: '8px' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Next: <strong style={{ color: canAfford ? 'var(--success)' : 'var(--danger)' }}>{cost} XP</strong></span>
+                <div className={styles.charCostRow}>
+                  <span className={styles.charCostLabel}>Next: <strong className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</strong></span>
                 </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button type="button" onClick={() => handleAdvanceChar(key)} disabled={!canAfford} style={{ ...smallBtn, flex: 1, background: canAfford ? 'var(--bg-tertiary)' : 'var(--border)', color: canAfford ? 'var(--text-primary)' : 'var(--text-muted)' }}>+1 ({cost} XP)</button>
+                <div className={styles.charBtnRow}>
+                  <button type="button" onClick={() => handleAdvanceChar(key)} disabled={!canAfford} className={canAfford ? styles.advanceBtn : styles.advanceBtnDisabled}>+1 ({cost} XP)</button>
                   {bulk.count > 1 && (
-                    <button type="button" onClick={() => handleBulkAdvanceChar(key)} style={{ ...smallBtn, flex: 1 }}>+{bulk.count} ({bulk.totalCost} XP)</button>
+                    <button type="button" onClick={() => handleBulkAdvanceChar(key)} className={styles.advanceBtn}>+{bulk.count} ({bulk.totalCost} XP)</button>
                   )}
                 </div>
               </div>
@@ -423,87 +412,102 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
 
       {/* Skills Advancement */}
       <Card>
-        <SectionHeader icon={BookOpen} title="Advance Skills" />
-        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-          <span style={{ color: 'var(--success)' }}>In-Career</span> skills use the tiered cost table. <span style={{ color: 'var(--accent-gold)' }}>Out-of-Career</span> costs are double.
+        <SectionHeader icon={BookOpen} title="Advance Skills" action={
+          <button type="button" onClick={() => setHideZeroAdvSkills(!hideZeroAdvSkills)} className={styles.hideZeroBtn}>
+            {hideZeroAdvSkills ? 'Show All' : 'Hide 0 Adv'}
+          </button>
+        } />
+        <div className={styles.charHelpText}>
+          <span className={styles.charHelpInCareer}>In-Career</span> skills use the tiered cost table. <span className={styles.charHelpOutCareer}>Out-of-Career</span> costs are double.
         </div>
-        <table style={tableStyle}>
+        <table className={styles.tableBase}>
           <thead>
             <tr>
-              <th style={thStyle}>Skill</th>
-              <th style={thStyle}>Char</th>
-              <th style={thStyle}>Adv</th>
-              <th style={thStyle}>Total</th>
-              <th style={thStyle}>Cost</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}></th>
+              <th className={styles.th}>Skill</th>
+              <th className={styles.th}>Char</th>
+              <th className={styles.th}>Adv</th>
+              <th className={styles.th}>Total</th>
+              <th className={styles.th}>Cost</th>
+              <th className={styles.th}>Status</th>
+              <th className={styles.th}></th>
             </tr>
           </thead>
           <tbody>
-            {character.bSkills.map((skill, i) => {
-              const inCareer = careerSkills.some(cs => careerSkillMatches(cs, skill.n));
-              const charVal = character.chars[skill.c as CharacteristicKey];
-              const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + skill.a : skill.a;
-              const cost = getAdvancementCost('skill', skill.a, inCareer);
+            {inCareerSkills.length > 0 && (
+              <tr>
+                <td colSpan={7} className={styles.skillGroupHeaderInCareer}>
+                  Career Skills ({inCareerSkills.length})
+                </td>
+              </tr>
+            )}
+            {inCareerSkills.map((entry) => {
+              const charVal = character.chars[entry.skill.c as CharacteristicKey];
+              const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + entry.skill.a : entry.skill.a;
+              const cost = getAdvancementCost('skill', entry.skill.a, true);
               const canAfford = character.xpCur >= cost;
               return (
-                <tr key={`b-${i}`} style={{ background: inCareer ? 'rgba(76,175,80,0.05)' : 'transparent' }}>
-                  <td style={tdStyle}>
+                <tr key={`${entry.isBasic ? 'b' : 'a'}-${entry.originalIndex}`} className={styles.skillRowInCareer}>
+                  <td className={styles.td}>
                     <button
                       type="button"
-                      onClick={(e) => handleSkillTooltip(skill.n, skill.c, e)}
+                      onClick={(e) => handleSkillTooltip(entry.skill.n, entry.skill.c, e)}
                       aria-describedby={
-                        activeTooltip?.type === 'skill' && activeTooltip.key === skill.n
-                          ? `tooltip-skill-${skill.n}`
+                        activeTooltip?.type === 'skill' && activeTooltip.key === entry.skill.n
+                          ? `tooltip-skill-${entry.skill.n}`
                           : undefined
                       }
-                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'help', color: 'inherit', font: 'inherit', textAlign: 'left' }}
-                    >{skill.n}</button>
+                      className={styles.tooltipBtn}
+                    >{entry.skill.n}</button>{!entry.isBasic && <span className={styles.advancedSkillMarker}> *</span>}
                   </td>
-                  <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{skill.c}</td>
-                  <td style={tdStyle}>{skill.a}</td>
-                  <td style={{ ...tdStyle, fontWeight: 600 }}>{total}</td>
-                  <td style={{ ...tdStyle, color: canAfford ? 'var(--success)' : 'var(--danger)' }}>{cost} XP</td>
-                  <td style={{ ...tdStyle, fontSize: '10px', color: inCareer ? 'var(--success)' : 'var(--accent-gold)' }}>{inCareer ? 'In' : 'Out'}</td>
-                  <td style={tdStyle}>
-                    <div style={{ display: 'flex', gap: '3px' }}>
-                      <button type="button" onClick={() => handleAdvanceSkill(i, true)} disabled={!canAfford} style={{ ...smallBtn, padding: '2px 6px', fontSize: '11px', background: canAfford ? 'var(--bg-tertiary)' : 'var(--border)', color: canAfford ? 'var(--text-primary)' : 'var(--text-muted)' }}>+1</button>
-                      <button type="button" onClick={() => handleBulkAdvanceSkill(i, true, 5)} disabled={!canAfford} style={{ ...smallBtn, padding: '2px 6px', fontSize: '11px', background: canAfford ? 'var(--bg-tertiary)' : 'var(--border)', color: canAfford ? 'var(--text-primary)' : 'var(--text-muted)' }}>+5</button>
+                  <td className={styles.tdMuted}>{entry.skill.c}</td>
+                  <td className={styles.td}>{entry.skill.a}</td>
+                  <td className={styles.tdBold}>{total}</td>
+                  <td className={`${styles.td} ${canAfford ? styles.canAfford : styles.cannotAfford}`}>{cost} XP</td>
+                  <td className={styles.statusInCareer}>In</td>
+                  <td className={styles.td}>
+                    <div className={styles.skillBtnRow}>
+                      <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+1</button>
+                      <button type="button" onClick={() => handleBulkAdvanceSkill(entry.originalIndex, entry.isBasic, 5)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+5</button>
                     </div>
                   </td>
                 </tr>
               );
             })}
-            {character.aSkills.filter(s => s.n !== '').map((skill, i) => {
-              const realIndex = character.aSkills.indexOf(skill);
-              const inCareer = careerSkills.some(cs => careerSkillMatches(cs, skill.n));
-              const charVal = character.chars[skill.c as CharacteristicKey];
-              const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + skill.a : skill.a;
-              const cost = getAdvancementCost('skill', skill.a, inCareer);
+            {outCareerSkills.length > 0 && (
+              <tr>
+                <td colSpan={7} className={styles.skillGroupHeaderOutCareer}>
+                  Other Skills ({outCareerSkills.length})
+                </td>
+              </tr>
+            )}
+            {outCareerSkills.map((entry) => {
+              const charVal = character.chars[entry.skill.c as CharacteristicKey];
+              const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + entry.skill.a : entry.skill.a;
+              const cost = getAdvancementCost('skill', entry.skill.a, false);
               const canAfford = character.xpCur >= cost;
               return (
-                <tr key={`a-${i}`} style={{ background: inCareer ? 'rgba(76,175,80,0.05)' : 'transparent' }}>
-                  <td style={tdStyle}>
+                <tr key={`${entry.isBasic ? 'b' : 'a'}-${entry.originalIndex}`} className={styles.skillRowOutCareer}>
+                  <td className={styles.td}>
                     <button
                       type="button"
-                      onClick={(e) => handleSkillTooltip(skill.n, skill.c, e)}
+                      onClick={(e) => handleSkillTooltip(entry.skill.n, entry.skill.c, e)}
                       aria-describedby={
-                        activeTooltip?.type === 'skill' && activeTooltip.key === skill.n
-                          ? `tooltip-skill-${skill.n}`
+                        activeTooltip?.type === 'skill' && activeTooltip.key === entry.skill.n
+                          ? `tooltip-skill-${entry.skill.n}`
                           : undefined
                       }
-                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'help', color: 'inherit', font: 'inherit', textAlign: 'left' }}
-                    >{skill.n}</button> <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>*</span>
+                      className={styles.tooltipBtn}
+                    >{entry.skill.n}</button>{!entry.isBasic && <span className={styles.advancedSkillMarker}> *</span>}
                   </td>
-                  <td style={{ ...tdStyle, color: 'var(--text-muted)' }}>{skill.c}</td>
-                  <td style={tdStyle}>{skill.a}</td>
-                  <td style={{ ...tdStyle, fontWeight: 600 }}>{total}</td>
-                  <td style={{ ...tdStyle, color: canAfford ? 'var(--success)' : 'var(--danger)' }}>{cost} XP</td>
-                  <td style={{ ...tdStyle, fontSize: '10px', color: inCareer ? 'var(--success)' : 'var(--accent-gold)' }}>{inCareer ? 'In' : 'Out'}</td>
-                  <td style={tdStyle}>
-                    <div style={{ display: 'flex', gap: '3px' }}>
-                      <button type="button" onClick={() => handleAdvanceSkill(realIndex, false)} disabled={!canAfford} style={{ ...smallBtn, padding: '2px 6px', fontSize: '11px', background: canAfford ? 'var(--bg-tertiary)' : 'var(--border)', color: canAfford ? 'var(--text-primary)' : 'var(--text-muted)' }}>+1</button>
-                      <button type="button" onClick={() => handleBulkAdvanceSkill(realIndex, false, 5)} disabled={!canAfford} style={{ ...smallBtn, padding: '2px 6px', fontSize: '11px', background: canAfford ? 'var(--bg-tertiary)' : 'var(--border)', color: canAfford ? 'var(--text-primary)' : 'var(--text-muted)' }}>+5</button>
+                  <td className={styles.tdMuted}>{entry.skill.c}</td>
+                  <td className={styles.td}>{entry.skill.a}</td>
+                  <td className={styles.tdBold}>{total}</td>
+                  <td className={`${styles.td} ${canAfford ? styles.canAfford : styles.cannotAfford}`}>{cost} XP</td>
+                  <td className={styles.statusOutCareer}>Out</td>
+                  <td className={styles.td}>
+                    <div className={styles.skillBtnRow}>
+                      <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+1</button>
+                      <button type="button" onClick={() => handleBulkAdvanceSkill(entry.originalIndex, entry.isBasic, 5)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+5</button>
                     </div>
                   </td>
                 </tr>
@@ -516,23 +520,20 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {/* Talents Advancement */}
       <Card>
         <SectionHeader icon={Sparkles} title="Acquire Talents" />
-        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-          Talent cost: 100 × (times taken + 1) XP for <span style={{ color: 'var(--success)' }}>in-career</span>, doubled for <span style={{ color: 'var(--accent-gold)' }}>out-of-career</span>.
+        <div className={styles.talentHelpText}>
+          Talent cost: 100 × (times taken + 1) XP for <span className={styles.charHelpInCareer}>in-career</span>, doubled for <span className={styles.charHelpOutCareer}>out-of-career</span>.
         </div>
         {careerTalents.length > 0 && (
           <>
-            <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: 600, marginBottom: '6px' }}>In-Career Talents</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+            <div className={styles.talentGroupLabelInCareer}>In-Career Talents</div>
+            <div className={styles.talentGrid}>
               {careerTalents.map((talentName) => {
                 const existing = character.talents.find(t => t.n === talentName);
                 const timesTaken = existing ? existing.lvl : 0;
                 const cost = getAdvancementCost('talent', timesTaken, true);
                 const canAfford = character.xpCur >= cost;
                 return (
-                  <div key={talentName} style={{
-                    background: inCareerBg, border: inCareerBorder, borderRadius: '6px', padding: '8px 12px',
-                    display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '180px',
-                  }}>
+                  <div key={talentName} className={styles.talentCardInCareer}>
                     <button
                       type="button"
                       onClick={(e) => handleTalentTooltip(talentName, existing?.desc ?? '', e)}
@@ -541,12 +542,12 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                           ? `tooltip-talent-${talentName}`
                           : undefined
                       }
-                      style={{ fontSize: '12px', fontWeight: 600, color: 'var(--parchment)', background: 'none', border: 'none', padding: 0, cursor: 'help', textAlign: 'left', font: 'inherit' }}
+                      className={styles.talentName}
                     >{talentName}</button>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                      Level: {timesTaken} | Next: <span style={{ color: canAfford ? 'var(--success)' : 'var(--danger)' }}>{cost} XP</span>
+                    <div className={styles.talentMeta}>
+                      Level: {timesTaken} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
                     </div>
-                    <button type="button" onClick={() => handleAcquireTalent(talentName)} disabled={!canAfford} style={{ ...smallBtn, padding: '2px 8px', fontSize: '11px', marginTop: '2px', background: canAfford ? 'var(--bg-tertiary)' : 'var(--border)', color: canAfford ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                    <button type="button" onClick={() => handleAcquireTalent(talentName)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
                       {timesTaken === 0 ? 'Acquire' : '+1 Level'} ({cost} XP)
                     </button>
                   </div>
@@ -557,16 +558,13 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         )}
         {character.talents.filter(t => !careerTalents.includes(t.n)).length > 0 && (
           <>
-            <div style={{ fontSize: '12px', color: 'var(--accent-gold)', fontWeight: 600, marginBottom: '6px' }}>Out-of-Career Talents (owned)</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+            <div className={styles.talentGroupLabelOutCareer}>Out-of-Career Talents (owned)</div>
+            <div className={styles.talentGrid}>
               {character.talents.filter(t => !careerTalents.includes(t.n)).map((talent) => {
                 const cost = getAdvancementCost('talent', talent.lvl, false);
                 const canAfford = character.xpCur >= cost;
                 return (
-                  <div key={talent.n} style={{
-                    background: outCareerBg, border: outCareerBorder, borderRadius: '6px', padding: '8px 12px',
-                    display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '180px',
-                  }}>
+                  <div key={talent.n} className={styles.talentCardOutCareer}>
                     <button
                       type="button"
                       onClick={(e) => handleTalentTooltip(talent.n, talent.desc ?? '', e)}
@@ -575,12 +573,12 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                           ? `tooltip-talent-${talent.n}`
                           : undefined
                       }
-                      style={{ fontSize: '12px', fontWeight: 600, color: 'var(--parchment)', background: 'none', border: 'none', padding: 0, cursor: 'help', textAlign: 'left', font: 'inherit' }}
+                      className={styles.talentName}
                     >{talent.n}</button>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                      Level: {talent.lvl} | Next: <span style={{ color: canAfford ? 'var(--success)' : 'var(--danger)' }}>{cost} XP</span>
+                    <div className={styles.talentMeta}>
+                      Level: {talent.lvl} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
                     </div>
-                    <button type="button" onClick={() => handleAcquireTalent(talent.n)} disabled={!canAfford} style={{ ...smallBtn, padding: '2px 8px', fontSize: '11px', marginTop: '2px', background: canAfford ? 'var(--bg-tertiary)' : 'var(--border)', color: canAfford ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                    <button type="button" onClick={() => handleAcquireTalent(talent.n)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
                       +1 Level ({cost} XP)
                     </button>
                   </div>
@@ -599,16 +597,12 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {scheme && (
         <Card>
           <SectionHeader icon={ScrollText} title="Career Scheme" />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+          <div className={styles.schemeGrid}>
             {([scheme.level1, scheme.level2, scheme.level3, scheme.level4]).map((level, i) => (
-              <div key={i} style={{
-                padding: '10px', borderRadius: 'var(--radius-sm)',
-                background: level.title === character.careerLevel ? 'rgba(201,168,76,0.1)' : 'var(--bg-tertiary)',
-                border: `1px solid ${level.title === character.careerLevel ? 'var(--accent-gold)' : 'var(--border)'}`,
-              }}>
-                <div style={{ fontWeight: 600, color: 'var(--parchment)', marginBottom: '4px' }}>{level.title}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>{level.status}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+              <div key={i} className={level.title === character.careerLevel ? styles.schemeLevelCardActive : styles.schemeLevelCard}>
+                <div className={styles.schemeLevelTitle}>{level.title}</div>
+                <div className={styles.schemeLevelStatus}>{level.status}</div>
+                <div className={styles.schemeLevelDetails}>
                   <div><strong>Chars:</strong> {level.characteristics.join(', ')}</div>
                   <div><strong>Skills:</strong> {level.skills.join(', ')}</div>
                   <div><strong>Talents:</strong> {level.talents.join(', ')}</div>
@@ -622,37 +616,37 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {/* Advancement Log */}
       <Card>
         <SectionHeader icon={ScrollText} title="Advancement Log" action={
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <button type="button" onClick={handleUndo} disabled={character.advancementLog.length === 0} style={{ ...smallBtn, fontSize: '12px', opacity: character.advancementLog.length === 0 ? 0.4 : 1, cursor: character.advancementLog.length === 0 ? 'not-allowed' : 'pointer' }} aria-label="Undo last advancement">
+          <div className={styles.logActions}>
+            <button type="button" onClick={handleUndo} disabled={character.advancementLog.length === 0} className={character.advancementLog.length === 0 ? styles.logBtnDisabled : styles.logBtn} aria-label="Undo last advancement">
               <Undo2 size={14} />
             </button>
-            <button type="button" onClick={handleRedo} disabled={redoStack.length === 0} style={{ ...smallBtn, fontSize: '12px', opacity: redoStack.length === 0 ? 0.4 : 1, cursor: redoStack.length === 0 ? 'not-allowed' : 'pointer' }} aria-label="Redo last undone advancement">
+            <button type="button" onClick={handleRedo} disabled={redoStack.length === 0} className={redoStack.length === 0 ? styles.logBtnDisabled : styles.logBtn} aria-label="Redo last undone advancement">
               <Redo2 size={14} />
             </button>
-            <button type="button" onClick={() => setShowLog(!showLog)} style={{ ...smallBtn, fontSize: '12px' }}>
+            <button type="button" onClick={() => setShowLog(!showLog)} className={styles.logBtn}>
               {showLog ? 'Hide' : 'Show'} ({character.advancementLog.length})
             </button>
           </div>
         } />
         {showLog && (
-          <table style={tableStyle}>
+          <table className={styles.tableBase}>
             <thead>
               <tr>
-                <th style={thStyle}>Type</th>
-                <th style={thStyle}>Name</th>
-                <th style={thStyle}>From→To</th>
-                <th style={thStyle}>XP</th>
-                <th style={thStyle}>Status</th>
+                <th className={styles.th}>Type</th>
+                <th className={styles.th}>Name</th>
+                <th className={styles.th}>From→To</th>
+                <th className={styles.th}>XP</th>
+                <th className={styles.th}>Status</th>
               </tr>
             </thead>
             <tbody>
               {[...character.advancementLog].reverse().map((entry, i) => (
                 <tr key={i}>
-                  <td style={tdStyle}>{entry.type}</td>
-                  <td style={tdStyle}>{entry.name}</td>
-                  <td style={tdStyle}>{entry.from}→{entry.to}</td>
-                  <td style={tdStyle}>{entry.xpCost}</td>
-                  <td style={{ ...tdStyle, fontSize: '10px', color: entry.inCareer ? 'var(--success)' : 'var(--accent-gold)' }}>{entry.inCareer ? 'In' : 'Out'}</td>
+                  <td className={styles.td}>{entry.type}</td>
+                  <td className={styles.td}>{entry.name}</td>
+                  <td className={styles.td}>{entry.from}→{entry.to}</td>
+                  <td className={styles.td}>{entry.xpCost}</td>
+                  <td className={entry.inCareer ? styles.logStatusInCareer : styles.logStatusOutCareer}>{entry.inCareer ? 'In' : 'Out'}</td>
                 </tr>
               ))}
             </tbody>
@@ -683,8 +677,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         >
           {activeTooltip.content.sections.map((s) => (
             <div key={s.label}>
-              <strong style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{s.label}</strong>
-              <p style={{ margin: '2px 0 8px' }}>{s.text}</p>
+              <strong className={styles.tooltipSectionLabel}>{s.label}</strong>
+              <p className={styles.tooltipSectionText}>{s.text}</p>
             </div>
           ))}
         </Tooltip>

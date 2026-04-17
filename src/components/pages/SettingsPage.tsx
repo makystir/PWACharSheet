@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { exportToClipboard, exportToFile, importFromJSON } from '../../storage/export-import';
 import { Settings, Download, Upload, Trash2, Printer, Palette } from 'lucide-react';
 import type { ThemeMode } from '../../hooks/useTheme';
+import styles from './SettingsPage.module.css';
 
 interface SettingsPageProps {
   character: Character;
@@ -19,9 +20,6 @@ interface SettingsPageProps {
   currentTheme?: ThemeMode;
   onThemeChange?: (theme: ThemeMode) => void;
 }
-
-const sectionGap = { display: 'flex', flexDirection: 'column' as const, gap: '16px' };
-const smallBtn = { padding: '6px 14px', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '13px' };
 
 export function SettingsPage({ character, updateCharacter, currentTheme, onThemeChange }: SettingsPageProps) {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -69,12 +67,12 @@ export function SettingsPage({ character, updateCharacter, currentTheme, onTheme
   };
 
   return (
-    <div style={sectionGap}>
+    <div className={styles.sectionGap}>
       {/* Theme */}
       {onThemeChange && (
       <Card>
         <SectionHeader icon={Palette} title="Appearance" />
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div className={styles.themeRow}>
           {([
             { id: 'dark' as ThemeMode, label: '🌙 Dark', desc: 'Default dark fantasy theme' },
             { id: 'light' as ThemeMode, label: '☀️ Light', desc: 'Light parchment theme' },
@@ -86,17 +84,7 @@ export function SettingsPage({ character, updateCharacter, currentTheme, onTheme
               type="button"
               onClick={() => onThemeChange(t.id)}
               title={t.desc}
-              style={{
-                ...smallBtn,
-                flex: '1 1 auto',
-                minWidth: '120px',
-                padding: '10px 14px',
-                textAlign: 'center',
-                background: currentTheme === t.id ? 'rgba(200,168,76,0.15)' : 'var(--bg-tertiary)',
-                border: currentTheme === t.id ? '2px solid var(--accent-gold)' : '1px solid var(--border)',
-                color: currentTheme === t.id ? 'var(--accent-gold)' : 'var(--text-secondary)',
-                fontWeight: currentTheme === t.id ? 700 : 400,
-              }}
+              className={currentTheme === t.id ? styles.themeBtnActive : styles.themeBtn}
             >
               {t.label}
             </button>
@@ -108,38 +96,38 @@ export function SettingsPage({ character, updateCharacter, currentTheme, onTheme
       {/* Export/Import */}
       <Card>
         <SectionHeader icon={Download} title="Export / Import" />
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <button type="button" onClick={handleExportClipboard} style={smallBtn}>
+        <div className={styles.btnRow}>
+          <button type="button" onClick={handleExportClipboard} className={styles.smallBtn}>
             <Download size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
             Copy to Clipboard
           </button>
-          <button type="button" onClick={handleExportFile} style={smallBtn}>
+          <button type="button" onClick={handleExportFile} className={styles.smallBtn}>
             <Download size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
             Download File
           </button>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <label style={{ ...smallBtn, display: 'inline-flex', alignItems: 'center', background: 'var(--accent-gold)', color: 'var(--bg-primary)', cursor: 'pointer' }}>
+        <div className={styles.importSection}>
+          <div className={styles.importRow}>
+            <label className={styles.importLabel}>
               <Upload size={14} style={{ marginRight: '4px' }} />
               Import from File
               <input type="file" accept=".json" onChange={handleFileImport} style={{ display: 'none' }} />
             </label>
           </div>
-          {importError && <div style={{ color: 'var(--danger)', fontSize: '13px' }}>{importError}</div>}
-          {importSuccess && <div style={{ color: 'var(--success, #5a9a5a)', fontSize: '13px' }}>{importSuccess}</div>}
+          {importError && <div className={styles.errorMsg}>{importError}</div>}
+          {importSuccess && <div className={styles.successMsg}>{importSuccess}</div>}
         </div>
       </Card>
 
       {/* Utilities */}
       <Card>
         <SectionHeader icon={Settings} title="Utilities" />
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <button type="button" onClick={() => setShowClearConfirm(true)} style={{ ...smallBtn, color: 'var(--danger)' }}>
+        <div className={styles.btnRowNoMargin}>
+          <button type="button" onClick={() => setShowClearConfirm(true)} className={styles.dangerBtn}>
             <Trash2 size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
             Clear Sheet
           </button>
-          <button type="button" onClick={() => window.print()} style={smallBtn}>
+          <button type="button" onClick={() => window.print()} className={styles.smallBtn}>
             <Printer size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
             Print
           </button>

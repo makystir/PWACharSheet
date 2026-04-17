@@ -1,0 +1,126 @@
+/* AmmoTracker component styles */
+
+.ammoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ammoCard {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ammoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 13px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ammoCount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ammoCountValue {
+  font-size: 22px;
+  font-weight: 900;
+  font-family: var(--font-heading);
+  min-width: 30px;
+  text-align: center;
+}
+
+.ammoCountLow {
+  composes: ammoCountValue;
+  color: var(--danger);
+}
+
+.ammoCountNormal {
+  composes: ammoCountValue;
+  color: var(--accent-gold);
+}
+
+.separator {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.maxInput {
+  width: 40px;
+  padding: 2px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+  min-height: 44px;
+}
+
+.btnRow {
+  display: flex;
+  gap: 4px;
+}
+
+.actionBtn {
+  flex: 1;
+  padding: 6px 0;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.fireBtn {
+  composes: actionBtn;
+  background: rgba(200, 80, 80, 0.2);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.addOneBtn {
+  composes: actionBtn;
+  background: rgba(90, 154, 90, 0.2);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.refillBtn {
+  composes: actionBtn;
+  background: rgba(90, 120, 180, 0.2);
+  border: 1px solid #5a7aaa;
+  color: #a0c0e8;
+}
+
+.emptyMessage {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+}

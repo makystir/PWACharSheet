@@ -1,0 +1,27 @@
+/* Tooltip component styles */
+
+.tooltip {
+  position: fixed;
+  z-index: 900;
+  max-width: 320px;
+  min-width: 200px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px var(--shadow);
+  padding: 12px;
+  outline: none;
+}
+
+.title {
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  margin: 0 0 8px 0;
+}
+
+.body {
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+}

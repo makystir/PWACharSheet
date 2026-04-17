@@ -1,0 +1,159 @@
+/* RollResultDisplay component styles */
+
+.overlay {
+  composes: overlay from './styles/shared.module.css';
+}
+
+.dialog {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 90%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  font-family: 'Cinzel', serif;
+}
+
+.rollValue {
+  font-size: 48px;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  margin: 0;
+  line-height: 1;
+}
+
+.target {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.sl {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.passFail {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.critical {
+  color: var(--accent-gold);
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.fumble {
+  color: var(--danger);
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.outcome {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.separator {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+.opposedSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opposedLabel {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.opposedInput {
+  width: 80px;
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.opposedResult {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dismissBtn {
+  padding: 8px 24px;
+  background: var(--accent-gold);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #000;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.flexRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flexRowSmallGap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opponentSlLabel {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* Dynamic pass/fail color variants */
+.passColor {
+  color: var(--success);
+}
+
+.failColor {
+  color: var(--danger);
+}
+
+/* Opposed result winner color variants */
+.winnerPlayer {
+  color: var(--success);
+}
+
+.winnerOpponent {
+  color: var(--danger);
+}
+
+.winnerTie {
+  color: var(--text-secondary);
+}

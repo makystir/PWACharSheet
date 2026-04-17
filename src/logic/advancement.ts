@@ -1,6 +1,57 @@
-import type { Character, CharacteristicKey, AdvancementEntry } from '../types/character';
+import type { Character, CharacteristicKey, AdvancementEntry, Skill } from '../types/character';
 import { CAREER_SCHEMES } from '../data/careers';
 import type { CareerLevel } from '../types/character';
+
+/** A skill entry tagged with its original array index, type, and career status for sorted rendering. */
+export interface SortedSkillEntry {
+  skill: Skill;
+  originalIndex: number;
+  isBasic: boolean;
+  inCareer: boolean;
+}
+
+/**
+ * Merge basic and advanced skills into a single sorted array grouped by career status.
+ * In-career skills appear first, then out-of-career. Within each group, skills are sorted
+ * alphabetically by name. Empty-name advanced skills are filtered out.
+ * Does not mutate the input arrays.
+ */
+export function sortSkillsByCareerStatus(
+  bSkills: Skill[],
+  aSkills: Skill[],
+  careerSkills: string[]
+): SortedSkillEntry[] {
+  const entries: SortedSkillEntry[] = [];
+
+  // Tag basic skills
+  bSkills.forEach((skill, i) => {
+    entries.push({
+      skill,
+      originalIndex: i,
+      isBasic: true,
+      inCareer: careerSkills.some(cs => careerSkillMatches(cs, skill.n)),
+    });
+  });
+
+  // Tag advanced skills (skip empty-name entries)
+  aSkills.forEach((skill, i) => {
+    if (skill.n === '') return;
+    entries.push({
+      skill,
+      originalIndex: i,
+      isBasic: false,
+      inCareer: careerSkills.some(cs => careerSkillMatches(cs, skill.n)),
+    });
+  });
+
+  // Sort: in-career first, then alphabetically by name within each group
+  entries.sort((a, b) => {
+    if (a.inCareer !== b.inCareer) return a.inCareer ? -1 : 1;
+    return a.skill.n.localeCompare(b.skill.n);
+  });
+
+  return entries;
+}
 
 /**
  * WFRP 4e XP cost tables from the Core Rulebook (pp. 44-45).

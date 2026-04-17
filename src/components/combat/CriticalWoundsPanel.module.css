@@ -1,0 +1,94 @@
+/* CriticalWoundsPanel component styles */
+
+.woundRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.woundHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.woundHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.severityBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-heading);
+}
+
+.severityHigh {
+  composes: severityBadge;
+  background: rgba(200, 80, 80, 0.3);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.severityMedium {
+  composes: severityBadge;
+  background: rgba(200, 168, 76, 0.2);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+}
+
+.severityLow {
+  composes: severityBadge;
+  background: rgba(90, 154, 90, 0.2);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.locationText {
+  color: var(--parchment);
+  font-weight: 600;
+}
+
+.descriptionText {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.healBtn {
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 13px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyMessage {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+}

@@ -1,0 +1,177 @@
+/* ArmourMap component styles */
+
+.bodyGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 8px;
+  max-width: 320px;
+  margin: 0 auto 16px;
+}
+
+.locationCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  min-width: 44px;
+  min-height: 44px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.locationCellSelected {
+  composes: locationCell;
+  background: rgba(200, 168, 76, 0.2);
+  border: 2px solid var(--accent-gold);
+}
+
+.locationLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.apValue {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+}
+
+.contributingSection {
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.contributingTitle {
+  font-size: 11px;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.contributingItem {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 2px 0;
+}
+
+.contributingEmpty {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+  padding: 4px 0;
+  text-align: left;
+}
+
+.armourListSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.armourRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  gap: 8px;
+}
+
+.armourInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.armourNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.armourName {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--parchment);
+  font-weight: 700;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.armourAP {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+  min-width: 28px;
+  text-align: center;
+}
+
+.armourDetail {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.qualitiesText {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.runeQualitiesText {
+  font-size: 11px;
+  color: var(--accent-gold);
+  margin-left: 4px;
+}
+
+.runeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  background: rgba(200, 168, 76, 0.15);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--accent-gold);
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.deleteBtn {
+  composes: deleteButton from '../shared/styles/shared.module.css';
+}
+
+.emptyMsg {
+  composes: emptyMessage from '../shared/styles/shared.module.css';
+}
+
+.sectionLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  margin-top: 8px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 4px;
+}

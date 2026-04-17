@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
 import type { Character, SpellItem } from '../../types/character';
 import type { RollResult } from '../../logic/dice-roller';
 import {
@@ -16,6 +15,7 @@ import { SectionHeader } from '../shared/SectionHeader';
 import { RollDialog } from '../shared/RollDialog';
 import { CastResultDisplay } from './CastResultDisplay';
 import { Sparkles } from 'lucide-react';
+import styles from './SpellCastingPanel.module.css';
 
 interface SpellCastingPanelProps {
   character: Character;
@@ -30,59 +30,6 @@ interface RollDialogInfo {
   spell: SpellItem;
   isChannelling: boolean;
 }
-
-const tableStyle: CSSProperties = { width: '100%', borderCollapse: 'collapse', fontSize: '13px' };
-const thStyle: CSSProperties = { padding: '6px 8px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' };
-const tdStyle: CSSProperties = { padding: '4px 8px', borderBottom: '1px solid rgba(255,255,255,0.05)' };
-const diceBtn: CSSProperties = { background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', padding: '2px 4px', lineHeight: 1, opacity: 0.7 };
-
-const manageBtn: CSSProperties = {
-  padding: '6px 14px',
-  background: 'none',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--text-secondary)',
-  cursor: 'pointer',
-  fontSize: '12px',
-};
-
-const channelProgressStyle: CSSProperties = {
-  fontSize: '12px',
-  fontWeight: 700,
-  color: 'var(--accent-gold)',
-  fontFamily: 'var(--font-heading)',
-};
-
-const cancelChannelBtn: CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: 'var(--danger)',
-  cursor: 'pointer',
-  fontSize: '13px',
-  padding: '2px 4px',
-};
-
-const pettyRowStyle: CSSProperties = {
-  opacity: 0.65,
-};
-
-const checkboxLabel: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '4px 0',
-  fontSize: '13px',
-  color: 'var(--text-secondary)',
-  cursor: 'pointer',
-};
-
-const manageSectionStyle: CSSProperties = {
-  marginTop: '12px',
-  padding: '12px',
-  background: 'var(--bg-tertiary)',
-  borderRadius: 'var(--radius-sm)',
-  border: '1px solid var(--border)',
-};
 
 export function SpellCastingPanel({ character, update: _update, updateCharacter, addRoll }: SpellCastingPanelProps) {
   const [rollDialogState, setRollDialogState] = useState<RollDialogInfo | null>(null);
@@ -236,7 +183,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
           action={
             <button
               type="button"
-              style={manageBtn}
+              className={styles.manageBtn}
               onClick={() => setShowManageSpells(!showManageSpells)}
             >
               {showManageSpells ? 'Hide' : 'Manage Spells'}
@@ -246,20 +193,20 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
 
         {/* Memorized spells list */}
         {memorizedSpells.length === 0 ? (
-          <div style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic', textAlign: 'center', padding: '8px' }}>
+          <div className={styles.emptySpells}>
             No spells memorized
           </div>
         ) : (
-          <table style={tableStyle}>
+          <table className={styles.table}>
             <thead>
               <tr>
-                <th style={thStyle}>Name</th>
-                <th style={thStyle}>CN</th>
-                <th style={thStyle}>Range</th>
-                <th style={thStyle}>Target</th>
-                <th style={thStyle}>Duration</th>
-                <th style={thStyle}>Effect</th>
-                <th style={thStyle}></th>
+                <th className={styles.th}>Name</th>
+                <th className={styles.th}>CN</th>
+                <th className={styles.th}>Range</th>
+                <th className={styles.th}>Target</th>
+                <th className={styles.th}>Duration</th>
+                <th className={styles.th}>Effect</th>
+                <th className={styles.th}></th>
               </tr>
             </thead>
             <tbody>
@@ -270,25 +217,25 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
                 const isReady = cp != null && cp.accumulatedSL >= cn && cn > 0;
 
                 return (
-                  <tr key={spell.name} style={isPetty ? pettyRowStyle : undefined}>
-                    <td style={tdStyle}>
-                      <span style={{ fontWeight: 600, color: isReady ? 'var(--success)' : 'var(--parchment)' }}>
+                  <tr key={spell.name} className={isPetty ? styles.pettyRow : undefined}>
+                    <td className={styles.td}>
+                      <span className={isReady ? styles.spellNameReady : styles.spellNameDefault}>
                         {spell.name}
                       </span>
                     </td>
-                    <td style={tdStyle}>{spell.cn}</td>
-                    <td style={tdStyle}>{spell.range}</td>
-                    <td style={tdStyle}>{spell.target}</td>
-                    <td style={tdStyle}>{spell.duration}</td>
-                    <td style={{ ...tdStyle, maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td className={styles.td}>{spell.cn}</td>
+                    <td className={styles.td}>{spell.range}</td>
+                    <td className={styles.td}>{spell.target}</td>
+                    <td className={styles.td}>{spell.duration}</td>
+                    <td className={styles.effectCell}>
                       {spell.effect}
                     </td>
-                    <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <td className={styles.actionsCell}>
+                      <div className={styles.actionRow}>
                         {/* Cast button */}
                         <button
                           type="button"
-                          style={diceBtn}
+                          className={styles.diceBtn}
                           onClick={() => openCastDialog(spell)}
                           title={`Cast ${spell.name}`}
                           aria-label={`Cast ${spell.name}`}
@@ -300,7 +247,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
                         {!isPetty && (
                           <button
                             type="button"
-                            style={diceBtn}
+                            className={styles.diceBtn}
                             onClick={() => openChannelDialog(spell)}
                             title={`Channel ${spell.name}`}
                             aria-label={`Channel ${spell.name}`}
@@ -312,12 +259,12 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
                         {/* Channelling progress */}
                         {cp != null && cp.accumulatedSL > 0 && (
                           <>
-                            <span style={channelProgressStyle}>
+                            <span className={styles.channelProgress}>
                               {cp.accumulatedSL} / {cn}
                             </span>
                             <button
                               type="button"
-                              style={cancelChannelBtn}
+                              className={styles.cancelChannelBtn}
                               onClick={() => cancelChannelling(spell.name)}
                               title="Cancel channelling"
                               aria-label={`Cancel channelling ${spell.name}`}
@@ -329,7 +276,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
 
                         {/* Ready indicator */}
                         {isReady && (
-                          <span style={{ fontSize: '11px', color: 'var(--success)', fontWeight: 700, textTransform: 'uppercase' }}>
+                          <span className={styles.readyBadge}>
                             Ready
                           </span>
                         )}
@@ -344,27 +291,27 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
 
         {/* Expandable memorization section */}
         {showManageSpells && (
-          <div style={manageSectionStyle}>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 600 }}>
+          <div className={styles.manageSection}>
+            <div className={styles.manageSectionTitle}>
               Toggle Memorized Spells
             </div>
             {character.spells.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
+              <div className={styles.noSpells}>
                 No spells on character sheet
               </div>
             ) : (
               character.spells.map((spell, i) => (
-                <label key={spell.name + i} style={checkboxLabel}>
+                <label key={spell.name + i} className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
                     checked={spell.memorized === true}
                     onChange={() => toggleMemorized(i)}
-                    style={{ cursor: 'pointer' }}
+                    className={styles.checkboxInput}
                   />
-                  <span style={{ color: spell.memorized ? 'var(--parchment)' : 'var(--text-muted)' }}>
+                  <span className={spell.memorized ? styles.spellMemorized : styles.spellNotMemorized}>
                     {spell.name}
                   </span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  <span className={styles.spellCn}>
                     (CN {spell.cn})
                   </span>
                 </label>

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
 import type { Character, ArmourPoints, EndeavourEntry } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -8,6 +7,7 @@ import { AddButton } from '../shared/AddButton';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { Picker } from '../shared/Picker';
 import { CalendarCheck, Trash2, AlertTriangle, Info, Check } from 'lucide-react';
+import styles from './EndeavoursPage.module.css';
 import {
   GENERAL_ENDEAVOURS,
   CLASS_ENDEAVOURS,
@@ -30,55 +30,6 @@ interface EndeavoursPageProps {
   maxEncumbrance: number;
   coinWeight: number;
 }
-
-const sectionGap: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '16px' };
-
-const slotBadge: CSSProperties = {
-  fontSize: '12px',
-  fontWeight: 600,
-  padding: '2px 8px',
-  borderRadius: 'var(--radius-sm)',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '4px',
-};
-
-const warningBox: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-  padding: '6px 10px',
-  borderRadius: 'var(--radius-sm)',
-  fontSize: '12px',
-  marginBottom: '8px',
-};
-
-const entryRow: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '8px 10px',
-  background: 'var(--bg-secondary)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-sm)',
-};
-
-const removeBtnStyle: CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: 'var(--danger)',
-  cursor: 'pointer',
-  padding: '4px',
-  display: 'flex',
-  alignItems: 'center',
-};
-
-const checkboxStyle: CSSProperties = {
-  width: '18px',
-  height: '18px',
-  cursor: 'pointer',
-  accentColor: 'var(--success)',
-};
 
 interface PickerItem {
   group: string;
@@ -169,7 +120,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
   };
 
   return (
-    <div style={sectionGap}>
+    <div className={styles.sectionGap}>
       {/* Page header with New Downtime Period button */}
       <Card>
         <SectionHeader
@@ -178,7 +129,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
           action={<AddButton label="New Downtime Period" onClick={handleNewPeriod} />}
         />
         {endeavours.length === 0 && (
-          <p style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic', textAlign: 'center', padding: '12px' }}>
+          <p className={styles.emptyMessage}>
             No downtime periods yet. Create one to start tracking Endeavours.
           </p>
         )}
@@ -195,8 +146,8 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
         return (
           <Card key={period.id}>
             {/* Period header: label, slots, delete */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-              <div style={{ flex: 1 }}>
+            <div className={styles.periodHeader}>
+              <div className={styles.periodLabelField}>
                 <EditableField
                   label="Period Label"
                   value={period.label}
@@ -208,7 +159,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
                   }
                 />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className={styles.periodSlotGroup}>
                 <EditableField
                   label="Slots"
                   value={period.slots}
@@ -221,8 +172,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
                   }
                   style={{ width: '60px' }}
                 />
-                <span style={{
-                  ...slotBadge,
+                <span className={styles.slotBadge} style={{
                   background: exceeded ? 'rgba(200,80,80,0.15)' : allFilled ? 'rgba(90,154,90,0.15)' : 'var(--bg-tertiary)',
                   color: exceeded ? 'var(--danger)' : allFilled ? 'var(--success)' : 'var(--text-secondary)',
                   border: `1px solid ${exceeded ? 'var(--danger)' : allFilled ? 'var(--success)' : 'var(--border)'}`,
@@ -233,7 +183,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
               <button
                 type="button"
                 onClick={() => setDeletingPeriodId(period.id)}
-                style={removeBtnStyle}
+                className={styles.removeBtn}
                 title="Delete period"
               >
                 <Trash2 size={16} />
@@ -242,7 +192,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
 
             {/* Status parse warning */}
             {period.statusWarning && (
-              <div style={{ ...warningBox, background: 'rgba(200,168,50,0.1)', border: '1px solid rgba(200,168,50,0.3)', color: 'var(--warning, #c8a832)' }}>
+              <div className={styles.warningBoxStatus}>
                 <AlertTriangle size={14} />
                 <span>Status could not be parsed — defaulted to 1 slot. You can edit the slot count manually.</span>
               </div>
@@ -250,7 +200,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
 
             {/* Elf obligation reminder */}
             {elfChar && (
-              <div style={{ ...warningBox, background: 'rgba(100,140,200,0.1)', border: '1px solid rgba(100,140,200,0.3)', color: 'var(--text-secondary)' }}>
+              <div className={styles.warningBoxElf}>
                 <Info size={14} />
                 <span>Elf characters must spend one Endeavour maintaining contact with their people.</span>
               </div>
@@ -258,7 +208,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
 
             {/* All slots filled indicator */}
             {allFilled && !exceeded && (
-              <div style={{ ...warningBox, background: 'rgba(90,154,90,0.1)', border: '1px solid rgba(90,154,90,0.3)', color: 'var(--success)' }}>
+              <div className={styles.warningBoxFilled}>
                 <Check size={14} />
                 <span>All slots filled.</span>
               </div>
@@ -266,21 +216,18 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
 
             {/* Slots exceeded warning */}
             {exceeded && (
-              <div style={{ ...warningBox, background: 'rgba(200,80,80,0.1)', border: '1px solid rgba(200,80,80,0.3)', color: 'var(--danger)' }}>
+              <div className={styles.warningBoxExceeded}>
                 <AlertTriangle size={14} />
                 <span>Slots exceeded — {used} entries for {total} slot{total !== 1 ? 's' : ''}.</span>
               </div>
             )}
 
             {/* Endeavour entries list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
+            <div className={styles.entriesList}>
               {period.entries.map((entry) => (
                 <div
                   key={entry.id}
-                  style={{
-                    ...entryRow,
-                    opacity: entry.completed ? 0.6 : 1,
-                  }}
+                  className={entry.completed ? styles.entryRowCompleted : styles.entryRow}
                 >
                   <input
                     type="checkbox"
@@ -291,16 +238,10 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
                         endeavours: updateEndeavourEntry(c.endeavours, period.id, entry.id, 'completed', !entry.completed),
                       }))
                     }
-                    style={checkboxStyle}
+                    className={styles.checkbox}
                     title={entry.completed ? 'Mark as pending' : 'Mark as completed'}
                   />
-                  <span style={{
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    color: 'var(--parchment)',
-                    minWidth: '100px',
-                    textDecoration: entry.completed ? 'line-through' : 'none',
-                  }}>
+                  <span className={entry.completed ? styles.entryTypeCompleted : styles.entryType}>
                     {entry.type}
                   </span>
                   <input
@@ -313,16 +254,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
                       }))
                     }
                     placeholder="Notes..."
-                    style={{
-                      flex: 1,
-                      background: 'var(--bg-primary)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: entry.completed ? 'var(--text-muted)' : 'var(--text-primary)',
-                      padding: '4px 8px',
-                      fontSize: '12px',
-                      textDecoration: entry.completed ? 'line-through' : 'none',
-                    }}
+                    className={entry.completed ? styles.notesInputCompleted : styles.notesInput}
                   />
                   <button
                     type="button"
@@ -332,7 +264,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
                         endeavours: removeEndeavourEntry(c.endeavours, period.id, entry.id),
                       }))
                     }
-                    style={removeBtnStyle}
+                    className={styles.removeBtn}
                     title="Remove endeavour"
                   >
                     <Trash2 size={14} />
@@ -340,7 +272,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
                 </div>
               ))}
               {period.entries.length === 0 && (
-                <p style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic', textAlign: 'center', padding: '8px' }}>
+                <p className={styles.emptyEntries}>
                   No endeavours yet. Add one below.
                 </p>
               )}
@@ -365,9 +297,9 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
 
       {/* Custom free-text input dialog */}
       {customForPeriodId !== null && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setCustomForPeriodId(null)} role="dialog" aria-label="Custom Endeavour">
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-lg)', padding: '16px', width: '90%', maxWidth: '360px', display: 'flex', flexDirection: 'column', gap: '12px' }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--parchment)', margin: 0, fontSize: '16px' }}>Custom Endeavour</h3>
+        <div className={styles.customOverlay} onClick={() => setCustomForPeriodId(null)} role="dialog" aria-label="Custom Endeavour">
+          <div className={styles.customDialog} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.customTitle}>Custom Endeavour</h3>
             <input
               type="text"
               value={customInput}
@@ -375,11 +307,11 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddCustom(); if (e.key === 'Escape') setCustomForPeriodId(null); }}
               placeholder="Enter endeavour type..."
               autoFocus
-              style={{ padding: '8px 12px', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
+              className={styles.customInput}
             />
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => setCustomForPeriodId(null)} style={{ padding: '8px 16px', background: 'none', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
-              <button type="button" onClick={handleAddCustom} style={{ padding: '8px 16px', background: 'var(--accent-gold-dark)', border: 'none', borderRadius: 'var(--radius-sm)', color: 'var(--bg-primary)', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Add</button>
+            <div className={styles.customActions}>
+              <button type="button" onClick={() => setCustomForPeriodId(null)} className={styles.cancelBtn}>Cancel</button>
+              <button type="button" onClick={handleAddCustom} className={styles.addBtn}>Add</button>
             </div>
           </div>
         </div>

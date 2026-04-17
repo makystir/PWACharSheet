@@ -1,0 +1,83 @@
+/* FortuneResolvePanel — co-located CSS Module */
+
+.gridRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.spendBtn {
+  padding: 5px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.spendBtnDisabled {
+  padding: 5px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: not-allowed;
+  font-size: 12px;
+  opacity: 0.4;
+}
+
+.burnBtn {
+  padding: 5px 10px;
+  background: none;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.burnBtnDisabled {
+  padding: 5px 10px;
+  background: none;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: not-allowed;
+  font-size: 12px;
+  margin-top: 8px;
+  opacity: 0.4;
+}
+
+.btnGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.noPointsMsg {
+  font-size: 11px;
+  color: var(--danger);
+  margin-top: 4px;
+}
+
+.resetBtn {
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 12px;
+  width: 100%;
+  margin-top: 8px;
+}

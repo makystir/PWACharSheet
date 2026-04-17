@@ -1,0 +1,18 @@
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.addButton:hover {
+  background: var(--accent-gold-dark);
+  color: var(--bg-primary);
+}

@@ -15,18 +15,26 @@ describe('Property 1: Navigation section switching', () => {
 
     expect(screen.getByText('Character')).toBeInTheDocument();
     expect(screen.getByText('Combat')).toBeInTheDocument();
-    expect(screen.getByText('Estate')).toBeInTheDocument();
+    expect(screen.getByText('Holdings & Wealth')).toBeInTheDocument();
     expect(screen.getByText('Endeavours')).toBeInTheDocument();
     expect(screen.getByText('Advancement')).toBeInTheDocument();
     expect(screen.getByText('Settings')).toBeInTheDocument();
   });
 
+  const labelMap: Record<PageSection, string> = {
+    character: 'Character',
+    combat: 'Combat',
+    estate: 'Holdings & Wealth',
+    endeavours: 'Endeavours',
+    advancement: 'Advancement',
+    settings: 'Settings',
+  };
+
   it.each(sections)('clicking %s section calls onPageChange with correct id', (section) => {
     const onPageChange = vi.fn();
     render(<Navigation activePage="character" onPageChange={onPageChange} />);
 
-    const label = section.charAt(0).toUpperCase() + section.slice(1);
-    fireEvent.click(screen.getByText(label));
+    fireEvent.click(screen.getByText(labelMap[section]));
     expect(onPageChange).toHaveBeenCalledWith(section);
   });
 
@@ -35,7 +43,7 @@ describe('Property 1: Navigation section switching', () => {
     render(<Navigation activePage={section} onPageChange={onPageChange} />);
 
     const button = screen.getByRole('button', {
-      name: new RegExp(section, 'i'),
+      name: new RegExp(labelMap[section].replace(/[&]/g, '\\&'), 'i'),
     });
     expect(button).toHaveAttribute('aria-current', 'page');
   });

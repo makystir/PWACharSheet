@@ -153,12 +153,12 @@ describe('Property 23: Character deletion and last-character guard', () => {
     expect(loadCharacter(id1)).toBeNull();
   });
 
-  it('prevents deletion when only one character exists', () => {
+  it('allows deletion when only one character exists', () => {
     const id = createCharacter('Only One');
     const result = deleteCharacter(id);
-    expect(result).toBe(false);
-    expect(listCharacters()).toHaveLength(1);
-    expect(loadCharacter(id)).not.toBeNull();
+    expect(result).toBe(true);
+    expect(listCharacters()).toHaveLength(0);
+    expect(loadCharacter(id)).toBeNull();
   });
 
   it('switches active character when the active one is deleted', () => {

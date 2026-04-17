@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import styles from './Tooltip.module.css';
 
 export interface TooltipProps {
   anchorEl: HTMLElement;
@@ -9,32 +10,6 @@ export interface TooltipProps {
   onClose: () => void;
   id: string;
 }
-
-const tooltipStyle: CSSProperties = {
-  position: 'fixed',
-  zIndex: 900,
-  maxWidth: 320,
-  minWidth: 200,
-  background: 'var(--bg-secondary)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-md)',
-  boxShadow: '0 4px 16px var(--shadow)',
-  padding: '12px',
-  outline: 'none',
-};
-
-const titleStyle: CSSProperties = {
-  color: 'var(--accent-gold)',
-  fontFamily: 'var(--font-heading)',
-  fontSize: '14px',
-  margin: '0 0 8px 0',
-};
-
-const bodyStyle: CSSProperties = {
-  color: 'var(--text-primary)',
-  fontSize: '13px',
-  lineHeight: 1.5,
-};
 
 function computePosition(anchorEl: HTMLElement): { top: number; left: number } {
   const rect = anchorEl.getBoundingClientRect();
@@ -109,10 +84,11 @@ export function Tooltip({ anchorEl, title, children, onClose, id }: TooltipProps
       id={id}
       role="tooltip"
       tabIndex={-1}
-      style={{ ...tooltipStyle, top: position.top, left: position.left }}
+      className={styles.tooltip}
+      style={{ top: position.top, left: position.left }}
     >
-      <div style={titleStyle}>{title}</div>
-      <div style={bodyStyle}>{children}</div>
+      <div className={styles.title}>{title}</div>
+      <div className={styles.body}>{children}</div>
     </div>,
     document.body,
   );

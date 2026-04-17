@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
 import type { Character } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -8,6 +7,7 @@ import { spendFortune, spendResolve, burnFate, burnResilience, sessionReset } fr
 import type { FortuneSpendReason, ResolveSpendReason } from '../../logic/fortune-resolve';
 import { EditableField } from '../shared/EditableField';
 import { Star, Shield } from 'lucide-react';
+import styles from './FortuneResolvePanel.module.css';
 
 interface FortuneResolvePanelProps {
   character: Character;
@@ -16,70 +16,6 @@ interface FortuneResolvePanelProps {
 }
 
 type ConfirmAction = 'burnFate' | 'burnResilience' | 'sessionReset';
-
-const gridRow: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '12px',
-};
-
-const valueRow: CSSProperties = {
-  display: 'flex',
-  alignItems: 'baseline',
-  gap: '12px',
-  marginBottom: '8px',
-};
-
-const spendBtn: CSSProperties = {
-  padding: '5px 10px',
-  background: 'var(--bg-secondary)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--text-primary)',
-  cursor: 'pointer',
-  fontSize: '12px',
-};
-
-const burnBtn: CSSProperties = {
-  padding: '5px 10px',
-  background: 'none',
-  border: '1px solid var(--danger)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--danger)',
-  cursor: 'pointer',
-  fontSize: '12px',
-  marginTop: '8px',
-};
-
-const disabledBtn: CSSProperties = {
-  opacity: 0.4,
-  cursor: 'not-allowed',
-};
-
-const btnGroup: CSSProperties = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '6px',
-  marginBottom: '4px',
-};
-
-const noPointsMsg: CSSProperties = {
-  fontSize: '11px',
-  color: 'var(--danger)',
-  marginTop: '4px',
-};
-
-const resetBtn: CSSProperties = {
-  padding: '6px 14px',
-  background: 'none',
-  border: '1px solid var(--success)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--success)',
-  cursor: 'pointer',
-  fontSize: '12px',
-  width: '100%',
-  marginTop: '8px',
-};
 
 const FORTUNE_REASONS: FortuneSpendReason[] = ['Reroll', 'Add +1 SL', 'Special Ability'];
 const RESOLVE_REASONS: ResolveSpendReason[] = ['Immunity to Psychology', 'Remove Conditions', 'Special Ability'];
@@ -128,20 +64,20 @@ export function FortuneResolvePanel({ character, updateCharacter }: FortuneResol
   return (
     <>
       <Card>
-        <div style={gridRow}>
+        <div className={styles.gridRow}>
           {/* Fate / Fortune sub-section */}
           <div>
             <SectionHeader icon={Star} title="Fate / Fortune" />
-            <div style={valueRow}>
+            <div className={styles.valueRow}>
               <EditableField label="Fate" value={character.fate} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, fate: Number(v) }))} />
               <EditableField label="Fortune" value={character.fortune} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, fortune: Number(v) }))} />
             </div>
-            <div style={btnGroup}>
+            <div className={styles.btnGroup}>
               {FORTUNE_REASONS.map((reason) => (
                 <button
                   key={reason}
                   type="button"
-                  style={character.fortune <= 0 ? { ...spendBtn, ...disabledBtn } : spendBtn}
+                  className={character.fortune <= 0 ? styles.spendBtnDisabled : styles.spendBtn}
                   disabled={character.fortune <= 0}
                   onClick={() => handleSpendFortune(reason)}
                 >
@@ -150,34 +86,34 @@ export function FortuneResolvePanel({ character, updateCharacter }: FortuneResol
               ))}
             </div>
             {character.fortune <= 0 && (
-              <div style={noPointsMsg}>No Fortune points remaining</div>
+              <div className={styles.noPointsMsg}>No Fortune points remaining</div>
             )}
             <button
               type="button"
-              style={character.fate <= 0 ? { ...burnBtn, ...disabledBtn } : burnBtn}
+              className={character.fate <= 0 ? styles.burnBtnDisabled : styles.burnBtn}
               disabled={character.fate <= 0}
               onClick={() => setConfirmAction('burnFate')}
             >
               Burn Fate
             </button>
             {character.fate <= 0 && (
-              <div style={noPointsMsg}>No Fate points remaining</div>
+              <div className={styles.noPointsMsg}>No Fate points remaining</div>
             )}
           </div>
 
           {/* Resilience / Resolve sub-section */}
           <div>
             <SectionHeader icon={Shield} title="Resilience / Resolve" />
-            <div style={valueRow}>
+            <div className={styles.valueRow}>
               <EditableField label="Resilience" value={character.resilience} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, resilience: Number(v) }))} />
               <EditableField label="Resolve" value={character.resolve} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, resolve: Number(v) }))} />
             </div>
-            <div style={btnGroup}>
+            <div className={styles.btnGroup}>
               {RESOLVE_REASONS.map((reason) => (
                 <button
                   key={reason}
                   type="button"
-                  style={character.resolve <= 0 ? { ...spendBtn, ...disabledBtn } : spendBtn}
+                  className={character.resolve <= 0 ? styles.spendBtnDisabled : styles.spendBtn}
                   disabled={character.resolve <= 0}
                   onClick={() => handleSpendResolve(reason)}
                 >
@@ -186,18 +122,18 @@ export function FortuneResolvePanel({ character, updateCharacter }: FortuneResol
               ))}
             </div>
             {character.resolve <= 0 && (
-              <div style={noPointsMsg}>No Resolve points remaining</div>
+              <div className={styles.noPointsMsg}>No Resolve points remaining</div>
             )}
             <button
               type="button"
-              style={character.resilience <= 0 ? { ...burnBtn, ...disabledBtn } : burnBtn}
+              className={character.resilience <= 0 ? styles.burnBtnDisabled : styles.burnBtn}
               disabled={character.resilience <= 0}
               onClick={() => setConfirmAction('burnResilience')}
             >
               Burn Resilience
             </button>
             {character.resilience <= 0 && (
-              <div style={noPointsMsg}>No Resilience points remaining</div>
+              <div className={styles.noPointsMsg}>No Resilience points remaining</div>
             )}
           </div>
         </div>
@@ -205,7 +141,7 @@ export function FortuneResolvePanel({ character, updateCharacter }: FortuneResol
         {/* Session Reset */}
         <button
           type="button"
-          style={resetBtn}
+          className={styles.resetBtn}
           onClick={() => setConfirmAction('sessionReset')}
         >
           Session Reset

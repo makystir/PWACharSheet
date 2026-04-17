@@ -6,8 +6,10 @@ import {
   advanceSkill,
   isCareerLevelComplete,
   careerSkillMatches,
+  sortSkillsByCareerStatus,
 } from '../advancement';
 import type { Character, CharacteristicKey, CharacteristicValue } from '../../types/character';
+import type { Skill } from '../../types/character';
 import { BLANK_CHARACTER } from '../../types/character';
 
 const ALL_CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
@@ -421,5 +423,148 @@ describe('careerSkillMatches — grouped skill matching', () => {
   it('does not match unrelated skills', () => {
     expect(careerSkillMatches('Athletics', 'Climb')).toBe(false);
     expect(careerSkillMatches('Melee (Basic)', 'Melee (Two-Handed)')).toBe(false);
+  });
+});
+
+
+// ─── sortSkillsByCareerStatus ────────────────────────────────────────────────
+// Validates: Requirements 1.1, 1.2, 1.4, 1.5, 5.1
+
+describe('sortSkillsByCareerStatus', () => {
+  const bSkills: Skill[] = [
+    { n: 'Dodge', c: 'Ag', a: 0 },
+    { n: 'Athletics', c: 'Ag', a: 3 },
+    { n: 'Cool', c: 'WP', a: 5 },
+  ];
+
+  const aSkills: Skill[] = [
+    { n: 'Language (Battle)', c: 'Int', a: 0 },
+    { n: 'Melee (Basic)', c: 'WS', a: 2 },
+  ];
+
+  it('career skills appear before non-career skills', () => {
+    const careerSkills = ['Athletics', 'Melee (Basic)'];
+    const result = sortSkillsByCareerStatus(bSkills, aSkills, careerSkills);
+
+    const careerNames = result.filter(e => e.inCareer).map(e => e.skill.n);
+    const nonCareerNames = result.filter(e => !e.inCareer).map(e => e.skill.n);
+
+    // All career entries come before all non-career entries
+    const lastCareerIdx = result.findLastIndex(e => e.inCareer);
+    const firstNonCareerIdx = result.findIndex(e => !e.inCareer);
+    expect(lastCareerIdx).toBeLessThan(firstNonCareerIdx);
+
+    expect(careerNames).toEqual(['Athletics', 'Melee (Basic)']);
+    expect(nonCareerNames).toEqual(['Cool', 'Dodge', 'Language (Battle)']);
+  });
+
+  it('within each group, skills are sorted alphabetically by name', () => {
+    const careerSkills = ['Dodge', 'Cool', 'Language (Battle)'];
+    const result = sortSkillsByCareerStatus(bSkills, aSkills, careerSkills);
+
+    const careerNames = result.filter(e => e.inCareer).map(e => e.skill.n);
+    const nonCareerNames = result.filter(e => !e.inCareer).map(e => e.skill.n);
+
+    expect(careerNames).toEqual(['Cool', 'Dodge', 'Language (Battle)']);
+    expect(nonCareerNames).toEqual(['Athletics', 'Melee (Basic)']);
+  });
+
+  it('basic and advanced career skills are interleaved in the career group', () => {
+    const careerSkills = ['Athletics', 'Language (Battle)'];
+    const result = sortSkillsByCareerStatus(bSkills, aSkills, careerSkills);
+
+    const careerEntries = result.filter(e => e.inCareer);
+    expect(careerEntries).toHaveLength(2);
+    // Athletics (basic) then Language (Battle) (advanced) — alphabetical
+    expect(careerEntries[0].skill.n).toBe('Athletics');
+    expect(careerEntries[0].isBasic).toBe(true);
+    expect(careerEntries[1].skill.n).toBe('Language (Battle)');
+    expect(careerEntries[1].isBasic).toBe(false);
+  });
+
+  it('originalIndex matches the position in the original bSkills/aSkills array', () => {
+    const careerSkills = ['Athletics'];
+    const result = sortSkillsByCareerStatus(bSkills, aSkills, careerSkills);
+
+    // Athletics is bSkills[1]
+    const athletics = result.find(e => e.skill.n === 'Athletics')!;
+    expect(athletics.originalIndex).toBe(1);
+    expect(athletics.isBasic).toBe(true);
+
+    // Dodge is bSkills[0]
+    const dodge = result.find(e => e.skill.n === 'Dodge')!;
+    expect(dodge.originalIndex).toBe(0);
+
+    // Language (Battle) is aSkills[0]
+    const lang = result.find(e => e.skill.n === 'Language (Battle)')!;
+    expect(lang.originalIndex).toBe(0);
+    expect(lang.isBasic).toBe(false);
+
+    // Melee (Basic) is aSkills[1]
+    const melee = result.find(e => e.skill.n === 'Melee (Basic)')!;
+    expect(melee.originalIndex).toBe(1);
+  });
+
+  it('isBasic is true for basic skills and false for advanced skills', () => {
+    const result = sortSkillsByCareerStatus(bSkills, aSkills, []);
+
+    for (const entry of result) {
+      if (['Dodge', 'Athletics', 'Cool'].includes(entry.skill.n)) {
+        expect(entry.isBasic).toBe(true);
+      } else {
+        expect(entry.isBasic).toBe(false);
+      }
+    }
+  });
+
+  it('when careerSkills is empty, all skills are non-career and sorted alphabetically', () => {
+    const result = sortSkillsByCareerStatus(bSkills, aSkills, []);
+
+    expect(result.every(e => !e.inCareer)).toBe(true);
+    const names = result.map(e => e.skill.n);
+    expect(names).toEqual(['Athletics', 'Cool', 'Dodge', 'Language (Battle)', 'Melee (Basic)']);
+  });
+
+  it('fuzzy matching: career "Melee (Any)" marks "Melee (Basic)" as in-career', () => {
+    const careerSkills = ['Melee (Any)'];
+    const result = sortSkillsByCareerStatus(bSkills, aSkills, careerSkills);
+
+    const melee = result.find(e => e.skill.n === 'Melee (Basic)')!;
+    expect(melee.inCareer).toBe(true);
+
+    // Other skills should not be in-career
+    const athletics = result.find(e => e.skill.n === 'Athletics')!;
+    expect(athletics.inCareer).toBe(false);
+  });
+
+  it('advanced skills with empty names are excluded from the output', () => {
+    const aSkillsWithEmpty: Skill[] = [
+      { n: '', c: 'Int', a: 0 },
+      { n: 'Language (Battle)', c: 'Int', a: 0 },
+      { n: '', c: 'WS', a: 0 },
+    ];
+    const result = sortSkillsByCareerStatus([], aSkillsWithEmpty, []);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].skill.n).toBe('Language (Battle)');
+    expect(result[0].originalIndex).toBe(1);
+  });
+
+  it('original bSkills and aSkills arrays are not mutated', () => {
+    const bCopy: Skill[] = [
+      { n: 'Dodge', c: 'Ag', a: 0 },
+      { n: 'Athletics', c: 'Ag', a: 3 },
+    ];
+    const aCopy: Skill[] = [
+      { n: 'Language (Battle)', c: 'Int', a: 0 },
+    ];
+
+    const bBefore = JSON.parse(JSON.stringify(bCopy));
+    const aBefore = JSON.parse(JSON.stringify(aCopy));
+
+    sortSkillsByCareerStatus(bCopy, aCopy, ['Athletics']);
+
+    expect(bCopy).toEqual(bBefore);
+    expect(aCopy).toEqual(aBefore);
   });
 });

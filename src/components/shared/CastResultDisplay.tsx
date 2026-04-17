@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import type { Character } from '../../types/character';
 import {
   type CastingResult,
@@ -6,6 +5,7 @@ import {
   computeOvercastOptions,
 } from '../../logic/spell-casting';
 import { OvercastAllocator } from './OvercastAllocator';
+import styles from './CastResultDisplay.module.css';
 
 interface CastResultDisplayProps {
   castingResult: CastingResult;
@@ -16,157 +16,6 @@ interface CastResultDisplayProps {
   onMiscastRoll?: (table: 'minor' | 'major') => void;
   onClose: () => void;
 }
-
-const overlayStyle: CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(0,0,0,0.6)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1000,
-};
-
-const dialogStyle: CSSProperties = {
-  background: 'var(--bg-secondary)',
-  border: '1px solid var(--card-border)',
-  borderRadius: 'var(--radius-lg)',
-  padding: '24px',
-  width: '90%',
-  maxWidth: '360px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '12px',
-  alignItems: 'center',
-  maxHeight: '85vh',
-  overflowY: 'auto',
-};
-
-const headerStyle: CSSProperties = {
-  color: 'var(--text-primary)',
-  fontSize: '16px',
-  fontWeight: 600,
-  margin: 0,
-  fontFamily: "'Cinzel', serif",
-  textAlign: 'center',
-};
-
-const rollValueStyle: CSSProperties = {
-  fontSize: '48px',
-  fontWeight: 700,
-  fontFamily: "'Cinzel', serif",
-  margin: 0,
-  lineHeight: 1,
-};
-
-const targetStyle: CSSProperties = {
-  color: 'var(--text-secondary)',
-  fontSize: '13px',
-};
-
-const slStyle: CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-};
-
-const cnComparisonStyle: CSSProperties = {
-  fontSize: '14px',
-  fontWeight: 600,
-  textAlign: 'center',
-};
-
-const criticalLabelStyle: CSSProperties = {
-  color: 'var(--accent-gold)',
-  fontSize: '18px',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  letterSpacing: '2px',
-};
-
-const fumbleLabelStyle: CSSProperties = {
-  color: 'var(--danger)',
-  fontSize: '18px',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  letterSpacing: '2px',
-};
-
-const sectionStyle: CSSProperties = {
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '8px',
-  alignItems: 'center',
-};
-
-const separatorStyle: CSSProperties = {
-  width: '100%',
-  height: '1px',
-  background: 'var(--border)',
-  margin: 0,
-};
-
-const choiceBtnStyle: CSSProperties = {
-  padding: '6px 14px',
-  background: 'var(--bg-tertiary)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--text-primary)',
-  cursor: 'pointer',
-  fontSize: '12px',
-  fontWeight: 600,
-};
-
-const miscastBtnStyle: CSSProperties = {
-  padding: '6px 14px',
-  background: 'var(--bg-tertiary)',
-  border: '1px solid var(--danger)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--danger)',
-  cursor: 'pointer',
-  fontSize: '12px',
-  fontWeight: 600,
-};
-
-const dismissBtnStyle: CSSProperties = {
-  padding: '8px 24px',
-  background: 'var(--accent-gold)',
-  border: 'none',
-  borderRadius: 'var(--radius-sm)',
-  color: '#000',
-  cursor: 'pointer',
-  fontSize: '13px',
-  fontWeight: 600,
-  marginTop: '4px',
-};
-
-const goldTextStyle: CSSProperties = {
-  color: 'var(--accent-gold)',
-  fontSize: '14px',
-  fontWeight: 600,
-  textAlign: 'center',
-};
-
-const miscastResultStyle: CSSProperties = {
-  width: '100%',
-  padding: '10px',
-  background: 'var(--bg-tertiary)',
-  borderRadius: 'var(--radius-sm)',
-  border: '1px solid var(--danger)',
-};
-
-const miscastNameStyle: CSSProperties = {
-  color: 'var(--danger)',
-  fontSize: '14px',
-  fontWeight: 700,
-  marginBottom: '4px',
-};
-
-const miscastEffectStyle: CSSProperties = {
-  color: 'var(--text-secondary)',
-  fontSize: '12px',
-  lineHeight: 1.4,
-};
 
 function formatSL(sl: number): string {
   return sl >= 0 ? `+${sl}` : `${sl}`;
@@ -198,31 +47,31 @@ export function CastResultDisplay({
     isUndispellable,
   } = castingResult;
 
-  const passColor = castSuccess ? 'var(--success)' : 'var(--danger)';
+  const passColorClass = castSuccess ? styles.passColor : styles.failColor;
 
   return (
-    <div style={overlayStyle} onClick={onClose} role="dialog" aria-label="Cast Result">
-      <div style={dialogStyle} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.overlay} onClick={onClose} role="dialog" aria-label="Cast Result">
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         {/* 1. Header — Spell name */}
-        <div style={headerStyle}>{spell.name}</div>
+        <div className={styles.header}>{spell.name}</div>
 
         {/* 2. Roll info — d100 value, target, SL */}
-        <div style={{ ...rollValueStyle, color: passColor }}>{rollResult.roll}</div>
-        <div style={targetStyle}>Target: {rollResult.targetNumber}</div>
-        <div style={{ ...slStyle, color: passColor }}>SL {formatSL(slAchieved)}</div>
+        <div className={`${styles.rollValue} ${passColorClass}`}>{rollResult.roll}</div>
+        <div className={styles.target}>Target: {rollResult.targetNumber}</div>
+        <div className={`${styles.sl} ${passColorClass}`}>SL {formatSL(slAchieved)}</div>
 
         {/* 3. CN comparison */}
-        <div style={separatorStyle} />
+        <div className={styles.separator} />
         {isFullyChannelled ? (
-          <div style={{ ...cnComparisonStyle, color: 'var(--success)' }}>
+          <div className={`${styles.cnComparison} ${styles.passColor}`}>
             Channelled Cast — Success!
           </div>
         ) : castSuccess ? (
-          <div style={{ ...cnComparisonStyle, color: 'var(--success)' }}>
+          <div className={`${styles.cnComparison} ${styles.passColor}`}>
             SL {formatSL(slAchieved)} vs CN {cn} — Cast!
           </div>
         ) : (
-          <div style={{ ...cnComparisonStyle, color: 'var(--danger)' }}>
+          <div className={`${styles.cnComparison} ${styles.failColor}`}>
             SL {formatSL(slAchieved)} vs CN {cn} — Failed to reach CN
           </div>
         )}
@@ -230,27 +79,27 @@ export function CastResultDisplay({
         {/* 4. Critical Cast section */}
         {isCriticalCast && (
           <>
-            <div style={separatorStyle} />
-            <div style={sectionStyle}>
-              <div style={criticalLabelStyle}>Critical Cast</div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <div className={styles.separator} />
+            <div className={styles.section}>
+              <div className={styles.criticalLabel}>Critical Cast</div>
+              <div className={styles.choiceBtnRow}>
                 <button
                   type="button"
-                  style={choiceBtnStyle}
+                  className={styles.choiceBtn}
                   onClick={() => onCriticalChoice?.('critical_wound')}
                 >
                   Critical Wound
                 </button>
                 <button
                   type="button"
-                  style={choiceBtnStyle}
+                  className={styles.choiceBtn}
                   onClick={() => onCriticalChoice?.('total_power')}
                 >
                   Total Power
                 </button>
                 <button
                   type="button"
-                  style={choiceBtnStyle}
+                  className={styles.choiceBtn}
                   onClick={() => onCriticalChoice?.('unstoppable_force')}
                 >
                   Unstoppable Force
@@ -263,12 +112,12 @@ export function CastResultDisplay({
         {/* 5. Fumble section */}
         {isFumbledCast && (
           <>
-            <div style={separatorStyle} />
-            <div style={sectionStyle}>
-              <div style={fumbleLabelStyle}>Fumble</div>
+            <div className={styles.separator} />
+            <div className={styles.section}>
+              <div className={styles.fumbleLabel}>Fumble</div>
               <button
                 type="button"
-                style={miscastBtnStyle}
+                className={styles.miscastBtn}
                 onClick={() => onMiscastRoll?.('minor')}
               >
                 Roll Minor Miscast
@@ -280,14 +129,14 @@ export function CastResultDisplay({
         {/* 6. Minor Miscast prompt (from critical, not fumble) */}
         {triggerMinorMiscast && !isFumbledCast && (
           <>
-            <div style={separatorStyle} />
-            <div style={sectionStyle}>
-              <div style={{ color: 'var(--danger)', fontSize: '13px', fontWeight: 600 }}>
+            <div className={styles.separator} />
+            <div className={styles.section}>
+              <div className={styles.minorMiscastLabel}>
                 Minor Miscast triggered
               </div>
               <button
                 type="button"
-                style={miscastBtnStyle}
+                className={styles.miscastBtn}
                 onClick={() => onMiscastRoll?.('minor')}
               >
                 Roll Minor Miscast
@@ -299,8 +148,8 @@ export function CastResultDisplay({
         {/* 7. Undispellable indicator */}
         {isUndispellable && (
           <>
-            <div style={separatorStyle} />
-            <div style={goldTextStyle}>
+            <div className={styles.separator} />
+            <div className={styles.goldText}>
               UNSTOPPABLE FORCE — Cannot be dispelled
             </div>
           </>
@@ -309,8 +158,8 @@ export function CastResultDisplay({
         {/* 8. Overcast section */}
         {overcastSlots > 0 && castSuccess && onOvercastAllocated && (
           <>
-            <div style={separatorStyle} />
-            <div style={{ width: '100%' }}>
+            <div className={styles.separator} />
+            <div className={styles.overcastWrapper}>
               <OvercastAllocator
                 options={computeOvercastOptions(spell)}
                 availableSlots={overcastSlots}
@@ -323,12 +172,12 @@ export function CastResultDisplay({
         {/* 9. Magic missile section */}
         {isMagicMissile && castSuccess && (
           <>
-            <div style={separatorStyle} />
-            <div style={sectionStyle}>
-              <div style={{ color: 'var(--parchment)', fontSize: '14px', fontWeight: 600 }}>
+            <div className={styles.separator} />
+            <div className={styles.section}>
+              <div className={styles.hitLocation}>
                 Hit: {hitLocation}
               </div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+              <div className={styles.damageLabel}>
                 Damage: {damage}
               </div>
             </div>
@@ -338,14 +187,14 @@ export function CastResultDisplay({
         {/* 10. Miscast result */}
         {miscastResult && (
           <>
-            <div style={separatorStyle} />
-            <div style={miscastResultStyle}>
-              <div style={miscastNameStyle}>{miscastResult.entry.name}</div>
-              <div style={miscastEffectStyle}>{miscastResult.entry.effect}</div>
+            <div className={styles.separator} />
+            <div className={styles.miscastResult}>
+              <div className={styles.miscastName}>{miscastResult.entry.name}</div>
+              <div className={styles.miscastEffect}>{miscastResult.entry.effect}</div>
               {miscastResult.entry.special === 'cascading_chaos' && (
                 <button
                   type="button"
-                  style={{ ...miscastBtnStyle, marginTop: '8px' }}
+                  className={styles.miscastBtnMargin}
                   onClick={() => onMiscastRoll?.('major')}
                 >
                   Roll Major Miscast
@@ -354,7 +203,7 @@ export function CastResultDisplay({
               {miscastResult.entry.special === 'multiplying_misfortune' && (
                 <button
                   type="button"
-                  style={{ ...miscastBtnStyle, marginTop: '8px' }}
+                  className={styles.miscastBtnMargin}
                   onClick={() => onMiscastRoll?.('minor')}
                 >
                   Roll 2 Minor Miscasts
@@ -365,7 +214,7 @@ export function CastResultDisplay({
         )}
 
         {/* 11. Dismiss button */}
-        <button type="button" onClick={onClose} style={dismissBtnStyle}>
+        <button type="button" onClick={onClose} className={styles.dismissBtn}>
           Dismiss
         </button>
       </div>

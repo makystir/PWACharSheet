@@ -1,0 +1,117 @@
+/* RollHistoryPanel component styles */
+
+.panel {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+  background: none;
+  border: none;
+  width: 100%;
+  color: var(--parchment);
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chevron {
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: transform 0.15s ease;
+  transform: rotate(0deg);
+}
+
+.chevronExpanded {
+  composes: chevron;
+  transform: rotate(180deg);
+}
+
+.body {
+  border-top: 1px solid var(--card-border);
+  padding: 8px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.skillName {
+  color: var(--text-primary);
+  font-weight: 500;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.rollValue {
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  min-width: 28px;
+  text-align: center;
+}
+
+.target {
+  color: var(--text-muted);
+  min-width: 40px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.sl {
+  font-weight: 600;
+  min-width: 32px;
+  text-align: center;
+}
+
+.icon {
+  min-width: 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.clearBtn {
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  align-self: flex-end;
+  margin-top: 4px;
+}
+
+.emptyMessage {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+/* Dynamic pass/fail color variants */
+.passColor {
+  color: var(--success);
+}
+
+.failColor {
+  color: var(--danger);
+}

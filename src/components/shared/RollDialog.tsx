@@ -1,10 +1,11 @@
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
 import {
   performRoll,
   applyDifficulty,
   type DifficultyLevel,
   type RollResult,
 } from '../../logic/dice-roller';
+import styles from './RollDialog.module.css';
 
 interface RollDialogProps {
   skillOrCharName: string;
@@ -24,93 +25,6 @@ const DIFFICULTY_LABELS: { level: DifficultyLevel; label: string }[] = [
   { level: 'Very Hard', label: 'Very Hard (-30)' },
 ];
 
-const overlayStyle: CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(0,0,0,0.6)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1000,
-};
-
-const dialogStyle: CSSProperties = {
-  background: 'var(--bg-secondary)',
-  border: '1px solid var(--card-border)',
-  borderRadius: 'var(--radius-lg)',
-  padding: '24px',
-  width: '90%',
-  maxWidth: '360px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '16px',
-};
-
-const titleStyle: CSSProperties = {
-  color: 'var(--text-primary)',
-  fontSize: '16px',
-  fontWeight: 600,
-  margin: 0,
-  fontFamily: "'Cinzel', serif",
-};
-
-const labelStyle: CSSProperties = {
-  color: 'var(--text-secondary)',
-  fontSize: '13px',
-  marginBottom: '4px',
-};
-
-const valueStyle: CSSProperties = {
-  color: 'var(--text-primary)',
-  fontSize: '14px',
-  fontWeight: 600,
-};
-
-const selectStyle: CSSProperties = {
-  width: '100%',
-  padding: '8px 12px',
-  background: 'var(--bg-tertiary)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--text-primary)',
-  fontSize: '14px',
-  cursor: 'pointer',
-};
-
-const modifiedTargetStyle: CSSProperties = {
-  color: 'var(--accent-gold)',
-  fontSize: '20px',
-  fontWeight: 700,
-  textAlign: 'center',
-};
-
-const actionsStyle: CSSProperties = {
-  display: 'flex',
-  gap: '8px',
-  justifyContent: 'flex-end',
-};
-
-const cancelBtnStyle: CSSProperties = {
-  padding: '8px 16px',
-  background: 'none',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--text-secondary)',
-  cursor: 'pointer',
-  fontSize: '13px',
-};
-
-const rollBtnStyle: CSSProperties = {
-  padding: '8px 16px',
-  background: 'var(--accent-gold)',
-  border: 'none',
-  borderRadius: 'var(--radius-sm)',
-  color: '#000',
-  cursor: 'pointer',
-  fontSize: '13px',
-  fontWeight: 600,
-};
-
 export function RollDialog({
   skillOrCharName,
   baseTarget,
@@ -129,19 +43,19 @@ export function RollDialog({
   };
 
   return (
-    <div style={overlayStyle} onClick={onClose} role="dialog" aria-label="Roll Dialog">
-      <div style={dialogStyle} onClick={(e) => e.stopPropagation()}>
-        <h2 style={titleStyle}>{skillOrCharName}</h2>
+    <div className={styles.overlay} onClick={onClose} role="dialog" aria-label="Roll Dialog">
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+        <h2 className={styles.title}>{skillOrCharName}</h2>
 
         <div>
-          <div style={labelStyle}>Base Target</div>
-          <div style={valueStyle}>{baseTarget}</div>
+          <div className={styles.label}>Base Target</div>
+          <div className={styles.value}>{baseTarget}</div>
         </div>
 
         <div>
-          <div style={labelStyle}>Difficulty</div>
+          <div className={styles.label}>Difficulty</div>
           <select
-            style={selectStyle}
+            className={styles.select}
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)}
             aria-label="Difficulty"
@@ -155,15 +69,15 @@ export function RollDialog({
         </div>
 
         <div>
-          <div style={labelStyle}>Modified Target</div>
-          <div style={modifiedTargetStyle}>{modifiedTarget}</div>
+          <div className={styles.label}>Modified Target</div>
+          <div className={styles.modifiedTarget}>{modifiedTarget}</div>
         </div>
 
-        <div style={actionsStyle}>
-          <button type="button" onClick={onClose} style={cancelBtnStyle}>
+        <div className={styles.actions}>
+          <button type="button" onClick={onClose} className={styles.cancelBtn}>
             Cancel
           </button>
-          <button type="button" onClick={handleRoll} style={rollBtnStyle}>
+          <button type="button" onClick={handleRoll} className={styles.rollBtn}>
             Roll
           </button>
         </div>

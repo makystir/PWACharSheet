@@ -1,0 +1,104 @@
+/* SettingsPage CSS Module */
+
+/* Layout */
+.sectionGap {
+  composes: sectionGap from '../shared/styles/shared.module.css';
+}
+
+/* Small button */
+.smallBtn {
+  padding: 6px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* Theme button row */
+.themeRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Theme button (inactive) */
+.themeBtn {
+  composes: smallBtn;
+  flex: 1 1 auto;
+  min-width: 120px;
+  padding: 10px 14px;
+  text-align: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Theme button (active) */
+.themeBtnActive {
+  composes: smallBtn;
+  flex: 1 1 auto;
+  min-width: 120px;
+  padding: 10px 14px;
+  text-align: center;
+  background: rgba(200, 168, 76, 0.15);
+  border: 2px solid var(--accent-gold);
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+/* Button row */
+.btnRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.btnRowNoMargin {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Import section */
+.importSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.importRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Import label (styled as button) */
+.importLabel {
+  composes: smallBtn;
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  cursor: pointer;
+}
+
+/* Danger button variant */
+.dangerBtn {
+  composes: smallBtn;
+  color: var(--danger);
+}
+
+/* Error / success messages */
+.errorMsg {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.successMsg {
+  color: var(--success, #5a9a5a);
+  font-size: 13px;
+}

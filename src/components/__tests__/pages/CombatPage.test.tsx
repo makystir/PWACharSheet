@@ -34,12 +34,16 @@ function renderCombatPage(overrides: Partial<Character> = {}) {
   return { update, updateCharacter, getCaptured: () => captured };
 }
 
-// ─── Condition Tooltip Tests (Task 8.4) ─────────────────────────────────────
+// ─── Condition Tooltip Tests (via CombatDashboard) ──────────────────────────
 
 describe('CombatPage condition tooltips', () => {
-  it('clicking the info icon opens a tooltip with condition details', () => {
-    renderCombatPage();
-    // Click the info button for "Bleeding"
+  it('clicking the info button on an active condition badge opens a tooltip', () => {
+    // Conditions are shown as badges in the CombatDashboard when active
+    renderCombatPage({
+      conditions: [{ name: 'Bleeding', level: 1 }],
+      combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
+    });
+
     const infoBtn = screen.getByRole('button', { name: 'Info for Bleeding' });
     fireEvent.click(infoBtn);
 
@@ -50,30 +54,31 @@ describe('CombatPage condition tooltips', () => {
     expect(tooltip).toHaveTextContent('Effects');
     expect(tooltip).toHaveTextContent('Duration');
     expect(tooltip).toHaveTextContent('Removed By');
-    // Verify actual content from conditions data
     expect(tooltip).toHaveTextContent('Lose 1 Wound per level at end of round');
     expect(tooltip).toHaveTextContent('Heal test or magical healing');
   });
 
-  it('clicking the badge name still toggles the condition (does not open tooltip)', () => {
-    const { updateCharacter } = renderCombatPage();
-    // Click the badge name text for "Bleeding" (not the info icon)
-    // The badge name is a separate button that calls applyCondition
-    const bleedingBadgeBtn = screen.getByRole('button', { name: 'Bleeding' });
-    fireEvent.click(bleedingBadgeBtn);
+  it('clicking the remove button on a condition badge calls updateCharacter', () => {
+    const { updateCharacter } = renderCombatPage({
+      conditions: [{ name: 'Bleeding', level: 1 }],
+      combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
+    });
+
+    const removeBtn = screen.getByRole('button', { name: 'Remove Bleeding' });
+    fireEvent.click(removeBtn);
 
     expect(updateCharacter).toHaveBeenCalled();
-    // No tooltip should appear from clicking the badge name
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
-  it('clicking info icon for a different condition closes the first tooltip and opens a new one', () => {
-    renderCombatPage();
-    // Open tooltip for Bleeding
+  it('clicking info on a different condition closes the first tooltip and opens a new one', () => {
+    renderCombatPage({
+      conditions: [{ name: 'Bleeding', level: 1 }, { name: 'Stunned', level: 1 }],
+      combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
+    });
+
     fireEvent.click(screen.getByRole('button', { name: 'Info for Bleeding' }));
     expect(screen.getByRole('tooltip')).toHaveTextContent('Bleeding');
 
-    // Open tooltip for Stunned
     fireEvent.click(screen.getByRole('button', { name: 'Info for Stunned' }));
     const tooltip = screen.getByRole('tooltip');
     expect(tooltip).toHaveTextContent('Stunned');
@@ -81,12 +86,74 @@ describe('CombatPage condition tooltips', () => {
   });
 
   it('pressing Escape dismisses the condition tooltip', () => {
-    renderCombatPage();
+    renderCombatPage({
+      conditions: [{ name: 'Ablaze', level: 1 }],
+      combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
+    });
+
     fireEvent.click(screen.getByRole('button', { name: 'Info for Ablaze' }));
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+});
+
+// ─── Mode Switching Tests ───────────────────────────────────────────────────
+
+describe('CombatPage mode switching', () => {
+  it('renders START COMBAT button in readiness mode', () => {
+    renderCombatPage();
+    expect(screen.getByRole('button', { name: 'START COMBAT' })).toBeInTheDocument();
+  });
+
+  it('START COMBAT sets inCombat to true and currentRound to 1', () => {
+    const { update } = renderCombatPage();
+    fireEvent.click(screen.getByRole('button', { name: 'START COMBAT' }));
+    expect(update).toHaveBeenCalledWith('combatState.inCombat', true);
+    expect(update).toHaveBeenCalledWith('combatState.currentRound', 1);
+  });
+
+  it('renders END COMBAT button when in combat', () => {
+    renderCombatPage({
+      combatState: { inCombat: true, initiative: 0, currentRound: 3, engaged: false, surprised: false },
+    });
+    expect(screen.getByRole('button', { name: 'END COMBAT' })).toBeInTheDocument();
+  });
+
+  it('END COMBAT resets inCombat, advantage, and currentRound', () => {
+    const { update } = renderCombatPage({
+      combatState: { inCombat: true, initiative: 0, currentRound: 3, engaged: false, surprised: false },
+      advantage: 5,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'END COMBAT' }));
+    expect(update).toHaveBeenCalledWith('combatState.inCombat', false);
+    expect(update).toHaveBeenCalledWith('combatState.currentRound', 0);
+    expect(update).toHaveBeenCalledWith('advantage', 0);
+  });
+});
+
+// ─── Layout Tests ───────────────────────────────────────────────────────────
+
+describe('CombatPage layout', () => {
+  it('renders CombatDashboard in both modes', () => {
+    renderCombatPage();
+    expect(screen.getByTestId('combat-dashboard')).toBeInTheDocument();
+  });
+
+  it('renders WeaponCards and ArmourMap in readiness mode', () => {
+    renderCombatPage();
+    expect(screen.getByText('Weapons')).toBeInTheDocument();
+    expect(screen.getByText('Armour')).toBeInTheDocument();
+  });
+
+  it('renders AttackFlow and QuickRollBar in active combat mode', () => {
+    renderCombatPage({
+      combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
+      weapons: [{ name: 'Sword', group: 'Basic', enc: '1', damage: '+SB+4', qualities: '—' }],
+    });
+    expect(screen.getByText('Attack Flow')).toBeInTheDocument();
+    expect(screen.getByText('Quick Rolls')).toBeInTheDocument();
   });
 });
 

@@ -1,0 +1,17 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+  border-image: linear-gradient(to right, var(--accent-gold-dark), var(--border)) 1;
+  padding-bottom: 8px;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  color: var(--parchment);
+  flex: 1;
+  margin: 0;
+}

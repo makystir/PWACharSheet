@@ -29,6 +29,7 @@ import { User, Swords, BookOpen, Sparkles, Wand2, PawPrint, Brain, Package, Coin
 import { CorruptionCard } from '../shared/CorruptionCard';
 import { getRuneById } from '../../logic/runes';
 import { RUNE_CATALOGUE } from '../../data/runes';
+import styles from './CharacterPage.module.css';
 
 interface CharacterPageProps {
   character: Character;
@@ -51,33 +52,7 @@ const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
   WP: 'Willpower', Fel: 'Fellowship',
 };
 
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse' as const, fontSize: '13px' };
-const thStyle = { padding: '6px 8px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', textAlign: 'left' as const, fontSize: '11px', textTransform: 'uppercase' as const };
-const tdStyle = { padding: '4px 8px', borderBottom: '1px solid var(--border-light, rgba(255,255,255,0.05))' };
-const sectionGap = { display: 'flex', flexDirection: 'column' as const, gap: '16px' };
-const numInput: React.CSSProperties = { width: '50px', padding: '3px 4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '13px', textAlign: 'center', display: 'block', margin: '0 auto' };
-const diceBtn: React.CSSProperties = { background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', padding: '2px 4px', lineHeight: 1, opacity: 0.7 };
-const tooltipTriggerBtn: React.CSSProperties = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' };
-
 type CharSubTab = 'identity' | 'abilities' | 'gear' | 'notes';
-
-const subTabStyle: React.CSSProperties = {
-  display: 'flex', gap: '0', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)',
-  border: '1px solid var(--border)', overflow: 'hidden', marginBottom: '4px',
-};
-
-function subTabBtn(active: boolean): React.CSSProperties {
-  return {
-    flex: 1, padding: '10px 12px', border: 'none', cursor: 'pointer',
-    fontFamily: 'var(--font-heading)', fontSize: '12px', fontWeight: 700,
-    letterSpacing: '0.5px', textTransform: 'uppercase',
-    background: active ? 'rgba(201,168,76,0.15)' : 'transparent',
-    color: active ? 'var(--accent-gold)' : 'var(--text-muted)',
-    borderBottom: active ? '2px solid var(--accent-gold)' : '2px solid transparent',
-    transition: 'all 0.15s',
-  };
-}
 
 export function CharacterPage({ character, update, updateCharacter, rollHistory = [], addRoll, clearHistory }: CharacterPageProps) {
   const [activeSubTab, setActiveSubTab] = useState<CharSubTab>('identity');
@@ -246,19 +221,19 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
   };
 
   return (
-    <div style={sectionGap}>
+    <div className={styles.sectionGap}>
       {/* Sub-tab navigation */}
-      <div style={subTabStyle}>
-        <button type="button" style={subTabBtn(activeSubTab === 'identity')} onClick={() => setActiveSubTab('identity')}>Identity</button>
-        <button type="button" style={subTabBtn(activeSubTab === 'abilities')} onClick={() => setActiveSubTab('abilities')}>Abilities</button>
-        <button type="button" style={subTabBtn(activeSubTab === 'gear')} onClick={() => setActiveSubTab('gear')}>Gear &amp; Wealth</button>
-        <button type="button" style={subTabBtn(activeSubTab === 'notes')} onClick={() => setActiveSubTab('notes')}>Notes</button>
+      <div className={styles.subTabBar}>
+        <button type="button" className={activeSubTab === 'identity' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('identity')}>Identity</button>
+        <button type="button" className={activeSubTab === 'abilities' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('abilities')}>Abilities</button>
+        <button type="button" className={activeSubTab === 'gear' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('gear')}>Gear &amp; Wealth</button>
+        <button type="button" className={activeSubTab === 'notes' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('notes')}>Notes</button>
       </div>
 
       {/* ═══ IDENTITY TAB ═══ */}
       {activeSubTab === 'identity' && (<>
       {/* Portrait + Personal Details row */}
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+      <div className={styles.identityRow}>
         <CharacterPortrait
           portrait={character.portrait || ''}
           characterName={character.name}
@@ -267,23 +242,14 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
         />
         <Card style={{ flex: 1 }}>
           <SectionHeader icon={User} title="Personal Details" />
-          <div style={gridStyle}>
+          <div className={styles.gridAutoFill}>
             <EditableField label="Name" value={character.name} onSave={(v) => update('name', v)} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Species</span>
+            <div className={styles.selectWrapper}>
+              <span className={styles.selectLabel}>Species</span>
               <select
                 value={character.species}
                 onChange={(e) => handleSpeciesChange(e.target.value)}
-                style={{
-                  padding: '4px 6px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-secondary)',
-                  color: 'var(--text-primary)',
-                  fontSize: '14px',
-                  minHeight: '28px',
-                  cursor: 'pointer',
-                }}
+                className={styles.select}
               >
                 <option value="">— Select Species —</option>
                 {SPECIES_OPTIONS.map((sp) => (
@@ -291,16 +257,16 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                 ))}
               </select>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Class</span>
-              <select value={character.class} onChange={(e) => handleClassChange(e.target.value)} style={{ padding: '4px 6px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '14px', minHeight: '28px', cursor: 'pointer' }}>
+            <div className={styles.selectWrapper}>
+              <span className={styles.selectLabel}>Class</span>
+              <select value={character.class} onChange={(e) => handleClassChange(e.target.value)} className={styles.select}>
                 <option value="">— Select Class —</option>
                 {CAREER_CLASS_LIST.map((cls) => (<option key={cls} value={cls}>{cls}</option>))}
               </select>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Career</span>
-              <select value={character.career} onChange={(e) => handleCareerChange(e.target.value)} style={{ padding: '4px 6px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '14px', minHeight: '28px', cursor: 'pointer' }}>
+            <div className={styles.selectWrapper}>
+              <span className={styles.selectLabel}>Career</span>
+              <select value={character.career} onChange={(e) => handleCareerChange(e.target.value)} className={styles.select}>
                 <option value="">— Select Career —</option>
                 {filteredCareers.map((c) => (<option key={c} value={c}>{c}</option>))}
               </select>
@@ -319,16 +285,16 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       {/* Characteristics */}
       <Card>
         <SectionHeader icon={Swords} title="Characteristics" />
-        <div style={{ overflowX: 'auto' }}>
-          <table style={tableStyle}>
+        <div className={styles.overflowAuto}>
+          <table className={styles.tableBase}>
             <thead>
               <tr>
-                <th style={{ ...thStyle, textAlign: 'center' }} title="Characteristic">Char</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Initial</th>
-                <th style={{ ...thStyle, textAlign: 'center' }} title="Advances">Advance</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Current</th>
-                <th style={{ ...thStyle, textAlign: 'center' }} title="Talent Bonus">Bonus</th>
-                <th style={thStyle}></th>
+                <th className={styles.thCenter} title="Characteristic">Char</th>
+                <th className={styles.thCenter}>Initial</th>
+                <th className={styles.thCenter} title="Advances">Advance</th>
+                <th className={styles.thCenter}>Current</th>
+                <th className={styles.thCenter} title="Talent Bonus">Bonus</th>
+                <th className={styles.th}></th>
               </tr>
             </thead>
             <tbody>
@@ -337,17 +303,17 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                 const current = c.i + c.a + c.b;
                 return (
                   <tr key={key}>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: 'var(--accent-gold)', textAlign: 'center' }} title={CHAR_FULL_NAMES[key]}>{key}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <input type="number" value={c.i} onChange={(e) => update(`chars.${key}.i`, Number(e.target.value) || 0)} style={numInput} />
+                    <td className={styles.charKey} title={CHAR_FULL_NAMES[key]}>{key}</td>
+                    <td className={styles.tdCenter}>
+                      <input type="number" value={c.i} onChange={(e) => update(`chars.${key}.i`, Number(e.target.value) || 0)} className={styles.numInput} />
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <input type="number" value={c.a} onChange={(e) => update(`chars.${key}.a`, Number(e.target.value) || 0)} style={numInput} />
+                    <td className={styles.tdCenter}>
+                      <input type="number" value={c.a} onChange={(e) => update(`chars.${key}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
                     </td>
-                    <td style={{ ...tdStyle, color: 'var(--parchment)', fontWeight: 600, textAlign: 'center', width: '50px' }}>{current}</td>
-                    <td style={{ ...tdStyle, color: c.b > 0 ? 'var(--success)' : 'var(--text-muted)', fontSize: '12px', textAlign: 'center', width: '50px' }}>{c.b || '—'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <button type="button" style={diceBtn} onClick={() => openCharacteristicRoll(key)} title={`Roll ${CHAR_FULL_NAMES[key]}`} aria-label={`Roll ${CHAR_FULL_NAMES[key]}`}>🎲</button>
+                    <td className={styles.charCurrent}>{current}</td>
+                    <td className={c.b > 0 ? styles.charBonusActive : styles.charBonusInactive}>{c.b || '—'}</td>
+                    <td className={styles.tdCenter}>
+                      <button type="button" className={styles.diceBtn} onClick={() => openCharacteristicRoll(key)} title={`Roll ${CHAR_FULL_NAMES[key]}`} aria-label={`Roll ${CHAR_FULL_NAMES[key]}`}>🎲</button>
                     </td>
                   </tr>
                 );
@@ -358,10 +324,10 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       </Card>
 
       {/* Movement, Fortune/Resolve */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+      <div className={styles.movementFortuneGrid}>
         <Card>
           <SectionHeader icon={Footprints} title="Movement" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div className={styles.movementFields}>
             <EditableField label="Move" value={character.move.m} type="number" onSave={(v) => update('move.m', v)} />
             <EditableField label="Walk" value={character.move.w} type="number" onSave={(v) => update('move.w', v)} />
             <EditableField label="Run" value={character.move.r} type="number" onSave={(v) => update('move.r', v)} />
@@ -376,18 +342,18 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       {/* Basic Skills */}
       <Card>
         <SectionHeader icon={BookOpen} title="Basic Skills" action={
-          <button type="button" onClick={() => setHideUntrainedSkills(!hideUntrainedSkills)} style={{ padding: '3px 10px', background: hideUntrainedSkills ? 'rgba(201,168,76,0.15)' : 'var(--bg-tertiary)', border: `1px solid ${hideUntrainedSkills ? 'var(--accent-gold)' : 'var(--border)'}`, borderRadius: 'var(--radius-sm)', color: hideUntrainedSkills ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '11px' }}>
+          <button type="button" onClick={() => setHideUntrainedSkills(!hideUntrainedSkills)} className={hideUntrainedSkills ? styles.hideUntrainedBtnActive : styles.hideUntrainedBtn}>
             {hideUntrainedSkills ? 'Show All' : 'Trained Only'}
           </button>
         } />
-        <table style={tableStyle}>
+        <table className={styles.tableBase}>
           <thead>
             <tr>
-              <th style={thStyle}>Skill</th>
-              <th style={{ ...thStyle, textAlign: 'center' }} title="Linked Characteristic">Char</th>
-              <th style={{ ...thStyle, textAlign: 'center' }} title="Advances">Adv</th>
-              <th style={{ ...thStyle, textAlign: 'center' }} title="Characteristic + Advances">Total</th>
-              <th style={thStyle}></th>
+              <th className={styles.th}>Skill</th>
+              <th className={styles.thCenter} title="Linked Characteristic">Char</th>
+              <th className={styles.thCenter} title="Advances">Adv</th>
+              <th className={styles.thCenter} title="Characteristic + Advances">Total</th>
+              <th className={styles.th}></th>
             </tr>
           </thead>
           <tbody>
@@ -396,11 +362,11 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
               const charVal = character.chars[skill.c as CharacteristicKey];
               const total = charVal ? (charVal.i + charVal.a + charVal.b + skill.a) : skill.a;
               return (
-                <tr key={i} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
-                  <td style={tdStyle}>
+                <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                  <td className={styles.td}>
                     <button
                       type="button"
-                      style={tooltipTriggerBtn}
+                      className={styles.tooltipTriggerBtn}
                       aria-describedby={tooltip?.type === 'skill' && tooltip.index === i ? `tooltip-skill-${i}` : undefined}
                       onClick={(e) => {
                         if (tooltip?.type === 'skill' && tooltip.index === i) {
@@ -416,13 +382,13 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                       {skill.n}
                     </button>
                   </td>
-                  <td style={{ ...tdStyle, color: 'var(--text-muted)', textAlign: 'center' }} title={CHAR_FULL_NAMES[skill.c as CharacteristicKey] || skill.c}>{skill.c}</td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
-                    <input type="number" value={skill.a} onChange={(e) => update(`bSkills.${i}.a`, Number(e.target.value) || 0)} style={numInput} />
+                  <td className={styles.skillCharCol} title={CHAR_FULL_NAMES[skill.c as CharacteristicKey] || skill.c}>{skill.c}</td>
+                  <td className={styles.tdCenter}>
+                    <input type="number" value={skill.a} onChange={(e) => update(`bSkills.${i}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
                   </td>
-                  <td style={{ ...tdStyle, fontWeight: 600, textAlign: 'center' }}>{total}</td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
-                    <button type="button" style={diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
+                  <td className={styles.skillTotalCol}>{total}</td>
+                  <td className={styles.tdCenter}>
+                    <button type="button" className={styles.diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
                   </td>
                 </tr>
               );
@@ -434,20 +400,20 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       {/* Advanced Skills */}
       <Card>
         <SectionHeader icon={BookOpen} title="Advanced Skills" action={
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div className={styles.actionRow}>
             <AddButton label="Add from Rulebook" onClick={() => setShowAdvSkillPicker(true)} />
             <AddButton label="Add Custom" onClick={addCustomAdvancedSkill} />
           </div>
         } />
-        <table style={tableStyle}>
+        <table className={styles.tableBase}>
           <thead>
             <tr>
-              <th style={thStyle}>Skill</th>
-              <th style={{ ...thStyle, textAlign: 'center' }} title="Linked Characteristic">Char</th>
-              <th style={{ ...thStyle, textAlign: 'center' }} title="Advances">Adv</th>
-              <th style={{ ...thStyle, textAlign: 'center' }} title="Characteristic + Advances">Total</th>
-              <th style={thStyle}></th>
-              <th style={thStyle}></th>
+              <th className={styles.th}>Skill</th>
+              <th className={styles.thCenter} title="Linked Characteristic">Char</th>
+              <th className={styles.thCenter} title="Advances">Adv</th>
+              <th className={styles.thCenter} title="Characteristic + Advances">Total</th>
+              <th className={styles.th}></th>
+              <th className={styles.th}></th>
             </tr>
           </thead>
           <tbody>
@@ -455,12 +421,12 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
               const charVal = character.chars[skill.c as CharacteristicKey];
               const total = charVal ? (charVal.i + charVal.a + charVal.b + skill.a) : skill.a;
               return (
-                <tr key={i} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
-                  <td style={tdStyle}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                  <td className={styles.td}>
+                    <div className={styles.inlineRow}>
                       <button
                         type="button"
-                        style={{ ...tooltipTriggerBtn, fontSize: '12px', opacity: 0.6, flexShrink: 0 }}
+                        className={styles.infoBtn}
                         aria-describedby={tooltip?.type === 'skill' && tooltip.index === character.bSkills.length + i ? `tooltip-skill-${character.bSkills.length + i}` : undefined}
                         aria-label={`Info for ${skill.n}`}
                         onClick={(e) => {
@@ -480,18 +446,18 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                       <EditableField label="" value={skill.n} onSave={(v) => updateAdvancedSkill(i, 'n', String(v))} />
                     </div>
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td className={styles.tdCenter}>
                     <EditableField label="" value={skill.c} onSave={(v) => updateAdvancedSkill(i, 'c', String(v))} />
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
-                    <input type="number" value={skill.a} onChange={(e) => updateAdvancedSkill(i, 'a', Number(e.target.value) || 0)} style={numInput} />
+                  <td className={styles.tdCenter}>
+                    <input type="number" value={skill.a} onChange={(e) => updateAdvancedSkill(i, 'a', Number(e.target.value) || 0)} className={styles.numInput} />
                   </td>
-                  <td style={{ ...tdStyle, fontWeight: 600, textAlign: 'center' }}>{total}</td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
-                    <button type="button" style={diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
+                  <td className={styles.skillTotalCol}>{total}</td>
+                  <td className={styles.tdCenter}>
+                    <button type="button" className={styles.diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
-                    <button type="button" onClick={() => setDeleteTarget({ type: 'aSkill', index: i })} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '13px' }}>✕</button>
+                  <td className={styles.tdCenter}>
+                    <button type="button" onClick={() => setDeleteTarget({ type: 'aSkill', index: i })} className={styles.deleteBtn}>✕</button>
                   </td>
                 </tr>
               );
@@ -503,28 +469,28 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       {/* Talents */}
       <Card>
         <SectionHeader icon={Sparkles} title="Talents" action={
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div className={styles.actionRow}>
             <AddButton label="Add from Rulebook" onClick={() => setShowTalentPicker(true)} />
             <AddButton label="Add Custom" onClick={addCustomTalent} />
           </div>
         } />
-        <table style={tableStyle}>
+        <table className={styles.tableBase}>
           <thead>
             <tr>
-              <th style={thStyle}>Talent</th>
-              <th style={thStyle}>Lvl</th>
-              <th style={thStyle}>Description</th>
-              <th style={thStyle}></th>
+              <th className={styles.th}>Talent</th>
+              <th className={styles.th}>Lvl</th>
+              <th className={styles.th}>Description</th>
+              <th className={styles.th}></th>
             </tr>
           </thead>
           <tbody>
             {character.talents.map((t, i) => (
-              <tr key={i} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
-                <td style={tdStyle}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                <td className={styles.td}>
+                  <div className={styles.inlineRow}>
                     <button
                       type="button"
-                      style={{ ...tooltipTriggerBtn, fontSize: '12px', opacity: 0.6, flexShrink: 0 }}
+                      className={styles.infoBtn}
                       aria-describedby={tooltip?.type === 'talent' && tooltip.index === i ? `tooltip-talent-${i}` : undefined}
                       aria-label={`Info for ${t.n}`}
                       onClick={(e) => {
@@ -543,14 +509,14 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                     <EditableField label="" value={t.n} onSave={(v) => updateTalent(i, 'n', String(v))} />
                   </div>
                 </td>
-                <td style={tdStyle}>
+                <td className={styles.td}>
                   <EditableField label="" value={t.lvl} type="number" onSave={(v) => updateTalent(i, 'lvl', Number(v))} style={{ minWidth: '40px' }} />
                 </td>
-                <td style={tdStyle}>
+                <td className={styles.td}>
                   <EditableField label="" value={t.desc} onSave={(v) => updateTalent(i, 'desc', String(v))} />
                 </td>
-                <td style={tdStyle}>
-                  <button type="button" onClick={() => setDeleteTarget({ type: 'talent', index: i })} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '13px' }}>✕</button>
+                <td className={styles.td}>
+                  <button type="button" onClick={() => setDeleteTarget({ type: 'talent', index: i })} className={styles.deleteBtn}>✕</button>
                 </td>
               </tr>
             ))}
@@ -566,32 +532,32 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       )) && (
       <Card>
         <SectionHeader icon={Wand2} title="Spells & Prayers" action={
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div className={styles.actionRow}>
             <AddButton label="Add from Rulebook" onClick={() => setShowSpellPicker(true)} />
             <AddButton label="Add Custom" onClick={addCustomSpell} />
           </div>
         } />
-        <table style={tableStyle}>
+        <table className={styles.tableBase}>
           <thead>
             <tr>
-              <th style={thStyle}>Name</th>
-              <th style={thStyle}>CN</th>
-              <th style={thStyle}>Range</th>
-              <th style={thStyle}>Duration</th>
-              <th style={thStyle}></th>
+              <th className={styles.th}>Name</th>
+              <th className={styles.th}>CN</th>
+              <th className={styles.th}>Range</th>
+              <th className={styles.th}>Duration</th>
+              <th className={styles.th}></th>
             </tr>
           </thead>
           <tbody>
             {character.spells.map((s, i) => (
-              <tr key={i} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
-                <td style={tdStyle}>
+              <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                <td className={styles.td}>
                   <EditableField label="" value={s.name} onSave={(v) => updateSpell(i, 'name', String(v))} />
                 </td>
-                <td style={tdStyle}>{s.cn}</td>
-                <td style={tdStyle}>{s.range}</td>
-                <td style={tdStyle}>{s.duration}</td>
-                <td style={tdStyle}>
-                  <button type="button" onClick={() => setDeleteTarget({ type: 'spell', index: i })} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '13px' }}>✕</button>
+                <td className={styles.td}>{s.cn}</td>
+                <td className={styles.td}>{s.range}</td>
+                <td className={styles.td}>{s.duration}</td>
+                <td className={styles.td}>
+                  <button type="button" onClick={() => setDeleteTarget({ type: 'spell', index: i })} className={styles.deleteBtn}>✕</button>
                 </td>
               </tr>
             ))}
@@ -605,25 +571,25 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       <Card>
         <SectionHeader icon={Hammer} title="Known Runes" />
         {(character.knownRunes ?? []).length === 0 ? (
-          <div style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic', textAlign: 'center', padding: '8px' }}>
+          <div className={styles.runesEmpty}>
             No runes learned yet. Learn runes on the Advancement page.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <div className={styles.runesGrid}>
             {(character.knownRunes ?? []).map((runeId) => {
               const rune = getRuneById(runeId);
               if (!rune) return null;
               return (
-                <div key={runeId} style={{ padding: '6px 10px', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: '12px' }}>
-                  <span style={{ color: 'var(--parchment)', fontWeight: 600 }}>{rune.name}</span>
-                  {rune.isMaster && <span style={{ color: 'var(--accent-gold)', fontSize: '10px', marginLeft: '4px' }}>★</span>}
-                  <div style={{ color: 'var(--text-muted)', fontSize: '10px', marginTop: '2px' }}>{rune.category}</div>
+                <div key={runeId} className={styles.runeBadge}>
+                  <span className={styles.runeName}>{rune.name}</span>
+                  {rune.isMaster && <span className={styles.runeMaster}>★</span>}
+                  <div className={styles.runeCategory}>{rune.category}</div>
                 </div>
               );
             })}
           </div>
         )}
-        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic', padding: '4px 0', marginTop: '8px' }}>
+        <div className={styles.runeCount}>
           {(character.knownRunes ?? []).length} / {RUNE_CATALOGUE.length} runes known
         </div>
       </Card>
@@ -635,23 +601,23 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       {/* Trappings */}
       <Card>
         <SectionHeader icon={Package} title="Trappings" action={
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div className={styles.actionRow}>
             <AddButton label="Add from Rulebook" onClick={() => setShowTrappingPicker(true)} />
             <AddButton label="Add Custom" onClick={() => updateCharacter((c) => ({ ...c, trappings: [...c.trappings, { name: '', enc: '0', quantity: 1 }] }))} />
           </div>
         } />
-        <table style={tableStyle}>
-          <thead><tr><th style={thStyle}>Name</th><th style={thStyle} title="Encumbrance value — total Enc is shown in the Wealth & Encumbrance section">Enc</th><th style={thStyle}>Qty</th><th style={{ ...thStyle, textAlign: 'center' }} title="Stored on horse companion — excluded from character encumbrance">🐴</th><th style={thStyle}></th></tr></thead>
+        <table className={styles.tableBase}>
+          <thead><tr><th className={styles.th}>Name</th><th className={styles.th} title="Encumbrance value — total Enc is shown in the Wealth & Encumbrance section">Enc</th><th className={styles.th}>Qty</th><th className={styles.thCenter} title="Stored on horse companion — excluded from character encumbrance">🐴</th><th className={styles.th}></th></tr></thead>
           <tbody>
             {character.trappings.map((t, i) => (
-              <tr key={i} style={{ background: t.storedOnHorse ? 'rgba(200,168,76,0.05)' : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
-                <td style={tdStyle}><EditableField label="" value={t.name} onSave={(v) => update(`trappings.${i}.name`, v)} /></td>
-                <td style={tdStyle}><EditableField label="" value={t.enc} onSave={(v) => update(`trappings.${i}.enc`, v)} style={{ minWidth: '40px' }} /></td>
-                <td style={tdStyle}><EditableField label="" value={t.quantity} type="number" onSave={(v) => update(`trappings.${i}.quantity`, v)} style={{ minWidth: '40px' }} /></td>
-                <td style={{ ...tdStyle, textAlign: 'center' }}>
-                  <input type="checkbox" checked={!!t.storedOnHorse} onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)} title="Stored on horse" style={{ cursor: 'pointer' }} />
+              <tr key={i} className={t.storedOnHorse ? styles.rowHorse : i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                <td className={styles.td}><EditableField label="" value={t.name} onSave={(v) => update(`trappings.${i}.name`, v)} /></td>
+                <td className={styles.td}><EditableField label="" value={t.enc} onSave={(v) => update(`trappings.${i}.enc`, v)} style={{ minWidth: '40px' }} /></td>
+                <td className={styles.td}><EditableField label="" value={t.quantity} type="number" onSave={(v) => update(`trappings.${i}.quantity`, v)} style={{ minWidth: '40px' }} /></td>
+                <td className={styles.tdCenter}>
+                  <input type="checkbox" checked={!!t.storedOnHorse} onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)} title="Stored on horse" className={styles.checkboxCell} />
                 </td>
-                <td style={tdStyle}><button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '13px' }}>✕</button></td>
+                <td className={styles.td}><button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn}>✕</button></td>
               </tr>
             ))}
           </tbody>
@@ -660,7 +626,7 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
 
       {/* Wealth & Encumbrance */}
       <Card>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className={styles.wealthEncGrid}>
           <div>
             <SectionHeader icon={Coins} title="Wealth" />
             <EditableField label="Gold Crowns (GC)" value={character.wGC} type="number" onSave={(v) => update('wGC', v)} />
@@ -684,23 +650,23 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
               const maxEnc = calculateMaxEncumbrance(character.chars, 0);
               const over = eTotal > maxEnc;
               return (
-                <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Weapons</span><span>{eW}</span></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Armour</span><span>{eA}</span></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Trappings</span><span>{eT}</span></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Coins</span><span>{eCoin}</span></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '4px', marginTop: '4px' }}>
-                    <span style={{ color: over ? 'var(--danger)' : 'var(--parchment)', fontWeight: 600 }}>Total</span>
-                    <span style={{ color: over ? 'var(--danger)' : 'var(--parchment)', fontWeight: 700 }}>{eTotal} / {maxEnc}</span>
+                <div className={styles.encBreakdown}>
+                  <div className={styles.encRow}><span className={styles.encLabel}>Weapons</span><span>{eW}</span></div>
+                  <div className={styles.encRow}><span className={styles.encLabel}>Armour</span><span>{eA}</span></div>
+                  <div className={styles.encRow}><span className={styles.encLabel}>Trappings</span><span>{eT}</span></div>
+                  <div className={styles.encRow}><span className={styles.encLabel}>Coins</span><span>{eCoin}</span></div>
+                  <div className={styles.encTotalRow}>
+                    <span className={over ? styles.encTotalOver : styles.encTotalNormal}>Total</span>
+                    <span className={over ? styles.encTotalValueOver : styles.encTotalValueNormal}>{eTotal} / {maxEnc}</span>
                   </div>
-                  {over && <div style={{ color: 'var(--danger)', fontSize: '11px', fontWeight: 600, textAlign: 'center' }}>⚠ Overburdened</div>}
+                  {over && <div className={styles.overburdenedMsg}>⚠ Overburdened</div>}
                   {eHorse > 0 && (() => {
                     const packAnimal = character.companions.find(c => c.isPackAnimal);
                     const packName = packAnimal ? packAnimal.name || packAnimal.species : 'Pack Animal';
                     return (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '4px', marginTop: '4px' }}>
-                        <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>🐴 {packName}</span>
-                        <span style={{ color: 'var(--accent-gold)', fontWeight: 700 }}>{eHorse}</span>
+                      <div className={styles.horseEncRow}>
+                        <span className={styles.horseEncLabel}>🐴 {packName}</span>
+                        <span className={styles.horseEncValue}>{eHorse}</span>
                       </div>
                     );
                   })()}
@@ -717,7 +683,7 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       {/* Animal Companions */}
       <Card>
         <SectionHeader icon={PawPrint} title="Animal Companions" action={
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div className={styles.actionRow}>
             <AddButton label="Add from Templates" onClick={() => setShowAnimalPicker(true)} />
             <AddButton label="Add Custom" onClick={() => updateCharacter((c) => ({ ...c, companions: [...c.companions, { name: '', species: '', M: 0, WS: 0, BS: 0, S: 0, T: 0, I: 0, Ag: 0, Dex: 0, Int: 0, WP: 0, Fel: 0, W: 1, wCur: 1, traits: '', trained: [], notes: '' }] }))} />
           </div>
@@ -726,12 +692,12 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
           const uc = (field: string, val: unknown) => update(`companions.${ci}.${field}`, val);
           const charKeys = ['M', 'WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel', 'W'] as const;
           return (
-            <div key={ci} style={{ background: comp.isPackAnimal ? 'rgba(200,168,76,0.08)' : 'var(--bg-tertiary)', border: `1px solid ${comp.isPackAnimal ? 'var(--accent-gold)' : 'var(--border)'}`, borderRadius: '6px', padding: '12px', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', gap: '8px', flex: 1, alignItems: 'center' }}>
+            <div key={ci} className={comp.isPackAnimal ? styles.companionCardPack : styles.companionCard}>
+              <div className={styles.companionHeader}>
+                <div className={styles.companionHeaderLeft}>
                   <EditableField label="Name" value={comp.name} onSave={(v) => uc('name', v)} />
                   <EditableField label="Species" value={comp.species} onSave={(v) => uc('species', v)} />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: comp.isPackAnimal ? 'var(--accent-gold)' : 'var(--text-muted)', whiteSpace: 'nowrap' }} title="Designate as pack animal — trappings marked 'stored on horse' will count toward this companion's encumbrance">
+                  <label className={comp.isPackAnimal ? styles.packAnimalLabelActive : styles.packAnimalLabelInactive} title="Designate as pack animal — trappings marked 'stored on horse' will count toward this companion's encumbrance">
                     <input type="checkbox" checked={!!comp.isPackAnimal} onChange={(e) => {
                       // Only one pack animal at a time — unset others
                       if (e.target.checked) {
@@ -742,16 +708,16 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                       } else {
                         uc('isPackAnimal', false);
                       }
-                    }} style={{ cursor: 'pointer' }} />
+                    }} className={styles.checkboxCell} />
                     🐴 Pack Animal
                   </label>
                 </div>
-                <button type="button" onClick={() => setDeleteTarget({ type: 'companion', index: ci })} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '13px' }}>✕</button>
+                <button type="button" onClick={() => setDeleteTarget({ type: 'companion', index: ci })} className={styles.deleteBtn}>✕</button>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+              <div className={styles.companionStats}>
                 {charKeys.map((k) => (
-                  <div key={k} style={{ textAlign: 'center', minWidth: '36px' }}>
-                    <div style={{ fontSize: '9px', color: 'var(--accent-gold)', fontWeight: 600 }}>{k}</div>
+                  <div key={k} className={styles.companionStatCell}>
+                    <div className={styles.companionStatLabel}>{k}</div>
                     <EditableField label="" value={comp[k]} type="number" onSave={(v) => uc(k, v)} style={{ minWidth: '32px' }} />
                   </div>
                 ))}
@@ -762,19 +728,20 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                 const curW = comp.wCur ?? maxW;
                 const pct = maxW > 0 ? (curW / maxW) * 100 : 0;
                 const wColor = pct > 50 ? 'var(--success)' : pct > 20 ? 'var(--accent-gold)' : 'var(--danger)';
+                const wCountClass = pct > 50 ? styles.woundCountHigh : pct > 20 ? styles.woundCountMedium : styles.woundCountLow;
                 return (
-                  <div style={{ marginBottom: '8px', padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, width: '50px' }}>Wounds</span>
-                      <button type="button" onClick={() => uc('wCur', Math.max(0, curW - 1))} style={{ padding: '2px 8px', background: 'rgba(200,80,80,0.2)', border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>−</button>
-                      <div style={{ flex: 1, position: 'relative' }}>
-                        <div style={{ background: 'var(--bg-primary)', borderRadius: '3px', height: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                          <div style={{ height: '100%', width: `${Math.max(0, Math.min(100, pct))}%`, background: wColor, borderRadius: '2px', transition: 'width 0.3s' }} />
+                  <div className={styles.companionWoundBar}>
+                    <div className={styles.companionWoundRow}>
+                      <span className={styles.companionWoundLabel}>Wounds</span>
+                      <button type="button" onClick={() => uc('wCur', Math.max(0, curW - 1))} className={styles.woundMinusBtn}>−</button>
+                      <div className={styles.woundProgressContainer}>
+                        <div className={styles.woundProgressTrack}>
+                          <div className={styles.woundProgressFill} style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: wColor }} />
                         </div>
                       </div>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: wColor, fontFamily: 'var(--font-heading)', minWidth: '50px', textAlign: 'center' }}>{curW}/{maxW}</span>
-                      <button type="button" onClick={() => uc('wCur', Math.min(maxW, curW + 1))} style={{ padding: '2px 8px', background: 'rgba(90,154,90,0.2)', border: '1px solid var(--success)', borderRadius: 'var(--radius-sm)', color: 'var(--success)', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>+</button>
-                      <button type="button" onClick={() => uc('wCur', maxW)} style={{ padding: '2px 6px', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '10px' }}>Full</button>
+                      <span className={wCountClass}>{curW}/{maxW}</span>
+                      <button type="button" onClick={() => uc('wCur', Math.min(maxW, curW + 1))} className={styles.woundPlusBtn}>+</button>
+                      <button type="button" onClick={() => uc('wCur', maxW)} className={styles.woundFullBtn}>Full</button>
                     </div>
                   </div>
                 );
@@ -783,20 +750,20 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
               {comp.isPackAnimal && (() => {
                 const horseEnc = character.trappings.filter(t => t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
                 return (
-                  <div style={{ marginBottom: '8px', padding: '6px 10px', background: 'rgba(200,168,76,0.1)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--accent-gold)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--accent-gold)', fontWeight: 600 }}>🐴 Carrying Encumbrance</span>
-                    <span style={{ fontSize: '14px', color: 'var(--accent-gold)', fontWeight: 700 }}>{horseEnc}</span>
+                  <div className={styles.packEncBar}>
+                    <span className={styles.packEncLabel}>🐴 Carrying Encumbrance</span>
+                    <span className={styles.packEncValue}>{horseEnc}</span>
                   </div>
                 );
               })()}
-              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '6px' }}>
+              <div className={styles.trainedSkillsRow}>
                 {TRAINED_SKILLS.map((skill) => {
                   const has = (comp.trained || []).includes(skill);
                   return (
                     <button key={skill} type="button" onClick={() => {
                       const next = has ? (comp.trained || []).filter((s: string) => s !== skill) : [...(comp.trained || []), skill];
                       uc('trained', next);
-                    }} style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 600, background: has ? 'rgba(90,154,90,0.2)' : 'transparent', border: `1px solid ${has ? 'var(--success)' : 'var(--border)'}`, color: has ? 'var(--success)' : 'var(--text-muted)', cursor: 'pointer' }}>
+                    }} className={has ? styles.trainedSkillBtnActive : styles.trainedSkillBtn}>
                       {skill}
                     </button>
                   );
@@ -812,7 +779,7 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       {/* Psychology */}
       <Card>
         <SectionHeader icon={Brain} title="Psychology" />
-        <textarea value={character.psych} onChange={(e) => update('psych', e.target.value)} placeholder="Phobias, animosities..." style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', padding: '8px', fontSize: '13px', minHeight: '60px', resize: 'vertical' }} />
+        <textarea value={character.psych} onChange={(e) => update('psych', e.target.value)} placeholder="Phobias, animosities..." className={styles.textarea} />
       </Card>
 
       {/* Corruption & Mutation */}
@@ -820,7 +787,7 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
 
       {/* Ambitions & Party */}
       <Card>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className={styles.ambitionsGrid}>
           <div>
             <SectionHeader icon={BookOpen} title="Ambitions" />
             <EditableField label="Short-term" value={character.ambS} onSave={(v) => update('ambS', v)} />
@@ -913,8 +880,8 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
             id={tooltipId}
           >
             {content.sections.map((s, idx) => (
-              <div key={idx} style={{ marginBottom: idx < content!.sections.length - 1 ? '6px' : 0 }}>
-                <div style={{ fontWeight: 600, fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '2px' }}>{s.label}</div>
+              <div key={idx} className={idx < content!.sections.length - 1 ? styles.tooltipSection : styles.tooltipSectionLast}>
+                <div className={styles.tooltipSectionLabel}>{s.label}</div>
                 <div>{s.text}</div>
               </div>
             ))}

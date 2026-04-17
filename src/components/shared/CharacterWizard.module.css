@@ -1,0 +1,875 @@
+/* CharacterWizard — CSS Module */
+
+/* ─── Layout structure ─────────────────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  color: var(--parchment);
+  letter-spacing: 1px;
+}
+
+.body {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+}
+
+.bodyInner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+
+/* ─── Buttons ──────────────────────────────────────────────────────────────── */
+
+.btn {
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btnPrimary {
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  font-weight: 600;
+  border: 1px solid var(--accent-gold-dark);
+}
+
+.btnPrimaryDisabled {
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  font-weight: 600;
+  border: 1px solid var(--accent-gold-dark);
+  opacity: 0.5;
+}
+
+.btnDanger {
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--bg-tertiary);
+  color: var(--danger);
+}
+
+.btnCreate {
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  background: var(--success);
+  color: var(--bg-primary);
+  border: 1px solid var(--success);
+}
+
+.btnSmall {
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btnMini {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btnRollRandom {
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btnReroll {
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+/* ─── Option buttons (species/career/method selection) ─────────────────────── */
+
+.option {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.optionSelected {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-gold);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: rgba(200, 168, 76, 0.15);
+  color: var(--parchment);
+  text-align: left;
+}
+
+.methodOption {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.methodOptionSelected {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-gold);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: rgba(200, 168, 76, 0.15);
+  color: var(--parchment);
+}
+
+/* ─── Skill selection buttons ──────────────────────────────────────────────── */
+
+.skillBtn {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.skillBtnSelected5 {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-gold);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: rgba(200, 168, 76, 0.2);
+  color: var(--parchment);
+  opacity: 1;
+}
+
+.skillBtnDisabled {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.skillBtnSelected3 {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--success);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: rgba(90, 154, 90, 0.15);
+  color: var(--success);
+  opacity: 1;
+}
+
+/* ─── Talent option buttons ────────────────────────────────────────────────── */
+
+.talentOption {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.talentOptionSelected {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-gold);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  background: rgba(200, 168, 76, 0.2);
+  color: var(--parchment);
+  text-align: left;
+}
+
+/* ─── Card & form elements ─────────────────────────────────────────────────── */
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.label {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--parchment);
+  margin-bottom: 6px;
+  display: block;
+  letter-spacing: 0.5px;
+}
+
+.labelInline {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--parchment);
+  margin-bottom: 0;
+  display: block;
+  letter-spacing: 0.5px;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+  cursor: pointer;
+}
+
+/* ─── Decorative elements ──────────────────────────────────────────────────── */
+
+.flavorText {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--accent-gold-dark);
+  background: rgba(200, 168, 76, 0.05);
+}
+
+.flavorTextPlain {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  padding: 0 0 12px 0;
+  border-left: none;
+  background: none;
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  background: rgba(200, 168, 76, 0.15);
+  color: var(--accent-gold);
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.tagCareer {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  background: rgba(90, 154, 90, 0.15);
+  color: var(--success);
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.xpBadge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(90, 154, 90, 0.2);
+  color: var(--success);
+  margin-left: 8px;
+}
+
+
+/* ─── Step indicator ───────────────────────────────────────────────────────── */
+
+.stepIndicator {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.stepDotActive {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  border: 2px solid var(--accent-gold);
+  transition: all 0.2s;
+}
+
+.stepDotCompleted {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent-gold-dark);
+  color: var(--bg-primary);
+  border: 2px solid var(--accent-gold-dark);
+  transition: all 0.2s;
+}
+
+.stepDotDefault {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border: 2px solid var(--border);
+  transition: all 0.2s;
+}
+
+.stepDotWrapper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stepConnectorActive {
+  width: 12px;
+  height: 2px;
+  background: var(--accent-gold-dark);
+}
+
+.stepConnectorDefault {
+  width: 12px;
+  height: 2px;
+  background: var(--border);
+}
+
+/* ─── Grid & typography ────────────────────────────────────────────────────── */
+
+.gridRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.charCell {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  text-align: center;
+}
+
+.charCellSwap {
+  background: var(--bg-secondary);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.charCellRearrange {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: var(--parchment);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.subTitle {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--parchment-dark);
+  margin-bottom: 8px;
+}
+
+/* ─── Layout helpers ───────────────────────────────────────────────────────── */
+
+.flexBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.flexCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flexWrap {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.flexWrapLg {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.flexWrapGap16 {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.flexGap24 {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.flexGap8 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* ─── Inline text styles ───────────────────────────────────────────────────── */
+
+.textMuted11 {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.textMuted10 {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.textMuted12 {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.textMuted13 {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.textSecondary13 {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.textSecondary12 {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.charValue {
+  font-size: 16px;
+  color: var(--parchment);
+  font-weight: 600;
+}
+
+.charValueLg {
+  font-size: 18px;
+  color: var(--parchment);
+  font-weight: 700;
+}
+
+.charValueSm {
+  font-size: 14px;
+  color: var(--parchment);
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+.charValueCenter {
+  font-size: 16px;
+  color: var(--parchment);
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+}
+
+.charTotal {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 700;
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.speciesMod {
+  font-size: 10px;
+  color: var(--accent-gold-dark);
+  margin-top: 2px;
+}
+
+.charBaseValue {
+  font-size: 16px;
+  color: var(--parchment);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.parchmentStrong {
+  color: var(--parchment);
+}
+
+.boldLabel {
+  font-weight: 600;
+}
+
+.talentDesc {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.fixedLabel {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* ─── Status messages ──────────────────────────────────────────────────────── */
+
+.statusSuccess {
+  color: var(--success);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.statusWarning {
+  font-size: 13px;
+  color: var(--warning);
+  margin-bottom: 8px;
+}
+
+.statusSuccessLg {
+  font-size: 13px;
+  color: var(--success);
+  margin-bottom: 8px;
+}
+
+.swapHint {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.swapHighlight {
+  color: var(--accent-gold);
+}
+
+.advanceHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* ─── Footer elements ──────────────────────────────────────────────────────── */
+
+.footerLabel {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.footerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.bonusXpLabel {
+  font-size: 12px;
+  color: var(--success);
+}
+
+/* ─── Career skill row ─────────────────────────────────────────────────────── */
+
+.careerSkillRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.careerSkillName {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* ─── Fixed talent row ─────────────────────────────────────────────────────── */
+
+.fixedTalentRow {
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* ─── Review step ──────────────────────────────────────────────────────────── */
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reviewName {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  color: var(--parchment);
+}
+
+.reviewCareer {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.reviewClass {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.reviewXpLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.reviewXpValue {
+  font-size: 20px;
+  color: var(--success);
+  font-weight: 700;
+}
+
+.reviewXpRight {
+  text-align: right;
+}
+
+.xpBreakdown {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  background: rgba(90, 154, 90, 0.1);
+  border-radius: var(--radius-sm);
+}
+
+.advBadge {
+  font-size: 10px;
+  color: var(--success);
+}
+
+.chooseOneLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.charCellMin {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.fateResTotal {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.marginBottom12 {
+  margin-bottom: 12px;
+}
+
+.marginTop8 {
+  margin-top: 8px;
+}
+
+.careerDetailStatus {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.careerDetailLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.reviewDetailRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.reviewDetailText {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.reviewEmphasis {
+  color: var(--parchment);
+}
