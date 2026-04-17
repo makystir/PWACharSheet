@@ -1,4 +1,4 @@
-import type { CharacteristicKey, CharacteristicValue, ArmourItem, ArmourPoints } from '../types/character';
+import type { Character, CharacteristicKey, CharacteristicValue, ArmourItem, ArmourPoints } from '../types/character';
 import { getRuneAPBonus } from './runes';
 
 /**
@@ -28,6 +28,33 @@ export function calculateTotalWounds(
   const total = sbComponent + 2 * TB + WPB + hardyLevel * TB;
 
   return Math.max(0, total);
+}
+
+/**
+ * Recomputes the wound component fields (wSB, wTB2, wWPB, wHardy) from the
+ * character's current characteristics and Hardy talent level.
+ * Returns the same reference if no field changed, avoiding unnecessary re-renders.
+ * Never modifies wCur — it is a user-entered value.
+ */
+export function syncWoundFields(character: Character, hardyLevel: number): Character {
+  const { chars } = character;
+
+  const wSB = getBonus(chars.S.i + chars.S.a + chars.S.b);
+  const TB = getBonus(chars.T.i + chars.T.a + chars.T.b);
+  const wTB2 = 2 * TB;
+  const wWPB = getBonus(chars.WP.i + chars.WP.a + chars.WP.b);
+  const wHardy = hardyLevel * TB;
+
+  if (
+    character.wSB === wSB &&
+    character.wTB2 === wTB2 &&
+    character.wWPB === wWPB &&
+    character.wHardy === wHardy
+  ) {
+    return character;
+  }
+
+  return { ...character, wSB, wTB2, wWPB, wHardy };
 }
 
 /** Body location keys used for armour point calculation. */

@@ -1,6 +1,5 @@
-import type { Character, CharacteristicKey, AdvancementEntry, Skill } from '../types/character';
+import type { Character, CharacteristicKey, AdvancementEntry, Skill, CareerScheme, CareerLevel } from '../types/character';
 import { CAREER_SCHEMES } from '../data/careers';
-import type { CareerLevel } from '../types/character';
 
 /** A skill entry tagged with its original array index, type, and career status for sorted rendering. */
 export interface SortedSkillEntry {
@@ -130,6 +129,71 @@ export function calculateBulkAdvancement(
   }
 
   return { count, totalCost };
+}
+
+/**
+ * Determine the earliest future career level where a target becomes in-career.
+ *
+ * @param careerName - The career name to look up in CAREER_SCHEMES
+ * @param currentLevel - The character's current level number (1–4)
+ * @param target - The advancement target to check
+ * @returns The earliest future level number (2, 3, or 4) where the target
+ *          becomes in-career, or null if it doesn't appear in any future level.
+ */
+export function getFutureCareerLevel(
+  careerName: string,
+  currentLevel: number,
+  target:
+    | { type: 'characteristic'; key: CharacteristicKey }
+    | { type: 'skill'; name: string }
+    | { type: 'talent'; name: string }
+): number | null {
+  const scheme = CAREER_SCHEMES[careerName];
+  if (!scheme) return null;
+
+  if (currentLevel >= 4) return null;
+
+  for (let level = currentLevel + 1; level <= 4; level++) {
+    const careerLevel = scheme[`level${level}` as keyof CareerScheme] as CareerLevel;
+
+    switch (target.type) {
+      case 'characteristic':
+        if (careerLevel.characteristics.includes(target.key)) return level;
+        break;
+      case 'skill':
+        if (careerLevel.skills.some(cs => careerSkillMatches(cs, target.name))) return level;
+        break;
+      case 'talent':
+        if (careerLevel.talents.includes(target.name)) return level;
+        break;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Check whether a character has any talent that grants spellcasting ability.
+ * Qualifying talents: Arcane Magic (Any), Petty Magic, Bless (Any), Invoke (Any).
+ */
+export function hasSpellcastingTalent(character: Character): boolean {
+  return character.talents.some(t =>
+    t.n.startsWith('Arcane Magic') ||
+    t.n === 'Petty Magic' ||
+    t.n.startsWith('Bless') ||
+    t.n.startsWith('Invoke')
+  );
+}
+
+/**
+ * Check whether a character has any talent that grants rune magic ability.
+ * Qualifying talents: Rune Magic (Any), Master Rune Magic (Any).
+ */
+export function hasRuneMagicTalent(character: Character): boolean {
+  return character.talents.some(t =>
+    t.n.startsWith('Rune Magic') ||
+    t.n.startsWith('Master Rune Magic')
+  );
 }
 
 /**
@@ -286,6 +350,51 @@ export function isCareerLevelComplete(
   );
 
   return matchedSkills >= requiredSkillCount && hasTalent;
+}
+
+/**
+ * If the active advancement log exceeds 100 entries, move the oldest
+ * entries to the archive, keeping only the 100 most recent in the active log.
+ * Merges newly archived entries with existing archive entries, sorted by
+ * timestamp ascending.
+ * Returns the character unchanged if the log has 100 or fewer entries.
+ */
+export function archiveOldEntries(character: Character): Character {
+  const MAX_ACTIVE = 100;
+  if (character.advancementLog.length <= MAX_ACTIVE) return character;
+
+  const overflow = character.advancementLog.length - MAX_ACTIVE;
+  const entriesToArchive = character.advancementLog.slice(0, overflow);
+  const remainingLog = character.advancementLog.slice(overflow);
+
+  const mergedArchive = [...character.advancementLogArchive, ...entriesToArchive]
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  return {
+    ...character,
+    advancementLog: remainingLog,
+    advancementLogArchive: mergedArchive,
+  };
+}
+
+/**
+ * Remove an entry from the archive by index and append it to the active log.
+ * Returns the character unchanged if the index is out of bounds.
+ */
+export function restoreArchivedEntry(character: Character, archiveIndex: number): Character {
+  if (archiveIndex < 0 || archiveIndex >= character.advancementLogArchive.length) {
+    return character;
+  }
+
+  const entry = character.advancementLogArchive[archiveIndex];
+  const newArchive = character.advancementLogArchive.filter((_, i) => i !== archiveIndex);
+  const newLog = [...character.advancementLog, entry];
+
+  return {
+    ...character,
+    advancementLog: newLog,
+    advancementLogArchive: newArchive,
+  };
 }
 
 /** Result of an undo operation */

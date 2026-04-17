@@ -7,11 +7,12 @@ import { Picker } from '../shared/Picker';
 import { Tooltip } from '../shared/Tooltip';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent } from '../../logic/advancement';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
 import { resolveTalentTooltip, resolveSkillTooltip } from '../../logic/tooltip-content';
 import type { TooltipContent } from '../../logic/tooltip-content';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { RuneLearningPanel } from '../shared/RuneLearningPanel';
 import { GraduationCap, TrendingUp, ScrollText, CheckCircle, Swords, BookOpen, Sparkles, Undo2, Redo2 } from 'lucide-react';
 import styles from './AdvancementPage.module.css';
@@ -51,6 +52,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const [redoStack, setRedoStack] = useState<AdvancementEntry[]>([]);
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
   const [hideZeroAdvSkills, setHideZeroAdvSkills] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleTalentTooltip = (talentName: string, characterDesc: string, event: React.MouseEvent) => {
     const content = resolveTalentTooltip(talentName, characterDesc);
@@ -98,6 +101,15 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     setRedoStack(prev => prev.slice(0, -1));
   };
 
+  const handleRestoreEntry = (archiveIndex: number) => {
+    updateCharacter((c) => restoreArchivedEntry(c, archiveIndex));
+  };
+
+  const handleClearArchive = () => {
+    updateCharacter((c) => ({ ...c, advancementLogArchive: [] }));
+    setShowClearConfirm(false);
+  };
+
   const scheme = getCareerScheme(character.career);
   const careerLevel = scheme
     ? ([scheme.level1, scheme.level2, scheme.level3, scheme.level4] as CareerLevel[]).find(l => l.title === character.careerLevel)
@@ -140,7 +152,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const nextLevelNum = careerLevelNum + 1;
     const nextLevel = scheme[`level${nextLevelNum}` as keyof typeof scheme] as CareerLevel;
     if (!nextLevel) return;
-    updateCharacter((c) => ({
+    updateCharacter((c) => archiveOldEntries({
       ...c,
       careerLevel: nextLevel.title,
       status: nextLevel.status,
@@ -162,7 +174,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const sameClass = newScheme.class === character.class;
     const switchCost = (readyToProgress ? 100 : 200) + (sameClass ? 0 : 100);
     if (character.xpCur < switchCost) { setShowSwitchCareerPicker(false); return; }
-    updateCharacter((c) => ({
+    updateCharacter((c) => archiveOldEntries({
       ...c,
       career: newCareer,
       class: newScheme.class,
@@ -200,7 +212,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   // Advance characteristic
   const handleAdvanceChar = (key: CharacteristicKey) => {
     const inCareer = careerChars.includes(key);
-    updateCharacter((c) => advanceCharacteristic(c, key, inCareer));
+    updateCharacter((c) => archiveOldEntries(advanceCharacteristic(c, key, inCareer)));
     setRedoStack([]);
   };
 
@@ -214,7 +226,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       for (let i = 0; i < bulk.count; i++) {
         updated = advanceCharacteristic(updated, key, inCareer);
       }
-      return updated;
+      return archiveOldEntries(updated);
     });
     setRedoStack([]);
   };
@@ -224,7 +236,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const skills = isBasic ? character.bSkills : character.aSkills;
     const skill = skills[skillIndex];
     const inCareer = careerSkills.some(cs => careerSkillMatches(cs, skill.n));
-    updateCharacter((c) => advanceSkill(c, skillIndex, isBasic, inCareer));
+    updateCharacter((c) => archiveOldEntries(advanceSkill(c, skillIndex, isBasic, inCareer)));
     setRedoStack([]);
   };
 
@@ -239,7 +251,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       for (let i = 0; i < bulk.count; i++) {
         updated = advanceSkill(updated, skillIndex, isBasic, inCareer);
       }
-      return updated;
+      return archiveOldEntries(updated);
     });
     setRedoStack([]);
   };
@@ -259,7 +271,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       } else {
         newTalents.push({ n: talentName, lvl: 1, desc: TALENT_DB.find(t => t.name === talentName)?.desc ?? '' });
       }
-      return {
+      return archiveOldEntries({
         ...c,
         talents: newTalents,
         xpCur: c.xpCur - cost,
@@ -269,7 +281,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           from: timesTaken, to: timesTaken + 1, xpCost: cost,
           careerLevel: c.careerLevel, inCareer,
         }],
-      };
+      });
     });
     setRedoStack([]);
   };
@@ -385,6 +397,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             const cost = getAdvancementCost('characteristic', c.a, inCareer);
             const canAfford = character.xpCur >= cost;
             const bulk = calculateBulkAdvancement('characteristic', c.a, character.xpCur, inCareer, 5);
+            const futureLevel = !inCareer ? getFutureCareerLevel(character.career, careerLevelNum, { type: 'characteristic', key }) : null;
             return (
               <div key={key} className={inCareer ? styles.charCardInCareer : styles.charCardOutCareer}>
                 <div className={styles.charCardHeader}>
@@ -397,6 +410,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                 </div>
                 <div className={styles.charCostRow}>
                   <span className={styles.charCostLabel}>Next: <strong className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</strong></span>
+                  {futureLevel !== null && (
+                    <span className={styles.futureCareerWarning}>In-career at CL{futureLevel}</span>
+                  )}
                 </div>
                 <div className={styles.charBtnRow}>
                   <button type="button" onClick={() => handleAdvanceChar(key)} disabled={!canAfford} className={canAfford ? styles.advanceBtn : styles.advanceBtnDisabled}>+1 ({cost} XP)</button>
@@ -485,6 +501,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
               const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + entry.skill.a : entry.skill.a;
               const cost = getAdvancementCost('skill', entry.skill.a, false);
               const canAfford = character.xpCur >= cost;
+              const futureLevel = getFutureCareerLevel(character.career, careerLevelNum, { type: 'skill', name: entry.skill.n });
               return (
                 <tr key={`${entry.isBasic ? 'b' : 'a'}-${entry.originalIndex}`} className={styles.skillRowOutCareer}>
                   <td className={styles.td}>
@@ -503,7 +520,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                   <td className={styles.td}>{entry.skill.a}</td>
                   <td className={styles.tdBold}>{total}</td>
                   <td className={`${styles.td} ${canAfford ? styles.canAfford : styles.cannotAfford}`}>{cost} XP</td>
-                  <td className={styles.statusOutCareer}>Out</td>
+                  <td className={styles.statusOutCareer}>Out{futureLevel !== null && (
+                    <> <span className={styles.futureCareerWarning}>In-career at CL{futureLevel}</span></>
+                  )}</td>
                   <td className={styles.td}>
                     <div className={styles.skillBtnRow}>
                       <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+1</button>
@@ -563,6 +582,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
               {character.talents.filter(t => !careerTalents.includes(t.n)).map((talent) => {
                 const cost = getAdvancementCost('talent', talent.lvl, false);
                 const canAfford = character.xpCur >= cost;
+                const futureLevel = getFutureCareerLevel(character.career, careerLevelNum, { type: 'talent', name: talent.n });
                 return (
                   <div key={talent.n} className={styles.talentCardOutCareer}>
                     <button
@@ -577,6 +597,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                     >{talent.n}</button>
                     <div className={styles.talentMeta}>
                       Level: {talent.lvl} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                      {futureLevel !== null && (
+                        <> <span className={styles.futureCareerWarning}>In-career at CL{futureLevel}</span></>
+                      )}
                     </div>
                     <button type="button" onClick={() => handleAcquireTalent(talent.n)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
                       +1 Level ({cost} XP)
@@ -587,9 +610,56 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             </div>
           </>
         )}
+        {/* Future career talents not yet owned and not currently in-career */}
+        {scheme && careerLevelNum < 4 && (() => {
+          const ownedNames = new Set(character.talents.map(t => t.n));
+          const inCareerSet = new Set(careerTalents);
+          const futureTalents: { name: string; level: number }[] = [];
+          for (let lvl = careerLevelNum + 1; lvl <= 4; lvl++) {
+            const lvlData = scheme[`level${lvl}` as keyof typeof scheme] as CareerLevel;
+            for (const tn of lvlData.talents) {
+              if (!inCareerSet.has(tn) && !ownedNames.has(tn) && !futureTalents.some(ft => ft.name === tn)) {
+                futureTalents.push({ name: tn, level: lvl });
+              }
+            }
+          }
+          if (futureTalents.length === 0) return null;
+          return (
+            <>
+              <div className={styles.talentGroupLabelOutCareer}>Future Career Talents (not yet owned)</div>
+              <div className={styles.talentGrid}>
+                {futureTalents.map(({ name: talentName, level }) => {
+                  const cost = getAdvancementCost('talent', 0, false);
+                  const canAfford = character.xpCur >= cost;
+                  return (
+                    <div key={talentName} className={styles.talentCardOutCareer}>
+                      <button
+                        type="button"
+                        onClick={(e) => handleTalentTooltip(talentName, '', e)}
+                        aria-describedby={
+                          activeTooltip?.type === 'talent' && activeTooltip.key === talentName
+                            ? `tooltip-talent-${talentName}`
+                            : undefined
+                        }
+                        className={styles.talentName}
+                      >{talentName}</button>
+                      <div className={styles.talentMeta}>
+                        Not owned | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                        {' '}<span className={styles.futureCareerWarning}>In-career at CL{level}</span>
+                      </div>
+                      <button type="button" onClick={() => handleAcquireTalent(talentName)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
+                        Acquire ({cost} XP)
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          );
+        })()}
       </Card>
 
-      {character.talents.some(t => t.n === 'Rune Magic' || t.n === 'Master Rune Magic') && (
+      {hasRuneMagicTalent(character) && (
         <RuneLearningPanel character={character} updateCharacter={updateCharacter} />
       )}
 
@@ -653,6 +723,72 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           </table>
         )}
       </Card>
+
+      {/* Archive Section */}
+      <Card>
+        <SectionHeader icon={ScrollText} title="Archive" action={
+          <div className={styles.logActions}>
+            {character.advancementLogArchive.length > 0 && (
+              <button type="button" onClick={() => setShowClearConfirm(true)} className={styles.logBtn}>
+                Clear Archive
+              </button>
+            )}
+            <button type="button" onClick={() => setShowArchive(!showArchive)} className={styles.logBtn}>
+              {showArchive ? 'Hide' : 'Show'} Archive ({character.advancementLogArchive.length})
+            </button>
+          </div>
+        } />
+        {showArchive && (
+          character.advancementLogArchive.length === 0 ? (
+            <p className={styles.archiveEmptyMessage}>
+              No archived entries. Entries are automatically archived when the active log exceeds 100 entries.
+            </p>
+          ) : (
+            <table className={styles.tableBase}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>Type</th>
+                  <th className={styles.th}>Name</th>
+                  <th className={styles.th}>From→To</th>
+                  <th className={styles.th}>XP</th>
+                  <th className={styles.th}>Status</th>
+                  <th className={styles.th}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...character.advancementLogArchive].reverse().map((entry, i) => {
+                  const originalIndex = character.advancementLogArchive.length - 1 - i;
+                  return (
+                    <tr key={originalIndex}>
+                      <td className={styles.td}>{entry.type}</td>
+                      <td className={styles.td}>{entry.name}</td>
+                      <td className={styles.td}>{entry.from}→{entry.to}</td>
+                      <td className={styles.td}>{entry.xpCost}</td>
+                      <td className={entry.inCareer ? styles.logStatusInCareer : styles.logStatusOutCareer}>
+                        {entry.inCareer ? 'In' : 'Out'}
+                      </td>
+                      <td className={styles.td}>
+                        <button type="button" onClick={() => handleRestoreEntry(originalIndex)} className={styles.logBtn}>
+                          Restore
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )
+        )}
+      </Card>
+
+      {showClearConfirm && (
+        <ConfirmDialog
+          message="Clear all archived advancement entries? This cannot be undone."
+          confirmLabel="Clear Archive"
+          onConfirm={handleClearArchive}
+          onCancel={() => setShowClearConfirm(false)}
+        />
+      )}
 
       {/* Pickers */}
       {showClassPicker && (

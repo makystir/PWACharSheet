@@ -28,6 +28,7 @@ function makeSpellChar(overrides: Partial<Character> = {}): Character {
       { n: 'Language (Magick)', c: 'Int', a: 15 },
       { n: 'Channelling', c: 'WP', a: 10 },
     ],
+    talents: [{ n: 'Arcane Magic (Fire)', lvl: 1, desc: '' }],
     spells: testSpells.map((s) => ({ ...s })),
     channellingProgress: [],
     ...overrides,

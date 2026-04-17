@@ -144,3 +144,23 @@
 .checkboxInput {
   cursor: pointer;
 }
+
+/* Spell access gating styles */
+.noTalentMessage {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+  padding: 16px 12px;
+}
+
+.readOnlyBanner {
+  font-size: 12px;
+  color: var(--warning, #d4a017);
+  background: rgba(212, 160, 23, 0.1);
+  border: 1px solid rgba(212, 160, 23, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  margin-bottom: 8px;
+  text-align: center;
+}

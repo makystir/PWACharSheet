@@ -587,3 +587,16 @@
   composes: smallButton from '../shared/styles/shared.module.css';
   font-size: 11px;
 }
+
+/* Premature out-of-career warning label */
+.futureCareerWarning {
+  font-size: 10px;
+  color: #c9a84c;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Archive empty state */
+.archiveEmptyMessage {
+  composes: emptyMessage from '../shared/styles/shared.module.css';
+}

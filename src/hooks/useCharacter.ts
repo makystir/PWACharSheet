@@ -7,6 +7,7 @@ import {
   calculateArmourPoints,
   calculateMaxEncumbrance,
   calculateCoinWeight,
+  syncWoundFields,
 } from '../logic/calculators';
 import { syncTalentBonuses } from '../logic/talents';
 
@@ -61,6 +62,12 @@ function backfillCharacter(char: Character): Character {
   }
   // Always sync talent bonuses on load to ensure .b values are correct
   patched = syncTalentBonuses(patched);
+
+  // Sync wound component fields on load to fix stale values from localStorage
+  const hardy = patched.talents.find(t => t.n === 'Hardy');
+  const hardyLevel = hardy ? hardy.lvl : 0;
+  patched = syncWoundFields(patched, hardyLevel);
+
   return patched;
 }
 
@@ -167,12 +174,20 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     });
   }, [talentsJson]);
 
-  // Derive Hardy level and Strong Back level from talents
+  // Sync wound component fields whenever chars, woundsUseSB, or hardyLevel change
   const hardyLevel = useMemo(() => {
     const hardy = character.talents.find(t => t.n === 'Hardy');
     return hardy ? hardy.lvl : 0;
   }, [character.talents]);
 
+  useEffect(() => {
+    setCharacter(prev => {
+      const synced = syncWoundFields(prev, hardyLevel);
+      return synced === prev ? prev : synced;
+    });
+  }, [character.chars, character.woundsUseSB, hardyLevel]);
+
+  // Derive Strong Back and Sturdy levels from talents
   const strongBackLevel = useMemo(() => {
     const sb = character.talents.find(t => t.n === 'Strong Back');
     return sb ? sb.lvl : 0;

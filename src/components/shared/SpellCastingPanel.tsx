@@ -10,6 +10,7 @@ import {
   type CastingResult,
   type MiscastResult,
 } from '../../logic/spell-casting';
+import { hasSpellcastingTalent } from '../../logic/advancement';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { RollDialog } from '../shared/RollDialog';
@@ -36,6 +37,20 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
   const [castingResult, setCastingResult] = useState<CastingResult | null>(null);
   const [showManageSpells, setShowManageSpells] = useState(false);
   const [miscastResult, setMiscastResult] = useState<MiscastResult | null>(null);
+
+  const canCastSpells = hasSpellcastingTalent(character);
+
+  // Gating: no talent and no spells — show message and return early
+  if (!canCastSpells && character.spells.length === 0) {
+    return (
+      <Card>
+        <SectionHeader icon={Sparkles} title="Spells & Prayers" />
+        <div className={styles.noTalentMessage}>
+          No spellcasting talent — acquire Arcane Magic, Petty Magic, Bless, or Invoke to use spells.
+        </div>
+      </Card>
+    );
+  }
 
   const memorizedSpells = character.spells.filter((s) => s.memorized);
 
@@ -181,15 +196,24 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
           icon={Sparkles}
           title="Spells & Prayers"
           action={
-            <button
-              type="button"
-              className={styles.manageBtn}
-              onClick={() => setShowManageSpells(!showManageSpells)}
-            >
-              {showManageSpells ? 'Hide' : 'Manage Spells'}
-            </button>
+            canCastSpells ? (
+              <button
+                type="button"
+                className={styles.manageBtn}
+                onClick={() => setShowManageSpells(!showManageSpells)}
+              >
+                {showManageSpells ? 'Hide' : 'Manage Spells'}
+              </button>
+            ) : undefined
           }
         />
+
+        {/* Read-only banner when character has spells but no spellcasting talent */}
+        {!canCastSpells && (
+          <div className={styles.readOnlyBanner}>
+            Spellcasting talent required — spells shown in read-only mode.
+          </div>
+        )}
 
         {/* Memorized spells list */}
         {memorizedSpells.length === 0 ? (
@@ -206,7 +230,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
                 <th className={styles.th}>Target</th>
                 <th className={styles.th}>Duration</th>
                 <th className={styles.th}>Effect</th>
-                <th className={styles.th}></th>
+                {canCastSpells && <th className={styles.th}></th>}
               </tr>
             </thead>
             <tbody>
@@ -230,58 +254,60 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
                     <td className={styles.effectCell}>
                       {spell.effect}
                     </td>
-                    <td className={styles.actionsCell}>
-                      <div className={styles.actionRow}>
-                        {/* Cast button */}
-                        <button
-                          type="button"
-                          className={styles.diceBtn}
-                          onClick={() => openCastDialog(spell)}
-                          title={`Cast ${spell.name}`}
-                          aria-label={`Cast ${spell.name}`}
-                        >
-                          🎲
-                        </button>
-
-                        {/* Channel button (non-Petty only) */}
-                        {!isPetty && (
+                    {canCastSpells && (
+                      <td className={styles.actionsCell}>
+                        <div className={styles.actionRow}>
+                          {/* Cast button */}
                           <button
                             type="button"
                             className={styles.diceBtn}
-                            onClick={() => openChannelDialog(spell)}
-                            title={`Channel ${spell.name}`}
-                            aria-label={`Channel ${spell.name}`}
+                            onClick={() => openCastDialog(spell)}
+                            title={`Cast ${spell.name}`}
+                            aria-label={`Cast ${spell.name}`}
                           >
-                            ⚡
+                            🎲
                           </button>
-                        )}
 
-                        {/* Channelling progress */}
-                        {cp != null && cp.accumulatedSL > 0 && (
-                          <>
-                            <span className={styles.channelProgress}>
-                              {cp.accumulatedSL} / {cn}
-                            </span>
+                          {/* Channel button (non-Petty only) */}
+                          {!isPetty && (
                             <button
                               type="button"
-                              className={styles.cancelChannelBtn}
-                              onClick={() => cancelChannelling(spell.name)}
-                              title="Cancel channelling"
-                              aria-label={`Cancel channelling ${spell.name}`}
+                              className={styles.diceBtn}
+                              onClick={() => openChannelDialog(spell)}
+                              title={`Channel ${spell.name}`}
+                              aria-label={`Channel ${spell.name}`}
                             >
-                              ✕
+                              ⚡
                             </button>
-                          </>
-                        )}
+                          )}
 
-                        {/* Ready indicator */}
-                        {isReady && (
-                          <span className={styles.readyBadge}>
-                            Ready
-                          </span>
-                        )}
-                      </div>
-                    </td>
+                          {/* Channelling progress */}
+                          {cp != null && cp.accumulatedSL > 0 && (
+                            <>
+                              <span className={styles.channelProgress}>
+                                {cp.accumulatedSL} / {cn}
+                              </span>
+                              <button
+                                type="button"
+                                className={styles.cancelChannelBtn}
+                                onClick={() => cancelChannelling(spell.name)}
+                                title="Cancel channelling"
+                                aria-label={`Cancel channelling ${spell.name}`}
+                              >
+                                ✕
+                              </button>
+                            </>
+                          )}
+
+                          {/* Ready indicator */}
+                          {isReady && (
+                            <span className={styles.readyBadge}>
+                              Ready
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -289,8 +315,8 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
           </table>
         )}
 
-        {/* Expandable memorization section */}
-        {showManageSpells && (
+        {/* Expandable memorization section (only when talent is present) */}
+        {canCastSpells && showManageSpells && (
           <div className={styles.manageSection}>
             <div className={styles.manageSectionTitle}>
               Toggle Memorized Spells
@@ -321,8 +347,8 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
         )}
       </Card>
 
-      {/* Roll Dialog */}
-      {rollDialogState && (
+      {/* Roll Dialog (only when talent is present) */}
+      {canCastSpells && rollDialogState && (
         <RollDialog
           skillOrCharName={rollDialogState.name}
           baseTarget={rollDialogState.baseTarget}
@@ -331,8 +357,8 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
         />
       )}
 
-      {/* Cast Result Display */}
-      {castingResult && (
+      {/* Cast Result Display (only when talent is present) */}
+      {canCastSpells && castingResult && (
         <CastResultDisplay
           castingResult={castingResult}
           character={character}
