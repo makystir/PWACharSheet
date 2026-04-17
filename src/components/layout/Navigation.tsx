@@ -130,7 +130,6 @@ export function Navigation({ activePage, onPageChange, characterName, characters
             >
               <Icon size={18} />
               <span>{item.label}</span>
-              <span className={styles.shortcut}>{item.shortcut}</span>
             </button>
           );
         })}

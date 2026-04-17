@@ -215,13 +215,6 @@
   border-left: 3px solid var(--accent-gold);
 }
 
-.shortcut {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--text-muted);
-  opacity: 0.6;
-}
-
 /* Mobile responsive layout */
 @media (max-width: 767px) {
   .sidebar {
@@ -257,9 +250,5 @@
     justify-content: center;
     border-left: none;
     padding-left: 4px;
-  }
-
-  .shortcut {
-    display: none;
   }
 }
