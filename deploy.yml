@@ -1,0 +1,28 @@
+name: Build & Deploy to Local Docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # targets your Ubuntu server's runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t my-app:latest .
+
+      - name: Stop old container (if running)
+        run: docker rm -f my-app || true
+
+      - name: Start new container
+        run: |
+          docker run -d \
+            --name my-app \
+            --restart unless-stopped \
+            -p 3000:3000 \
+            my-app:latest
