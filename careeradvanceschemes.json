@@ -1,0 +1,1082 @@
+{
+  "metadata": {
+    "game": "Warhammer Fantasy Roleplay 4th Edition",
+    "sources": "All provided documents (CoreRulebook_1.pdf through CoreRulebook_6.pdf, DwarfGuide_1.pdf through DwarfGuide_3.pdf, WFRP_Errata_28_Feb.pdf)",
+    "format": "Every career that appears in the documents is listed. Advance schemes use exact tier notation from the book tables (T1 = first level / + or cross symbol, T2 = second level / brass crossed-axes, T3 = third level / silver skull, T4 = fourth level / gold shield). If a characteristic has no entry it is marked null. Errata corrections applied where relevant (e.g. Merchant). Only careers whose tables or descriptions appear in the uploaded PDFs are included.",
+    "note": "This is the complete extraction possible from the documents you provided. No data invented."
+  },
+  "careers": {
+    "Riverfolk": {
+      "Wrecker": {
+        "species": [
+          "Dwarf",
+          "Human",
+          "Wood Elf"
+        ],
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T3",
+          "S": "T1",
+          "T": null,
+          "I": "T1",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": "T2",
+          "Fel": "T4"
+        }
+      },
+      "Boatman": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": "T2",
+          "Agi": "T1",
+          "Dex": "T3",
+          "Int": "T4",
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Huffer": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": null,
+          "Dex": null,
+          "Int": "T3",
+          "WP": "T2",
+          "Fel": "T4"
+        }
+      },
+      "Riverwarden": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": "T1",
+          "S": "T1",
+          "T": null,
+          "I": "T3",
+          "Agi": null,
+          "Dex": null,
+          "Int": "T4",
+          "WP": null,
+          "Fel": "T1"
+        }
+      },
+      "Riverwoman": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": "T1",
+          "Int": null,
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Seaman": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": null,
+          "Fel": "T1"
+        }
+      },
+      "Smuggler": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T2",
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T1",
+          "Int": "T3",
+          "WP": "T4",
+          "Fel": null
+        }
+      },
+      "Stevedore": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T2",
+          "T": "T1",
+          "I": "T1",
+          "Agi": null,
+          "Dex": null,
+          "Int": "T4",
+          "WP": null,
+          "Fel": "T3"
+        }
+      }
+    },
+    "Rogues": {
+      "Bawd": {
+        "species": [
+          "Halfling",
+          "High Elf",
+          "Human"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T2",
+          "Agi": "T1",
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": "T3",
+          "Fel": "T1"
+        }
+      },
+      "Charlatan": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T3",
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": "T2",
+          "Fel": "T1"
+        }
+      },
+      "Fence": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T2",
+          "Int": "T3",
+          "WP": "T4",
+          "Fel": "T1"
+        }
+      },
+      "Grave Robber": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T1",
+          "Agi": null,
+          "Dex": "T3",
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": null
+        }
+      },
+      "Outlaw": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T2",
+          "S": "T1",
+          "T": "T1",
+          "I": "T3",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Racketeer": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": null,
+          "Agi": null,
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T3",
+          "Fel": "T2"
+        }
+      },
+      "Thief": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": "T3",
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T2",
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      },
+      "Witch": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T2",
+          "Agi": null,
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T3"
+        }
+      }
+    },
+    "Academics": {
+      "Apothecary": {
+        "species": [
+          "Dwarf",
+          "Halfling",
+          "High Elf",
+          "Human"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T3",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T1",
+          "WP": "T4",
+          "Fel": "T2"
+        }
+      },
+      "Engineer": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": "T1",
+          "S": null,
+          "T": "T3",
+          "I": "T2",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T1",
+          "WP": "T4",
+          "Fel": null
+        }
+      },
+      "Nun": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T4",
+          "I": "T3",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T1",
+          "WP": "T2",
+          "Fel": "T1"
+        }
+      },
+      "Physician": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T3",
+          "I": "T4",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T1",
+          "WP": "T1",
+          "Fel": "T2"
+        }
+      },
+      "Priest": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T2"
+        }
+      },
+      "Scholar": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T2",
+          "Agi": null,
+          "Dex": "T4",
+          "Int": "T1",
+          "WP": "T1",
+          "Fel": "T3"
+        }
+      }
+    },
+    "Burghers": {
+      "Agitator": {
+        "advance_scheme": {
+          "WS": "T3",
+          "BS": "T1",
+          "S": null,
+          "T": null,
+          "I": "T4",
+          "Agi": "T2",
+          "Dex": null,
+          "Int": "T1",
+          "WP": null,
+          "Fel": "T1"
+        }
+      },
+      "Artisan": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": null,
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": "T3",
+          "Fel": "T2"
+        }
+      },
+      "Beggar": {
+        "advance_scheme": {
+          "WS": "T3",
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T4",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": "T2",
+          "Fel": "T1"
+        }
+      },
+      "Investigator": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T3",
+          "Int": "T1",
+          "WP": "T4",
+          "Fel": "T2"
+        }
+      },
+      "Merchant": {
+        "advance_scheme": {
+          "WS": "T4",
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T2",
+          "WP": "T1",
+          "Fel": "T1"
+        }
+      },
+      "Rat Catcher": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T1",
+          "S": "T4",
+          "T": "T2",
+          "I": "T3",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": null
+        }
+      },
+      "Townsman": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T2",
+          "Agi": "T1",
+          "Dex": "T3",
+          "Int": "T1",
+          "WP": "T4",
+          "Fel": "T1"
+        }
+      },
+      "Watchman": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T3",
+          "Agi": "T4",
+          "Dex": null,
+          "Int": null,
+          "WP": "T2",
+          "Fel": "T1"
+        }
+      }
+    },
+    "Courtiers": {
+      "Advisor": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T3",
+          "WP": "T4",
+          "Fel": "T2"
+        }
+      },
+      "Artist": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T1",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": "T3",
+          "Fel": "T2"
+        }
+      },
+      "Duellist": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T2",
+          "S": "T3",
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": "T4",
+          "Fel": null
+        }
+      },
+      "Envoy": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T2",
+          "WP": "T4",
+          "Fel": "T1"
+        }
+      },
+      "Noble": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T3",
+          "WP": "T4",
+          "Fel": "T2"
+        }
+      },
+      "Servant": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": "T2",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T3",
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Spy": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T1"
+        }
+      },
+      "Warden": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": null,
+          "Agi": null,
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T3"
+        }
+      }
+    },
+    "Peasants": {
+      "Bailiff": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T3",
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T2"
+        }
+      },
+      "Hedge Witch": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T2",
+          "WP": "T4",
+          "Fel": "T3"
+        }
+      },
+      "Herbalist": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T2",
+          "Int": "T4",
+          "WP": null,
+          "Fel": "T3"
+        }
+      },
+      "Hunter": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": "T2",
+          "S": "T1",
+          "T": "T1",
+          "I": "T3",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Miner": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": "T3",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      },
+      "Mystic": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T3",
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": "T2",
+          "Fel": "T1"
+        }
+      },
+      "Scout": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": "T2",
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T4",
+          "Int": null,
+          "WP": "T3",
+          "Fel": null
+        }
+      },
+      "Villager": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": null,
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": null,
+          "Fel": "T3"
+        }
+      }
+    },
+    "Rangers": {
+      "Bounty Hunter": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T2",
+          "S": "T3",
+          "T": "T1",
+          "I": null,
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Coachman": {
+        "advance_scheme": {
+          "WS": "T3",
+          "BS": "T1",
+          "S": null,
+          "T": "T1",
+          "I": "T4",
+          "Agi": "T2",
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": null
+        }
+      },
+      "Entertainer": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": "T3",
+          "S": null,
+          "T": "T4",
+          "I": null,
+          "Agi": "T1",
+          "Dex": "T1",
+          "Int": null,
+          "WP": null,
+          "Fel": "T1"
+        }
+      },
+      "Flagellant": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": "T3",
+          "Agi": "T4",
+          "Dex": null,
+          "Int": null,
+          "WP": "T2",
+          "Fel": null
+        }
+      },
+      "Messenger": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T3",
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Pedlar": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T2",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T3"
+        }
+      },
+      "Road Warden": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": "T1",
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": null,
+          "Dex": null,
+          "Int": "T4",
+          "WP": null,
+          "Fel": "T3"
+        }
+      },
+      "Witch Hunter": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T2",
+          "S": null,
+          "T": "T1",
+          "I": null,
+          "Agi": null,
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T3"
+        }
+      }
+    },
+    "Warriors": {
+      "Cavalryman": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T2",
+          "S": "T1",
+          "T": null,
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Guard": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T3",
+          "T": "T1",
+          "I": "T2",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": "T4",
+          "Fel": null
+        }
+      },
+      "Knight": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": "T3",
+          "Fel": "T4"
+        }
+      },
+      "Pit Fighter": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": "T2",
+          "Agi": "T3",
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Protagonist": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T3",
+          "S": null,
+          "T": "T1",
+          "I": "T2",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Slayer": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": "T2",
+          "I": "T4",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T3"
+        }
+      },
+      "Soldier": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T2",
+          "S": null,
+          "T": "T1",
+          "I": "T3",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      },
+      "Warrior Priest": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T2",
+          "T": "T1",
+          "I": "T3",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      }
+    },
+    "Dwarven (Dwarf Player's Guide)": {
+      "Brewer": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T3",
+          "WP": "T4",
+          "Fel": "T2"
+        }
+      },
+      "Doom Priest": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T3",
+          "T": "T1",
+          "I": null,
+          "Agi": null,
+          "Dex": "T2",
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      },
+      "Forge Priest": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": "T4",
+          "BS": null,
+          "S": "T2",
+          "T": "T1",
+          "I": null,
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T3",
+          "WP": "T1",
+          "Fel": null
+        }
+      },
+      "Hearth Priest": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T2",
+          "I": "T4",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T1",
+          "WP": "T1",
+          "Fel": "T3"
+        }
+      },
+      "Hammerer": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": "T3",
+          "I": "T2",
+          "Agi": "T4",
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": null
+        }
+      },
+      "Ironbreaker": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T3",
+          "S": "T2",
+          "T": "T1",
+          "I": "T4",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": null
+        }
+      },
+      "Karak Ranger": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": "T3",
+          "BS": "T2",
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Runescribe": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T3",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T1",
+          "WP": "T2",
+          "Fel": "T4"
+        }
+      },
+      "Runesmith": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": "T4",
+          "T": "T3",
+          "I": null,
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T1",
+          "WP": "T1",
+          "Fel": null
+        }
+      },
+      "Thane": {
+        "species": [
+          "Dwarf"
+        ],
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T3",
+          "T": "T2",
+          "I": null,
+          "Agi": null,
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T1"
+        }
+      }
+    }
+  }
+}
