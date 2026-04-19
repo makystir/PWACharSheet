@@ -2,12 +2,12 @@
   "name": "pwacharsheet",
   "version": "1.0.0",
   "description": "Progressive web app for WFRP 4e character tracker",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "build:docker": "vite build --base /",
+  "preview": "vite preview"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/makystir/PWACharSheet.git"
