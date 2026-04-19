@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# WFRP 4e Character Sheet — PWA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Progressive Web App for managing Warhammer Fantasy Roleplay 4th Edition characters. Built with Vite, React 18, and TypeScript. Works offline once installed and supports multiple characters.
 
-Currently, two official plugins are available:
+## Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Install dependencies
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+### Build for production
+
+```bash
+npm run build
+```
+
+### Serve locally on Windows
+
+After building, serve the `dist/` folder with any static HTTP server:
+
+```bash
+npx serve dist
+```
+
+Then open `http://localhost:3000` in your browser.
+
+### Run tests
+
+```bash
+npm test
+```
+
+## PWA Installation
+
+1. Build and serve the app locally (see above)
+2. Open `http://localhost:3000` in Chrome or Edge
+3. Click the install icon in the address bar (or the browser's "Install app" prompt)
+4. The app will launch in standalone mode without browser chrome
+5. Once installed, the app works fully offline
+
+## Features
+
+- Full WFRP 4e character sheet with characteristics, skills, talents, spells, combat, and estate management
+- Multi-character support — create, switch, rename, duplicate, and delete characters
+- Career advancement system with XP tracking and bulk advances
+- Combat tracker with conditions, critical wounds, advantage, and damage calculator
+- Export/import characters as JSON (clipboard or file)
+- Print-optimized layout for physical character sheets
+- Offline-capable PWA — works without network after first load
+- Dark fantasy-themed UI with responsive design (360px–2560px)
+=======
+# PWACharSheet
+progressive web app for whfrp4e character tracker 

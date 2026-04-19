@@ -1,0 +1,34 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  composes: mutedLabel from './styles/shared.module.css';
+}
+
+.display {
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 28px;
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  transition: border-color 0.1s;
+}
+
+.display:hover {
+  border-color: var(--border-light);
+}
+
+.input {
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-gold);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: inherit;
+  outline: none;
+  min-height: 28px;
+}

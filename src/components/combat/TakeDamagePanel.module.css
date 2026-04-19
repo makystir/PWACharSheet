@@ -1,0 +1,155 @@
+/* TakeDamagePanel component styles */
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.collapseBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 60px;
+}
+
+.input {
+  width: 70px;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  min-height: 44px;
+}
+
+.select {
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  min-height: 44px;
+  cursor: pointer;
+  flex: 1;
+  max-width: 200px;
+}
+
+.statChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.statChipLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.statChipValue {
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+}
+
+.netWoundsBox {
+  padding: 10px 14px;
+  background: rgba(200, 80, 80, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+}
+
+.netWoundsRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.netWoundsLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-family: var(--font-heading);
+}
+
+.netWoundsValue {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--danger);
+  font-family: var(--font-heading);
+}
+
+.breakdownText {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.applyBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 20px;
+  background: rgba(200, 80, 80, 0.2);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  width: 100%;
+}
+
+.applyBtnDisabled {
+  composes: applyBtn;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.alertBox {
+  padding: 10px 14px;
+  background: rgba(200, 80, 80, 0.2);
+  border: 2px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  text-align: center;
+  margin-top: 10px;
+}

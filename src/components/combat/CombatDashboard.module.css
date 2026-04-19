@@ -1,0 +1,427 @@
+/* CombatDashboard — co-located CSS Module */
+
+.dashboard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+/* ── Main Row ── */
+
+.mainRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+@media (max-width: 767px) {
+  .mainRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ── Section (vertical stack) ── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sectionRelative {
+  composes: section;
+  position: relative;
+}
+
+/* ── Wounds Section ── */
+
+.woundsSection {
+  composes: section;
+  flex: 1 1 auto;
+  min-width: 140px;
+}
+
+@media (max-width: 767px) {
+  .woundsSection {
+    flex: unset;
+    min-width: unset;
+  }
+}
+
+/* ── Flex-shrink sections (advantage, round, engaged) ── */
+
+.fixedSection {
+  composes: section;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 767px) {
+  .fixedSection {
+    flex: unset;
+  }
+}
+
+/* ── Engaged section ── */
+
+.engagedSection {
+  composes: fixedSection;
+  justify-content: center;
+}
+
+/* ── Fortune / Resolve row ── */
+
+.fortuneResolveRow {
+  display: flex;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 767px) {
+  .fortuneResolveRow {
+    flex: unset;
+  }
+}
+
+/* ── Label ── */
+
+.label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+
+/* ── Big Number ── */
+
+.bigNumber {
+  font-size: 28px;
+  font-weight: 900;
+  font-family: var(--font-heading);
+  line-height: 1;
+}
+
+/* ── Icon + Label row ── */
+
+.iconLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconLabelSmall {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Wound number + total ── */
+
+.woundNumbers {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.woundTotal {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ── Wound severity colors ── */
+
+.woundHigh {
+  color: var(--success);
+}
+
+.woundMedium {
+  color: var(--accent-gold);
+}
+
+.woundLow {
+  color: var(--danger);
+}
+
+/* ── Progress Bar ── */
+
+.progressBar {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  width: 100%;
+  min-width: 60px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+  width: var(--wound-pct);
+}
+
+.progressFillHigh {
+  composes: progressFill;
+  background: var(--success);
+}
+
+.progressFillMedium {
+  composes: progressFill;
+  background: var(--accent-gold);
+}
+
+.progressFillLow {
+  composes: progressFill;
+  background: var(--danger);
+}
+
+/* ── Button Row ── */
+
+.btnRow {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* ── Tap Buttons ── */
+
+.tapButton {
+  composes: tapButton from '../shared/styles/shared.module.css';
+}
+
+.tapButtonDecrease {
+  composes: tapButton;
+  background: rgba(200, 80, 80, 0.2);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.tapButtonIncrease {
+  composes: tapButton;
+  background: rgba(90, 154, 90, 0.2);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.smallTapButton {
+  composes: tapButton;
+  font-size: 11px;
+  font-family: var(--font-heading);
+  padding: 4px 10px;
+}
+
+/* ── Engaged Button ── */
+
+.engagedBtn {
+  composes: tapButton;
+  padding: 8px 16px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.engagedBtnActive {
+  composes: engagedBtn;
+  background: rgba(200, 80, 80, 0.2);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.engagedBtnInactive {
+  composes: engagedBtn;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+/* ── Down Alert ── */
+
+.downAlert {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ── Fortune / Resolve big button ── */
+
+.fortuneBtn {
+  font-size: 28px;
+  font-weight: 900;
+  font-family: var(--font-heading);
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.fortuneBtnActive {
+  composes: fortuneBtn;
+  color: var(--accent-gold);
+}
+
+.fortuneBtnInactive {
+  composes: fortuneBtn;
+  color: var(--text-muted);
+}
+
+.fortuneSuffix {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ── Popover ── */
+
+.popover {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  box-shadow: 0 4px 16px var(--shadow);
+  z-index: 60;
+  min-width: 160px;
+}
+
+.popoverLabel {
+  composes: label;
+  margin-bottom: 6px;
+}
+
+.popoverList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Spend Button ── */
+
+.spendBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.spendBtnDisabled {
+  composes: spendBtn;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Condition Badges ── */
+
+.conditionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.conditionRowSpaced {
+  composes: conditionRow;
+  margin-top: 10px;
+}
+
+.conditionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  min-height: 44px;
+  cursor: pointer;
+  background: rgba(200, 80, 80, 0.3);
+  color: #fff;
+  border: 1px solid var(--danger);
+}
+
+.conditionInfoBtn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.conditionRemoveBtn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addConditionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  min-height: 44px;
+  cursor: pointer;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  font-weight: 700;
+}
+
+/* ── Tooltip section ── */
+
+.tooltipSectionLabel {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.tooltipSection {
+  margin-bottom: 6px;
+}
+
+.tooltipSectionLast {
+  margin-bottom: 0;
+}
+
+/* ── Accent gold color ── */
+
+.accentGold {
+  color: var(--accent-gold);
+}

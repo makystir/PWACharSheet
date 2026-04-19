@@ -1,0 +1,398 @@
+/* WFRP 4e Character Sheet — Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg-primary: #121212;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --parchment: #c8a96e;
+  --parchment-dark: #a8884e;
+  --text-primary: #d4c4a0;
+  --text-secondary: #a89878;
+  --text-muted: #706858;
+  --accent: #c85050;
+  --accent-gold: #c8a84c;
+  --accent-gold-dark: #a08030;
+  --border: #333333;
+  --border-light: #444444;
+  --success: #5a9a5a;
+  --warning: #c8a832;
+  --danger: #c85050;
+  --card-bg: #1e1e1e;
+  --card-border: #333333;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --font-heading: 'Cinzel', serif;
+  --font-body: 'Inter', sans-serif;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --nav-width: 220px;
+  --nav-height-mobile: 60px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  color: var(--parchment);
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+input, select, textarea {
+  font-family: var(--font-body);
+  font-size: inherit;
+}
+
+/* Print styles */
+@media print {
+  html, body {
+    background: #f5efe0 !important;
+    color: #1a1510 !important;
+    font-size: 9px;
+    line-height: 1.35;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #root {
+    display: block;
+  }
+
+  /* Hide navigation, buttons, interactive UI */
+  nav,
+  .nav-sidebar,
+  .no-print,
+  button:not(.print-keep),
+  [role="dialog"],
+  [data-no-print] {
+    display: none !important;
+  }
+
+  /* Reset page container for print */
+  main {
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Print layout styles */
+  .print-layout {
+    display: block !important;
+  }
+
+  .print-layout h1 {
+    font-size: 18px;
+    color: black;
+    font-family: 'Cinzel', serif;
+  }
+
+  .print-layout h2 {
+    font-size: 13px;
+    color: black;
+  }
+
+  /* Page break control */
+  .print-layout section {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure tables print well */
+  table {
+    page-break-inside: avoid;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+
+  /* Hide screen-only elements */
+  .screen-only {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* ===== Interactive element feedback ===== */
+button:hover,
+button:focus-visible {
+  filter: brightness(1.15);
+  outline: none;
+}
+
+button:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-gold);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: -1px;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions on interactive elements */
+button,
+input,
+select,
+textarea,
+a {
+  transition: filter 0.08s ease, box-shadow 0.08s ease, outline 0.08s ease;
+}
+
+/* ===== Responsive: Mobile (< 768px) ===== */
+@media (max-width: 767px) {
+  #root {
+    flex-direction: column;
+    padding-bottom: var(--nav-height-mobile);
+  }
+
+  /* Page container adjustments for mobile */
+  main {
+    padding: 12px !important;
+    max-width: 100% !important;
+  }
+
+  h1 { font-size: 20px; }
+  h2 { font-size: 16px; }
+  h3 { font-size: 14px; }
+
+  /* Prevent horizontal overflow on tables */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  thead, tbody, tr, th, td {
+    min-width: 0;
+  }
+}
+
+/* ===== Responsive: Small mobile (< 480px) ===== */
+@media (max-width: 479px) {
+  main {
+    padding: 8px !important;
+  }
+
+  h1 { font-size: 18px; }
+  h2 { font-size: 15px; }
+}
+
+/* ===== Responsive: Large screens (> 1400px) ===== */
+@media (min-width: 1400px) {
+  main {
+    max-width: 1200px !important;
+  }
+}
+
+/* ===== Prevent horizontal scroll globally ===== */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ===== Accessible focus order ===== */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* ===== Consistent card/panel base ===== */
+.card,
+[data-card] {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: border-color 0.15s ease;
+}
+
+.card:hover,
+[data-card]:hover {
+  border-color: var(--border-light);
+}
+
+@media (max-width: 767px) {
+  .card,
+  [data-card] {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* ===== Number input spinner removal ===== */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ===== Custom scrollbar (dark theme) ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--parchment-dark);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-light) var(--bg-primary);
+}
+
+/* ===== Selection color ===== */
+::selection {
+  background: rgba(200, 168, 76, 0.3);
+  color: var(--text-primary);
+}
+
+/* ===== Theme Variants ===== */
+
+/* Light theme */
+[data-theme="light"] {
+  --bg-primary: #f5efe0;
+  --bg-secondary: #ebe3d0;
+  --bg-tertiary: #ddd5c2;
+  --parchment: #5a4a2a;
+  --parchment-dark: #3a2a10;
+  --text-primary: #2a2010;
+  --text-secondary: #5a4a30;
+  --text-muted: #8a7a60;
+  --accent: #b03030;
+  --accent-gold: #8a6a20;
+  --accent-gold-dark: #6a5010;
+  --border: #c8bca0;
+  --border-light: #b0a488;
+  --success: #3a7a3a;
+  --warning: #8a6a10;
+  --danger: #b03030;
+  --card-bg: #f0e8d4;
+  --card-border: #c8bca0;
+  --shadow: rgba(0, 0, 0, 0.15);
+}
+
+/* High contrast theme */
+[data-theme="high-contrast"] {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #1a1a1a;
+  --parchment: #ffffff;
+  --parchment-dark: #e0e0e0;
+  --text-primary: #ffffff;
+  --text-secondary: #d0d0d0;
+  --text-muted: #a0a0a0;
+  --accent: #ff4444;
+  --accent-gold: #ffcc00;
+  --accent-gold-dark: #cc9900;
+  --border: #555555;
+  --border-light: #777777;
+  --success: #44dd44;
+  --warning: #ffcc00;
+  --danger: #ff4444;
+  --card-bg: #0a0a0a;
+  --card-border: #555555;
+  --shadow: rgba(255, 255, 255, 0.1);
+}
+
+/* Old guy mode — scales everything up uniformly via zoom */
+[data-theme="old-guy"] {
+  --bg-primary: #121212;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --parchment: #d4b87a;
+  --parchment-dark: #b89858;
+  --text-primary: #e0d0b0;
+  --text-secondary: #b8a888;
+  --text-muted: #887868;
+  --accent: #c85050;
+  --accent-gold: #d4b85c;
+  --accent-gold-dark: #b09040;
+  --border: #333333;
+  --border-light: #444444;
+  --success: #6aaa6a;
+  --warning: #d4b842;
+  --danger: #d06060;
+  --card-bg: #1e1e1e;
+  --card-border: #333333;
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="old-guy"] #root {
+  zoom: 1.2;
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(138, 106, 32, 0.3);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+[data-theme="light"] table tbody tr:hover {
+  background: rgba(138, 106, 32, 0.06) !important;
+}
+
+/* ===== Placeholder styling ===== */
+::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ===== Table row hover ===== */
+table tbody tr:hover {
+  background: rgba(200, 168, 76, 0.04) !important;
+}

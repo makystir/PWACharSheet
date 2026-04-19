@@ -2,12 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="manifest" href="manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pwacharsheet</title>
+    <meta name="theme-color" content="#000000" />
+    <title>WFRP 4e Character Sheet</title>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Apply saved theme before React renders to prevent flash
+      try { var t = localStorage.getItem('wfrp-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch(e) {}
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,0 +1,21 @@
+{
+  "name": "WFRP 4e Character Sheet",
+  "short_name": "WFRP Sheet",
+  "description": "Warhammer Fantasy Roleplay 4th Edition Character Sheet — offline-capable PWA",
+  "start_url": "/PWACharSheet/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

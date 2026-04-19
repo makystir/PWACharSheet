@@ -1,0 +1,436 @@
+/* EstatePage CSS Module */
+
+/* Layout */
+.sectionGap {
+  composes: sectionGap from '../shared/styles/shared.module.css';
+}
+
+/* Sub-tab navigation bar */
+.subTabBar {
+  display: flex;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.subTab {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.subTabActive {
+  composes: subTab;
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--accent-gold);
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+/* Two-column grid */
+.twoColGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+/* Description label */
+.descriptionLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Textarea */
+.textarea {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 8px;
+  font-size: 13px;
+  min-height: 60px;
+  resize: vertical;
+  margin-top: 2px;
+}
+
+/* Income/Expense panel */
+.financePanel {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+.financePanelGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.financePanelTitle {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.financePanelTitleIncome {
+  composes: financePanelTitle;
+  color: var(--parchment);
+}
+
+.financePanelTitleExpense {
+  composes: financePanelTitle;
+  color: var(--danger);
+}
+
+.currencyRow {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Financial summary */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.summaryLabel {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.summaryIncome {
+  color: var(--success);
+}
+
+.summaryExpense {
+  color: var(--danger);
+}
+
+.summaryPropDetail {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.profitPositive {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--success);
+}
+
+.profitNegative {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--danger);
+}
+
+.profitNeutral {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Treasury panel */
+.treasuryPanel {
+  background: rgba(90, 154, 90, 0.1);
+  border: 1px solid rgba(90, 154, 90, 0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+.treasuryTitle {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--success);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.collectBtn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: rgba(90, 154, 90, 0.2);
+  border: 1px solid var(--success);
+  color: var(--success);
+  text-transform: uppercase;
+}
+
+/* Holdings */
+.emptyMessage {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+}
+
+.legacyHolding {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.legacyHoldingText {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.legacyTag {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* Property card */
+.propertyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.propertyCard {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.propertyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.propertyFieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.fieldLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.selectField {
+  width: 100%;
+  padding: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+/* Property income/expense panels */
+.propFinanceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.propIncomePanel {
+  background: rgba(90, 154, 90, 0.06);
+  border: 1px solid rgba(90, 154, 90, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+}
+
+.propExpensePanel {
+  background: rgba(200, 80, 80, 0.06);
+  border: 1px solid rgba(200, 80, 80, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+}
+
+.propFinanceLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.propFinanceLabelIncome {
+  composes: propFinanceLabel;
+  color: var(--success);
+}
+
+.propFinanceLabelExpense {
+  composes: propFinanceLabel;
+  color: var(--danger);
+}
+
+.propCurrencyRow {
+  display: flex;
+  gap: 6px;
+}
+
+/* Condition bar */
+.conditionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.conditionRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.conditionTrack {
+  flex: 1;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.conditionFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.conditionInput {
+  width: 36px;
+  padding: 2px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.conditionPct {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Property notes textarea */
+.propNotesTextarea {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  font-size: 12px;
+  min-height: 36px;
+  resize: vertical;
+}
+
+/* Estate Notes & Journal */
+.noteInputRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.noteTextarea {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  font-size: 13px;
+  min-height: 40px;
+  resize: vertical;
+}
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.noteCard {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.noteHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.noteTimestamp {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.noteText {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.notesEmpty {
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+  font-size: 12px;
+  padding: 8px;
+}

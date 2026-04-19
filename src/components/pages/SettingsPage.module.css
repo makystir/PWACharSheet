@@ -1,0 +1,233 @@
+/* SettingsPage CSS Module */
+
+/* Layout */
+.sectionGap {
+  composes: sectionGap from '../shared/styles/shared.module.css';
+}
+
+/* Small button */
+.smallBtn {
+  padding: 6px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* Theme button row */
+.themeRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Theme button (inactive) */
+.themeBtn {
+  composes: smallBtn;
+  flex: 1 1 auto;
+  min-width: 120px;
+  padding: 10px 14px;
+  text-align: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Theme button (active) */
+.themeBtnActive {
+  composes: smallBtn;
+  flex: 1 1 auto;
+  min-width: 120px;
+  padding: 10px 14px;
+  text-align: center;
+  background: rgba(200, 168, 76, 0.15);
+  border: 2px solid var(--accent-gold);
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+/* Button row */
+.btnRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.btnRowNoMargin {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Import section */
+.importSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.importRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Import label (styled as button) */
+.importLabel {
+  composes: smallBtn;
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  cursor: pointer;
+}
+
+/* Danger button variant */
+.dangerBtn {
+  composes: smallBtn;
+  color: var(--danger);
+}
+
+/* Error / success messages */
+.errorMsg {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.successMsg {
+  color: var(--success, #5a9a5a);
+  font-size: 13px;
+}
+
+/* House Rules */
+.ruleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ruleItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ruleItem:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.ruleLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ruleDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+/* Three-button selector (reuses theme button pattern) */
+.selectorRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.selectorBtn {
+  composes: smallBtn;
+  flex: 1 1 auto;
+  min-width: 90px;
+  padding: 8px 12px;
+  text-align: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.selectorBtnActive {
+  composes: smallBtn;
+  flex: 1 1 auto;
+  min-width: 90px;
+  padding: 8px 12px;
+  text-align: center;
+  background: rgba(200, 168, 76, 0.15);
+  border: 2px solid var(--accent-gold);
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+/* Toggle row: label on left, toggle on right */
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toggleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+/* ON/OFF pill toggle */
+.toggleBtn {
+  composes: smallBtn;
+  min-width: 52px;
+  padding: 6px 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.toggleBtnOn {
+  composes: toggleBtn;
+  background: rgba(200, 168, 76, 0.15);
+  border: 2px solid var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.toggleBtnOff {
+  composes: toggleBtn;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+/* Numeric input row */
+.numericRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.numericInput {
+  width: 60px;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.numericInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
