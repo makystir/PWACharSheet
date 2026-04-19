@@ -7,8 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#000000" />
     <title>WFRP 4e Character Sheet</title>
-    <script type="module" crossorigin src="/PWACharSheet/assets/index-Bmi3iaKI.js"></script>
-    <link rel="stylesheet" crossorigin href="/PWACharSheet/assets/index-BB2fNIh-.css">
   </head>
   <body>
     <div id="root"></div>
@@ -16,6 +14,6 @@
       // Apply saved theme before React renders to prevent flash
       try { var t = localStorage.getItem('wfrp-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch(e) {}
     </script>
-
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
