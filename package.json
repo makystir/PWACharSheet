@@ -1,19 +1,31 @@
 {
   "name": "pwacharsheet",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Progressive web app for WFRP 4e character tracker",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/makystir/PWACharSheet.git"
   },
-  "keywords": [],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "license": "GPL-3.0",
+  "type": "module",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  },
   "bugs": {
     "url": "https://github.com/makystir/PWACharSheet/issues"
   },
