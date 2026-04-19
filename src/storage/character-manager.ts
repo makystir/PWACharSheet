@@ -6,6 +6,17 @@ import { migrateCorruptionData } from '../logic/corruption';
 const INDEX_KEY = 'wfrp4e-characters';
 const CHAR_KEY_PREFIX = 'wfrp4e-char-';
 
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback for environments without crypto.randomUUID
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 function charKey(id: string): string {
   return `${CHAR_KEY_PREFIX}${id}`;
 }
@@ -27,7 +38,7 @@ export function saveCharacterIndex(index: CharacterIndex): void {
 }
 
 export function createCharacter(name: string): string {
-  const id = crypto.randomUUID();
+  const id = generateUUID();
   const now = Date.now();
 
   const character: Character = {
@@ -106,7 +117,7 @@ export function duplicateCharacter(id: string): string {
     throw new Error(`Character ${id} not found`);
   }
 
-  const newId = crypto.randomUUID();
+  const newId = generateUUID();
   const now = Date.now();
   const copy: Character = structuredClone(original);
   copy.name = `${original.name} (Copy)`;
