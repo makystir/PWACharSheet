@@ -20,10 +20,10 @@ jobs:
       - name: Stop old container (if running)
         run: docker rm -f my-app || true
 
-- name: Start new container
-  run: |
-    docker run -d \
-      --name my-app \
-      --restart unless-stopped \
-      -p 3000:80 \
-      my-app:latest
+      - name: Start new container
+        run: |
+          docker run -d \
+            --name my-app \
+            --restart unless-stopped \
+            -p 3000:80 \
+            my-app:latest
