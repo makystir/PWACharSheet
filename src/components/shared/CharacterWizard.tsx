@@ -88,7 +88,7 @@ function getExclusionsForSpecies(species: string): string[] {
 function getCareersForClassAndSpecies(className: string, species: string): string[] {
   const all = getCareersByClass(className);
   const excluded = getExclusionsForSpecies(species);
-  return all.filter(c => !excluded.includes(c));
+  return all.filter(c => !excluded.includes(c) && CAREER_SCHEMES[c]?.level1);
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
