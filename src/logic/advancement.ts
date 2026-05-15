@@ -286,6 +286,8 @@ const CAREER_COMPLETION_THRESHOLDS: Record<number, number> = { 1: 5, 2: 10, 3: 1
 /**
  * Check if a career skill name matches a character's skill.
  * Handles grouped skills: career "Melee (Any)" matches character "Melee (Basic)",
+ * career "Channelling (Any Colour)" matches character "Channelling (Aqshy)",
+ * career "Art (Calligraphy or Engraving)" matches character "Art (Calligraphy)",
  * career "Melee (Basic)" matches character "Melee (Basic)" exactly,
  * and career "Stealth" matches character "Stealth (Urban)" etc.
  */
@@ -295,6 +297,22 @@ export function careerSkillMatches(careerSkillName: string, characterSkillName: 
   if (careerSkillName.includes('(Any)')) {
     const base = careerSkillName.replace('(Any)', '').trim();
     return characterSkillName.startsWith(base + ' (') || characterSkillName === base;
+  }
+  // "(Any X)" grouped skill: "Channelling (Any Colour)" matches any "Channelling (...)"
+  if (careerSkillName.includes('(Any ')) {
+    const base = careerSkillName.substring(0, careerSkillName.indexOf(' (Any'));
+    return characterSkillName.startsWith(base + ' (');
+  }
+  // "(X or Y)" choice pattern: "Art (Calligraphy or Engraving)" matches "Art (Calligraphy)" or "Art (Engraving)"
+  const parenOpen = careerSkillName.indexOf('(');
+  const parenClose = careerSkillName.indexOf(')');
+  if (parenOpen !== -1 && parenClose !== -1) {
+    const parenContent = careerSkillName.substring(parenOpen + 1, parenClose);
+    if (parenContent.includes(' or ')) {
+      const base = careerSkillName.substring(0, parenOpen).trimEnd();
+      const options = parenContent.split(' or ');
+      return options.some(option => characterSkillName === base + ' (' + option.trim() + ')');
+    }
   }
   // Ungrouped career skill matching a specialised character skill:
   // e.g., career "Stealth" matches character "Stealth (Urban)"

@@ -427,6 +427,39 @@ describe('careerSkillMatches — grouped skill matching', () => {
 });
 
 
+// ─── Bug Condition Exploration: (Any X) and (X or Y) Patterns ────────────────
+// **Validates: Requirements 1.1, 1.2, 1.3, 2.1, 2.2, 2.3**
+
+describe('careerSkillMatches — Bug Condition: (Any X) and (X or Y) patterns', () => {
+  describe('(Any X) pattern — should match valid specializations', () => {
+    it('Channelling (Any Colour) matches Channelling (Aqshy)', () => {
+      expect(careerSkillMatches('Channelling (Any Colour)', 'Channelling (Aqshy)')).toBe(true);
+    });
+
+    it('Arcane Magic (Any Arcane Lore) matches Arcane Magic (Fire)', () => {
+      expect(careerSkillMatches('Arcane Magic (Any Arcane Lore)', 'Arcane Magic (Fire)')).toBe(true);
+    });
+  });
+
+  describe('(X or Y) pattern — should match listed options', () => {
+    it('Art (Calligraphy or Engraving) matches Art (Calligraphy)', () => {
+      expect(careerSkillMatches('Art (Calligraphy or Engraving)', 'Art (Calligraphy)')).toBe(true);
+    });
+
+    it('Art (Calligraphy or Engraving) matches Art (Engraving)', () => {
+      expect(careerSkillMatches('Art (Calligraphy or Engraving)', 'Art (Engraving)')).toBe(true);
+    });
+
+    it('Play (Drum or Fife) matches Play (Fife)', () => {
+      expect(careerSkillMatches('Play (Drum or Fife)', 'Play (Fife)')).toBe(true);
+    });
+
+    it('Stealth (Rural or Urban) matches Stealth (Urban)', () => {
+      expect(careerSkillMatches('Stealth (Rural or Urban)', 'Stealth (Urban)')).toBe(true);
+    });
+  });
+});
+
 // ─── sortSkillsByCareerStatus ────────────────────────────────────────────────
 // Validates: Requirements 1.1, 1.2, 1.4, 1.5, 5.1
 
@@ -566,5 +599,151 @@ describe('sortSkillsByCareerStatus', () => {
 
     expect(bCopy).toEqual(bBefore);
     expect(aCopy).toEqual(aBefore);
+  });
+});
+
+
+// ─── Property 2: Preservation — Existing Match Behavior Unchanged ────────────
+// **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
+
+import * as fc from 'fast-check';
+
+describe('careerSkillMatches — Property 2: Preservation (non-bug-condition inputs)', () => {
+  // Generators for WFRP-style skill names
+  const baseSkillName = fc.constantFrom(
+    'Melee', 'Ranged', 'Stealth', 'Athletics', 'Dodge', 'Cool',
+    'Endurance', 'Climb', 'Swim', 'Perception', 'Intuition',
+    'Charm', 'Gossip', 'Haggle', 'Intimidate', 'Leadership',
+    'Lore', 'Language', 'Trade', 'Entertain', 'Ride', 'Sail'
+  );
+
+  const specialization = fc.constantFrom(
+    'Basic', 'Two-Handed', 'Cavalry', 'Fencing', 'Flail', 'Polearm',
+    'Bow', 'Crossbow', 'Blackpowder', 'Thrown', 'Sling',
+    'Urban', 'Rural', 'Underground', 'Maritime',
+    'Warfare', 'Magic', 'History', 'Theology', 'Law',
+    'Battle', 'Classical', 'Eltharin', 'Khazalid',
+    'Smith', 'Apothecary', 'Calligrapher', 'Cook'
+  );
+
+  describe('Property: exact skill name pair always returns true', () => {
+    it('for any ungrouped skill name, careerSkillMatches(name, name) returns true', () => {
+      fc.assert(
+        fc.property(baseSkillName, (name) => {
+          expect(careerSkillMatches(name, name)).toBe(true);
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it('for any grouped skill name, careerSkillMatches(name, name) returns true', () => {
+      fc.assert(
+        fc.property(baseSkillName, specialization, (base, spec) => {
+          const fullName = `${base} (${spec})`;
+          expect(careerSkillMatches(fullName, fullName)).toBe(true);
+        }),
+        { numRuns: 200 }
+      );
+    });
+  });
+
+  describe('Property: (Any) pattern with matching base returns true; different base returns false', () => {
+    it('for any base name, careerSkillMatches("Base (Any)", "Base (Spec)") returns true', () => {
+      fc.assert(
+        fc.property(baseSkillName, specialization, (base, spec) => {
+          const careerSkill = `${base} (Any)`;
+          const charSkill = `${base} (${spec})`;
+          expect(careerSkillMatches(careerSkill, charSkill)).toBe(true);
+        }),
+        { numRuns: 200 }
+      );
+    });
+
+    it('for different base names, careerSkillMatches("Base1 (Any)", "Base2 (Spec)") returns false', () => {
+      fc.assert(
+        fc.property(
+          fc.tuple(baseSkillName, baseSkillName).filter(([a, b]) => a !== b),
+          specialization,
+          ([base1, base2], spec) => {
+            const careerSkill = `${base1} (Any)`;
+            const charSkill = `${base2} (${spec})`;
+            expect(careerSkillMatches(careerSkill, charSkill)).toBe(false);
+          }
+        ),
+        { numRuns: 200 }
+      );
+    });
+  });
+
+  describe('Property: ungrouped career skill matches character skill with same base + specialization', () => {
+    it('for any ungrouped career skill, character skill with same base + specialization returns true', () => {
+      fc.assert(
+        fc.property(baseSkillName, specialization, (base, spec) => {
+          const charSkill = `${base} (${spec})`;
+          expect(careerSkillMatches(base, charSkill)).toBe(true);
+        }),
+        { numRuns: 200 }
+      );
+    });
+  });
+
+  describe('Property: specific specialization mismatch returns false', () => {
+    it('for any base with two different specializations, careerSkillMatches returns false', () => {
+      fc.assert(
+        fc.property(
+          baseSkillName,
+          fc.tuple(specialization, specialization).filter(([a, b]) => a !== b),
+          (base, [spec1, spec2]) => {
+            const careerSkill = `${base} (${spec1})`;
+            const charSkill = `${base} (${spec2})`;
+            expect(careerSkillMatches(careerSkill, charSkill)).toBe(false);
+          }
+        ),
+        { numRuns: 200 }
+      );
+    });
+
+    it('completely unrelated skills return false', () => {
+      fc.assert(
+        fc.property(
+          fc.tuple(baseSkillName, baseSkillName).filter(([a, b]) => a !== b && !b.startsWith(a + ' (')),
+          ([career, character]) => {
+            expect(careerSkillMatches(career, character)).toBe(false);
+          }
+        ),
+        { numRuns: 200 }
+      );
+    });
+  });
+
+  // Observation-first: confirm specific known behaviors on unfixed code
+  describe('Observation: known behaviors on unfixed code', () => {
+    it('exact match: Melee (Basic) matches Melee (Basic)', () => {
+      expect(careerSkillMatches('Melee (Basic)', 'Melee (Basic)')).toBe(true);
+    });
+
+    it('Any wildcard: Melee (Any) matches Melee (Basic)', () => {
+      expect(careerSkillMatches('Melee (Any)', 'Melee (Basic)')).toBe(true);
+    });
+
+    it('Any wildcard: Melee (Any) matches Melee (Two-Handed)', () => {
+      expect(careerSkillMatches('Melee (Any)', 'Melee (Two-Handed)')).toBe(true);
+    });
+
+    it('ungrouped match: Stealth matches Stealth (Urban)', () => {
+      expect(careerSkillMatches('Stealth', 'Stealth (Urban)')).toBe(true);
+    });
+
+    it('specific mismatch: Melee (Basic) does not match Melee (Two-Handed)', () => {
+      expect(careerSkillMatches('Melee (Basic)', 'Melee (Two-Handed)')).toBe(false);
+    });
+
+    it('different base: Melee (Any) does not match Ranged (Bow)', () => {
+      expect(careerSkillMatches('Melee (Any)', 'Ranged (Bow)')).toBe(false);
+    });
+
+    it('unrelated: Athletics does not match Climb', () => {
+      expect(careerSkillMatches('Athletics', 'Climb')).toBe(false);
+    });
   });
 });
