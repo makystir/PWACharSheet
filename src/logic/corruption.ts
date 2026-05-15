@@ -82,7 +82,11 @@ const DEFAULT_DISTRIBUTION: MutationTypeDistribution = { physicalMax: 50, mental
  * Unknown species default to Human distribution (50/50).
  */
 export function getMutationTypeDistribution(species: string): MutationTypeDistribution {
-  return SPECIES_DISTRIBUTION[species] ?? DEFAULT_DISTRIBUTION;
+  if (SPECIES_DISTRIBUTION[species]) return SPECIES_DISTRIBUTION[species];
+  if (species.startsWith('High Elves') || species === 'High Elf') return SPECIES_DISTRIBUTION['High Elf'];
+  if (species.startsWith('Wood Elf')) return SPECIES_DISTRIBUTION['Wood Elf'];
+  if (species.startsWith('Dwarfs') || species === 'Dwarf') return SPECIES_DISTRIBUTION['Dwarf'];
+  return DEFAULT_DISTRIBUTION;
 }
 
 /**

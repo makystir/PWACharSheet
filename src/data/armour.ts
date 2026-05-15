@@ -20,6 +20,11 @@ export const ARMOURS: ArmourData[] = [
   {name:"Gromril Bracers",locations:"Arms",enc:"1",ap:2,qualities:"Impenetrable, Partial"},
   {name:"Gromril Plate Leggings",locations:"Legs",enc:"2",ap:3,qualities:"Impenetrable"},
   {name:"Gromril Helm",locations:"Head",enc:"1",ap:3,qualities:"Impenetrable"},
+  {name:"Ithilmar Breastplate",locations:"Body",enc:"1",ap:2,qualities:"Impenetrable"},
+  {name:"Ithilmar Open Helm",locations:"Head",enc:"0",ap:2,qualities:"Impenetrable, Partial"},
+  {name:"Ithilmar Bracers",locations:"Arms",enc:"1",ap:2,qualities:"Impenetrable"},
+  {name:"Ithilmar Plate Leggings",locations:"Legs",enc:"1",ap:2,qualities:"Impenetrable"},
+  {name:"Ithilmar Helm",locations:"Head",enc:"1",ap:2,qualities:"Impenetrable"},
   {name:"Mail Skirt",locations:"Legs",enc:"1",ap:1,qualities:"—"},
   {name:"Miner's Helm",locations:"Head",enc:"1",ap:1,qualities:"—"},
 ];

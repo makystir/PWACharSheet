@@ -151,10 +151,11 @@ export function getFutureCareerLevel(
   const scheme = CAREER_SCHEMES[careerName];
   if (!scheme) return null;
 
-  if (currentLevel >= 4) return null;
+  if (currentLevel >= 5) return null;
 
-  for (let level = currentLevel + 1; level <= 4; level++) {
-    const careerLevel = scheme[`level${level}` as keyof CareerScheme] as CareerLevel;
+  for (let level = currentLevel + 1; level <= 5; level++) {
+    const careerLevel = scheme[`level${level}` as keyof CareerScheme] as CareerLevel | undefined;
+    if (!careerLevel) continue;
 
     switch (target.type) {
       case 'characteristic':
@@ -497,15 +498,16 @@ export function undoAdvancement(character: Character): UndoResult | null {
       // Determine the old career level from the remaining log entries
       // The last entry before this career_switch would have the careerLevel title
       // from the old career. If no previous entries, default to level1.
-      let oldLevelTitle = oldScheme.level1.title;
-      let oldStatus = oldScheme.level1.status;
+      const firstOldLevel = (oldScheme.level1 || oldScheme.level2)!;
+      let oldLevelTitle = firstOldLevel.title;
+      let oldStatus = firstOldLevel.status;
       if (newLog.length > 0) {
         const prevEntry = newLog[newLog.length - 1];
         oldLevelTitle = prevEntry.careerLevel;
         // Look up the status from the scheme
-        for (let lvl = 1; lvl <= 4; lvl++) {
-          const level = oldScheme[`level${lvl}` as keyof typeof oldScheme] as CareerLevel;
-          if (level.title === oldLevelTitle) {
+        for (let lvl = 1; lvl <= 5; lvl++) {
+          const level = oldScheme[`level${lvl}` as keyof typeof oldScheme] as CareerLevel | undefined;
+          if (level && level.title === oldLevelTitle) {
             oldStatus = level.status;
             break;
           }
@@ -621,7 +623,7 @@ export function redoAdvancement(character: Character, entry: AdvancementEntry): 
       const newScheme = CAREER_SCHEMES[newCareerName];
       if (!newScheme) return null;
 
-      const level1 = newScheme.level1;
+      const level1 = (newScheme.level1 || newScheme.level2)!;
       const currentPath = base.careerPath;
       const newPath = currentPath ? `${currentPath} → ${level1.title}` : level1.title;
 

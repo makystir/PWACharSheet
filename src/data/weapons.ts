@@ -10,9 +10,13 @@ export const WEAPONS: WeaponData[] = [
   {name:"Shield (Large)",group:"Basic",enc:"3",rangeReach:"Very Short",damage:"+SB+3",qualities:"Shield 3, Defensive, Undamaging"},
   {name:"Dwarf Axe",group:"Basic",enc:"1",rangeReach:"Average",damage:"+SB+5",qualities:"Hack"},
   {name:"Dwarf Warhammer",group:"Basic",enc:"1",rangeReach:"Average",damage:"+SB+5",qualities:"Pummel"},
+  {name:"Elven Sword",group:"Basic",enc:"1",rangeReach:"Average",damage:"+SB+4",qualities:"Fast"},
+  {name:"Elven Dagger",group:"Basic",enc:"0",rangeReach:"Very Short",damage:"+SB+2",qualities:"Fast"},
+  {name:"Elven Shield",group:"Basic",enc:"1",rangeReach:"Very Short",damage:"+SB+2",qualities:"Shield 2, Defensive, Undamaging"},
   // MELEE — CAVALRY
   {name:"(2H) Cavalry Hammer",group:"Cavalry",enc:"3",rangeReach:"Long",damage:"+SB+5",qualities:"Pummel"},
   {name:"Lance",group:"Cavalry",enc:"3",rangeReach:"Very Long",damage:"+SB+6",qualities:"Impact, Impale"},
+  {name:"Elven Lance",group:"Cavalry",enc:"3",rangeReach:"Very Long",damage:"+SB+6",qualities:"Impact, Impale"},
   // MELEE — FENCING
   {name:"Foil",group:"Fencing",enc:"1",rangeReach:"Medium",damage:"+SB+3",qualities:"Fast, Impale, Precise, Undamaging"},
   {name:"Rapier",group:"Fencing",enc:"1",rangeReach:"Long",damage:"+SB+4",qualities:"Fast, Impale"},
@@ -29,6 +33,8 @@ export const WEAPONS: WeaponData[] = [
   {name:"(2H) Halberd",group:"Polearm",enc:"3",rangeReach:"Long",damage:"+SB+4",qualities:"Defensive, Hack, Impale"},
   {name:"(2H) Spear",group:"Polearm",enc:"2",rangeReach:"Very Long",damage:"+SB+4",qualities:"Impale"},
   {name:"(2H) Quarter Staff",group:"Polearm",enc:"2",rangeReach:"Long",damage:"+SB+4",qualities:"Defensive, Pummel"},
+  {name:"Elven Halberd",group:"Polearm",enc:"3",rangeReach:"Long",damage:"+SB+4",qualities:"Defensive, Hack, Impale"},
+  {name:"Elven Spear",group:"Polearm",enc:"2",rangeReach:"Very Long",damage:"+SB+4",qualities:"Impale, Fast"},
   // MELEE — TWO-HANDED
   {name:"(2H) Bastard Sword",group:"Two-Handed",enc:"3",rangeReach:"Long",damage:"+SB+5",qualities:"Damaging, Defensive"},
   {name:"(2H) Great Axe",group:"Two-Handed",enc:"3",rangeReach:"Long",damage:"+SB+6",qualities:"Hack, Impact, Tiring"},
@@ -36,6 +42,8 @@ export const WEAPONS: WeaponData[] = [
   {name:"(2H) Dwarf Greataxe",group:"Two-Handed",enc:"3",rangeReach:"Long",damage:"+SB+6",qualities:"Hack"},
   {name:"(2H) Dwarf Greathammer",group:"Two-Handed",enc:"3",rangeReach:"Long",damage:"+SB+6",qualities:"Pummel"},
   {name:"(2H) Dwarf Pick",group:"Two-Handed",enc:"2",rangeReach:"Average",damage:"+SB+5",qualities:"Penetrating"},
+  {name:"(2H) Elven Great Axe",group:"Two-Handed",enc:"3",rangeReach:"Long",damage:"+SB+6",qualities:"Hack, Impact"},
+  {name:"(2H) Greatsword of Hoeth",group:"Two-Handed",enc:"3",rangeReach:"Long",damage:"+SB+5",qualities:"Damaging, Defensive, Fast"},
   // MELEE — ENGINEERING
   {name:"Steam Drill",group:"Engineering",enc:"3",rangeReach:"Short",damage:"+SB+6",qualities:"Pummel, Tiring"},
   {name:"Cog Axe",group:"Engineering",enc:"2",rangeReach:"Average",damage:"+SB+5",qualities:"Hack, Tiring"},

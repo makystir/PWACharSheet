@@ -37,10 +37,11 @@ export interface CareerLevel {
 
 export interface CareerScheme {
   class: string;
-  level1: CareerLevel;
+  level1?: CareerLevel;
   level2: CareerLevel;
   level3: CareerLevel;
   level4: CareerLevel;
+  level5?: CareerLevel;
 }
 
 export interface WeaponData {

@@ -23,7 +23,12 @@ export function getCareerScheme(careerName: string): CareerScheme | undefined {
 export function getCareerLevelOptions(careerName: string): CareerLevel[] {
   const scheme = CAREER_SCHEMES[careerName];
   if (!scheme) return [];
-  return [scheme.level1, scheme.level2, scheme.level3, scheme.level4];
+  const levels: CareerLevel[] = [];
+  for (let i = 1; i <= 5; i++) {
+    const level = scheme[`level${i}` as keyof CareerScheme] as CareerLevel | undefined;
+    if (level) levels.push(level);
+  }
+  return levels;
 }
 
 /**
@@ -46,7 +51,7 @@ export function applyCareerSkills(character: Character, careerName: string, leve
   if (!scheme) return { ...character };
 
   const levelNum = parseInt(level, 10);
-  if (isNaN(levelNum) || levelNum < 1 || levelNum > 4) return { ...character };
+  if (isNaN(levelNum) || levelNum < 1 || levelNum > 5) return { ...character };
 
   const careerLevel = scheme[`level${levelNum}` as keyof CareerScheme] as CareerLevel;
 
@@ -71,9 +76,9 @@ export function resolveCareerName(input: string): { careerName: string; levelNum
 
   // Search by level title
   for (const [careerName, scheme] of Object.entries(CAREER_SCHEMES)) {
-    for (let lvl = 1; lvl <= 4; lvl++) {
-      const level = scheme[`level${lvl}` as keyof CareerScheme] as CareerLevel;
-      if (level.title === input) {
+    for (let lvl = 1; lvl <= 5; lvl++) {
+      const level = scheme[`level${lvl}` as keyof CareerScheme] as CareerLevel | undefined;
+      if (level && level.title === input) {
         return { careerName, levelNumber: lvl };
       }
     }

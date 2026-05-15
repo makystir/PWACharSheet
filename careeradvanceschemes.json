@@ -1077,6 +1077,145 @@
           "Fel": "T1"
         }
       }
+    },
+    "Sea Guard": {
+      "species": ["High Elf"],
+      "advance_scheme": {
+        "WS": "T1",
+        "BS": "T1",
+        "S": "T3",
+        "T": null,
+        "I": "T2",
+        "Agi": "T1",
+        "Dex": null,
+        "Int": null,
+        "WP": "T4",
+        "Fel": null
+      }
+    },
+    "Swordmaster": {
+      "species": ["High Elf"],
+      "advance_scheme": {
+        "WS": "T1",
+        "BS": null,
+        "S": "T1",
+        "T": null,
+        "I": "T1",
+        "Agi": "T4",
+        "Dex": null,
+        "Int": "T3",
+        "WP": "T2",
+        "Fel": null
+      }
+    },
+    "Shadow Warrior": {
+      "species": ["High Elf"],
+      "advance_scheme": {
+        "WS": "T1",
+        "BS": "T1",
+        "S": "T2",
+        "T": null,
+        "I": null,
+        "Agi": "T1",
+        "Dex": null,
+        "Int": "T3",
+        "WP": "T4",
+        "Fel": null
+      }
+    },
+    "Merchant Adventurer": {
+      "species": ["High Elf"],
+      "advance_scheme": {
+        "WS": "T1",
+        "BS": null,
+        "S": "T4",
+        "T": null,
+        "I": "T1",
+        "Agi": "T2",
+        "Dex": null,
+        "Int": "T3",
+        "WP": null,
+        "Fel": "T1"
+      }
+    },
+    "Aestheticist": {
+      "species": ["High Elf"],
+      "advance_scheme": {
+        "WS": null,
+        "BS": null,
+        "S": null,
+        "T": null,
+        "I": "T2",
+        "Agi": "T1",
+        "Dex": "T3",
+        "Int": "T1",
+        "WP": "T4",
+        "Fel": "T1"
+      }
+    },
+    "Mage": {
+      "species": ["High Elf"],
+      "note": "5-level career: Novitiate, Student Mage, Mage, High Mage, Archmage",
+      "advance_scheme": {
+        "WS": "T3",
+        "BS": null,
+        "S": null,
+        "T": null,
+        "I": "T5",
+        "Agi": "T4",
+        "Dex": "T2",
+        "Int": "T1",
+        "WP": "T1",
+        "Fel": "T1"
+      }
+    },
+    "Smith-Priest of Vaul": {
+      "species": ["High Elf"],
+      "note": "3-level advanced career (entered at level 2 from Mage or other careers). T1 is NULL as there is no level 1.",
+      "advance_scheme": {
+        "WS": "T2",
+        "BS": null,
+        "S": "T3",
+        "T": null,
+        "I": "T4",
+        "Agi": null,
+        "Dex": "T2",
+        "Int": "T2",
+        "WP": "T2",
+        "Fel": "T2"
+      }
+    },
+    "Storm Weaver": {
+      "species": ["High Elf"],
+      "note": "3-level advanced career (entered at level 2 from Mage or other careers). T1 is NULL as there is no level 1.",
+      "advance_scheme": {
+        "WS": "T2",
+        "BS": null,
+        "S": null,
+        "T": null,
+        "I": "T3",
+        "Agi": "T4",
+        "Dex": "T2",
+        "Int": "T2",
+        "WP": "T2",
+        "Fel": "T2"
+      }
+    },
+    "Loremaster of Hoeth": {
+      "species": ["High Elf"],
+      "note": "3-level advanced career (entered at level 2 from Mage or Swordmaster). T1 is NULL as there is no level 1.",
+      "advance_scheme": {
+        "WS": "T2",
+        "BS": null,
+        "S": null,
+        "T": null,
+        "I": "T4",
+        "Agi": "T3",
+        "Dex": "T2",
+        "Int": "T2",
+        "WP": "T2",
+        "Fel": "T2"
+      }
     }
   }
 }

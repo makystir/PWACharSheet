@@ -115,12 +115,14 @@ describe('Career Data', () => {
 
   it('each career has 4 levels with required fields', () => {
     for (const [name, scheme] of Object.entries(CAREER_SCHEMES)) {
-      for (const lvl of [scheme.level1, scheme.level2, scheme.level3, scheme.level4]) {
-        expect(lvl.title, `${name} missing title`).toBeTruthy();
-        expect(lvl.status, `${name} missing status`).toBeTruthy();
-        expect(lvl.characteristics.length, `${name} missing characteristics`).toBeGreaterThan(0);
-        expect(lvl.skills.length, `${name} missing skills`).toBeGreaterThan(0);
-        expect(lvl.talents.length, `${name} missing talents`).toBeGreaterThan(0);
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4, (scheme as Record<string, unknown>).level5].filter(Boolean);
+      for (const lvl of levels) {
+        const level = lvl as { title: string; status: string; characteristics: string[]; skills: string[]; talents: string[] };
+        expect(level.title, `${name} missing title`).toBeTruthy();
+        expect(level.status, `${name} missing status`).toBeTruthy();
+        expect(level.characteristics.length, `${name} missing characteristics`).toBeGreaterThan(0);
+        expect(level.skills.length, `${name} missing skills`).toBeGreaterThan(0);
+        expect(level.talents.length, `${name} missing talents`).toBeGreaterThan(0);
       }
     }
   });
@@ -577,12 +579,13 @@ describe('Dwarf Players Guide — Careers', () => {
   it('each new career has 4 valid levels', () => {
     for (const { name } of newCareers) {
       const scheme = CAREER_SCHEMES[name];
-      for (const lvl of [scheme.level1, scheme.level2, scheme.level3, scheme.level4]) {
-        expect(lvl.title, `${name} missing title`).toBeTruthy();
-        expect(lvl.status, `${name} missing status`).toBeTruthy();
-        expect(lvl.characteristics.length, `${name} missing characteristics`).toBeGreaterThan(0);
-        expect(lvl.skills.length, `${name} missing skills`).toBeGreaterThan(0);
-        expect(lvl.talents.length, `${name} missing talents`).toBeGreaterThan(0);
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].filter(Boolean);
+      for (const lvl of levels) {
+        expect(lvl!.title, `${name} missing title`).toBeTruthy();
+        expect(lvl!.status, `${name} missing status`).toBeTruthy();
+        expect(lvl!.characteristics.length, `${name} missing characteristics`).toBeGreaterThan(0);
+        expect(lvl!.skills.length, `${name} missing skills`).toBeGreaterThan(0);
+        expect(lvl!.talents.length, `${name} missing talents`).toBeGreaterThan(0);
       }
     }
   });
@@ -617,12 +620,13 @@ describe('Dwarf Players Guide — Alternate Careers', () => {
   it('each alternate career has 4 valid levels', () => {
     for (const { name } of alternateCareers) {
       const scheme = CAREER_SCHEMES[name];
-      for (const lvl of [scheme.level1, scheme.level2, scheme.level3, scheme.level4]) {
-        expect(lvl.title, `${name} missing title`).toBeTruthy();
-        expect(lvl.status, `${name} missing status`).toBeTruthy();
-        expect(lvl.characteristics.length, `${name} missing characteristics`).toBeGreaterThan(0);
-        expect(lvl.skills.length, `${name} missing skills`).toBeGreaterThan(0);
-        expect(lvl.talents.length, `${name} missing talents`).toBeGreaterThan(0);
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].filter(Boolean);
+      for (const lvl of levels) {
+        expect(lvl!.title, `${name} missing title`).toBeTruthy();
+        expect(lvl!.status, `${name} missing status`).toBeTruthy();
+        expect(lvl!.characteristics.length, `${name} missing characteristics`).toBeGreaterThan(0);
+        expect(lvl!.skills.length, `${name} missing skills`).toBeGreaterThan(0);
+        expect(lvl!.talents.length, `${name} missing talents`).toBeGreaterThan(0);
       }
     }
   });
@@ -785,5 +789,275 @@ describe('Dwarf Players Guide — Trappings', () => {
       expect(t!.name).toBeTruthy();
       expect(t!.enc, `${name} missing enc`).toBeDefined();
     }
+  });
+});
+
+// ─── High Elf Players Guide — Melee Weapons ────────────────────
+
+describe('High Elf Players Guide — Melee Weapons', () => {
+  const newMeleeWeapons = [
+    'Elven Sword',
+    'Elven Dagger',
+    'Elven Shield',
+    'Elven Lance',
+    'Elven Halberd',
+    'Elven Spear',
+    '(2H) Elven Great Axe',
+    '(2H) Greatsword of Hoeth',
+  ];
+
+  it('all 8 Elven melee weapons exist in WEAPONS array', () => {
+    for (const name of newMeleeWeapons) {
+      const w = WEAPONS.find(w => w.name === name);
+      expect(w, `Missing weapon: ${name}`).toBeDefined();
+    }
+  });
+
+  it('spot-check: Elven Sword is Basic with +SB+4 and Fast', () => {
+    const w = WEAPONS.find(w => w.name === 'Elven Sword');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Basic');
+    expect(w!.damage).toBe('+SB+4');
+    expect(w!.qualities).toBe('Fast');
+  });
+
+  it('spot-check: Elven Lance is Cavalry with +SB+6 and Impact, Impale', () => {
+    const w = WEAPONS.find(w => w.name === 'Elven Lance');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Cavalry');
+    expect(w!.damage).toBe('+SB+6');
+    expect(w!.qualities).toBe('Impact, Impale');
+  });
+
+  it('spot-check: (2H) Greatsword of Hoeth is Two-Handed with +SB+5 and Damaging, Defensive, Fast', () => {
+    const w = WEAPONS.find(w => w.name === '(2H) Greatsword of Hoeth');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Two-Handed');
+    expect(w!.damage).toBe('+SB+5');
+    expect(w!.qualities).toBe('Damaging, Defensive, Fast');
+  });
+
+  it('spot-check: Elven Shield is Basic with Shield 2, Defensive, Undamaging', () => {
+    const w = WEAPONS.find(w => w.name === 'Elven Shield');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Basic');
+    expect(w!.damage).toBe('+SB+2');
+    expect(w!.qualities).toBe('Shield 2, Defensive, Undamaging');
+  });
+});
+
+// ─── High Elf Players Guide — Armour ───────────────────────────
+
+describe('High Elf Players Guide — Armour', () => {
+  const newArmour = [
+    'Ithilmar Breastplate',
+    'Ithilmar Open Helm',
+    'Ithilmar Bracers',
+    'Ithilmar Plate Leggings',
+    'Ithilmar Helm',
+  ];
+
+  it('all 5 Ithilmar armour entries exist in ARMOURS array', () => {
+    for (const name of newArmour) {
+      const a = ARMOURS.find(a => a.name === name);
+      expect(a, `Missing armour: ${name}`).toBeDefined();
+    }
+  });
+
+  it('all Ithilmar armour has ap 2', () => {
+    for (const name of newArmour) {
+      const a = ARMOURS.find(a => a.name === name)!;
+      expect(a.ap, `${name} should have ap 2`).toBe(2);
+    }
+  });
+
+  it('all Ithilmar armour has Impenetrable quality', () => {
+    for (const name of newArmour) {
+      const a = ARMOURS.find(a => a.name === name)!;
+      expect(a.qualities, `${name} should have Impenetrable`).toContain('Impenetrable');
+    }
+  });
+
+  it('spot-check: Ithilmar Open Helm has Partial quality', () => {
+    const a = ARMOURS.find(a => a.name === 'Ithilmar Open Helm');
+    expect(a).toBeDefined();
+    expect(a!.qualities).toBe('Impenetrable, Partial');
+    expect(a!.locations).toBe('Head');
+  });
+
+  it('spot-check: Ithilmar Breastplate covers Body', () => {
+    const a = ARMOURS.find(a => a.name === 'Ithilmar Breastplate');
+    expect(a).toBeDefined();
+    expect(a!.locations).toBe('Body');
+    expect(a!.qualities).toBe('Impenetrable');
+  });
+});
+
+// ─── High Elf Players Guide — Talents ──────────────────────────
+
+describe('High Elf Players Guide — Talents', () => {
+  const newTalents = [
+    { name: 'Blessed by Isha', max: '1' },
+    { name: 'Blood of Aenarion', max: '1' },
+    { name: 'Eye of the Storm', max: '3' },
+    { name: 'High Magic', max: '1' },
+    { name: 'Martial Arts', max: 'WS Bonus' },
+    { name: 'Mind over Body', max: '3' },
+    { name: 'Sanctuary of the Mind', max: '3' },
+    { name: 'Sword-dancing', max: '1' },
+    { name: 'Uncouth Uranai', max: '1' },
+  ];
+
+  it('all 9 High Elf talents exist in TALENT_DB', () => {
+    for (const { name } of newTalents) {
+      const t = TALENT_DB.find(t => t.name === name);
+      expect(t, `Missing talent: ${name}`).toBeDefined();
+    }
+  });
+
+  it('all High Elf talents have correct max values', () => {
+    for (const { name, max } of newTalents) {
+      const t = TALENT_DB.find(t => t.name === name)!;
+      expect(t.max, `${name} max`).toBe(max);
+    }
+  });
+
+  it('all High Elf talents have non-empty desc', () => {
+    for (const { name } of newTalents) {
+      const t = TALENT_DB.find(t => t.name === name)!;
+      expect(t.desc, `${name} missing desc`).toBeTruthy();
+    }
+  });
+
+  it('spot-check: Martial Arts desc mentions unarmed', () => {
+    const t = TALENT_DB.find(t => t.name === 'Martial Arts')!;
+    expect(t.desc.toLowerCase()).toContain('unarmed');
+  });
+
+  it('spot-check: High Magic desc mentions Winds of Magic', () => {
+    const t = TALENT_DB.find(t => t.name === 'High Magic')!;
+    expect(t.desc.toLowerCase()).toContain('winds of magic');
+  });
+});
+
+// ─── High Elf Players Guide — Spells ───────────────────────────
+
+describe('High Elf Players Guide — Spells', () => {
+  const elvenPettySpells = [
+    'Bless Arrow', 'Calm', 'Greenfinger', 'Identify Disease', 'Remove Dirt', 'Reveal Magic',
+  ];
+
+  const elvenArcaneSpells = [
+    'Enchant Plant', 'Lesser Banishment', 'Magic Alarm', 'Masking the Mind',
+    'Purify Body', 'Speak with Animal', 'Voice of Iron', 'Zone of Comfort',
+  ];
+
+  const highMagicSpells = [
+    'Apotheosis', 'Arcane Unforging', 'Coruscation of Finreir', 'Curse of Arrow Attraction',
+    'Deadlock', 'Drain Magic', 'Fiery Convocation', 'Fortune is Fickle',
+    'Glamour of Teclis', 'Greater Banishment', 'Hand of Glory', 'Invisible Eye',
+    'Shield of Saphery', 'Soul Quench', 'Tempest', 'Walk between Worlds',
+  ];
+
+  const magicOfVaulSpells = [
+    "Artist's Touch", 'Patience of Vaul', "Vaul's Grace", "Vaul's Rage",
+    'Divination of Flames', 'Divination of Stones', 'Fires of Perfection',
+    'Wisdom of the Skysteel', 'Fortress of Hotek',
+  ];
+
+  const magicOfMathlannSpells = [
+    'Fishbonding', 'Stormsense', "Ocean's Fury", 'Spirits of the Waves',
+    'Call of the Seas', 'Cloak of Mathlann', 'Mistress of the Deep',
+    'Waterlungs', 'Writhing Mists',
+  ];
+
+  const magicOfHoethSpells = [
+    'Divine Stylus', 'Enlightenment', 'Arcane Insight', 'Greater Spirit Bond',
+    'Crucible of Light', 'Mnemonic Control', 'Psychic Sending', 'Sacred Wards',
+    'Soulcraft', 'The Primary Words',
+  ];
+
+  it('all 6 Elven Petty spells exist in SPELL_LIST', () => {
+    for (const name of elvenPettySpells) {
+      expect(SPELL_LIST.find(s => s.name === name), `Missing spell: ${name}`).toBeDefined();
+    }
+  });
+
+  it('all 8 Elven Arcane spells exist in SPELL_LIST', () => {
+    for (const name of elvenArcaneSpells) {
+      expect(SPELL_LIST.find(s => s.name === name), `Missing spell: ${name}`).toBeDefined();
+    }
+  });
+
+  it('all 16 High Magic spells exist in SPELL_LIST', () => {
+    for (const name of highMagicSpells) {
+      expect(SPELL_LIST.find(s => s.name === name), `Missing spell: ${name}`).toBeDefined();
+    }
+  });
+
+  it('all 9 Magic of Vaul spells exist in SPELL_LIST', () => {
+    for (const name of magicOfVaulSpells) {
+      expect(SPELL_LIST.find(s => s.name === name), `Missing spell: ${name}`).toBeDefined();
+    }
+  });
+
+  it('all 9 Magic of Mathlann spells exist in SPELL_LIST', () => {
+    for (const name of magicOfMathlannSpells) {
+      expect(SPELL_LIST.find(s => s.name === name), `Missing spell: ${name}`).toBeDefined();
+    }
+  });
+
+  it('all 10 Magic of Hoeth spells exist in SPELL_LIST', () => {
+    for (const name of magicOfHoethSpells) {
+      expect(SPELL_LIST.find(s => s.name === name), `Missing spell: ${name}`).toBeDefined();
+    }
+  });
+
+  it('spot-check: Elven Petty spells all have CN 0', () => {
+    for (const name of elvenPettySpells) {
+      const s = SPELL_LIST.find(s => s.name === name)!;
+      expect(s.cn, `${name} CN`).toBe('0');
+    }
+  });
+
+  it('spot-check: Enchant Plant (Elven Arcane) has CN 4', () => {
+    const s = SPELL_LIST.find(s => s.name === 'Enchant Plant')!;
+    expect(s.cn).toBe('4');
+  });
+
+  it('spot-check: Coruscation of Finreir (High Magic) has CN 11', () => {
+    const s = SPELL_LIST.find(s => s.name === 'Coruscation of Finreir')!;
+    expect(s.cn).toBe('11');
+  });
+
+  it("spot-check: Artist's Touch (Magic of Vaul) has CN 0", () => {
+    const s = SPELL_LIST.find(s => s.name === "Artist's Touch")!;
+    expect(s.cn).toBe('0');
+  });
+
+  it("spot-check: Ocean's Fury (Magic of Mathlann) has CN 8", () => {
+    const s = SPELL_LIST.find(s => s.name === "Ocean's Fury")!;
+    expect(s.cn).toBe('8');
+  });
+
+  it('spot-check: The Primary Words (Magic of Hoeth) has CN 15', () => {
+    const s = SPELL_LIST.find(s => s.name === 'The Primary Words')!;
+    expect(s.cn).toBe('15');
+  });
+});
+
+// ─── High Elf Players Guide — Non-Regression ───────────────────
+
+describe('High Elf Players Guide — Non-Regression', () => {
+  it('existing (2H) Elfbow entry is unchanged', () => {
+    const elfbow = WEAPONS.find(w => w.name === '(2H) Elfbow');
+    expect(elfbow).toBeDefined();
+    expect(elfbow!.group).toBe('Bow');
+    expect(elfbow!.enc).toBe('1');
+    expect(elfbow!.damage).toBe('+SB+4');
+    expect(elfbow!.maxR).toBe('450');
+    expect(elfbow!.optR).toBe('150');
+    expect(elfbow!.rangeMod).toBe('30');
+    expect(elfbow!.qualities).toBe('Damaging, Precise, Impale');
   });
 });
