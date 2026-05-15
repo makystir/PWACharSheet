@@ -14,6 +14,7 @@ import { resolveTalentTooltip, resolveSkillTooltip } from '../../logic/tooltip-c
 import type { TooltipContent } from '../../logic/tooltip-content';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { RuneLearningPanel } from '../shared/RuneLearningPanel';
+import { SwordDancingPanel } from '../shared/SwordDancingPanel';
 import { GraduationCap, TrendingUp, ScrollText, CheckCircle, Swords, BookOpen, Sparkles, Undo2, Redo2 } from 'lucide-react';
 import styles from './AdvancementPage.module.css';
 
@@ -672,6 +673,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {hasRuneMagicTalent(character) && (
         <RuneLearningPanel character={character} updateCharacter={updateCharacter} />
       )}
+
+      <SwordDancingPanel character={character} updateCharacter={updateCharacter} />
 
       {/* Career Scheme Display */}
       {scheme && (

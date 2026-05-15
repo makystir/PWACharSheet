@@ -1,0 +1,97 @@
+/* SwordDancingPanel — co-located CSS Module */
+
+.xpBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.categoryLabel {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 12px 0 6px 0;
+}
+
+.techniqueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+}
+
+.rowLearned {
+  composes: techniqueRow;
+  border-left: 3px solid var(--success);
+}
+
+.rowUnavailable {
+  composes: techniqueRow;
+  opacity: 0.5;
+}
+
+.rowDefault {
+  composes: techniqueRow;
+}
+
+.techniqueName {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.slBadge {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.xpCost {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.description {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.learnedBadge {
+  color: var(--success);
+  font-size: 13px;
+}
+
+.prereqLabel {
+  color: var(--danger);
+  font-size: 11px;
+}
+
+.learnBtn {
+  padding: 4px 10px;
+  background: none;
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.rightCol {
+  text-align: right;
+}

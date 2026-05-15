@@ -101,6 +101,14 @@ export interface TalentData {
   desc: string;
 }
 
+export interface SwordDancingTechnique {
+  id: string;          // kebab-case identifier, e.g. "ritual-of-cleansing"
+  name: string;        // Display name, e.g. "Ritual of Cleansing"
+  sl: number;          // Target Success Levels required (1-4)
+  description: string; // Effect description
+  order: number;       // Learning sequence position (1-10)
+}
+
 export interface TalentBonusEntry {
   char: string;
   bonus: number;
@@ -420,6 +428,7 @@ export interface Character {
   portrait?: string;
   houseRules: HouseRules;
   knownRunes?: string[];
+  learnedTechniques?: string[];  // Array of technique ids
   log: string[];
 }
 
@@ -575,5 +584,6 @@ export const BLANK_CHARACTER: Character = {
     advantageCap: 10,
   },
   knownRunes: [],
+  learnedTechniques: [],
   log: [],
 };
