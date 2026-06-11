@@ -93,6 +93,7 @@ export interface SpeciesData {
   woundsUseSB: boolean;
   skills: string[];
   talents: string[];
+  randomTalentSlots?: number;
 }
 
 export interface TalentData {

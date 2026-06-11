@@ -4,6 +4,7 @@ import { BLANK_CHARACTER } from '../../types/character';
 import { SPECIES_DATA, SPECIES_OPTIONS } from '../../data/species';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { TALENT_DB } from '../../data/talents';
+import { rollRandomTalent } from '../../data/randomTalents';
 import { getCareersByClass } from '../../logic/careers';
 import styles from './CharacterWizard.module.css';
 
@@ -123,6 +124,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
   const [speciesTalentChoices, setSpeciesTalentChoices] = useState<Record<number, string>>({});
   const [careerSkillAdvances, setCareerSkillAdvances] = useState<Record<string, number>>({});
   const [selectedCareerTalent, setSelectedCareerTalent] = useState('');
+  const [randomTalents, setRandomTalents] = useState<(string | null)[]>([]);
 
   // Step 5: Fate, Resilience & Details
   const [extraFate, setExtraFate] = useState(0);
@@ -232,6 +234,30 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
     });
   }, [speciesTalentList, speciesTalentChoices, parseTalentOptions]);
 
+  // ─── Random talent helpers ─────────────────────────────────────────────
+
+  const handleRollRandomTalent = useCallback((slotIndex: number) => {
+    const roll = rollD100();
+    const talent = rollRandomTalent(roll);
+    setRandomTalents(prev => {
+      const updated = [...prev];
+      updated[slotIndex] = talent;
+      return updated;
+    });
+  }, []);
+
+  const isRandomTalentDuplicate = useCallback((talent: string | null, slotIndex: number): boolean => {
+    if (!talent) return false;
+    // Check against resolved fixed talents
+    const fixedTalents = getResolvedTalents();
+    if (fixedTalents.some(ft => ft === talent)) return true;
+    // Check against other random talent slots
+    for (let i = 0; i < randomTalents.length; i++) {
+      if (i !== slotIndex && randomTalents[i] === talent) return true;
+    }
+    return false;
+  }, [getResolvedTalents, randomTalents]);
+
   // ─── Random species roll ─────────────────────────────────────────────────
 
   const handleRandomSpecies = useCallback(() => {
@@ -248,6 +274,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
     setSelectedClass('');
     setSelectedCareer('');
     setCareerRolled(false);
+    setRandomTalents(Array(SPECIES_DATA[picked]?.randomTalentSlots ?? 0).fill(null));
   }, []);
 
   // ─── Random career roll ──────────────────────────────────────────────────
@@ -403,6 +430,12 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
     if (selectedCareerTalent && !char.talents.find(x => x.n === selectedCareerTalent)) {
       char.talents.push({ n: selectedCareerTalent, lvl: 1, desc: getTalentDesc(selectedCareerTalent) });
     }
+    // Add random talents
+    for (const rt of randomTalents.filter(Boolean) as string[]) {
+      if (!char.talents.find(x => x.n === rt)) {
+        char.talents.push({ n: rt, lvl: 1, desc: getTalentDesc(rt) });
+      }
+    }
 
     // Details
     char.age = age;
@@ -420,7 +453,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
     return char;
   }, [charName, species, careerScheme, selectedCareer, careerLevel1, getBaseRolls,
       speciesData, charAdvances, extraFate, speciesSkill5, speciesSkill3,
-      careerSkillAdvances, getResolvedTalents, selectedCareerTalent,
+      careerSkillAdvances, getResolvedTalents, selectedCareerTalent, randomTalents,
       age, height, hair, eyes, motivation, ambShort, ambLong, totalBonusXP]);
 
   // ─── Step renderers ──────────────────────────────────────────────────────
@@ -468,6 +501,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                 setSelectedClass('');
                 setSelectedCareer('');
                 setCareerRolled(false);
+                setRandomTalents(Array(SPECIES_DATA[sp]?.randomTalentSlots ?? 0).fill(null));
               }}
               className={species === sp ? styles.optionSelected : styles.option}
             >
@@ -812,6 +846,58 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
             })}
           </div>
         </div>
+
+        {/* Random Talents */}
+        {(speciesData?.randomTalentSlots ?? 0) > 0 && (
+          <div className={styles.card}>
+            <div className={styles.subTitle}>Random Talents — Roll {speciesData!.randomTalentSlots} from the d100 table</div>
+            <div className={styles.flexCol}>
+              {randomTalents.map((talent, slotIndex) => {
+                const isDuplicate = isRandomTalentDuplicate(talent, slotIndex);
+                return (
+                  <div key={slotIndex} className={styles.fixedTalentRow}>
+                    <div className={styles.flexBetween}>
+                      <div>
+                        <span className={styles.boldLabel}>Slot {slotIndex + 1}: </span>
+                        {talent ? (
+                          <span>{talent}</span>
+                        ) : (
+                          <span className={styles.textMuted12}>Not rolled yet</span>
+                        )}
+                        {isDuplicate && (
+                          <span className={styles.statusWarning} style={{ marginLeft: 8 }}>⚠️ Duplicate</span>
+                        )}
+                      </div>
+                      <div>
+                        {!talent && (
+                          <button
+                            type="button"
+                            className={styles.btnRollRandom}
+                            onClick={() => handleRollRandomTalent(slotIndex)}
+                          >
+                            🎲 Roll
+                          </button>
+                        )}
+                        {talent && isDuplicate && (
+                          <button
+                            type="button"
+                            className={styles.btnRollRandom}
+                            onClick={() => handleRollRandomTalent(slotIndex)}
+                          >
+                            🎲 Reroll
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {talent && getTalentDesc(talent) && (
+                      <div className={styles.talentDesc}>{getTalentDesc(talent)}</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Career Skills */}
         <div className={styles.card}>

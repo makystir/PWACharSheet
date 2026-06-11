@@ -10,6 +10,7 @@ export const SPECIES_DATA: Record<string, SpeciesData> = {
     woundsUseSB: true,
     skills: ["Animal Care", "Charm", "Cool", "Evaluate", "Gossip", "Haggle", "Language (Bretonnian)", "Language (Wastelander)", "Leadership", "Lore (Reikland)", "Melee (Basic)", "Ranged (Bow)"],
     talents: ["Doomed", "Savvy or Suave"],
+    randomTalentSlots: 3,
   },
   "Dwarf": {
     chars: { WS: 30, BS: 20, S: 20, T: 30, I: 20, Ag: 10, Dex: 30, Int: 20, WP: 40, Fel: 10 } as Record<CharacteristicKey, number>,
@@ -140,6 +141,7 @@ export const SPECIES_DATA: Record<string, SpeciesData> = {
     woundsUseSB: false,
     skills: ["Charm", "Consume Alcohol", "Dodge", "Gamble", "Gossip", "Haggle", "Intuition", "Language (Mootish)", "Lore (Reikland)", "Perception", "Sleight of Hand", "Stealth (Any)"],
     talents: ["Acute Sense (Taste)", "Night Vision", "Resistance (Chaos)", "Small"],
+    randomTalentSlots: 2,
   },
   "High Elf": {
     chars: { WS: 30, BS: 30, S: 20, T: 20, I: 40, Ag: 30, Dex: 30, Int: 30, WP: 30, Fel: 20 } as Record<CharacteristicKey, number>,
