@@ -28,6 +28,145 @@ export function PrintLayout({ character, totalWounds, armourPoints }: PrintLayou
   const bSkills1 = ch.bSkills.slice(0, 13);
   const bSkills2 = ch.bSkills.slice(13);
 
+  function renderAmmo() {
+    if (ch.ammo.length === 0) return null;
+    return (
+      <div className={styles.sectionBox}>
+        <div className={styles.sectionTitle}>Ammunition</div>
+        <table className={styles.tbl}>
+          <thead>
+            <tr>
+              <th className={styles.hdrCell}>Name</th>
+              <th className={`${styles.hdrCell} ${styles.colW28}`}>Qty</th>
+              <th className={styles.hdrCell}>Qualities</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ch.ammo.map((a, i) => (
+              <tr key={i}>
+                <td className={styles.cell}>{a.name}</td>
+                <td className={styles.valCellBold}>{a.quantity}</td>
+                <td className={styles.cellSmall}>{a.qualities}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  function renderConditions() {
+    const activeConditions = ch.conditions.filter(c => c.level > 0);
+    if (activeConditions.length === 0) return null;
+    return (
+      <div className={styles.sectionBox}>
+        <div className={styles.sectionTitle}>Conditions</div>
+        <table className={styles.tbl}>
+          <thead>
+            <tr>
+              <th className={styles.hdrCell}>Condition</th>
+              <th className={`${styles.hdrCell} ${styles.colW26}`}>Level</th>
+            </tr>
+          </thead>
+          <tbody>
+            {activeConditions.map((c, i) => (
+              <tr key={i}>
+                <td className={styles.cell}>{c.name}</td>
+                <td className={styles.valCellBold}>{c.level}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  function renderCompanions() {
+    if (ch.companions.length === 0) return null;
+    return (
+      <div className={styles.sectionBox}>
+        <div className={styles.sectionTitle}>Companions</div>
+        {ch.companions.map((comp, i) => (
+          <div key={i} style={{ marginBottom: i < ch.companions.length - 1 ? '8px' : 0 }}>
+            <table className={styles.tbl}>
+              <thead>
+                <tr>
+                  <th className={styles.hdrCell}>Name</th>
+                  <th className={styles.hdrCell}>Species</th>
+                  <th className={styles.hdrCell}>M</th>
+                  <th className={styles.hdrCell}>WS</th>
+                  <th className={styles.hdrCell}>BS</th>
+                  <th className={styles.hdrCell}>S</th>
+                  <th className={styles.hdrCell}>T</th>
+                  <th className={styles.hdrCell}>I</th>
+                  <th className={styles.hdrCell}>Ag</th>
+                  <th className={styles.hdrCell}>Dex</th>
+                  <th className={styles.hdrCell}>Int</th>
+                  <th className={styles.hdrCell}>WP</th>
+                  <th className={styles.hdrCell}>Fel</th>
+                  <th className={styles.hdrCell}>W</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className={styles.cellBold}>{comp.name}</td>
+                  <td className={styles.valCell}>{comp.species}</td>
+                  <td className={styles.valCell}>{comp.M}</td>
+                  <td className={styles.valCell}>{comp.WS}</td>
+                  <td className={styles.valCell}>{comp.BS}</td>
+                  <td className={styles.valCell}>{comp.S}</td>
+                  <td className={styles.valCell}>{comp.T}</td>
+                  <td className={styles.valCell}>{comp.I}</td>
+                  <td className={styles.valCell}>{comp.Ag}</td>
+                  <td className={styles.valCell}>{comp.Dex}</td>
+                  <td className={styles.valCell}>{comp.Int}</td>
+                  <td className={styles.valCell}>{comp.WP}</td>
+                  <td className={styles.valCell}>{comp.Fel}</td>
+                  <td className={styles.valCellBold}>{comp.W}</td>
+                </tr>
+                <tr>
+                  <td className={styles.hdrCell}>Traits</td>
+                  <td className={styles.cellSmall} colSpan={13}>{comp.traits}</td>
+                </tr>
+                <tr>
+                  <td className={styles.hdrCell}>Trained</td>
+                  <td className={styles.cell} colSpan={13}>{comp.trained.join(', ')}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  function renderMutations() {
+    if (ch.mutations.length === 0) return null;
+    return (
+      <div className={styles.sectionBox}>
+        <div className={styles.sectionTitle}>Mutations</div>
+        <table className={styles.tbl}>
+          <thead>
+            <tr>
+              <th className={`${styles.hdrCell} ${styles.colW45}`}>Type</th>
+              <th className={styles.hdrCell}>Name</th>
+              <th className={styles.hdrCell}>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ch.mutations.map((m, i) => (
+              <tr key={i}>
+                <td className={styles.valCell}>{m.type}</td>
+                <td className={styles.cellBold}>{m.name}</td>
+                <td className={styles.cellSmall}>{m.effect}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   return (
     <div className={`print-layout ${styles.page}`}>
       {/* ═══ PAGE 1 ═══ */}
@@ -73,10 +212,7 @@ export function PrintLayout({ character, totalWounds, armourPoints }: PrintLayou
             <div className={styles.sectionTitle}>Resilience</div>
             <table className={styles.tbl}><tbody><tr><td className={styles.hdrCell}>Res</td><td className={styles.valCell}>{ch.resilience}</td><td className={styles.hdrCell}>Resolve</td><td className={styles.valCell}>{ch.resolve}</td></tr></tbody></table>
           </div>
-          <div className={styles.sectionBox}>
-            <div className={styles.sectionTitle}>Experience</div>
-            <table className={styles.tbl}><tbody><tr><td className={styles.hdrCell}>Cur</td><td className={styles.valCell}>{ch.xpCur}</td></tr><tr><td className={styles.hdrCell}>Spent</td><td className={styles.valCell}>{ch.xpSpent}</td></tr><tr><td className={styles.hdrCell}>Total</td><td className={styles.valCell}>{ch.xpTotal}</td></tr></tbody></table>
-          </div>
+
         </div>
 
         {/* Movement */}
@@ -91,7 +227,7 @@ export function PrintLayout({ character, totalWounds, armourPoints }: PrintLayou
               <div className={styles.sectionTitle}>{block.title}</div>
               <table className={styles.tbl}>
                 <thead><tr><th className={styles.hdrCell}>Name</th><th className={`${styles.hdrCell} ${styles.colW26}`}>Char</th><th className={`${styles.hdrCell} ${styles.colW22}`}>Adv</th><th className={`${styles.hdrCell} ${styles.colW26}`}>Skill</th></tr></thead>
-                <tbody>{block.skills.map((s, i) => { const cv = ch.chars[s.c as CharacteristicKey]; const total = cv ? getBonus(cv.i + cv.a + cv.b) + s.a : s.a; return (<tr key={i}><td className={styles.cell}>{s.n}</td><td className={styles.valCell}>{s.c}</td><td className={styles.valCell}>{s.a || ''}</td><td className={styles.valCellBold}>{total || ''}</td></tr>); })}</tbody>
+                <tbody>{block.skills.map((s, i) => { const cv = ch.chars[s.c as CharacteristicKey]; const total = cv ? (cv.i + cv.a + cv.b) + s.a : s.a; return (<tr key={i}><td className={styles.cell}>{s.n}</td><td className={styles.valCell}>{s.c}</td><td className={styles.valCell}>{s.a || ''}</td><td className={styles.valCellBold}>{total}</td></tr>); })}</tbody>
               </table>
             </div>
           ))}
@@ -182,6 +318,9 @@ export function PrintLayout({ character, totalWounds, armourPoints }: PrintLayou
           </div>
         </div>
 
+        {/* Conditions */}
+        {renderConditions()}
+
         {/* Weapons */}
         <div className={styles.sectionBox}>
           <div className={styles.sectionTitle}>Weapons</div>
@@ -190,17 +329,6 @@ export function PrintLayout({ character, totalWounds, armourPoints }: PrintLayou
             <tbody>{ch.weapons.map((w, i) => (<tr key={i}><td className={styles.cellBold}>{w.name}</td><td className={styles.valCell}>{w.group}</td><td className={styles.valCell}>{w.enc}</td><td className={styles.valCell}>{w.rangeReach || w.maxR || ''}</td><td className={styles.valCellBold}>{w.damage}</td><td className={styles.cellSmall}>{w.qualities}</td></tr>))}</tbody>
           </table>
         </div>
-
-        {/* Spells */}
-        {ch.spells.length > 0 && (
-          <div className={styles.sectionBox}>
-            <div className={styles.sectionTitle}>Spells and Prayers</div>
-            <table className={styles.tbl}>
-              <thead><tr><th className={styles.hdrCell}>Name</th><th className={`${styles.hdrCell} ${styles.colW24}`}>TN</th><th className={`${styles.hdrCell} ${styles.colW45}`}>Range</th><th className={`${styles.hdrCell} ${styles.colW38}`}>Target</th><th className={`${styles.hdrCell} ${styles.colW45}`}>Duration</th><th className={styles.hdrCell}>Effect</th></tr></thead>
-              <tbody>{ch.spells.map((s, i) => (<tr key={i}><td className={styles.cellBold}>{s.name}</td><td className={styles.valCell}>{s.cn}</td><td className={styles.valCell}>{s.range}</td><td className={styles.valCell}>{s.target}</td><td className={styles.valCell}>{s.duration}</td><td className={styles.cellSmall}>{s.effect}</td></tr>))}</tbody>
-            </table>
-          </div>
-        )}
 
         {/* Estate */}
         {ch.estate.name && (
@@ -217,6 +345,24 @@ export function PrintLayout({ character, totalWounds, armourPoints }: PrintLayou
         <div className={styles.footer}>
           WFRP 4e Character Sheet — Generated {new Date().toLocaleDateString()}
         </div>
+      </div>
+
+      {/* ═══ PAGE 3+ (CONDITIONAL) ═══ */}
+      <div className={styles.conditionalPage}>
+        {/* Spells (moved from page 2) */}
+        {ch.spells.length > 0 && (
+          <div className={styles.sectionBox}>
+            <div className={styles.sectionTitle}>Spells and Prayers</div>
+            <table className={styles.tbl}>
+              <thead><tr><th className={styles.hdrCell}>Name</th><th className={`${styles.hdrCell} ${styles.colW24}`}>TN</th><th className={`${styles.hdrCell} ${styles.colW45}`}>Range</th><th className={`${styles.hdrCell} ${styles.colW38}`}>Target</th><th className={`${styles.hdrCell} ${styles.colW45}`}>Duration</th><th className={styles.hdrCell}>Effect</th></tr></thead>
+              <tbody>{ch.spells.map((s, i) => (<tr key={i}><td className={styles.cellBold}>{s.name}</td><td className={styles.valCell}>{s.cn}</td><td className={styles.valCell}>{s.range}</td><td className={styles.valCell}>{s.target}</td><td className={styles.valCell}>{s.duration}</td><td className={styles.cellSmall}>{s.effect}</td></tr>))}</tbody>
+            </table>
+          </div>
+        )}
+
+        {renderCompanions()}
+        {renderAmmo()}
+        {renderMutations()}
       </div>
     </div>
   );
