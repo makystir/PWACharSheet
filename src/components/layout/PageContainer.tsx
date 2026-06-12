@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { ChevronUp } from 'lucide-react';
+import { CharacterNameHeader } from '../shared/CharacterNameHeader';
 import styles from './PageContainer.module.css';
 
 interface PageContainerProps {
   children: ReactNode;
+  characterName?: string;
+  onOpenCharacterSheet?: () => void;
+  headerRef?: RefObject<HTMLButtonElement | null>;
 }
 
-export function PageContainer({ children }: PageContainerProps) {
+export function PageContainer({ children, characterName, onOpenCharacterSheet, headerRef }: PageContainerProps) {
   const ref = useRef<HTMLElement>(null);
   const [showScroll, setShowScroll] = useState(false);
 
@@ -30,6 +34,13 @@ export function PageContainer({ children }: PageContainerProps) {
 
   return (
     <main ref={ref} className={styles.container}>
+      {characterName && onOpenCharacterSheet && (
+        <CharacterNameHeader
+          characterName={characterName}
+          onOpen={onOpenCharacterSheet}
+          ref={headerRef}
+        />
+      )}
       {children}
       {showScroll && (
         <button

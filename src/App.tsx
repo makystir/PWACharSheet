@@ -1,4 +1,4 @@
-import { useState, useEffect, Component } from 'react';
+import { useState, useEffect, useRef, Component } from 'react';
 import type { ReactNode } from 'react';
 import type { Character } from './types/character';
 import { Navigation } from './components/layout/Navigation';
@@ -12,6 +12,7 @@ import { AdvancementPage } from './components/pages/AdvancementPage';
 import { EndeavoursPage } from './components/pages/EndeavoursPage';
 import { SettingsPage } from './components/pages/SettingsPage';
 import { CharacterWizard } from './components/shared/CharacterWizard';
+import { CharacterManagementSheet } from './components/shared/CharacterManagementSheet';
 import { useCharacterManager } from './hooks/useCharacterManager';
 import { useCharacter } from './hooks/useCharacter';
 import { useRollHistory } from './hooks/useRollHistory';
@@ -121,6 +122,8 @@ function AppWithCharacter({
   const { history: rollHistory, addRoll, clearHistory } = useRollHistory();
   const { theme: currentTheme, setTheme } = useTheme();
   const [showWizard, setShowWizard] = useState(false);
+  const [showCharSheet, setShowCharSheet] = useState(false);
+  const charHeaderRef = useRef<HTMLButtonElement>(null);
 
   const handleWizardComplete = (wizardChar: Character) => {
     const id = manager.createCharacter(wizardChar.name);
@@ -129,6 +132,16 @@ function AppWithCharacter({
     manager.refresh();
     setShowWizard(false);
     setPage('character');
+  };
+
+  const handleCreateFromSheet = () => {
+    setShowCharSheet(false);
+    setShowWizard(true);
+  };
+
+  const handleWizardCancel = () => {
+    setShowWizard(false);
+    setShowCharSheet(true);
   };
 
   const pageProps = { character, update, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight };
@@ -167,7 +180,11 @@ function AppWithCharacter({
           onDuplicateCharacter={(id) => { manager.duplicateCharacter(id); manager.refresh(); }}
           onDeleteCharacter={(id) => { manager.deleteCharacter(id); manager.refresh(); }}
         />
-        <PageContainer>
+        <PageContainer
+          characterName={character.name}
+          onOpenCharacterSheet={() => setShowCharSheet(true)}
+          headerRef={charHeaderRef}
+        >
           <ErrorBoundary>
             {renderPage()}
           </ErrorBoundary>
@@ -176,10 +193,22 @@ function AppWithCharacter({
       <div className="print-only" style={{ display: 'none' }}>
         <PrintLayout character={character} totalWounds={totalWounds} armourPoints={armourPoints} />
       </div>
+      <CharacterManagementSheet
+        isOpen={showCharSheet}
+        onClose={() => setShowCharSheet(false)}
+        characters={manager.characters}
+        activeId={manager.activeId}
+        onSwitchCharacter={(id) => { manager.switchCharacter(id, character); }}
+        onCreateCharacter={handleCreateFromSheet}
+        onRenameCharacter={(id, name) => { manager.renameCharacter(id, name); manager.refresh(); }}
+        onDuplicateCharacter={(id) => { manager.duplicateCharacter(id); manager.refresh(); }}
+        onDeleteCharacter={(id) => { manager.deleteCharacter(id); manager.refresh(); }}
+        triggerRef={charHeaderRef}
+      />
       {showWizard && (
         <CharacterWizard
           onComplete={handleWizardComplete}
-          onCancel={() => setShowWizard(false)}
+          onCancel={handleWizardCancel}
         />
       )}
     </>
