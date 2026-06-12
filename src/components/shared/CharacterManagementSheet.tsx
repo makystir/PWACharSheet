@@ -234,17 +234,23 @@ export function CharacterManagementSheet({
     }
   }, [isOpen]);
 
-  // Handle open/close transitions
+  // Handle open transition
   useEffect(() => {
     if (isOpen) {
       setAnimating(true);
       // Force a reflow before applying the open class for CSS transition
-      requestAnimationFrame(() => {
+      const frameId = requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setVisible(true);
         });
       });
-    } else if (visible) {
+      return () => cancelAnimationFrame(frameId);
+    }
+  }, [isOpen]);
+
+  // Handle close transition
+  useEffect(() => {
+    if (!isOpen && visible) {
       setVisible(false);
       // Wait for close animation to finish before unmounting
       const timer = setTimeout(() => {
