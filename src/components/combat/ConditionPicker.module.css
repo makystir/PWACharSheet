@@ -125,3 +125,27 @@
   text-transform: uppercase;
   margin-bottom: 2px;
 }
+
+/* Mobile optimizations - Requirements 20.1, 20.3 */
+@media (max-width: 767px) {
+  .modal {
+    width: 95%;
+    max-width: none;
+    height: 80vh;
+    max-height: 80vh;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(50% - 4px), 1fr));
+    gap: 8px;
+  }
+
+  .conditionBtn {
+    min-height: 48px;
+  }
+
+  .conditionBtnActive {
+    min-height: 48px;
+  }
+}

@@ -637,3 +637,151 @@
   text-transform: uppercase;
   margin-bottom: 2px;
 }
+
+/* ========================================================
+   MOBILE OVERRIDES — Sub-tab bar & typography (Task 3.1)
+   Requirements: 3.1, 3.2, 3.3, 3.4, 6.1, 6.2, 6.3
+   ======================================================== */
+
+@media (max-width: 767px) {
+  /* Req 3.3: Sub-tab bar sticky at top of scroll area */
+  .subTabBar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  /* Req 3.1: Minimum height 44px per tab */
+  .subTab,
+  .subTabActive {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Req 3.2: Font size at least 12px for tab labels */
+  .subTab {
+    font-size: 12px;
+  }
+
+  .subTabActive {
+    font-size: 12px;
+  }
+
+  /* Req 6.1: Characteristic abbreviations at minimum 13px bold */
+  .charKey {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* Req 6.2: Current characteristic total at 15px with high contrast */
+  .charCurrent {
+    font-size: 15px;
+    color: var(--parchment);
+    font-weight: 700;
+  }
+}
+
+/* Req 3.4: Horizontal scroll for sub-tabs below 360px */
+@media (max-width: 359px) {
+  .subTabBar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .subTab,
+  .subTabActive {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 14px;
+  }
+
+  /* Req 6.3: Hide Bonus column below 360px */
+  .charBonusActive,
+  .charBonusInactive {
+    display: none;
+  }
+}
+
+
+/* ==========================================================================
+   Task 3.3: Grid collapse on narrow viewports (below 400px)
+   Requirements: 21.1, 21.2, 21.3, 21.4
+   ========================================================================== */
+@media (max-width: 399px) {
+  .gridAutoFill {
+    grid-template-columns: 1fr;
+  }
+
+  .movementFortuneGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ambitionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .wealthEncGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ===== Mobile Overrides: Table Scroll and Input Sizing (Task 3.2) ===== */
+/* Requirements: 5.1, 5.2, 5.3, 5.4, 16.2 */
+
+@media (max-width: 767px) {
+  /* Req 5.1 + 16.2: Horizontal scroll on wide tables with scroll containment */
+  .overflowAuto {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    position: relative;
+  }
+
+  /* Req 5.1: Visible scroll indicator (gradient fade on right edge) */
+  .overflowAuto::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to left, var(--bg-primary, #1a1a2e), transparent);
+    pointer-events: none;
+    opacity: 1;
+  }
+
+  /* Req 5.2: Table cell minimum font size 13px */
+  .td,
+  .tdCenter,
+  .charKey,
+  .charCurrent,
+  .charBonusActive,
+  .charBonusInactive,
+  .skillCharCol,
+  .skillTotalCol {
+    font-size: 13px;
+  }
+
+  /* Req 5.3: Number inputs min-width 44px, min-height 36px */
+  .numInput {
+    min-width: 44px;
+    min-height: 36px;
+    font-size: 14px;
+    padding: 4px 6px;
+  }
+
+  /* Req 5.4: Dice roll buttons 40×40px touch target */
+  .diceBtn {
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    padding: 0;
+  }
+}

@@ -81,3 +81,33 @@
   width: 100%;
   margin-top: 8px;
 }
+
+/* Mobile overrides */
+@media (max-width: 767px) {
+  .spendBtn,
+  .spendBtnDisabled {
+    min-height: 40px;
+    min-width: 80px;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .burnBtn,
+  .burnBtnDisabled {
+    min-height: 40px;
+    min-width: 80px;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .valueRow {
+    font-size: 20px;
+  }
+}
+
+/* Single-column collapse for narrow viewports (200px–360px) */
+@media (max-width: 359px) {
+  .gridRow {
+    grid-template-columns: 1fr;
+  }
+}

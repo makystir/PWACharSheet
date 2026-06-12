@@ -32,3 +32,24 @@
   outline: none;
   min-height: 28px;
 }
+
+/* Mobile optimizations for EditableField */
+@media (max-width: 767px) {
+  .display {
+    min-height: 44px;
+    font-size: 14px;
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+  }
+
+  .display:hover {
+    border-color: var(--border-light);
+  }
+
+  .input {
+    min-height: 40px;
+    font-size: 16px;
+    border: 1px solid var(--accent-gold);
+  }
+}

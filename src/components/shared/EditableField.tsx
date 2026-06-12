@@ -39,6 +39,7 @@ export function EditableField({ label, value, type = 'text', onSave, style }: Ed
         <input
           ref={inputRef}
           type={type}
+          inputMode={type === 'number' ? 'numeric' : undefined}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={handleSave}

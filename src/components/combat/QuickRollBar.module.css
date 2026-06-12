@@ -1,6 +1,7 @@
 /* QuickRollBar component styles */
 
 .barContainer {
+  position: relative;
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -26,4 +27,33 @@
   font-family: var(--font-heading);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+/* ─── Mobile Overrides ────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .barContainer {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 5%,
+      black 95%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 5%,
+      black 95%,
+      transparent 100%
+    );
+  }
+
+  .skillButton {
+    min-height: var(--mobile-touch-min, 44px);
+    padding: 8px 14px;
+    font-size: var(--mobile-font-min, 13px);
+  }
 }

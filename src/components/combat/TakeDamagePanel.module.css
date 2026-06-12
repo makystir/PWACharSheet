@@ -153,3 +153,33 @@
   text-align: center;
   margin-top: 10px;
 }
+
+/* ─── Mobile Overrides ──────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* Req 10.1: Damage input 48×48px minimum, font 18px */
+  .input {
+    min-width: var(--mobile-touch-lg);
+    min-height: var(--mobile-touch-lg);
+    width: var(--mobile-touch-lg);
+    font-size: 18px;
+  }
+
+  /* Req 10.2: Hit location select full-width, min-height 44px */
+  .select {
+    width: 100%;
+    max-width: none;
+    min-height: var(--mobile-touch-min);
+  }
+
+  /* Req 10.3: Apply button full-width, min-height 48px */
+  .applyBtn {
+    width: 100%;
+    min-height: var(--mobile-touch-lg);
+  }
+
+  /* Req 10.4: Net wounds result font 28px */
+  .netWoundsValue {
+    font-size: var(--mobile-display-number);
+  }
+}

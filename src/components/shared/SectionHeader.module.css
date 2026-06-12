@@ -15,3 +15,27 @@
   flex: 1;
   margin: 0;
 }
+
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+.chevron {
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: transform 0.15s ease;
+  transform: rotate(-90deg);
+}
+
+.chevronExpanded {
+  composes: chevron;
+  transform: rotate(0deg);
+}

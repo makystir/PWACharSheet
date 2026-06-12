@@ -109,3 +109,43 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* Mobile UI Optimization - Global custom properties */
+@media (max-width: 767px) {
+  :root {
+    /* Touch target sizes */
+    --mobile-touch-min: 44px;
+    --mobile-touch-lg: 48px;
+    --mobile-font-min: 13px;
+
+    /* Large display number scaling (wounds, advantage, etc.)
+       Scales from 24px at 320px viewport to 32px at 428px viewport */
+    --mobile-display-number: 28px; /* static fallback */
+    --mobile-display-number: clamp(24px, 5vw + 8px, 32px);
+
+    /* Secondary large display (round counter, AP values, fortune/resolve)
+       Scales from 18px at 320px to 24px at 428px */
+    --mobile-display-secondary: 20px; /* static fallback */
+    --mobile-display-secondary: clamp(18px, 3.5vw + 6px, 24px);
+  }
+
+  /* Enforce minimum body font size of 14px for content text (Req 15.1) */
+  body {
+    font-size: 14px;
+  }
+
+  /* Enforce minimum font size of 11px for labels and metadata (Req 15.2) */
+  label,
+  small,
+  .metadata,
+  figcaption,
+  caption {
+    font-size: max(11px, inherit);
+  }
+
+  /* Card section headers minimum 14px (Req 15.3) */
+  h2,
+  h3 {
+    font-size: max(14px, inherit);
+  }
+}

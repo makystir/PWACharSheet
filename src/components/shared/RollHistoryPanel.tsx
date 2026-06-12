@@ -5,14 +5,15 @@ import styles from './RollHistoryPanel.module.css';
 interface RollHistoryPanelProps {
   history: RollHistoryEntry[];
   onClear: () => void;
+  defaultExpanded?: boolean;
 }
 
 function formatSL(sl: number): string {
   return sl >= 0 ? `+${sl}` : `${sl}`;
 }
 
-export function RollHistoryPanel({ history, onClear }: RollHistoryPanelProps) {
-  const [expanded, setExpanded] = useState(false);
+export function RollHistoryPanel({ history, onClear, defaultExpanded = false }: RollHistoryPanelProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
     <div className={styles.panel}>

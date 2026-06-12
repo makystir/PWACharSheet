@@ -47,3 +47,21 @@
   cursor: pointer;
   font-size: 13px;
 }
+
+/* Mobile overrides */
+@media (max-width: 767px) {
+  .message {
+    font-size: 15px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cancelBtn,
+  .confirmBtn {
+    width: 100%;
+    min-height: 44px;
+  }
+}

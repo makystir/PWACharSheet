@@ -224,11 +224,13 @@
     right: 0;
     top: auto;
     width: 100%;
-    height: var(--nav-height-mobile, 60px);
+    --nav-height-mobile: 64px;
+    height: var(--nav-height-mobile);
     flex-direction: row;
     border-right: none;
     border-top: 1px solid var(--border);
     padding: 0;
+    padding-bottom: env(safe-area-inset-bottom);
     z-index: 100;
   }
 
@@ -246,9 +248,34 @@
     flex-direction: column;
     gap: 2px;
     padding: 8px 4px;
-    font-size: 10px;
+    font-size: 11px;
+    min-height: var(--mobile-touch-lg, 48px);
     justify-content: center;
+    align-items: center;
     border-left: none;
     padding-left: 4px;
+  }
+
+  /* Icon sizing - minimum 22px */
+  .navItem svg,
+  .navItemActive svg {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+  }
+
+  /* Active state with top border accent and color differentiation */
+  .navItemActive {
+    border-top: 3px solid var(--accent-gold);
+    color: var(--accent-gold);
+    background: var(--bg-tertiary);
+    padding-top: 5px; /* compensate for 3px border to keep vertical centering */
+  }
+
+  .navItem {
+    border-top: 3px solid transparent;
+    color: var(--text-secondary);
+    padding-top: 5px; /* match active state spacing */
   }
 }

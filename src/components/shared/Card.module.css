@@ -5,3 +5,18 @@
   padding: 16px;
   box-shadow: 0 2px 8px var(--shadow);
 }
+
+/* Mobile UI Optimization (Requirements 4.1, 4.2, 4.3, 15.3) */
+@media (max-width: 767px) {
+  .card {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+  }
+
+  .card h2,
+  .card h3,
+  .card h4 {
+    font-size: max(14px, inherit);
+  }
+}

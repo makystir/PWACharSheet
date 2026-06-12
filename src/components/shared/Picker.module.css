@@ -67,3 +67,39 @@
   color: var(--text-muted);
   text-align: center;
 }
+
+/* Mobile overrides */
+@media (max-width: 767px) {
+  .modal {
+    width: 95%;
+    max-width: none;
+    height: 85vh;
+    max-height: 85vh;
+    position: relative;
+    padding-top: 48px;
+  }
+
+  .item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+    border-radius: 0;
+  }
+
+  .search {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

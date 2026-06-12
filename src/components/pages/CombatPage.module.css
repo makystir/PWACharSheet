@@ -34,3 +34,10 @@
   color: var(--danger);
   border: 2px solid var(--danger);
 }
+
+/* ── Mobile overrides ── */
+@media (max-width: 767px) {
+  .combatBtn {
+    min-height: var(--mobile-touch-lg, 48px);
+  }
+}

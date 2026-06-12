@@ -55,6 +55,7 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
   const [runeManagerTarget, setRuneManagerTarget] = useState<{ type: 'weapon' | 'armour'; index: number } | null>(null);
   const [showConditionPicker, setShowConditionPicker] = useState(false);
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const inCombat = character.combatState.inCombat;
   const TB = getBonus(character.chars.T.i + character.chars.T.a + character.chars.T.b);
 
@@ -140,12 +141,14 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
           <AmmoTracker ammo={character.ammo}
             onUpdate={(i, field, value) => update(`ammo.${i}.${field}`, value)}
             onAdd={() => updateCharacter((c) => ({ ...c, ammo: [...c.ammo, { name: 'New Ammo', quantity: 12, max: 12, enc: '0', qualities: '' }] }))}
-            onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))} />
+            onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))}
+            defaultCollapsed={isMobile} />
           <CriticalWoundsPanel criticalWounds={character.criticalWounds}
             onAdd={() => updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, { location: 'Body', description: 'New wound', effects: '', duration: '', severity: 1, healed: false }) }))}
             onHeal={(id) => updateCharacter((c) => ({ ...c, criticalWounds: healCriticalWound(c.criticalWounds, id) }))}
-            onUpdate={(i, field, value) => updateCharacter((c) => ({ ...c, criticalWounds: c.criticalWounds.map((w, j) => j === i ? { ...w, [field]: value } : w) }))} />
-          {rollHistory && clearHistory && <RollHistoryPanel history={rollHistory} onClear={clearHistory} />}
+            onUpdate={(i, field, value) => updateCharacter((c) => ({ ...c, criticalWounds: c.criticalWounds.map((w, j) => j === i ? { ...w, [field]: value } : w) }))}
+            defaultCollapsed={isMobile} />
+          {rollHistory && clearHistory && <RollHistoryPanel history={rollHistory} onClear={clearHistory} defaultExpanded={!isMobile} />}
         </>
       )}
 

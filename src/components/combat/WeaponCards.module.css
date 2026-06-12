@@ -131,3 +131,23 @@
   font-style: italic;
   padding: 4px 0 0;
 }
+
+/* Mobile overrides */
+@media (max-width: 767px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rollBtn {
+    min-width: var(--mobile-touch-lg, 48px);
+    min-height: var(--mobile-touch-lg, 48px);
+  }
+
+  .weaponName {
+    font-size: 14px;
+  }
+
+  .statValue {
+    font-size: 15px;
+  }
+}

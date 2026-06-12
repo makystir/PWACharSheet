@@ -329,3 +329,52 @@
 .collapsedContent {
   margin-top: 8px;
 }
+
+/* ─── Mobile Overrides ─────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* 8.1: Weapon buttons vertical stack (full-width) when >2 weapons */
+  .weaponBtnGroup:has(.weaponBtn:nth-child(n + 3)),
+  .weaponBtnGroup:has(.weaponBtnSelected:nth-child(n + 3)) {
+    flex-direction: column;
+  }
+
+  .weaponBtnGroup:has(.weaponBtn:nth-child(n + 3)) .weaponBtn,
+  .weaponBtnGroup:has(.weaponBtn:nth-child(n + 3)) .weaponBtnSelected,
+  .weaponBtnGroup:has(.weaponBtnSelected:nth-child(n + 3)) .weaponBtn,
+  .weaponBtnGroup:has(.weaponBtnSelected:nth-child(n + 3)) .weaponBtnSelected {
+    width: 100%;
+  }
+
+  /* 8.2: Roll button min-height 48px, full width */
+  .rollBtn {
+    min-height: var(--mobile-touch-lg, 48px);
+    width: 100%;
+  }
+
+  .calcDamageBtn {
+    min-height: var(--mobile-touch-lg, 48px);
+    width: 100%;
+  }
+
+  /* 8.3: Result header font 14px minimum */
+  .resultHeader {
+    font-size: 14px;
+  }
+
+  /* 8.4: Collapsible step sections - ensure proper mobile sizing */
+  .mobileStepHeader {
+    min-height: var(--mobile-touch-min, 44px);
+    padding: 4px 0;
+  }
+
+  .stepContainer {
+    padding: 10px;
+  }
+
+  /* Full-width new attack button on mobile */
+  .newAttackBtn {
+    width: 100%;
+    min-height: var(--mobile-touch-min, 44px);
+  }
+}

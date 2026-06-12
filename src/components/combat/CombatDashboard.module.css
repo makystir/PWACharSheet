@@ -19,8 +19,13 @@
 
 @media (max-width: 767px) {
   .mainRow {
-    flex-direction: column;
-    align-items: stretch;
+    /* Req 7.1: wounds/advantage/round in single row without wrapping */
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -48,8 +53,9 @@
 
 @media (max-width: 767px) {
   .woundsSection {
-    flex: unset;
-    min-width: unset;
+    /* Keep wounds section flexible but don't let it collapse */
+    flex: 1 1 auto;
+    min-width: 100px;
   }
 }
 
@@ -62,7 +68,8 @@
 
 @media (max-width: 767px) {
   .fixedSection {
-    flex: unset;
+    /* Keep as flex-shrink:0 in the row */
+    flex: 0 0 auto;
   }
 }
 
@@ -83,7 +90,8 @@
 
 @media (max-width: 767px) {
   .fortuneResolveRow {
-    flex: unset;
+    /* Keep fortune/resolve in row layout */
+    flex: 0 0 auto;
   }
 }
 
@@ -424,4 +432,67 @@
 
 .accentGold {
   color: var(--accent-gold);
+}
+
+/* ── Mobile Sticky Positioning (Requirement 17.2) ── */
+/* Combat_Dashboard remains sticky at top of scroll area on mobile
+   so wounds and advantage are always visible during active combat */
+
+@media (max-width: 767px) {
+  .dashboard {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Mobile Overrides (max-width: 767px)
+   Requirements: 7.1, 7.2, 7.3, 7.4, 20.2
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  /* Req 7.4: Wound count font size at least 28px on mobile */
+  .bigNumber {
+    font-size: 28px;
+  }
+
+  /* Req 7.2: ± buttons 44×44px with 8px gap */
+  .btnRow {
+    gap: 8px;
+  }
+
+  .tapButton {
+    min-width: var(--mobile-touch-min, 44px);
+    min-height: var(--mobile-touch-min, 44px);
+  }
+
+  .tapButtonDecrease {
+    min-width: var(--mobile-touch-min, 44px);
+    min-height: var(--mobile-touch-min, 44px);
+  }
+
+  .tapButtonIncrease {
+    min-width: var(--mobile-touch-min, 44px);
+    min-height: var(--mobile-touch-min, 44px);
+  }
+
+  /* Req 7.3: Condition badges wrapping flow layout with min-height 40px */
+  .conditionRow,
+  .conditionRowSpaced {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .conditionBadge {
+    min-height: 40px;
+  }
+
+  /* Req 20.2: Condition remove (×) button 44×44px with spacing from adjacent badges */
+  .conditionRemoveBtn {
+    min-width: var(--mobile-touch-min, 44px);
+    min-height: var(--mobile-touch-min, 44px);
+    margin-left: 4px;
+  }
 }
