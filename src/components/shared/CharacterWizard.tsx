@@ -6,6 +6,7 @@ import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { TALENT_DB } from '../../data/talents';
 import { rollRandomTalent } from '../../data/randomTalents';
 import { getCareersByClass } from '../../logic/careers';
+import { ensureCareerSkillsExist } from '../../logic/advancement';
 import styles from './CharacterWizard.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -450,7 +451,8 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
     char.xpCur = totalBonusXP;
     char.xpTotal = totalBonusXP;
 
-    return char;
+    // Ensure all career level 1 advanced skills exist on the character
+    return ensureCareerSkillsExist(char, careerSkills);
   }, [charName, species, careerScheme, selectedCareer, careerLevel1, getBaseRolls,
       speciesData, charAdvances, extraFate, speciesSkill5, speciesSkill3,
       careerSkillAdvances, getResolvedTalents, selectedCareerTalent, randomTalents,

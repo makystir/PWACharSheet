@@ -209,7 +209,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const handleCareerSelect = (career: string) => {
     const s = getCareerScheme(career);
     if (s) {
-      updateCharacter((c) => ({ ...c, career, class: s.class, careerLevel: s.level1.title, status: s.level1.status }));
+      updateCharacter((c) => ensureCareerSkillsExist({ ...c, career, class: s.class, careerLevel: s.level1.title, status: s.level1.status }, s.level1.skills));
     }
     setShowCareerPicker(false);
   };
