@@ -2,6 +2,9 @@ import type { Character, CharacterIndex, CharacterSummary } from '../types/chara
 import { BLANK_CHARACTER } from '../types/character';
 import { getItem, setItem, removeItem } from './local-storage';
 import { migrateCorruptionData } from '../logic/corruption';
+import { ensureCareerSkillsExist } from '../logic/advancement';
+import { CAREER_SCHEMES } from '../data/careers';
+import type { CareerLevel, CareerScheme } from '../types/character';
 
 const INDEX_KEY = 'wfrp4e-characters';
 const CHAR_KEY_PREFIX = 'wfrp4e-char-';
@@ -73,7 +76,20 @@ export function loadCharacter(id: string): Character | null {
     const parsed = JSON.parse(raw) as Partial<Character>;
     // Merge with BLANK_CHARACTER to fill in any fields added after the character was saved
     const merged = { ...structuredClone(BLANK_CHARACTER), ...parsed };
-    return migrateCorruptionData(merged);
+    const migrated = migrateCorruptionData(merged);
+
+    // Retroactively ensure career skills exist for the current career level
+    if (migrated.career && migrated.careerLevel) {
+      const scheme = CAREER_SCHEMES[migrated.career];
+      if (scheme) {
+        const level = ([scheme.level1, scheme.level2, scheme.level3, scheme.level4] as CareerLevel[])
+          .find(l => l.title === migrated.careerLevel);
+        if (level) {
+          return ensureCareerSkillsExist(migrated, level.skills);
+        }
+      }
+    }
+    return migrated;
   } catch {
     return null;
   }
