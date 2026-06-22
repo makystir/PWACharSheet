@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Rulebooks (copyrighted material - keep local only)
+*.pdf
+*.PDF
+WarhammerFantasyRoleplay4e.md
+highelfguide.md
+dwarfguide.md
