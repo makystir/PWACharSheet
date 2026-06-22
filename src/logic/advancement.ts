@@ -1,5 +1,6 @@
 import type { Character, CharacteristicKey, AdvancementEntry, Skill, CareerScheme, CareerLevel } from '../types/character';
 import { CAREER_SCHEMES } from '../data/careers';
+import { ADV_SKILL_DB } from '../data/advanced-skills';
 
 /** A skill entry tagged with its original array index, type, and career status for sorted rendering. */
 export interface SortedSkillEntry {
@@ -50,6 +51,86 @@ export function sortSkillsByCareerStatus(
   });
 
   return entries;
+}
+
+/** Well-known characteristic links for skill bases that can't be looked up in ADV_SKILL_DB */
+const SKILL_CHAR_FALLBACKS: Record<string, string> = {
+  'Channelling': 'WP',
+  'Language': 'Int',
+  'Lore': 'Int',
+  'Melee': 'WS',
+  'Ranged': 'BS',
+  'Ride': 'Ag',
+  'Sail': 'Ag',
+  'Stealth': 'Ag',
+  'Entertain': 'Fel',
+  'Trade': 'Dex',
+  'Perform': 'Ag',
+  'Secret Signs': 'Int',
+  'Play': 'Dex',
+  'Animal Training': 'Int',
+  'Art': 'Dex',
+};
+
+/**
+ * Resolve the characteristic for a career skill name.
+ * Tries exact match in ADV_SKILL_DB first, then falls back to base-name lookup.
+ */
+function resolveSkillCharacteristic(careerSkillName: string): string {
+  // Exact match in database
+  const exact = ADV_SKILL_DB.find(s => s.n === careerSkillName);
+  if (exact) return exact.c;
+
+  // Extract base name (before parentheses) and look up fallback
+  const parenIdx = careerSkillName.indexOf(' (');
+  const baseName = parenIdx !== -1 ? careerSkillName.substring(0, parenIdx) : careerSkillName;
+
+  // Check if we have a known fallback for this base
+  if (SKILL_CHAR_FALLBACKS[baseName]) return SKILL_CHAR_FALLBACKS[baseName];
+
+  // Check if any ADV_SKILL_DB entry starts with the same base
+  const dbMatch = ADV_SKILL_DB.find(s => s.n.startsWith(baseName + ' ('));
+  if (dbMatch) return dbMatch.c;
+
+  // Default to Int as safest fallback
+  return 'Int';
+}
+
+/**
+ * Ensure all career skills for a given career level exist on the character.
+ * If a career skill is not already present as a basic or advanced skill, it is
+ * added to aSkills with 0 advances. Skills with "(Any)" wildcards are skipped
+ * since they require the player to choose a specialisation.
+ *
+ * Returns the character unchanged if all career skills already exist.
+ */
+export function ensureCareerSkillsExist(character: Character, careerSkills: string[]): Character {
+  const allExistingSkills = [...character.bSkills, ...character.aSkills];
+  const newASkills: Skill[] = [];
+
+  for (const careerSkill of careerSkills) {
+    // Skip wildcard skills — the player needs to choose a specialisation
+    if (careerSkill.includes('(Any)') || careerSkill.includes('(Any ')) continue;
+
+    // Check if ANY existing skill already matches this career skill
+    const alreadyExists = allExistingSkills.some(s => careerSkillMatches(careerSkill, s.n));
+    if (alreadyExists) continue;
+
+    // Also check the skills we're about to add (avoid duplicates within this batch)
+    if (newASkills.some(s => careerSkillMatches(careerSkill, s.n))) continue;
+
+    // Resolve the correct characteristic for this skill
+    const characteristic = resolveSkillCharacteristic(careerSkill);
+
+    newASkills.push({ n: careerSkill, c: characteristic, a: 0 });
+  }
+
+  if (newASkills.length === 0) return character;
+
+  return {
+    ...character,
+    aSkills: [...character.aSkills, ...newASkills],
+  };
 }
 
 /**

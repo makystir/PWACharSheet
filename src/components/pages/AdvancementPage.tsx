@@ -7,7 +7,7 @@ import { Picker } from '../shared/Picker';
 import { Tooltip } from '../shared/Tooltip';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist } from '../../logic/advancement';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
 import { resolveTalentTooltip, resolveSkillTooltip } from '../../logic/tooltip-content';
@@ -163,7 +163,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const nextLevelNum = careerLevelNum + 1;
     const nextLevel = scheme[`level${nextLevelNum}` as keyof typeof scheme] as CareerLevel;
     if (!nextLevel) return;
-    updateCharacter((c) => archiveOldEntries({
+    updateCharacter((c) => ensureCareerSkillsExist(archiveOldEntries({
       ...c,
       careerLevel: nextLevel.title,
       status: nextLevel.status,
@@ -174,7 +174,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         from: careerLevelNum, to: nextLevelNum, xpCost: advanceLevelCost,
         careerLevel: nextLevel.title, inCareer: true,
       }],
-    }));
+    }), nextLevel.skills));
     setRedoStack([]);
   };
 
@@ -185,7 +185,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const sameClass = newScheme.class === character.class;
     const switchCost = (readyToProgress ? 100 : 200) + (sameClass ? 0 : 100);
     if (character.xpCur < switchCost) { setShowSwitchCareerPicker(false); return; }
-    updateCharacter((c) => archiveOldEntries({
+    updateCharacter((c) => ensureCareerSkillsExist(archiveOldEntries({
       ...c,
       career: newCareer,
       class: newScheme.class,
@@ -199,7 +199,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         from: 0, to: 0, xpCost: switchCost,
         careerLevel: newScheme.level1.title, inCareer: true,
       }],
-    }));
+    }), newScheme.level1.skills));
     setRedoStack([]);
     setShowSwitchCareerPicker(false);
   };

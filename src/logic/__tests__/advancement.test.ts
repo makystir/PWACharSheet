@@ -7,6 +7,7 @@ import {
   isCareerLevelComplete,
   careerSkillMatches,
   sortSkillsByCareerStatus,
+  ensureCareerSkillsExist,
 } from '../advancement';
 import type { Character, CharacteristicKey, CharacteristicValue } from '../../types/character';
 import type { Skill } from '../../types/character';
@@ -745,5 +746,120 @@ describe('careerSkillMatches — Property 2: Preservation (non-bug-condition inp
     it('unrelated: Athletics does not match Climb', () => {
       expect(careerSkillMatches('Athletics', 'Climb')).toBe(false);
     });
+  });
+});
+
+
+// ─── ensureCareerSkillsExist ─────────────────────────────────────────────────
+
+describe('ensureCareerSkillsExist', () => {
+  it('adds missing advanced skills with 0 advances when switching to Witch', () => {
+    // A Grave Robber has basic skills (Cool, Endurance, etc.) but not Channelling, Language (Magick), Sleight of Hand
+    const character: Character = {
+      ...BLANK_CHARACTER,
+      career: 'Witch',
+      careerLevel: 'Hexer',
+    };
+
+    const witchLevel1Skills = ['Channelling', 'Cool', 'Endurance', 'Gossip', 'Intimidate', 'Language (Magick)', 'Sleight of Hand', 'Stealth (Rural)'];
+    const result = ensureCareerSkillsExist(character, witchLevel1Skills);
+
+    // Should have added the advanced skills that weren't already present
+    const addedNames = result.aSkills.map(s => s.n);
+    expect(addedNames).toContain('Channelling');
+    expect(addedNames).toContain('Language (Magick)');
+    expect(addedNames).toContain('Sleight of Hand');
+    expect(addedNames).toContain('Stealth (Rural)');
+
+    // All added skills should have 0 advances
+    for (const skill of result.aSkills) {
+      expect(skill.a).toBe(0);
+    }
+  });
+
+  it('does not add skills that already exist as basic skills', () => {
+    const character: Character = { ...BLANK_CHARACTER };
+    const careerSkills = ['Cool', 'Endurance', 'Gossip'];
+
+    const result = ensureCareerSkillsExist(character, careerSkills);
+
+    // No new aSkills should be added since all are already basic
+    expect(result.aSkills).toHaveLength(0);
+  });
+
+  it('does not add duplicate skills if already in aSkills', () => {
+    const character: Character = {
+      ...BLANK_CHARACTER,
+      aSkills: [{ n: 'Channelling', c: 'WP', a: 5 }],
+    };
+    const careerSkills = ['Channelling', 'Language (Magick)'];
+
+    const result = ensureCareerSkillsExist(character, careerSkills);
+
+    // Only Language (Magick) should be added
+    expect(result.aSkills).toHaveLength(2);
+    expect(result.aSkills[0]).toEqual({ n: 'Channelling', c: 'WP', a: 5 }); // unchanged
+    expect(result.aSkills[1].n).toBe('Language (Magick)');
+  });
+
+  it('skips (Any) wildcard skills', () => {
+    const character: Character = { ...BLANK_CHARACTER };
+    const careerSkills = ['Melee (Any)', 'Stealth (Any)', 'Channelling (Any Colour)'];
+
+    const result = ensureCareerSkillsExist(character, careerSkills);
+
+    // None of these should be added because they require player choice
+    expect(result.aSkills).toHaveLength(0);
+  });
+
+  it('resolves correct characteristics for added skills', () => {
+    const character: Character = { ...BLANK_CHARACTER };
+    const careerSkills = ['Channelling', 'Language (Magick)', 'Sleight of Hand', 'Stealth (Rural)'];
+
+    const result = ensureCareerSkillsExist(character, careerSkills);
+
+    const channelling = result.aSkills.find(s => s.n === 'Channelling');
+    const language = result.aSkills.find(s => s.n === 'Language (Magick)');
+    const sleight = result.aSkills.find(s => s.n === 'Sleight of Hand');
+    const stealth = result.aSkills.find(s => s.n === 'Stealth (Rural)');
+
+    expect(channelling?.c).toBe('WP');
+    expect(language?.c).toBe('Int');
+    expect(sleight?.c).toBe('Dex');
+    expect(stealth?.c).toBe('Ag');
+  });
+
+  it('returns character unchanged when all career skills already exist', () => {
+    const character: Character = {
+      ...BLANK_CHARACTER,
+      aSkills: [
+        { n: 'Channelling', c: 'WP', a: 10 },
+        { n: 'Language (Magick)', c: 'Int', a: 5 },
+        { n: 'Sleight of Hand', c: 'Dex', a: 3 },
+        { n: 'Stealth (Rural)', c: 'Ag', a: 2 },
+      ],
+    };
+    const careerSkills = ['Channelling', 'Cool', 'Endurance', 'Gossip', 'Intimidate', 'Language (Magick)', 'Sleight of Hand', 'Stealth (Rural)'];
+
+    const result = ensureCareerSkillsExist(character, careerSkills);
+
+    // Should be same reference since nothing changed
+    expect(result).toBe(character);
+  });
+
+  it('matches existing skill via careerSkillMatches logic (ungrouped match)', () => {
+    // Character has "Stealth (Urban)" — career lists "Stealth (Rural)" (specific, won't match)
+    // But if career listed just "Stealth", it would match "Stealth (Urban)"
+    const character: Character = {
+      ...BLANK_CHARACTER,
+      aSkills: [{ n: 'Stealth (Urban)', c: 'Ag', a: 5 }],
+    };
+    const careerSkills = ['Stealth (Rural)']; // specific specialization, won't match Stealth (Urban)
+
+    const result = ensureCareerSkillsExist(character, careerSkills);
+
+    // Stealth (Rural) is a different specialisation from Stealth (Urban), so it should be added
+    expect(result.aSkills).toHaveLength(2);
+    expect(result.aSkills[1].n).toBe('Stealth (Rural)');
   });
 });
