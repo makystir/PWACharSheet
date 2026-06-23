@@ -1,0 +1,189 @@
+/* HirelingCombatPanel — Combat page hireling wound/condition tracking */
+
+.hirelingRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hirelingRow:last-child {
+  border-bottom: none;
+}
+
+.incapacitated {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.hirelingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hirelingName {
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--parchment);
+  font-size: 14px;
+  flex: 1;
+}
+
+.incapacitatedBadge {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--danger);
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(200, 80, 80, 0.2);
+  border: 1px solid var(--danger);
+}
+
+/* ── Wounds Row ── */
+
+.woundsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.woundsLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+
+.woundsValue {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--text-primary);
+}
+
+.woundsMax {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.woundBtn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.woundBtnDecrease {
+  composes: woundBtn;
+  background: rgba(200, 80, 80, 0.2);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.woundBtnIncrease {
+  composes: woundBtn;
+  background: rgba(90, 154, 90, 0.2);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+/* ── Conditions Row ── */
+
+.conditionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.conditionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  min-height: 36px;
+  background: rgba(200, 80, 80, 0.3);
+  color: #fff;
+  border: 1px solid var(--danger);
+}
+
+.conditionName {
+  font-size: 12px;
+}
+
+.conditionRemoveBtn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  min-width: 28px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Add Condition Row ── */
+
+.addConditionRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.conditionInput {
+  flex: 1;
+  min-width: 100px;
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.conditionInput::placeholder {
+  color: var(--text-muted);
+}
+
+.addConditionBtn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Empty State ── */
+
+.emptyMessage {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+}

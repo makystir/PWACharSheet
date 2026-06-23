@@ -1,0 +1,250 @@
+/* HirelingCreationFlow component styles */
+
+.overlay {
+  composes: overlay from '../shared/styles/shared.module.css';
+}
+
+.dialog {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  width: 90%;
+  max-width: 440px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stepIndicator {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Picker list for profiles and templates */
+.pickerList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pickerItem {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  transition: border-color 0.1s, background 0.1s;
+}
+
+.pickerItem:hover {
+  border-color: var(--accent-gold-dark);
+}
+
+.pickerItemSelected {
+  composes: pickerItem;
+  border-color: var(--accent-gold);
+  background: rgba(201, 168, 76, 0.1);
+}
+
+.pickerItemName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pickerItemDesc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Quirks section */
+.quirkSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rollBtn {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent-gold-dark);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.rollBtn:hover {
+  background: var(--accent-gold);
+}
+
+.quirkRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quirkLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quirkValueRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.quirkInput {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.rerollBtn {
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.rerollBtn:hover {
+  border-color: var(--accent-gold-dark);
+  color: var(--accent-gold);
+}
+
+/* Navigation actions */
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.cancelBtn {
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.cancelBtn:hover {
+  border-color: var(--text-secondary);
+}
+
+.backBtn {
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.backBtn:hover {
+  border-color: var(--text-secondary);
+}
+
+.nextBtn {
+  padding: 8px 16px;
+  background: var(--accent-gold-dark);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--bg-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nextBtn:hover {
+  background: var(--accent-gold);
+}
+
+.nextBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmBtn {
+  padding: 8px 16px;
+  background: var(--accent-gold-dark);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--bg-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.confirmBtn:hover {
+  background: var(--accent-gold);
+}
+
+/* Error message */
+.errorMsg {
+  color: var(--danger);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Mobile overrides */
+@media (max-width: 767px) {
+  .dialog {
+    width: 95%;
+    max-height: 90vh;
+    padding: 16px;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .cancelBtn,
+  .backBtn,
+  .nextBtn,
+  .confirmBtn {
+    width: 100%;
+    min-height: 44px;
+  }
+}

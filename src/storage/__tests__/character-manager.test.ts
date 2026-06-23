@@ -75,7 +75,7 @@ describe('Property 21: Character creation produces valid defaults', () => {
 
     const char = loadCharacter(id)!;
     expect(char.name).toBe('Gregor');
-    expect(char._v).toBe(6);
+    expect(char._v).toBe(7);
     expect(char.species).toBe('');
     expect(char.career).toBe('');
     expect(char.xpCur).toBe(0);

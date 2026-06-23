@@ -1,0 +1,419 @@
+/* HirelingCard CSS Module */
+
+.card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.cardIncapacitated {
+  composes: card;
+  opacity: 0.6;
+}
+
+/* Collapsed header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nameDisplay {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roleBadge {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.statusBadge {
+  font-size: 10px;
+  color: var(--accent-gold);
+  background: rgba(201, 168, 76, 0.15);
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.headerWounds {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  white-space: nowrap;
+}
+
+.headerWoundsHigh {
+  composes: headerWounds;
+  color: var(--success);
+}
+
+.headerWoundsMedium {
+  composes: headerWounds;
+  color: var(--accent-gold);
+}
+
+.headerWoundsLow {
+  composes: headerWounds;
+  color: var(--danger);
+}
+
+.expandIcon {
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: transform 0.15s;
+}
+
+.expandIconOpen {
+  composes: expandIcon;
+  transform: rotate(180deg);
+}
+
+/* Expanded body */
+.body {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Editable name/role/status row */
+.identityRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Characteristic grid */
+.charGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.charCell {
+  text-align: center;
+  min-width: 36px;
+}
+
+.charLabel {
+  font-size: 9px;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+/* Wound tracker */
+.woundBar {
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.woundRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.woundLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  width: 50px;
+}
+
+.woundMinusBtn {
+  padding: 2px 8px;
+  background: rgba(200, 80, 80, 0.2);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.woundProgressContainer {
+  flex: 1;
+  position: relative;
+}
+
+.woundProgressTrack {
+  background: var(--bg-primary);
+  border-radius: 3px;
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.woundProgressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.woundCountHigh {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--success);
+  font-family: var(--font-heading);
+  min-width: 50px;
+  text-align: center;
+}
+
+.woundCountMedium {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+  min-width: 50px;
+  text-align: center;
+}
+
+.woundCountLow {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--danger);
+  font-family: var(--font-heading);
+  min-width: 50px;
+  text-align: center;
+}
+
+.woundPlusBtn {
+  padding: 2px 8px;
+  background: rgba(90, 154, 90, 0.2);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.woundFullBtn {
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+/* Template display */
+.templateBadge {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-style: italic;
+}
+
+/* Quirks section */
+.quirksSection {
+  background: rgba(201, 168, 76, 0.06);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.quirksSectionTitle {
+  font-size: 10px;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.quirkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.quirkLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  min-width: 80px;
+}
+
+.quirkValue {
+  font-size: 12px;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Text fields (skills, talents, etc.) */
+.textareaField {
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.textareaField:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.fieldLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Upkeep row */
+.upkeepRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.upkeepField {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.upkeepLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.upkeepInput {
+  width: 48px;
+  padding: 4px 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.upkeepInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+/* Conditions */
+.conditionsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.conditionBadge {
+  font-size: 11px;
+  background: rgba(200, 80, 80, 0.15);
+  color: var(--danger);
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.conditionRemoveBtn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+.addConditionRow {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.conditionInput {
+  padding: 4px 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+  flex: 1;
+}
+
+.conditionInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.addConditionBtn {
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Delete button */
+.deleteBtn {
+  padding: 6px 10px;
+  background: rgba(200, 80, 80, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 12px;
+  align-self: flex-end;
+}
+
+.deleteBtn:hover {
+  background: rgba(200, 80, 80, 0.25);
+}
+
+/* Footer actions */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}

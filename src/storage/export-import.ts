@@ -1,7 +1,7 @@
 import type { Character } from '../types/character';
 import { BLANK_CHARACTER } from '../types/character';
 
-const CURRENT_VERSION = 6;
+const CURRENT_VERSION = 7;
 
 const REQUIRED_TOP_LEVEL_KEYS: (keyof Character)[] = [
   '_v', 'name', 'species', 'chars',
@@ -79,7 +79,7 @@ export function importFromJSON(json: string): { success: boolean; character?: Ch
     structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
     data,
   ) as unknown as Character;
-  character._v = 6;
+  character._v = 7;
 
   return { success: true, character };
 }

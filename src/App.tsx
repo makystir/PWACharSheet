@@ -11,6 +11,7 @@ import { EstatePage } from './components/pages/EstatePage';
 import { AdvancementPage } from './components/pages/AdvancementPage';
 import { EndeavoursPage } from './components/pages/EndeavoursPage';
 import { SettingsPage } from './components/pages/SettingsPage';
+import { RetinuePage } from './components/pages/RetinuePage';
 import { CharacterWizard } from './components/shared/CharacterWizard';
 import { CharacterManagementSheet } from './components/shared/CharacterManagementSheet';
 import { useCharacterManager } from './hooks/useCharacterManager';
@@ -152,6 +153,8 @@ function AppWithCharacter({
         return <CharacterPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} />;
       case 'combat':
         return <CombatPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} />;
+      case 'retinue':
+        return <RetinuePage character={character} update={update} updateCharacter={updateCharacter} />;
       case 'estate':
         return <EstatePage {...pageProps} />;
       case 'endeavours':

@@ -120,9 +120,9 @@ describe('Property 19: Invalid import preserves existing data', () => {
     expect(result.error).toContain('chars');
   });
 
-  it('rejects version newer than current (v7)', () => {
+  it('rejects version newer than current (v8)', () => {
     const futureData = {
-      _v: 7,
+      _v: 8,
       name: 'Future',
       species: 'Human',
       chars: {},
@@ -130,7 +130,7 @@ describe('Property 19: Invalid import preserves existing data', () => {
     const result = importFromJSON(JSON.stringify(futureData));
     expect(result.success).toBe(false);
     expect(result.error).toContain('Unsupported version');
-    expect(result.error).toContain('7');
+    expect(result.error).toContain('8');
   });
 
   it('rejects version newer than current (v99)', () => {
@@ -145,9 +145,9 @@ describe('Property 19: Invalid import preserves existing data', () => {
     expect(result.error).toContain('Unsupported version');
   });
 
-  it('accepts version equal to current (v6)', () => {
+  it('accepts version equal to current (v7)', () => {
     const data = {
-      _v: 6,
+      _v: 7,
       name: 'Current',
       species: 'Human',
       chars: structuredClone(BLANK_CHARACTER.chars),
@@ -165,6 +165,6 @@ describe('Property 19: Invalid import preserves existing data', () => {
     };
     const result = importFromJSON(JSON.stringify(data));
     expect(result.success).toBe(true);
-    expect(result.character!._v).toBe(6); // Upgraded to current
+    expect(result.character!._v).toBe(7); // Upgraded to current
   });
 });

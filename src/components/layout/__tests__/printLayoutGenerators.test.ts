@@ -3,10 +3,10 @@ import fc from 'fast-check';
 import { arbitraryCharacter, arbitraryArmourPoints } from './printLayoutGenerators';
 
 describe('printLayoutGenerators', () => {
-  it('arbitraryCharacter generates valid Character objects with _v: 6', () => {
+  it('arbitraryCharacter generates valid Character objects with _v: 7', () => {
     fc.assert(
       fc.property(arbitraryCharacter(), (character) => {
-        expect(character._v).toBe(6);
+        expect(character._v).toBe(7);
         expect(character.chars).toBeDefined();
         expect(character.chars.WS).toBeDefined();
         expect(character.chars.WS.i).toBeGreaterThanOrEqual(0);

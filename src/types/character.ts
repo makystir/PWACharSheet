@@ -141,6 +141,49 @@ export interface AnimalTemplate {
 }
 
 
+export interface Hireling {
+  id: number;               // Unique numeric ID (timestamp-based)
+  name: string;
+  role: string;             // e.g., "Mercenary", "Scout", "Lawyer"
+  status: string;           // Social tier, e.g., "Silver 3"
+
+  // Characteristics (matching Companion layout)
+  M: number;
+  WS: number;
+  BS: number;
+  S: number;
+  T: number;
+  I: number;
+  Ag: number;
+  Dex: number;
+  Int: number;
+  WP: number;
+  Fel: number;
+  W: number;                // Max wounds
+  wCur: number;             // Current wounds
+
+  // Text block fields
+  skills: string;
+  talents: string;
+  traits: string;
+  trappings: string;
+
+  // Flavour
+  template: string;         // Template name or empty string
+  physicalQuirk: string;
+  workEthic: string;
+  personalityQuirk: string;
+
+  // Financial
+  upkeep: { gc: number; ss: number; d: number };
+
+  // Combat state
+  conditions: { name: string; level: number }[];
+
+  // General
+  notes: string;
+}
+
 export interface EndeavourEntry {
   id: number;
   type: string;
@@ -356,7 +399,7 @@ export interface HouseRules {
 }
 
 export interface Character {
-  _v: 6;
+  _v: 7;
   name: string;
   species: string;
   class: string;
@@ -428,6 +471,7 @@ export interface Character {
   endeavours: DowntimePeriod[];
   portrait?: string;
   houseRules: HouseRules;
+  hirelings: Hireling[];
   knownRunes?: string[];
   learnedTechniques?: string[];  // Array of technique ids
   log: string[];
@@ -467,7 +511,7 @@ const DEFAULT_BONUS_OVERRIDES: Record<CharacteristicKey, boolean> = {
 };
 
 export const BLANK_CHARACTER: Character = {
-  _v: 6,
+  _v: 7,
   name: '',
   species: '',
   class: '',
@@ -565,6 +609,7 @@ export const BLANK_CHARACTER: Character = {
   muts: '',
   mutations: [],
   companions: [],
+  hirelings: [],
   estate: {
     name: '',
     location: '',

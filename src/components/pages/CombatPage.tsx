@@ -18,6 +18,7 @@ import { ArmourMap } from '../combat/ArmourMap';
 import { AmmoTracker } from '../combat/AmmoTracker';
 import { CriticalWoundsPanel } from '../combat/CriticalWoundsPanel';
 import { ConditionPicker } from '../combat/ConditionPicker';
+import { HirelingCombatPanel } from '../retinue/HirelingCombatPanel';
 import { WEAPONS } from '../../data/weapons';
 import { ARMOURS } from '../../data/armour';
 import { applyCondition, removeCondition, incrementAdvantage, decrementAdvantage } from '../../logic/combat';
@@ -150,6 +151,25 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
             defaultCollapsed={isMobile} />
           {rollHistory && clearHistory && <RollHistoryPanel history={rollHistory} onClear={clearHistory} defaultExpanded={!isMobile} />}
         </>
+      )}
+
+      {/* ── Hireling Combat Panel ── */}
+      {character.hirelings && character.hirelings.length > 0 && (
+        <HirelingCombatPanel
+          hirelings={character.hirelings}
+          onUpdateWounds={(id, wCur) => updateCharacter((c) => ({
+            ...c,
+            hirelings: (c.hirelings || []).map((h) => h.id === id ? { ...h, wCur } : h),
+          }))}
+          onAddCondition={(id, condition) => updateCharacter((c) => ({
+            ...c,
+            hirelings: (c.hirelings || []).map((h) => h.id === id ? { ...h, conditions: [...h.conditions, condition] } : h),
+          }))}
+          onRemoveCondition={(id, conditionIndex) => updateCharacter((c) => ({
+            ...c,
+            hirelings: (c.hirelings || []).map((h) => h.id === id ? { ...h, conditions: h.conditions.filter((_, i) => i !== conditionIndex) } : h),
+          }))}
+        />
       )}
 
       {/* ── START / END COMBAT button ── */}

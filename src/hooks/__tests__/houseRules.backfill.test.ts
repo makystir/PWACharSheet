@@ -102,7 +102,7 @@ describe('Import — character imported without houseRules', () => {
     const result = importFromJSON(json);
 
     expect(result.success).toBe(true);
-    expect(result.character!._v).toBe(6);
+    expect(result.character!._v).toBe(7);
     expect(result.character!.houseRules).toEqual(RAW_DEFAULTS);
   });
 });

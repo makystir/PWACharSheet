@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import type { Character, ArmourPoints, Holding, Estate } from '../../types/character';
+import type { Character, ArmourPoints, Holding, Estate, Hireling } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { AddButton } from '../shared/AddButton';
 import { Home, Coins, ScrollText, Building } from 'lucide-react';
+import { computeHirelingUpkeep } from '../../logic/hirelings';
 import styles from './EstatePage.module.css';
 
 interface CurrencyAmount {
@@ -19,17 +20,18 @@ interface FinancialSummary {
   profit: CurrencyAmount;
 }
 
-export function computeFinancialSummary(estate: Estate): FinancialSummary {
+export function computeFinancialSummary(estate: Estate, hirelings: Hireling[] = []): FinancialSummary {
   const props = estate.properties || [];
+  const hirelingUpkeep = computeHirelingUpkeep(hirelings);
   const totalIncome = {
     gc: (estate.monthlyIncome.gc || 0) + props.reduce((s, p) => s + (p.monthlyIncome?.gc || 0), 0),
     ss: (estate.monthlyIncome.ss || 0) + props.reduce((s, p) => s + (p.monthlyIncome?.ss || 0), 0),
     d: (estate.monthlyIncome.d || 0) + props.reduce((s, p) => s + (p.monthlyIncome?.d || 0), 0),
   };
   const totalExpenses = {
-    gc: (estate.monthlyExpenses.gc || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.gc || 0), 0),
-    ss: (estate.monthlyExpenses.ss || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.ss || 0), 0),
-    d: (estate.monthlyExpenses.d || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.d || 0), 0),
+    gc: (estate.monthlyExpenses.gc || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.gc || 0), 0) + hirelingUpkeep.gc,
+    ss: (estate.monthlyExpenses.ss || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.ss || 0), 0) + hirelingUpkeep.ss,
+    d: (estate.monthlyExpenses.d || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.d || 0), 0) + hirelingUpkeep.d,
   };
   const profit = {
     gc: totalIncome.gc - totalExpenses.gc,
@@ -57,9 +59,9 @@ export function EstatePage({ character, update, updateCharacter }: EstatePagePro
 
   const est = character.estate;
 
-  // Collect monthly income & pay expenses (including properties)
+  // Collect monthly income & pay expenses (including properties and hireling upkeep)
   const collectMonth = () => {
-    const summary = computeFinancialSummary(est);
+    const summary = computeFinancialSummary(est, character.hirelings || []);
     updateCharacter((c) => ({
       ...c,
       estate: {
@@ -133,7 +135,8 @@ export function EstatePage({ character, update, updateCharacter }: EstatePagePro
       <>
       {/* Monthly Financial Summary */}
       {(() => {
-        const summary = computeFinancialSummary(est);
+        const hirelings = character.hirelings || [];
+        const summary = computeFinancialSummary(est, hirelings);
         const { totalIncome, totalExpenses, profit } = summary;
         const props = est.properties || [];
         const propIncGC = props.reduce((s, p) => s + (p.monthlyIncome?.gc || 0), 0);
@@ -142,6 +145,8 @@ export function EstatePage({ character, update, updateCharacter }: EstatePagePro
         const propExpGC = props.reduce((s, p) => s + (p.monthlyExpenses?.gc || 0), 0);
         const propExpSS = props.reduce((s, p) => s + (p.monthlyExpenses?.ss || 0), 0);
         const propExpD = props.reduce((s, p) => s + (p.monthlyExpenses?.d || 0), 0);
+        const hirelingUpkeep = computeHirelingUpkeep(hirelings);
+        const hasHirelingUpkeep = hirelingUpkeep.gc > 0 || hirelingUpkeep.ss > 0 || hirelingUpkeep.d > 0;
         const isProfit = profit.gc > 0 || profit.ss > 0 || profit.d > 0;
         const isLoss = profit.gc < 0 || profit.ss < 0 || profit.d < 0;
         return (
@@ -157,6 +162,7 @@ export function EstatePage({ character, update, updateCharacter }: EstatePagePro
                 <div className={styles.summaryLabel}>Total Expenses</div>
                 <div className={styles.summaryExpense}>{totalExpenses.gc > 0 ? `${totalExpenses.gc}gc ` : ''}{totalExpenses.ss > 0 ? `${totalExpenses.ss}ss ` : ''}{totalExpenses.d > 0 ? `${totalExpenses.d}d` : ''}{totalExpenses.gc === 0 && totalExpenses.ss === 0 && totalExpenses.d === 0 ? '—' : ''}</div>
                 {propExpGC + propExpSS + propExpD > 0 && <div className={styles.summaryPropDetail}>Properties: {propExpGC > 0 ? `${propExpGC}gc ` : ''}{propExpSS > 0 ? `${propExpSS}ss ` : ''}{propExpD > 0 ? `${propExpD}d` : ''}</div>}
+                {hasHirelingUpkeep && <div className={styles.summaryPropDetail}>Hireling Upkeep: {hirelingUpkeep.gc > 0 ? `${hirelingUpkeep.gc}gc ` : ''}{hirelingUpkeep.ss > 0 ? `${hirelingUpkeep.ss}ss ` : ''}{hirelingUpkeep.d > 0 ? `${hirelingUpkeep.d}d` : ''}</div>}
               </div>
               <div>
                 <div className={styles.summaryLabel}>Monthly Profit</div>

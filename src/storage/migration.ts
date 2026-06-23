@@ -71,8 +71,8 @@ function migrateToMultiChar(character: Character): void {
  *
  * Scenarios:
  * 1. Multi-char index exists → skip (already migrated)
- * 2. Legacy v6 single-character (`wfrp4e-char` with `_v: 6`) → migrate to multi-char, remove legacy key
- * 3. Pre-v6 data (`wfrp4e-v5`, `wfrp4e-v4`, `wfrp4e-v3`) → deep merge with BLANK_CHARACTER to v6, then migrate to multi-char
+ * 2. Legacy v6/v7 single-character (`wfrp4e-char` with `_v: 6` or `_v: 7`) → migrate to multi-char, remove legacy key
+ * 3. Pre-v6 data (`wfrp4e-v5`, `wfrp4e-v4`, `wfrp4e-v3`) → deep merge with BLANK_CHARACTER to v7, then migrate to multi-char
  * 4. Fresh install → create empty CharacterIndex
  */
 export function runMigration(): void {
@@ -94,7 +94,7 @@ export function runMigration(): void {
   if (legacyV6Raw) {
     try {
       const legacyData = JSON.parse(legacyV6Raw);
-      if (legacyData && legacyData._v === 6) {
+      if (legacyData && (legacyData._v === 6 || legacyData._v === 7)) {
         const character = deepMerge(
           structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
           legacyData as Record<string, unknown>,
@@ -120,8 +120,8 @@ export function runMigration(): void {
             structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
             oldData as Record<string, unknown>,
           ) as unknown as Character;
-          // Force v6
-          upgraded._v = 6;
+          // Force v7
+          upgraded._v = 7;
           migrateToMultiChar(upgraded);
           removeItem(key);
           return;

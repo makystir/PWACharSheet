@@ -60,7 +60,7 @@ describe('Migration: legacy v6 single-character', () => {
     const stored = JSON.parse(store.get(charKey)!);
     expect(stored.name).toBe('Brunhilde');
     expect(stored.species).toBe('Dwarf');
-    expect(stored._v).toBe(6);
+    expect(stored._v).toBe(7);
   });
 });
 
@@ -86,7 +86,7 @@ describe('Migration: pre-v6 data', () => {
 
     const charKey = `wfrp4e-char-${index.characters[0].id}`;
     const stored = JSON.parse(store.get(charKey)!);
-    expect(stored._v).toBe(6);
+    expect(stored._v).toBe(7);
     expect(stored.name).toBe('OldChar');
     // Deep merge should fill in missing fields from BLANK_CHARACTER
     expect(stored.conditions).toEqual([]);
@@ -113,7 +113,7 @@ describe('Migration: pre-v6 data', () => {
 
     const charKey = `wfrp4e-char-${index.characters[0].id}`;
     const stored = JSON.parse(store.get(charKey)!);
-    expect(stored._v).toBe(6);
+    expect(stored._v).toBe(7);
     expect(store.has('wfrp4e-v4')).toBe(false);
   });
 

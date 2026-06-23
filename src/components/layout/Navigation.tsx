@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { User, Swords, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown } from 'lucide-react';
+import { User, Swords, Users, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { CharacterSummary } from '../../types/character';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import styles from './Navigation.module.css';
 
-export type PageSection = 'character' | 'combat' | 'estate' | 'endeavours' | 'advancement' | 'settings';
+export type PageSection = 'character' | 'combat' | 'retinue' | 'estate' | 'endeavours' | 'advancement' | 'settings';
 
 interface NavigationProps {
   activePage: PageSection;
@@ -30,10 +30,11 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'character', label: 'Character', icon: User, shortcut: '1' },
   { id: 'combat', label: 'Combat', icon: Swords, shortcut: '2' },
-  { id: 'estate', label: 'Holdings & Wealth', icon: Landmark, shortcut: '3' },
-  { id: 'endeavours', label: 'Endeavours', icon: CalendarCheck, shortcut: '4' },
-  { id: 'advancement', label: 'Advancement', icon: TrendingUp, shortcut: '5' },
-  { id: 'settings', label: 'Settings', icon: Settings, shortcut: '6' },
+  { id: 'retinue', label: 'Retinue', icon: Users, shortcut: '3' },
+  { id: 'estate', label: 'Holdings & Wealth', icon: Landmark, shortcut: '4' },
+  { id: 'endeavours', label: 'Endeavours', icon: CalendarCheck, shortcut: '5' },
+  { id: 'advancement', label: 'Advancement', icon: TrendingUp, shortcut: '6' },
+  { id: 'settings', label: 'Settings', icon: Settings, shortcut: '7' },
 ];
 
 export function Navigation({ activePage, onPageChange, characterName, characters, activeId, onSwitchCharacter, onCreateCharacter, onRenameCharacter, onDuplicateCharacter, onDeleteCharacter }: NavigationProps) {
