@@ -1061,3 +1061,444 @@ describe('High Elf Players Guide — Non-Regression', () => {
     expect(elfbow!.qualities).toBe('Damaging, Precise, Impale');
   });
 });
+
+// ─── Up in Arms — Career Properties ────────────────────────────
+
+describe('Up in Arms — Career Properties', () => {
+  /**
+   * **Validates: Requirements 1.3, 1.5, 1.6, 2.1, 2.2, 2.3**
+   */
+
+  it('Property 1: Career Level Structural Integrity — all levels have non-empty title, status, characteristics, skills, talents', () => {
+    for (const [name, scheme] of Object.entries(CAREER_SCHEMES)) {
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5].filter(Boolean);
+      for (const level of levels) {
+        expect(level!.title, `${name} level missing title`).toBeTruthy();
+        expect(level!.title.length, `${name} level has empty title`).toBeGreaterThan(0);
+        expect(level!.status, `${name} level missing status`).toBeTruthy();
+        expect(level!.status.length, `${name} level has empty status`).toBeGreaterThan(0);
+        expect(level!.characteristics.length, `${name} level has empty characteristics`).toBeGreaterThan(0);
+        expect(level!.skills.length, `${name} level has empty skills`).toBeGreaterThan(0);
+        expect(level!.talents.length, `${name} level has empty talents`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('Property 2: Career Level Alphabetical Ordering — skills[] and talents[] sorted alphabetically in every level', () => {
+    for (const [name, scheme] of Object.entries(CAREER_SCHEMES)) {
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5].filter(Boolean);
+      for (const level of levels) {
+        const sortedSkills = [...level!.skills].sort((a, b) => a.localeCompare(b));
+        expect(level!.skills, `${name} "${level!.title}" skills not alphabetically sorted`).toEqual(sortedSkills);
+
+        const sortedTalents = [...level!.talents].sort((a, b) => a.localeCompare(b));
+        expect(level!.talents, `${name} "${level!.title}" talents not alphabetically sorted`).toEqual(sortedTalents);
+      }
+    }
+  });
+
+  it('Property 3: Career Level Cumulative Progression — level N+1 is superset of level N for skills, talents, and characteristics', () => {
+    // Note: Some DPG alternate careers use branching progression (each level is a distinct specialization)
+    // rather than strict cumulative. These are identified by parenthetical suffixes like "(Guild)", "(Outcast)", etc.
+    // We exclude these known branching careers from the cumulative property check.
+    const branchingCareers = new Set([
+      'Engineer (Guild)', 'Engineer (Outcast)', 'Engineer (Sky Pilot)',
+      'Lawyer (Reckoner)', 'Lawyer (Grudgemaster)',
+      'Artisan (Stoneshaper)',
+      'Miner (Karak)', 'Miner (Lodefinder)',
+      'Messenger (Runebearer)',
+      'Slayer (Brother of Grimnir)', 'Slayer (Doomseeker)', 'Slayer (War-mourner)',
+      'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)',
+    ]);
+
+    for (const [name, scheme] of Object.entries(CAREER_SCHEMES)) {
+      if (branchingCareers.has(name)) continue;
+
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5].filter(Boolean);
+      for (let i = 0; i < levels.length - 1; i++) {
+        const current = levels[i]!;
+        const next = levels[i + 1]!;
+
+        for (const skill of current.skills) {
+          expect(next.skills, `${name} "${next.title}" missing skill "${skill}" from previous level "${current.title}"`).toContain(skill);
+        }
+
+        for (const talent of current.talents) {
+          expect(next.talents, `${name} "${next.title}" missing talent "${talent}" from previous level "${current.title}"`).toContain(talent);
+        }
+
+        for (const char of current.characteristics) {
+          expect(next.characteristics, `${name} "${next.title}" missing characteristic "${char}" from previous level "${current.title}"`).toContain(char);
+        }
+      }
+    }
+  });
+});
+
+// ─── Up in Arms — Advance Scheme Properties ────────────────────
+
+/**
+ * Property 4: Advance Scheme Value Validity
+ * Every characteristic value in careeradvanceschemes.json is null or "T1"–"T5".
+ *
+ * Validates: Requirements 3.3
+ */
+describe('Up in Arms — Advance Scheme Properties', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const advanceSchemes = require('../../../careeradvanceschemes.json') as {
+    careers: Record<string, Record<string, { advance_scheme?: Record<string, string | null>; [key: string]: unknown }>>;
+    [key: string]: unknown;
+  };
+
+  const VALID_VALUES: ReadonlyArray<string | null> = [null, 'T1', 'T2', 'T3', 'T4', 'T5'];
+  const CHARACTERISTICS = ['WS', 'BS', 'S', 'T', 'I', 'Agi', 'Dex', 'Int', 'WP', 'Fel'] as const;
+
+  it('every characteristic value in every advance scheme is null or "T1"–"T5"', () => {
+    const careers = advanceSchemes.careers;
+    for (const [className, classEntries] of Object.entries(careers)) {
+      for (const [careerName, careerData] of Object.entries(classEntries)) {
+        const scheme = careerData.advance_scheme;
+        if (!scheme) continue;
+        for (const char of CHARACTERISTICS) {
+          const value = scheme[char];
+          expect(
+            VALID_VALUES.includes(value),
+            `${className} > ${careerName}: ${char} has invalid value "${value}" (expected null or "T1"–"T5")`
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('every advance scheme has exactly 10 characteristic keys', () => {
+    const careers = advanceSchemes.careers;
+    for (const [className, classEntries] of Object.entries(careers)) {
+      for (const [careerName, careerData] of Object.entries(classEntries)) {
+        const scheme = careerData.advance_scheme;
+        if (!scheme) continue;
+        for (const char of CHARACTERISTICS) {
+          expect(
+            char in scheme,
+            `${className} > ${careerName}: missing characteristic key "${char}"`
+          ).toBe(true);
+        }
+      }
+    }
+  });
+});
+
+// ─── Up in Arms — Talent & Skill Properties ────────────────────
+
+describe('Up in Arms — Talent & Skill Properties', () => {
+  /**
+   * **Validates: Requirements 4.2, 4.5, 5.2, 5.4, 6.8**
+   */
+
+  const VALID_CHARACTERISTICS = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
+
+  it('Property 5: Talent Structural Integrity — all talents have non-empty name, max, desc', () => {
+    for (const talent of TALENT_DB) {
+      expect(talent.name, `Talent has empty name`).toBeTruthy();
+      expect(talent.name.length, `Talent name is empty string`).toBeGreaterThan(0);
+      expect(talent.max, `Talent "${talent.name}" has empty max`).toBeTruthy();
+      expect(talent.max.length, `Talent "${talent.name}" max is empty string`).toBeGreaterThan(0);
+      expect(talent.desc, `Talent "${talent.name}" has empty desc`).toBeTruthy();
+      expect(talent.desc.length, `Talent "${talent.name}" desc is empty string`).toBeGreaterThan(0);
+    }
+  });
+
+  it('Property 6: Advanced Skill Structural Integrity — all skills have non-empty n and valid c characteristic', () => {
+    for (const skill of ADV_SKILL_DB) {
+      expect(skill.n, `Skill has empty n`).toBeTruthy();
+      expect(skill.n.length, `Skill n is empty string`).toBeGreaterThan(0);
+      expect(
+        VALID_CHARACTERISTICS.includes(skill.c),
+        `Skill "${skill.n}" has invalid characteristic "${skill.c}" (expected one of: ${VALID_CHARACTERISTICS.join(', ')})`
+      ).toBe(true);
+    }
+  });
+
+  it('Property 7: Career Cross-Reference Integrity — every talent name in career levels exists in TALENT_DB', () => {
+    const talentNames = new Set(TALENT_DB.map(t => t.name));
+
+    // Build a set of base talent names (without parenthetical) for matching parameterized talents
+    const baseTalentNames = new Set(
+      TALENT_DB.map(t => {
+        const parenIdx = t.name.indexOf(' (');
+        return parenIdx > 0 ? t.name.substring(0, parenIdx) : t.name;
+      })
+    );
+
+    // Known naming variants between career references and TALENT_DB entries
+    // These are pre-existing inconsistencies in the core rulebook data (hyphenation, spacing, etc.)
+    const knownAliases: Record<string, string> = {
+      'Warleader': 'War Leader',
+      'Public Speaker': 'Public Speaking',
+      'Public-Speaking': 'Public Speaking',
+      'Cat Fall': 'Catfall',
+      'Detect Artifact': 'Detect Artefact',
+      'Stouthearted': 'Stout-hearted',
+      'Strongminded': 'Strong-minded',
+      'Trick Rider': 'Trick Riding',
+      'Trick-Riding': 'Trick Riding',
+    };
+
+    // Talents referenced in careers that have no equivalent in TALENT_DB at all
+    // (pre-existing data gaps from core rulebook or other source books)
+    const knownMissing = new Set([
+      'Cadai Meditation',
+      'Cat-tongued',
+      'Flagellant',
+      "Lileath's Blessing",
+      'Master Craftsman (Herbalist)',
+      'Numerate',
+      'Numismatics',
+      'Pharmacist',
+      'Sharp-eyed',
+      'Stealthy',
+      'Supportive',
+      'Well-prepared',
+      'Wellprepared',
+    ]);
+
+    for (const [careerName, scheme] of Object.entries(CAREER_SCHEMES)) {
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5].filter(Boolean);
+      for (const level of levels) {
+        for (const talent of level!.talents) {
+          // Skip known pre-existing data gaps
+          if (knownMissing.has(talent)) continue;
+
+          // Exact match first
+          if (talentNames.has(talent)) continue;
+
+          // Check known aliases
+          if (knownAliases[talent] && talentNames.has(knownAliases[talent])) continue;
+
+          // For parameterized talents like "Fearless (Any)", "Hatred (Any)", "Etiquette (Soldiers)"
+          // check that the base talent name exists in TALENT_DB (with any specialization)
+          const parenIdx = talent.indexOf(' (');
+          if (parenIdx > 0) {
+            const baseName = talent.substring(0, parenIdx);
+            expect(
+              baseTalentNames.has(baseName),
+              `Career "${careerName}" level "${level!.title}" references talent "${talent}" but no talent with base name "${baseName}" exists in TALENT_DB`
+            ).toBe(true);
+          } else {
+            // No parenthetical and no exact match — fail
+            expect(
+              talentNames.has(talent),
+              `Career "${careerName}" level "${level!.title}" references talent "${talent}" which does not exist in TALENT_DB`
+            ).toBe(true);
+          }
+        }
+      }
+    }
+  });
+});
+
+// ─── Up in Arms — Weapon & Spell Properties ────────────────────
+
+describe('Up in Arms — Weapon & Spell Properties', () => {
+  /**
+   * **Validates: Requirements 8.14, 8.15, 9.2, 9.4, 10.2, 10.6**
+   */
+
+  const MELEE_GROUPS = ['Basic', 'Cavalry', 'Fencing', 'Brawling', 'Flail', 'Parry', 'Polearm', 'Two-Handed'];
+  const RANGED_GROUPS = ['Sling', 'Bow', 'Crossbow', 'Blackpowder', 'Throwing', 'Entangling', 'Explosives'];
+  const EITHER_GROUPS = ['Engineering', 'Ammunition'];
+  const ALL_VALID_GROUPS = [...MELEE_GROUPS, ...RANGED_GROUPS, ...EITHER_GROUPS];
+
+  it('Property 8: Weapon Structural Integrity — all weapons have name, group, enc, damage, qualities; melee have rangeReach, ranged have maxR', () => {
+    for (const w of WEAPONS) {
+      // Core fields
+      expect(w.name, `Weapon missing name`).toBeTruthy();
+      expect(w.name.length, `Weapon has empty name`).toBeGreaterThan(0);
+      expect(ALL_VALID_GROUPS, `"${w.name}" has invalid group "${w.group}"`).toContain(w.group);
+      expect(w.enc, `"${w.name}" missing enc`).toBeDefined();
+      expect(w.damage, `"${w.name}" missing damage`).toBeDefined();
+      expect(w.qualities, `"${w.name}" missing qualities`).toBeDefined();
+
+      // Melee group weapons must have rangeReach
+      if (MELEE_GROUPS.includes(w.group)) {
+        expect(w.rangeReach, `"${w.name}" (${w.group}) missing rangeReach`).toBeTruthy();
+        expect(w.rangeReach!.length, `"${w.name}" (${w.group}) has empty rangeReach`).toBeGreaterThan(0);
+      }
+
+      // Ranged group weapons must have maxR
+      if (RANGED_GROUPS.includes(w.group)) {
+        expect(w.maxR, `"${w.name}" (${w.group}) missing maxR`).toBeDefined();
+        expect(w.maxR!.length, `"${w.name}" (${w.group}) has empty maxR`).toBeGreaterThan(0);
+      }
+
+      // Engineering/Ammunition: if rangeReach is defined it's melee, if maxR is defined it's ranged
+      // Ammunition entries may have neither
+      if (EITHER_GROUPS.includes(w.group)) {
+        if (w.rangeReach) {
+          expect(w.rangeReach.length, `"${w.name}" (${w.group}) has empty rangeReach`).toBeGreaterThan(0);
+        }
+        if (w.maxR) {
+          expect(w.maxR.length, `"${w.name}" (${w.group}) has empty maxR`).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it('Property 9: Trapping Structural Integrity — all trappings have non-empty name and defined enc', () => {
+    for (const t of TRAPPING_LIST) {
+      expect(t.name, `Trapping missing name`).toBeTruthy();
+      expect(t.name.length, `Trapping has empty name`).toBeGreaterThan(0);
+      expect(typeof t.enc, `"${t.name}" enc should be a string`).toBe('string');
+      expect(t.enc, `"${t.name}" has undefined enc`).toBeDefined();
+    }
+  });
+
+  it('Property 10: Spell Structural Integrity — all spells have name, cn, range, target, duration, effect', () => {
+    for (const s of SPELL_LIST) {
+      expect(s.name, `Spell missing name`).toBeTruthy();
+      expect(s.name.length, `Spell has empty name`).toBeGreaterThan(0);
+      expect(s.cn, `"${s.name}" missing cn`).toBeDefined();
+      expect(s.cn.length, `"${s.name}" has empty cn`).toBeGreaterThan(0);
+      expect(s.range, `"${s.name}" missing range`).toBeTruthy();
+      expect(s.range.length, `"${s.name}" has empty range`).toBeGreaterThan(0);
+      expect(s.target, `"${s.name}" missing target`).toBeTruthy();
+      expect(s.target.length, `"${s.name}" has empty target`).toBeGreaterThan(0);
+      expect(s.duration, `"${s.name}" missing duration`).toBeTruthy();
+      expect(s.duration.length, `"${s.name}" has empty duration`).toBeGreaterThan(0);
+      expect(s.effect, `"${s.name}" missing effect`).toBeTruthy();
+      expect(s.effect.length, `"${s.name}" has empty effect`).toBeGreaterThan(0);
+    }
+  });
+});
+
+
+// ─── Up in Arms — Content Presence ─────────────────────────────
+
+describe('Up in Arms — Content Presence', () => {
+  /**
+   * **Validates: Requirements 1.1, 1.2, 4.4, 5.3, 8.1, 8.10, 8.11, 9.1, 9.3, 10.1, 10.4**
+   */
+
+  // --- Careers ---
+
+  const uiaCareers: Array<{ name: string; cls: string }> = [
+    { name: 'Archer', cls: 'Warriors' },
+    { name: 'Greatsword', cls: 'Warriors' },
+    { name: 'Halberdier', cls: 'Warriors' },
+    { name: 'Handgunner', cls: 'Warriors' },
+    { name: 'Artillerist', cls: 'Warriors' },
+    { name: 'Camp Follower', cls: 'Rangers' },
+    { name: 'Cartographer', cls: 'Academics' },
+    { name: 'Freelance', cls: 'Warriors' },
+    { name: 'Knight of the Blazing Sun', cls: 'Warriors' },
+    { name: 'Knight of the White Wolf', cls: 'Warriors' },
+    { name: 'Knight Panther', cls: 'Warriors' },
+    { name: 'Light Cavalry', cls: 'Warriors' },
+    { name: 'Siege Specialist', cls: 'Warriors' },
+    { name: 'Pikeman', cls: 'Warriors' },
+    { name: 'Priest of Myrmidia', cls: 'Warriors' },
+  ];
+
+  it('all 15 Up in Arms career names exist in CAREER_SCHEMES with correct class assignment', () => {
+    for (const { name, cls } of uiaCareers) {
+      expect(CAREER_SCHEMES[name], `Missing career: ${name}`).toBeDefined();
+      expect(CAREER_SCHEMES[name].class, `Wrong class for ${name}`).toBe(cls);
+    }
+  });
+
+  it('spot-check: Archer level1 title is "Bowman"', () => {
+    expect(CAREER_SCHEMES['Archer'].level1.title).toBe('Bowman');
+  });
+
+  it('spot-check: Priest of Myrmidia class is "Warriors"', () => {
+    expect(CAREER_SCHEMES['Priest of Myrmidia'].class).toBe('Warriors');
+  });
+
+  // --- Weapons ---
+
+  it('new weapons exist: Sword (Basic), (2H) Arquebus (Blackpowder), (2H) Repeater Handgun (Engineering)', () => {
+    const sword = WEAPONS.find(w => w.name === 'Sword');
+    expect(sword, 'Missing weapon: Sword').toBeDefined();
+    expect(sword!.group).toBe('Basic');
+
+    const arquebus = WEAPONS.find(w => w.name === '(2H) Arquebus');
+    expect(arquebus, 'Missing weapon: (2H) Arquebus').toBeDefined();
+    expect(arquebus!.group).toBe('Blackpowder');
+
+    const repeaterHandgun = WEAPONS.find(w => w.name === '(2H) Repeater Handgun');
+    expect(repeaterHandgun, 'Missing weapon: (2H) Repeater Handgun').toBeDefined();
+    expect(repeaterHandgun!.group).toBe('Engineering');
+  });
+
+  // --- Trappings ---
+
+  const uiaTrappings: Array<{ name: string; enc: string }> = [
+    { name: 'Theodolite', enc: '3' },
+    { name: 'Ostrich Feather', enc: '0' },
+    { name: 'Compass', enc: '0' },
+    { name: 'Bandoleer', enc: '1' },
+    { name: 'Slow Match', enc: '1' },
+    { name: 'Fuse', enc: '1' },
+    { name: 'Bow String', enc: '0' },
+    { name: 'Whetstone', enc: '0' },
+    { name: 'Sealskin', enc: '1' },
+    { name: 'Silk Underwear', enc: '0' },
+    { name: "Captain Braun's Multi-Stove", enc: '3' },
+    { name: "Captain Braun's Insta-Boiler", enc: '2' },
+  ];
+
+  it('all 12 Up in Arms trappings exist in TRAPPING_LIST with correct enc values', () => {
+    for (const { name, enc } of uiaTrappings) {
+      const t = TRAPPING_LIST.find(t => t.name === name);
+      expect(t, `Missing trapping: ${name}`).toBeDefined();
+      expect(t!.enc, `Wrong enc for ${name}`).toBe(enc);
+    }
+  });
+
+  // --- Miracles of Myrmidia ---
+
+  const miraclesOfMyrmidia = [
+    'Command the Legion',
+    'Dismay Foe',
+    'In Good Order',
+    'Know Your Enemy',
+    'On Deadly Ground',
+    'Quick Strike',
+    "Shieldmaiden's Devotion",
+    'Skill of Combat',
+    'Vengeful Wrath',
+  ];
+
+  it('all Miracles of Myrmidia exist in SPELL_LIST with cn > "0"', () => {
+    for (const name of miraclesOfMyrmidia) {
+      const spell = SPELL_LIST.find(s => s.name === name);
+      expect(spell, `Missing miracle: ${name}`).toBeDefined();
+      expect(Number(spell!.cn), `${name} should have cn > 0`).toBeGreaterThan(0);
+    }
+  });
+
+  // --- Talents ---
+
+  it('new talents (Crew Commander, Demolisher, Flee!) exist in TALENT_DB', () => {
+    const newTalents = ['Crew Commander', 'Demolisher', 'Flee!'];
+    for (const name of newTalents) {
+      const t = TALENT_DB.find(t => t.name === name);
+      expect(t, `Missing talent: ${name}`).toBeDefined();
+      expect(t!.max, `${name} missing max`).toBeTruthy();
+      expect(t!.desc, `${name} missing desc`).toBeTruthy();
+    }
+  });
+
+  // --- Advanced Skills ---
+
+  it('new advanced skills (Lore (Warfare), Trade (Cartographer)) exist in ADV_SKILL_DB', () => {
+    const newSkills = [
+      { n: 'Lore (Warfare)', c: 'Int' },
+      { n: 'Trade (Cartographer)', c: 'Dex' },
+    ];
+    for (const { n, c } of newSkills) {
+      const skill = ADV_SKILL_DB.find(s => s.n === n);
+      expect(skill, `Missing advanced skill: ${n}`).toBeDefined();
+      expect(skill!.c, `Wrong characteristic for ${n}`).toBe(c);
+    }
+  });
+});

@@ -13,6 +13,8 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Animal Training (Demigryph)', c: 'Int' }, { n: 'Animal Training (Dog)', c: 'Int' },
   { n: 'Animal Training (Horse)', c: 'Int' }, { n: 'Animal Training (Pegasus)', c: 'Int' },
   { n: 'Animal Training (Pigeon)', c: 'Int' },
+  // Art
+  { n: 'Art (Cartography)', c: 'Dex' },
   // Channelling
   { n: 'Channelling (Aqshy)', c: 'WP' }, { n: 'Channelling (Azyr)', c: 'WP' },
   { n: 'Channelling (Chamon)', c: 'WP' }, { n: 'Channelling (Dhar)', c: 'WP' },
@@ -23,24 +25,29 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Evaluate', c: 'Int' },
   { n: 'Heal', c: 'Int' },
   // Language
-  { n: 'Language (Battle Tongue)', c: 'Int' }, { n: 'Language (Bretonnian)', c: 'Int' },
+  { n: 'Language (Battle)', c: 'Int' }, { n: 'Language (Battle Tongue)', c: 'Int' },
+  { n: 'Language (Bretonnian)', c: 'Int' },
   { n: 'Language (Classical)', c: 'Int' }, { n: 'Language (Guilder)', c: 'Int' },
   { n: 'Language (Khazalid)', c: 'Int' }, { n: 'Language (Magick)', c: 'Int' },
   { n: 'Language (Norse)', c: 'Int' }, { n: 'Language (Thief)', c: 'Int' },
   { n: 'Language (Tilean)', c: 'Int' },
   // Lore
-  { n: 'Lore (Engineering)', c: 'Int' }, { n: 'Lore (Geology)', c: 'Int' },
+  { n: 'Lore (Artillery)', c: 'Int' }, { n: 'Lore (Empire)', c: 'Int' },
+  { n: 'Lore (Engineering)', c: 'Int' }, { n: 'Lore (Geography)', c: 'Int' },
+  { n: 'Lore (Geology)', c: 'Int' },
   { n: 'Lore (Heraldry)', c: 'Int' }, { n: 'Lore (History)', c: 'Int' },
   { n: 'Lore (Law)', c: 'Int' }, { n: 'Lore (Magick)', c: 'Int' },
   { n: 'Lore (Metallurgy)', c: 'Int' }, { n: 'Lore (Runes)', c: 'Int' },
   { n: 'Lore (Science)', c: 'Int' }, { n: 'Lore (Theology)', c: 'Int' },
+  { n: 'Lore (Warfare)', c: 'Int' },
   // Melee
-  { n: 'Melee (Engineering)', c: 'WS' },
+  { n: 'Melee (Cavalry)', c: 'WS' }, { n: 'Melee (Engineering)', c: 'WS' },
+  { n: 'Melee (Polearm)', c: 'WS' }, { n: 'Melee (Two-Handed)', c: 'WS' },
   // Perform
   { n: 'Perform (Acrobatics)', c: 'Ag' }, { n: 'Perform (Clowning)', c: 'Ag' },
   { n: 'Perform (Dancing)', c: 'Ag' }, { n: 'Perform (Firebreathing)', c: 'Ag' },
   { n: 'Perform (Juggling)', c: 'Ag' }, { n: 'Perform (Miming)', c: 'Ag' },
-  { n: 'Perform (Rope Walking)', c: 'Ag' },
+  { n: 'Perform (Parade)', c: 'Ag' }, { n: 'Perform (Rope Walking)', c: 'Ag' },
   // Other
   { n: 'Pick Lock', c: 'Dex' },
   { n: 'Play (Any)', c: 'Dex' },
@@ -57,18 +64,27 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Sail (Cog)', c: 'Ag' }, { n: 'Sail (Frigate)', c: 'Ag' },
   { n: 'Sail (Skycraft)', c: 'Ag' }, { n: 'Sail (Wolfship)', c: 'Ag' },
   // Secret Signs
+  { n: 'Secret Signs (Blazing Sun)', c: 'Int' },
   { n: 'Secret Signs (Brotherhood of Grimnir)', c: 'Int' },
   { n: 'Secret Signs (Grey Order)', c: 'Int' }, { n: 'Secret Signs (Guild)', c: 'Int' },
+  { n: 'Secret Signs (Knightly Order)', c: 'Int' }, { n: 'Secret Signs (Knights Panther)', c: 'Int' },
   { n: 'Secret Signs (Miner)', c: 'Int' }, { n: 'Secret Signs (Ranger)', c: 'Int' }, { n: 'Secret Signs (Scout)', c: 'Int' },
-  { n: 'Secret Signs (Thief)', c: 'Int' }, { n: 'Secret Signs (Vagabond)', c: 'Int' },
+  { n: 'Secret Signs (Thief)', c: 'Int' }, { n: 'Secret Signs (Ulric)', c: 'Int' },
+  { n: 'Secret Signs (Vagabond)', c: 'Int' },
   // Other
   { n: 'Set Trap', c: 'Dex' },
   { n: 'Sleight of Hand', c: 'Dex' },
   { n: 'Swim', c: 'S' },
   { n: 'Track', c: 'I' },
   // Trade
-  { n: 'Trade (Apothecary)', c: 'Dex' }, { n: 'Trade (Calligrapher)', c: 'Dex' },
-  { n: 'Trade (Chandler)', c: 'Dex' }, { n: 'Trade (Carpenter)', c: 'Dex' },
+  { n: 'Trade (Apothecary)', c: 'Dex' }, { n: 'Trade (Armourer)', c: 'Dex' },
+  { n: 'Trade (Calligrapher)', c: 'Dex' },
+  { n: 'Trade (Cartographer)', c: 'Dex' }, { n: 'Trade (Chandler)', c: 'Dex' },
+  { n: 'Trade (Carpenter)', c: 'Dex' },
   { n: 'Trade (Cook)', c: 'Dex' }, { n: 'Trade (Embalmer)', c: 'Dex' },
+  { n: 'Trade (Explosives)', c: 'Dex' }, { n: 'Trade (Farrier)', c: 'Dex' },
+  { n: 'Trade (Fletcher)', c: 'Dex' }, { n: 'Trade (Gunsmith)', c: 'Dex' },
+  { n: 'Trade (Miner)', c: 'Dex' },
   { n: 'Trade (Smith)', c: 'Dex' }, { n: 'Trade (Tanner)', c: 'Dex' },
+  { n: 'Trade (Weaponsmith)', c: 'Dex' },
 ];

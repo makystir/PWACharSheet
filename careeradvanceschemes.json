@@ -265,6 +265,20 @@
           "Fel": "T2"
         }
       },
+      "Cartographer": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T2",
+          "Dex": "T1",
+          "Int": "T1",
+          "WP": "T3",
+          "Fel": "T4"
+        }
+      },
       "Engineer": {
         "advance_scheme": {
           "WS": null,
@@ -693,6 +707,20 @@
           "Fel": null
         }
       },
+      "Camp Follower": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": null,
+          "T": "T2",
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": null,
+          "Fel": "T1"
+        }
+      },
       "Coachman": {
         "advance_scheme": {
           "WS": "T3",
@@ -805,6 +833,188 @@
           "Int": null,
           "WP": null,
           "Fel": "T4"
+        }
+      },
+      "Archer": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": "T1",
+          "S": "T2",
+          "T": "T3",
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Greatsword": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T2",
+          "Agi": "T3",
+          "Dex": null,
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      },
+      "Halberdier": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T2",
+          "T": "T1",
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Handgunner": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": "T1",
+          "S": null,
+          "T": "T3",
+          "I": "T2",
+          "Agi": "T1",
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Artillerist": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": "T1",
+          "S": "T2",
+          "T": "T3",
+          "I": "T1",
+          "Agi": null,
+          "Dex": "T4",
+          "Int": "T1",
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Freelance": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": "T3",
+          "Fel": "T4"
+        }
+      },
+      "Knight of the Blazing Sun": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T1",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Knight of the White Wolf": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T1",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Knight Panther": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": null,
+          "I": "T1",
+          "Agi": null,
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Light Cavalry": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": null,
+          "Agi": "T1",
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": null
+        }
+      },
+      "Siege Specialist": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": "T1",
+          "S": "T1",
+          "T": null,
+          "I": "T2",
+          "Agi": null,
+          "Dex": null,
+          "Int": "T3",
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Pikeman": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T1",
+          "T": "T1",
+          "I": "T2",
+          "Agi": "T3",
+          "Dex": null,
+          "Int": null,
+          "WP": null,
+          "Fel": "T4"
+        }
+      },
+      "Priest of Myrmidia": {
+        "advance_scheme": {
+          "WS": "T1",
+          "BS": null,
+          "S": "T2",
+          "T": "T3",
+          "I": "T4",
+          "Agi": null,
+          "Dex": null,
+          "Int": "T1",
+          "WP": null,
+          "Fel": "T1"
         }
       },
       "Guard": {

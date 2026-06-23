@@ -21,4 +21,11 @@ export const TRAPPING_LIST: TrappingData[] = [
   {name:"Miner's Helm",enc:"1"},{name:"Pilot's Licence",enc:"0"},
   {name:"Reckoner's Log",enc:"1"},{name:"Runescribing Kit",enc:"2"},
   {name:"Stone Tablet",enc:"1"},{name:"Toasting Tankard",enc:"0"},
+  // UP IN ARMS - A Soldier's Burden
+  {name:"Theodolite",enc:"3"},{name:"Ostrich Feather",enc:"0"},
+  {name:"Compass",enc:"0"},{name:"Bandoleer",enc:"1"},
+  {name:"Slow Match",enc:"1"},{name:"Fuse",enc:"1"},
+  {name:"Bow String",enc:"0"},{name:"Whetstone",enc:"0"},
+  {name:"Sealskin",enc:"1"},{name:"Silk Underwear",enc:"0"},
+  {name:"Captain Braun's Multi-Stove",enc:"3"},{name:"Captain Braun's Insta-Boiler",enc:"2"},
 ];

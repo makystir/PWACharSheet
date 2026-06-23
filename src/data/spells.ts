@@ -256,4 +256,15 @@ export const SPELL_LIST: SpellData[] = [
   {name:"Sacred Wards",cn:"11",range:"Touch",target:"AoE (IB yards)",duration:"IB hours",effect:"Cast protective enchantments on an area; choose Forgetfulness, Purity, Surveillance, or Truthfulness effect"},
   {name:"Soulcraft",cn:"10",range:"WPB yards",target:"1 Ghost",duration:"Instant",effect:"Bind a Ghost into a waystone or leyline; Ghost may Oppose with Cool to increase CN"},
   {name:"The Primary Words",cn:"15",range:"You",target:"You",duration:"IB hours",effect:"Invoke mystical prime language to communicate on a basic level with any mortal creature or animal"},
+
+  // MIRACLES OF MYRMIDIA
+  {name:"Command the Legion",cn:"4",range:"See text",target:"Any ally",duration:"Instant",effect:"Issue command to ally in line of sight; +10 to Leadership Tests"},
+  {name:"Dismay Foe",cn:"6",range:"You",target:"You",duration:"1 round",effect:"Gain Terror 1 Creature Trait"},
+  {name:"In Good Order",cn:"6",range:"You",target:"AoE WPB yds",duration:"WPB rounds",effect:"Allies may break from combat without free attacks"},
+  {name:"Know Your Enemy",cn:"4",range:"WP yards",target:"1",duration:"Instant",effect:"Reveal target's profile, traits, skills, and talents"},
+  {name:"On Deadly Ground",cn:"6",range:"You",target:"AoE WPB yds",duration:"WPB rounds",effect:"Allies do not receive Broken Conditions"},
+  {name:"Quick Strike",cn:"6",range:"You",target:"You",duration:"3 rounds",effect:"Each round, Challenging Initiative Test for free attack"},
+  {name:"Shieldmaiden's Devotion",cn:"6",range:"You",target:"AoE WPB yds",duration:"4 rounds",effect:"Myrmidians in range gain +1 Fearless (Enemy) Talent"},
+  {name:"Skill of Combat",cn:"8",range:"You",target:"AoE WPB yds",duration:"4 rounds",effect:"Allies in range gain +10 WS and +10 BS"},
+  {name:"Vengeful Wrath",cn:"6",range:"You",target:"You",duration:"6 rounds",effect:"Must charge nearest enemy; reroll Melee Skill rolls"},
 ];
