@@ -39,6 +39,10 @@ export function validateRunePlacement(
 
   // Category restrictions (Property 9): weapon runes only on weapons, armour runes only on armour
   // Talismanic runes allowed on both (Property 10)
+  // Protection, engineering, and doom runes cannot be placed on personal weapons/armour
+  if (rune.category === 'protection' || rune.category === 'engineering' || rune.category === 'doom') {
+    return { valid: false, error: `${rune.category.charAt(0).toUpperCase() + rune.category.slice(1)} runes cannot be placed on personal ${itemType} items.` };
+  }
   if (rune.category === 'weapon' && itemType === 'armour') {
     return { valid: false, error: 'Weapon runes cannot be placed on armour.' };
   }
@@ -255,25 +259,9 @@ export function canLearnRune(
     return { canLearn: false, error: 'This rune is already known.' };
   }
 
-  // Check talent prerequisites (Property 12)
-  if (rune.isMaster) {
-    const hasMasterRuneMagic = character.talents.some(t => t.n.startsWith('Master Rune Magic'));
-    if (!hasMasterRuneMagic) {
-      return { canLearn: false, error: 'Requires Master Rune Magic talent.' };
-    }
-  } else {
-    const hasRuneMagic = character.talents.some(t => t.n.startsWith('Rune Magic'));
-    if (!hasRuneMagic) {
-      return { canLearn: false, error: 'Requires Rune Magic talent.' };
-    }
-  }
-
-  // Check sufficient XP (Property 14)
-  if (character.xpCur < rune.xpCost) {
-    return { canLearn: false, error: `Insufficient XP. Need ${rune.xpCost}, have ${character.xpCur}.` };
-  }
-
   // Priest deity restriction check (Requirements 3.3, 4.1, 4.2, 4.3, 4.5, 4.6)
+  // This check is placed before talent prerequisites so priest characters get the more
+  // specific deity-restriction error when a rune is not in their permitted list.
   if (shouldApplyDeityFilter(character)) {
     // Dual Runesmith/Priest case: if character is also a Runesmith, skip deity filtering
     // (Runesmiths have access to all runes, so the union is effectively everything)
@@ -293,6 +281,73 @@ export function canLearnRune(
         };
       }
     }
+  }
+
+  // Doom Runes cannot be learned individually (Requirement 8.6)
+  if (rune.category === 'doom') {
+    return { canLearn: false, error: 'Doom Runes are only granted automatically upon acquiring the Master Rune Magic talent.' };
+  }
+
+  // Protection Rune talent prerequisites (Requirements 8.1, 8.3, 8.7)
+  if (rune.category === 'protection') {
+    if (rune.isMaster) {
+      const hasMasterProtection = character.talents.some(t =>
+        t.n.startsWith('Master Rune Magic') &&
+        (t.n.includes('(Protection Runes)') || t.n.includes('(Protective Runes)') || t.n.includes('(All Forms)'))
+      );
+      if (!hasMasterProtection) {
+        return { canLearn: false, error: 'Requires Master Rune Magic (Protection Runes) talent.' };
+      }
+    } else {
+      const hasProtection = character.talents.some(t =>
+        t.n.startsWith('Rune Magic') &&
+        (t.n.includes('(Protection Runes)') || t.n.includes('(All Forms)'))
+      );
+      if (!hasProtection) {
+        return { canLearn: false, error: 'Requires Rune Magic (Protection Runes) talent.' };
+      }
+    }
+  }
+
+  // Engineering Rune talent prerequisites (Requirements 8.2, 8.4, 8.7)
+  if (rune.category === 'engineering') {
+    if (rune.isMaster) {
+      const hasMasterEngineering = character.talents.some(t =>
+        t.n.startsWith('Master Rune Magic') &&
+        (t.n.includes('(Engineering Runes)') || t.n.includes('(All Forms)'))
+      );
+      if (!hasMasterEngineering) {
+        return { canLearn: false, error: 'Requires Master Rune Magic (Engineering Runes) talent.' };
+      }
+    } else {
+      const hasEngineering = character.talents.some(t =>
+        t.n.startsWith('Rune Magic') &&
+        (t.n.includes('(Engineering Runes)') || t.n.includes('(All Forms)'))
+      );
+      if (!hasEngineering) {
+        return { canLearn: false, error: 'Requires Rune Magic (Engineering Runes) talent.' };
+      }
+    }
+  }
+
+  // Check talent prerequisites for weapon/armour/talisman (Property 12)
+  if (rune.category === 'weapon' || rune.category === 'armour' || rune.category === 'talisman') {
+    if (rune.isMaster) {
+      const hasMasterRuneMagic = character.talents.some(t => t.n.startsWith('Master Rune Magic'));
+      if (!hasMasterRuneMagic) {
+        return { canLearn: false, error: 'Requires Master Rune Magic talent.' };
+      }
+    } else {
+      const hasRuneMagic = character.talents.some(t => t.n.startsWith('Rune Magic'));
+      if (!hasRuneMagic) {
+        return { canLearn: false, error: 'Requires Rune Magic talent.' };
+      }
+    }
+  }
+
+  // Check sufficient XP (Property 14)
+  if (character.xpCur < rune.xpCost) {
+    return { canLearn: false, error: `Insufficient XP. Need ${rune.xpCost}, have ${character.xpCur}.` };
   }
 
   return { canLearn: true };

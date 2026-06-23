@@ -21,8 +21,8 @@ describe('Rune Catalogue — Category Counts', () => {
     expect(talismanRunes).toHaveLength(21);
   });
 
-  it('contains 50 total runes', () => {
-    expect(RUNE_CATALOGUE).toHaveLength(50);
+  it('contains 81 total runes', () => {
+    expect(RUNE_CATALOGUE).toHaveLength(81);
   });
 });
 
@@ -89,7 +89,7 @@ describe('Rune Catalogue — Required Fields', () => {
   });
 
   it('every rune has a valid category', () => {
-    const validCategories = ['weapon', 'armour', 'talisman'];
+    const validCategories = ['weapon', 'armour', 'talisman', 'protection', 'engineering', 'doom'];
     for (const rune of RUNE_CATALOGUE) {
       expect(validCategories, `Invalid category for ${rune.name}: ${rune.category}`).toContain(rune.category);
     }
@@ -101,16 +101,16 @@ describe('Rune Catalogue — Required Fields', () => {
     }
   });
 
-  it('every rune has a positive integer maxPerItem', () => {
+  it('every rune has a non-negative integer maxPerItem', () => {
     for (const rune of RUNE_CATALOGUE) {
-      expect(rune.maxPerItem, `${rune.name} maxPerItem`).toBeGreaterThan(0);
+      expect(rune.maxPerItem, `${rune.name} maxPerItem`).toBeGreaterThanOrEqual(0);
       expect(Number.isInteger(rune.maxPerItem), `${rune.name} maxPerItem not integer`).toBe(true);
     }
   });
 
-  it('every rune has a positive xpCost', () => {
+  it('every rune has a non-negative xpCost', () => {
     for (const rune of RUNE_CATALOGUE) {
-      expect(rune.xpCost, `${rune.name} xpCost`).toBeGreaterThan(0);
+      expect(rune.xpCost, `${rune.name} xpCost`).toBeGreaterThanOrEqual(0);
     }
   });
 
@@ -133,8 +133,8 @@ describe('Rune Catalogue — Required Fields', () => {
 // Validates: Requirements 1.4
 
 describe('Rune Catalogue — XP Cost Rules', () => {
-  it('standard runes cost 50 XP', () => {
-    const standard = RUNE_CATALOGUE.filter(r => !r.isMaster);
+  it('standard runes cost 50 XP (except doom runes which cost 0)', () => {
+    const standard = RUNE_CATALOGUE.filter(r => !r.isMaster && r.category !== 'doom');
     for (const rune of standard) {
       expect(rune.xpCost, `${rune.name} should cost 50 XP`).toBe(50);
     }
@@ -225,9 +225,14 @@ describe('Rune Catalogue — No Duplicate IDs', () => {
     expect(uniqueIds.size).toBe(ids.length);
   });
 
-  it('all rune names are unique', () => {
-    const names = RUNE_CATALOGUE.map(r => r.name);
-    const uniqueNames = new Set(names);
-    expect(uniqueNames.size).toBe(names.length);
+  it('all rune names are unique within their category', () => {
+    // Rune names may be shared across categories (e.g. "Rune of Alarm" in talisman and protection)
+    // but must be unique within each category
+    const categories = ['weapon', 'armour', 'talisman', 'protection', 'engineering', 'doom'] as const;
+    for (const category of categories) {
+      const names = RUNE_CATALOGUE.filter(r => r.category === category).map(r => r.name);
+      const uniqueNames = new Set(names);
+      expect(uniqueNames.size, `Duplicate name in category ${category}`).toBe(names.length);
+    }
   });
 });

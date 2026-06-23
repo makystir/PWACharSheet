@@ -44,8 +44,8 @@ const talismanRuneIds = RUNE_CATALOGUE.filter(r => r.category === 'talisman' && 
 const masterWeaponRuneIds = RUNE_CATALOGUE.filter(r => r.category === 'weapon' && r.isMaster).map(r => r.id);
 const masterArmourRuneIds = RUNE_CATALOGUE.filter(r => r.category === 'armour' && r.isMaster).map(r => r.id);
 const masterTalismanRuneIds = RUNE_CATALOGUE.filter(r => r.category === 'talisman' && r.isMaster).map(r => r.id);
-const allStandardRuneIds = RUNE_CATALOGUE.filter(r => !r.isMaster).map(r => r.id);
-const allMasterRuneIds = RUNE_CATALOGUE.filter(r => r.isMaster).map(r => r.id);
+const allStandardRuneIds = RUNE_CATALOGUE.filter(r => !r.isMaster && (r.category === 'weapon' || r.category === 'armour' || r.category === 'talisman')).map(r => r.id);
+const allMasterRuneIds = RUNE_CATALOGUE.filter(r => r.isMaster && (r.category === 'weapon' || r.category === 'armour' || r.category === 'talisman')).map(r => r.id);
 const allRuneIds = RUNE_CATALOGUE.map(r => r.id);
 
 /** Generator for a priest career entry */
@@ -214,13 +214,12 @@ describe('Property 8: Priest Rune Validation Matches Runesmith Rules', () => {
       fc.assert(
         fc.property(
           priestCareerArb,
-          deityArb,
           fc.constantFrom(...allStandardRuneIds),
-          (priestCareer, deity, runeId) => {
+          (priestCareer, runeId) => {
             const char = makePriestCharacter({
               career: priestCareer.career,
               careerLevel: priestCareer.career,
-              patronDeity: deity,
+              patronDeity: undefined, // No deity restriction — isolate talent check
               talents: [], // No Rune Magic talent
               xpCur: 500,
             });
@@ -237,13 +236,12 @@ describe('Property 8: Priest Rune Validation Matches Runesmith Rules', () => {
       fc.assert(
         fc.property(
           priestCareerArb,
-          deityArb,
           fc.constantFrom(...allMasterRuneIds),
-          (priestCareer, deity, runeId) => {
+          (priestCareer, runeId) => {
             const char = makePriestCharacter({
               career: priestCareer.career,
               careerLevel: priestCareer.career,
-              patronDeity: deity,
+              patronDeity: undefined, // No deity restriction — isolate talent check
               talents: [{ n: 'Rune Magic', lvl: 1, desc: '' }], // Only standard, no Master
               xpCur: 500,
             });
@@ -261,8 +259,9 @@ describe('Property 8: Priest Rune Validation Matches Runesmith Rules', () => {
         fc.property(
           fc.constantFrom(...allStandardRuneIds),
           (runeId) => {
-            // Priest without talent
+            // Priest without talent — no deity restriction to isolate talent check
             const priest = makePriestCharacter({
+              patronDeity: undefined,
               talents: [],
               xpCur: 500,
             });
@@ -290,8 +289,9 @@ describe('Property 8: Priest Rune Validation Matches Runesmith Rules', () => {
         fc.property(
           fc.constantFrom(...allMasterRuneIds),
           (runeId) => {
-            // Priest with only Rune Magic (not Master Rune Magic)
+            // Priest with only Rune Magic (not Master Rune Magic) — no deity restriction
             const priest = makePriestCharacter({
+              patronDeity: undefined,
               talents: [{ n: 'Rune Magic', lvl: 1, desc: '' }],
               xpCur: 500,
             });

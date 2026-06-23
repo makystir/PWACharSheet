@@ -1,0 +1,260 @@
+/* ProtectionRuneSection — CSS Module matching RunePanel styles */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.emptyState {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+/* Known Runes List */
+.runeList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.runeRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.runeName {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 160px;
+}
+
+.runeEffect {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.runeSls {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Items List */
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.itemCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.itemName {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.typeBadge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(200, 170, 80, 0.15);
+  color: var(--accent-gold);
+  text-transform: capitalize;
+}
+
+.itemLocation {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.itemRunes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.inscribedRune {
+  background: rgba(100, 160, 220, 0.12);
+  border: 1px solid rgba(100, 160, 220, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  color: var(--text-secondary);
+}
+
+.slotsRemaining {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.itemActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* Buttons */
+.btnSmall {
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btnSmall:hover {
+  background: var(--border);
+  color: var(--text-primary);
+}
+
+.btnSmall:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnDanger {
+  composes: btnSmall;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btnDanger:hover {
+  background: rgba(200, 80, 80, 0.15);
+}
+
+.btnPrimary {
+  composes: btnSmall;
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.btnPrimary:hover {
+  background: rgba(200, 170, 80, 0.15);
+}
+
+/* Add Item Form */
+.addForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 8px 0;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.formLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.formInput {
+  padding: 4px 8px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  width: 160px;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.formSelect {
+  padding: 4px 8px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.formSelect:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.validationError {
+  font-size: 11px;
+  color: var(--danger);
+  margin-top: 2px;
+}
+
+/* Edit mode inline */
+.editRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Inscribe rune row */
+.inscribeRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.removeRuneBtn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 4px;
+}
+
+.removeRuneBtn:hover {
+  text-decoration: underline;
+}
+
+.maxItemsNote {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}

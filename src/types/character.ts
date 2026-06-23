@@ -283,6 +283,27 @@ export interface QuickAction {
   action: string;
 }
 
+export interface ProtectionItem {
+  id: string;
+  name: string;                // 1-100 characters
+  type: 'banner' | 'shrine' | 'gatehouse' | 'oathstone' | 'icon' | 'other';
+  location: string;            // 0-200 characters
+  runes: string[];             // Max 3 rune IDs from catalogue (category: 'protection')
+}
+
+export interface EngineeringItem {
+  id: string;
+  name: string;                // 1-100 characters
+  type: 'Grudge Thrower' | 'Bolt Thrower' | 'Blackpowder Cannon';
+  runes: string[];             // Max 3 rune IDs from catalogue (category: 'engineering')
+}
+
+export interface DoomRuneActivation {
+  runeId: string;
+  timestamp: number;           // milliseconds since epoch
+  label: string;               // e.g. "Doom Rune activation: Rune of Hearth and Home"
+}
+
 export interface WeaponItem {
   name: string;
   group: string;
@@ -478,6 +499,10 @@ export interface Character {
   patronDeity?: AncestorGod;
   knownRunes?: string[];
   learnedTechniques?: string[];  // Array of technique ids
+  protectionItems?: ProtectionItem[];
+  engineeringItems?: EngineeringItem[];
+  doomRuneActivations?: DoomRuneActivation[];
+  forgingCharges?: Record<string, number>;  // key: engineeringItem.id, value: remaining charges
   log: string[];
 }
 
@@ -636,5 +661,9 @@ export const BLANK_CHARACTER: Character = {
   },
   knownRunes: [],
   learnedTechniques: [],
+  protectionItems: [],
+  engineeringItems: [],
+  doomRuneActivations: [],
+  forgingCharges: {},
   log: [],
 };

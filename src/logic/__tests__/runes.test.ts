@@ -340,6 +340,34 @@ describe('getAvailableRunesForItem — Property 3: category-aware filtering', ()
     expect(armourResult).toHaveLength(1);
     expect(armourResult[0].id).toBe(talismanRuneId);
   });
+
+  it('excludes protection, engineering, and doom category runes from weapon items', () => {
+    const knownRunes = [
+      weaponRuneId,
+      'protection-rune-of-alarm',
+      'engineering-rune-of-accuracy',
+      'rune-of-hearth-and-home',
+    ];
+    const result = getAvailableRunesForItem('weapon', [], knownRunes);
+    const categories = result.map(r => r.category);
+    expect(categories).not.toContain('protection');
+    expect(categories).not.toContain('engineering');
+    expect(categories).not.toContain('doom');
+  });
+
+  it('excludes protection, engineering, and doom category runes from armour items', () => {
+    const knownRunes = [
+      armourRuneId,
+      'protection-rune-of-battle',
+      'engineering-rune-of-burning',
+      'rune-of-oath-and-steel',
+    ];
+    const result = getAvailableRunesForItem('armour', [], knownRunes);
+    const categories = result.map(r => r.category);
+    expect(categories).not.toContain('protection');
+    expect(categories).not.toContain('engineering');
+    expect(categories).not.toContain('doom');
+  });
 });
 
 

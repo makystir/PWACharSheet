@@ -1,0 +1,354 @@
+/* EngineeringRuneSection — Engineering runes and artillery items management */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  color: var(--accent-gold);
+  margin: 0 0 8px 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 24px 12px;
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Known Runes list */
+.runeList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.runeCard {
+  padding: 8px 12px;
+  background: var(--surface-alt, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.runeName {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.runeDetails {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.slBadge {
+  display: inline-block;
+  background: var(--accent-gold);
+  color: var(--bg-primary, #1a1a2e);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+/* Items list */
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itemCard {
+  padding: 10px 12px;
+  background: var(--surface-alt, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.itemName {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.typeBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--surface-hover, rgba(255, 255, 255, 0.08));
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.removeBtn:hover {
+  color: var(--error, #e74c3c);
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.itemRunes {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.runeTag {
+  display: inline-block;
+  margin: 2px 4px 2px 0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255, 215, 0, 0.1);
+  color: var(--accent-gold);
+  font-size: 11px;
+}
+
+/* Forging charges */
+.chargeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.chargeLabel {
+  color: var(--text-secondary);
+}
+
+.chargeCount {
+  font-weight: 600;
+  color: var(--accent-gold);
+}
+
+.useBtn {
+  background: var(--accent-gold);
+  color: var(--bg-primary, #1a1a2e);
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.useBtn:hover {
+  opacity: 0.85;
+}
+
+.useBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Rune inscription */
+.inscribeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.inscribeSelect {
+  flex: 1;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-primary, #1a1a2e);
+  color: var(--text-primary);
+}
+
+.inscribeBtn {
+  background: var(--accent-gold);
+  color: var(--bg-primary, #1a1a2e);
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.inscribeBtn:hover {
+  opacity: 0.85;
+}
+
+.inscribeBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.removeRuneBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0 4px;
+  margin-left: 2px;
+  transition: color 0.15s;
+}
+
+.removeRuneBtn:hover {
+  color: var(--error, #e74c3c);
+}
+
+/* Reset button */
+.resetBtn {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.resetBtn:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* Add item form */
+.addForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.nameInput {
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-primary, #1a1a2e);
+  color: var(--text-primary);
+  min-width: 140px;
+}
+
+.nameInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.typeSelect {
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-primary, #1a1a2e);
+  color: var(--text-primary);
+}
+
+.addBtn {
+  background: var(--accent-gold);
+  color: var(--bg-primary, #1a1a2e);
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.addBtn:hover {
+  opacity: 0.85;
+}
+
+.addBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.validationError {
+  color: var(--error, #e74c3c);
+  font-size: 12px;
+  width: 100%;
+}
+
+.limitMessage {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Confirmation dialog inline */
+.confirmRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.confirmBtn {
+  background: var(--error, #e74c3c);
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}

@@ -30,7 +30,11 @@ import { CorruptionCard } from '../shared/CorruptionCard';
 import { getRuneById } from '../../logic/runes';
 import { RUNE_CATALOGUE } from '../../data/runes';
 import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel } from '../../logic/priestRunes';
+import { activateRuneOfForging, resetForgingCharges, calculateForgingCharges } from '../../logic/engineeringRunes';
+import { activateDoomRune } from '../../logic/doomRunes';
 import { DeitySelector } from '../shared/DeitySelector';
+import RunePanel from '../runes/RunePanel';
+import type { ProtectionItem, EngineeringItem } from '../../types/character';
 import styles from './CharacterPage.module.css';
 
 interface CharacterPageProps {
@@ -621,6 +625,125 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
         <div className={styles.runeCount}>
           {(character.knownRunes ?? []).length} / {RUNE_CATALOGUE.length} runes known
         </div>
+      </Card>
+      )}
+
+      {/* Rune Panel — Protection, Engineering, Doom management */}
+      {character.talents.some(t => t.n.startsWith('Rune Magic') || t.n.startsWith('Master Rune Magic')) && (
+      <Card>
+        <SectionHeader icon={Hammer} title="Rune Management" />
+        <RunePanel
+          knownRunes={character.knownRunes ?? []}
+          protectionItems={character.protectionItems ?? []}
+          engineeringItems={character.engineeringItems ?? []}
+          doomRuneActivations={character.doomRuneActivations ?? []}
+          forgingCharges={character.forgingCharges ?? {}}
+          onAddProtectionItem={(item: ProtectionItem) => {
+            updateCharacter((c) => ({
+              ...c,
+              protectionItems: [...(c.protectionItems ?? []), item],
+            }));
+          }}
+          onEditProtectionItem={(item: ProtectionItem) => {
+            updateCharacter((c) => ({
+              ...c,
+              protectionItems: (c.protectionItems ?? []).map(i => i.id === item.id ? item : i),
+            }));
+          }}
+          onRemoveProtectionItem={(itemId: string) => {
+            updateCharacter((c) => ({
+              ...c,
+              protectionItems: (c.protectionItems ?? []).filter(i => i.id !== itemId),
+            }));
+          }}
+          onInscribeProtectionRune={(itemId: string, runeId: string) => {
+            updateCharacter((c) => ({
+              ...c,
+              protectionItems: (c.protectionItems ?? []).map(i =>
+                i.id === itemId ? { ...i, runes: [...i.runes, runeId] } : i
+              ),
+            }));
+          }}
+          onRemoveProtectionRune={(itemId: string, runeIndex: number) => {
+            updateCharacter((c) => ({
+              ...c,
+              protectionItems: (c.protectionItems ?? []).map(i =>
+                i.id === itemId ? { ...i, runes: i.runes.filter((_, idx) => idx !== runeIndex) } : i
+              ),
+            }));
+          }}
+          onAddEngineeringItem={(item: EngineeringItem) => {
+            updateCharacter((c) => {
+              const items = [...(c.engineeringItems ?? []), item];
+              const charges = { ...(c.forgingCharges ?? {}), [item.id]: calculateForgingCharges(item) };
+              return { ...c, engineeringItems: items, forgingCharges: charges };
+            });
+          }}
+          onRemoveEngineeringItem={(itemId: string) => {
+            updateCharacter((c) => {
+              const charges = { ...(c.forgingCharges ?? {}) };
+              delete charges[itemId];
+              return {
+                ...c,
+                engineeringItems: (c.engineeringItems ?? []).filter(i => i.id !== itemId),
+                forgingCharges: charges,
+              };
+            });
+          }}
+          onInscribeEngineeringRune={(itemId: string, runeId: string) => {
+            updateCharacter((c) => {
+              const items = (c.engineeringItems ?? []).map(i =>
+                i.id === itemId ? { ...i, runes: [...i.runes, runeId] } : i
+              );
+              // Recalculate forging charges for the affected item
+              const updatedItem = items.find(i => i.id === itemId);
+              const charges = { ...(c.forgingCharges ?? {}) };
+              if (updatedItem) {
+                charges[itemId] = calculateForgingCharges(updatedItem);
+              }
+              return { ...c, engineeringItems: items, forgingCharges: charges };
+            });
+          }}
+          onRemoveEngineeringRune={(itemId: string, runeIndex: number) => {
+            updateCharacter((c) => {
+              const items = (c.engineeringItems ?? []).map(i =>
+                i.id === itemId ? { ...i, runes: i.runes.filter((_, idx) => idx !== runeIndex) } : i
+              );
+              // Recalculate forging charges for the affected item
+              const updatedItem = items.find(i => i.id === itemId);
+              const charges = { ...(c.forgingCharges ?? {}) };
+              if (updatedItem) {
+                charges[itemId] = calculateForgingCharges(updatedItem);
+              }
+              return { ...c, engineeringItems: items, forgingCharges: charges };
+            });
+          }}
+          onActivateForging={(itemId: string) => {
+            updateCharacter((c) => {
+              const item = (c.engineeringItems ?? []).find(i => i.id === itemId);
+              if (!item) return c;
+              const result = activateRuneOfForging(item, c.forgingCharges ?? {});
+              if (!result.success) return c;
+              return { ...c, forgingCharges: result.updatedCharges };
+            });
+          }}
+          onResetCharges={() => {
+            updateCharacter((c) => ({
+              ...c,
+              forgingCharges: resetForgingCharges(c.engineeringItems ?? []),
+            }));
+          }}
+          onActivateDoomRune={(runeId: string) => {
+            updateCharacter((c) => {
+              const result = activateDoomRune(runeId, c.doomRuneActivations ?? []);
+              if (!result.success || !result.activation) return c;
+              return {
+                ...c,
+                doomRuneActivations: [...(c.doomRuneActivations ?? []), result.activation],
+              };
+            });
+          }}
+        />
       </Card>
       )}
       </>)}
