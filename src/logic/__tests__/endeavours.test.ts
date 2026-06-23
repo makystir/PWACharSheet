@@ -10,6 +10,7 @@ import {
   updateEndeavourEntry,
   updateDowntimePeriod,
   isElf,
+  CLASS_ENDEAVOURS,
 } from '../endeavours';
 import type { DowntimePeriod, EndeavourEntry } from '../../types/character';
 
@@ -388,5 +389,41 @@ describe('isElf — Property 9: Elf species detection', () => {
 
   it('"Dwarf" → false', () => {
     expect(isElf('Dwarf')).toBe(false);
+  });
+});
+
+
+// ─── Warrior Endeavours (Up in Arms) ────────────────────────────────────────
+// Validates: Requirements 1.1, 1.2, 1.3, 1.5
+
+describe('CLASS_ENDEAVOURS["Warriors"] — Warrior endeavours from Up in Arms', () => {
+  const warriors = CLASS_ENDEAVOURS['Warriors'];
+
+  it('contains exactly 6 entries', () => {
+    expect(warriors).toHaveLength(6);
+  });
+
+  it('retains the original "Combat Training" entry', () => {
+    expect(warriors).toContain('Combat Training');
+  });
+
+  it('contains "Drill"', () => {
+    expect(warriors).toContain('Drill');
+  });
+
+  it('contains "Challenge"', () => {
+    expect(warriors).toContain('Challenge');
+  });
+
+  it('contains "Seek Patronage"', () => {
+    expect(warriors).toContain('Seek Patronage');
+  });
+
+  it('contains "Establish Contacts"', () => {
+    expect(warriors).toContain('Establish Contacts');
+  });
+
+  it('contains "Tournament"', () => {
+    expect(warriors).toContain('Tournament');
   });
 });

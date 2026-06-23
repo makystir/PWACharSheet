@@ -80,10 +80,11 @@ describe('Property 2: Keyboard navigation', () => {
   const shortcutMap: Array<{ key: string; section: PageSection }> = [
     { key: '1', section: 'character' },
     { key: '2', section: 'combat' },
-    { key: '3', section: 'estate' },
-    { key: '4', section: 'endeavours' },
-    { key: '5', section: 'advancement' },
-    { key: '6', section: 'settings' },
+    { key: '3', section: 'retinue' },
+    { key: '4', section: 'estate' },
+    { key: '5', section: 'endeavours' },
+    { key: '6', section: 'advancement' },
+    { key: '7', section: 'settings' },
   ];
 
   it.each(shortcutMap)(
@@ -134,7 +135,7 @@ describe('Property 2: Keyboard navigation', () => {
 
     fireEvent.keyDown(window, { key: 'a' });
     fireEvent.keyDown(window, { key: '0' });
-    fireEvent.keyDown(window, { key: '7' });
+    fireEvent.keyDown(window, { key: '8' });
     expect(onPageChange).not.toHaveBeenCalled();
   });
 });

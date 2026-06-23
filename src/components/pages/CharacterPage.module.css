@@ -274,6 +274,18 @@
   font-size: 12px;
 }
 
+.runeBadgeRestricted {
+  border-style: dashed;
+  border-color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.runeNameRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .runeName {
   color: var(--parchment);
   font-weight: 600;
@@ -282,7 +294,21 @@
 .runeMaster {
   color: var(--accent-gold);
   font-size: 10px;
-  margin-left: 4px;
+}
+
+.runeRestrictedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(200, 80, 80, 0.15);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .runeCategory {

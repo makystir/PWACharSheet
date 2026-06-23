@@ -55,25 +55,25 @@ describe('getRuneById', () => {
 // Validates: Requirements 1.4, 1.5
 
 describe('getRunesByCategory', () => {
-  it('returns all 12 weapon runes', () => {
+  it('returns all 20 weapon runes', () => {
     const runes = getRunesByCategory('weapon');
-    expect(runes).toHaveLength(12);
+    expect(runes).toHaveLength(20);
     for (const rune of runes) {
       expect(rune.category).toBe('weapon');
     }
   });
 
-  it('returns all 8 armour runes', () => {
+  it('returns all 9 armour runes', () => {
     const runes = getRunesByCategory('armour');
-    expect(runes).toHaveLength(8);
+    expect(runes).toHaveLength(9);
     for (const rune of runes) {
       expect(rune.category).toBe('armour');
     }
   });
 
-  it('returns all 5 talisman runes', () => {
+  it('returns all 21 talisman runes', () => {
     const runes = getRunesByCategory('talisman');
-    expect(runes).toHaveLength(5);
+    expect(runes).toHaveLength(21);
     for (const rune of runes) {
       expect(rune.category).toBe('talisman');
     }

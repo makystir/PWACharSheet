@@ -1,3 +1,5 @@
+import type { AncestorGod } from '../data/deityRunes';
+
 export type CharacteristicKey = 'WS' | 'BS' | 'S' | 'T' | 'I' | 'Ag' | 'Dex' | 'Int' | 'WP' | 'Fel';
 
 export interface CharacteristicValue {
@@ -396,6 +398,7 @@ export interface HouseRules {
   impaleCritsOnTens: boolean;
   min1Wound: boolean;
   advantageCap: number;
+  useGroupAdvantage: boolean;
 }
 
 export interface Character {
@@ -472,6 +475,7 @@ export interface Character {
   portrait?: string;
   houseRules: HouseRules;
   hirelings: Hireling[];
+  patronDeity?: AncestorGod;
   knownRunes?: string[];
   learnedTechniques?: string[];  // Array of technique ids
   log: string[];
@@ -628,6 +632,7 @@ export const BLANK_CHARACTER: Character = {
     impaleCritsOnTens: false,
     min1Wound: true,
     advantageCap: 10,
+    useGroupAdvantage: false,
   },
   knownRunes: [],
   learnedTechniques: [],

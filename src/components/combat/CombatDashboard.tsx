@@ -21,6 +21,7 @@ export interface CombatDashboardProps {
   resolve: number;
   resilience: number;
   inCombat: boolean;
+  useGroupAdvantage?: boolean;
   onUpdateWounds: (delta: number) => void;
   onUpdateAdvantage: (delta: number) => void;
   onUpdateRound: (delta: number) => void;
@@ -72,7 +73,7 @@ function getProgressFillClass(wCur: number, totalWounds: number): string {
 export function CombatDashboard(props: CombatDashboardProps) {
   const {
     wCur, totalWounds, advantage, combatState, conditions,
-    fortune, fate, resolve, resilience, inCombat,
+    fortune, fate, resolve, resilience, inCombat, useGroupAdvantage,
     onUpdateWounds, onUpdateAdvantage, onUpdateRound,
     onToggleEngaged, onRemoveCondition,
     onSpendFortune, onSpendResolve, onOpenConditionPicker,
@@ -161,7 +162,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
           <div className={styles.fixedSection}>
             <div className={styles.iconLabel}>
               <Zap size={14} color="var(--accent-gold)" />
-              <span className={styles.label}>Advantage</span>
+              <span className={styles.label}>{useGroupAdvantage ? 'Group Advantage' : 'Advantage'}</span>
             </div>
             <span className={`${styles.bigNumber} ${styles.accentGold}`}>{advantage}</span>
             <div className={styles.btnRow}>

@@ -25,10 +25,12 @@ import { calculateMaxEncumbrance, calculateCoinWeight } from '../../logic/calcul
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../logic/tooltip-content';
 import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
-import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer } from 'lucide-react';
+import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer, Lock } from 'lucide-react';
 import { CorruptionCard } from '../shared/CorruptionCard';
 import { getRuneById } from '../../logic/runes';
 import { RUNE_CATALOGUE } from '../../data/runes';
+import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel } from '../../logic/priestRunes';
+import { DeitySelector } from '../shared/DeitySelector';
 import styles from './CharacterPage.module.css';
 
 interface CharacterPageProps {
@@ -287,6 +289,9 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
           </div>
         </Card>
       </div>
+
+      {/* Patron Deity — only visible for Dwarf priest characters */}
+      <DeitySelector character={character} updateCharacter={updateCharacter} />
 
       {/* Characteristics */}
       <Card>
@@ -581,19 +586,37 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
             No runes learned yet. Learn runes on the Advancement page.
           </div>
         ) : (
-          <div className={styles.runesGrid}>
-            {(character.knownRunes ?? []).map((runeId) => {
-              const rune = getRuneById(runeId);
-              if (!rune) return null;
-              return (
-                <div key={runeId} className={styles.runeBadge}>
-                  <span className={styles.runeName}>{rune.name}</span>
-                  {rune.isMaster && <span className={styles.runeMaster}>★</span>}
-                  <div className={styles.runeCategory}>{rune.category}</div>
-                </div>
-              );
-            })}
-          </div>
+          (() => {
+            const knownRunes = character.knownRunes ?? [];
+            const isHighPriest = isHighPriestLevel(character.career, character.careerLevel);
+            const restrictedSet = shouldApplyDeityFilter(character)
+              ? new Set(getRestrictedRunes(knownRunes, character.patronDeity, isHighPriest))
+              : new Set<string>();
+            return (
+              <div className={styles.runesGrid}>
+                {knownRunes.map((runeId) => {
+                  const rune = getRuneById(runeId);
+                  if (!rune) return null;
+                  const isRestricted = restrictedSet.has(runeId);
+                  return (
+                    <div key={runeId} className={`${styles.runeBadge}${isRestricted ? ` ${styles.runeBadgeRestricted}` : ''}`}>
+                      <span className={styles.runeNameRow}>
+                        <span className={styles.runeName}>{rune.name}</span>
+                        {rune.isMaster && <span className={styles.runeMaster}>★</span>}
+                        {isRestricted && (
+                          <span className={styles.runeRestrictedBadge} aria-label="Restricted rune">
+                            <Lock size={10} aria-hidden="true" />
+                            <span>Restricted</span>
+                          </span>
+                        )}
+                      </span>
+                      <div className={styles.runeCategory}>{rune.category}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
         <div className={styles.runeCount}>
           {(character.knownRunes ?? []).length} / {RUNE_CATALOGUE.length} runes known

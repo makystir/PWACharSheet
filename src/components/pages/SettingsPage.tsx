@@ -173,6 +173,23 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
               />
             </div>
           </div>
+
+          {/* Group Advantage */}
+          <div className={styles.ruleItem}>
+            <div className={styles.toggleRow}>
+              <div className={styles.toggleInfo}>
+                <div className={styles.ruleLabel}>Group Advantage</div>
+                <div className={styles.ruleDesc}>Party shares a single advantage pool (Up in Arms)</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => update('houseRules.useGroupAdvantage', !character.houseRules.useGroupAdvantage)}
+                className={character.houseRules.useGroupAdvantage ? styles.toggleBtnOn : styles.toggleBtnOff}
+              >
+                {character.houseRules.useGroupAdvantage ? 'ON' : 'OFF'}
+              </button>
+            </div>
+          </div>
         </div>
       </Card>
 

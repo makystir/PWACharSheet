@@ -1,6 +1,7 @@
 import { RUNE_CATALOGUE } from '../data/runes';
 import type { RuneDefinition, RuneCategory } from '../data/runes';
 import type { WeaponItem, ArmourItem, CharacteristicKey, Character } from '../types/character';
+import { shouldApplyDeityFilter, getPriestAvailableRunes, isHighPriestLevel } from './priestRunes';
 
 export type { RuneDefinition, RuneCategory };
 
@@ -270,6 +271,28 @@ export function canLearnRune(
   // Check sufficient XP (Property 14)
   if (character.xpCur < rune.xpCost) {
     return { canLearn: false, error: `Insufficient XP. Need ${rune.xpCost}, have ${character.xpCur}.` };
+  }
+
+  // Priest deity restriction check (Requirements 3.3, 4.1, 4.2, 4.3, 4.5, 4.6)
+  if (shouldApplyDeityFilter(character)) {
+    // Dual Runesmith/Priest case: if character is also a Runesmith, skip deity filtering
+    // (Runesmiths have access to all runes, so the union is effectively everything)
+    const RUNESMITH_TITLES = ['Apprentice Runesmith', 'Runesmith', 'Master Runesmith', 'Runelord'];
+    const isAlsoRunesmith = RUNESMITH_TITLES.includes(character.career) ||
+      RUNESMITH_TITLES.includes(character.careerLevel);
+
+    if (!isAlsoRunesmith) {
+      const availableRunes = getPriestAvailableRunes(
+        character.patronDeity,
+        isHighPriestLevel(character.career, character.careerLevel)
+      );
+      if (!availableRunes.includes(runeId)) {
+        return {
+          canLearn: false,
+          error: `${rune.name} is not permitted by the priesthood of ${character.patronDeity}.`
+        };
+      }
+    }
   }
 
   return { canLearn: true };

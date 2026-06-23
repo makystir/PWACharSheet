@@ -53,13 +53,13 @@ describe('Navigation mobile touch targets and height', () => {
     expect(nav.className).toContain('sidebar');
   });
 
-  it('renders all 6 navigation tabs as buttons (Req 1.1)', () => {
+  it('renders all 7 navigation tabs as buttons (Req 1.1)', () => {
     render(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     const navButtons = screen.getAllByRole('button').filter(
       (btn) => btn.getAttribute('data-section') !== null
     );
-    expect(navButtons).toHaveLength(6);
+    expect(navButtons).toHaveLength(7);
   });
 
   it('nav items have min-height for 48px touch targets via CSS class (Req 1.1)', () => {

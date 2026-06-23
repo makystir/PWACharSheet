@@ -6,23 +6,23 @@ import { RUNE_CATALOGUE } from '../runes';
 // Validates: Requirements 1.1, 1.2, 1.3
 
 describe('Rune Catalogue — Category Counts', () => {
-  it('contains exactly 12 weapon runes', () => {
+  it('contains exactly 20 weapon runes', () => {
     const weaponRunes = RUNE_CATALOGUE.filter(r => r.category === 'weapon');
-    expect(weaponRunes).toHaveLength(12);
+    expect(weaponRunes).toHaveLength(20);
   });
 
-  it('contains exactly 8 armour runes', () => {
+  it('contains exactly 9 armour runes', () => {
     const armourRunes = RUNE_CATALOGUE.filter(r => r.category === 'armour');
-    expect(armourRunes).toHaveLength(8);
+    expect(armourRunes).toHaveLength(9);
   });
 
-  it('contains exactly 5 talisman runes', () => {
+  it('contains exactly 21 talisman runes', () => {
     const talismanRunes = RUNE_CATALOGUE.filter(r => r.category === 'talisman');
-    expect(talismanRunes).toHaveLength(5);
+    expect(talismanRunes).toHaveLength(21);
   });
 
-  it('contains 25 total runes', () => {
-    expect(RUNE_CATALOGUE).toHaveLength(25);
+  it('contains 50 total runes', () => {
+    expect(RUNE_CATALOGUE).toHaveLength(50);
   });
 });
 

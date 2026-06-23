@@ -16,7 +16,7 @@ export const CLASS_ENDEAVOURS: Record<string, string[]> = {
   Rangers: ['Combat Training', 'Latest News'],
   Riverfolk: ['Latest News'],
   Rogues: ['Study a Mark'],
-  Warriors: ['Combat Training'],
+  Warriors: ['Combat Training', 'Drill', 'Challenge', 'Seek Patronage', 'Establish Contacts', 'Tournament'],
 };
 
 /**

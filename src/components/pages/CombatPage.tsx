@@ -96,6 +96,7 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
         combatState={character.combatState} conditions={character.conditions}
         fortune={character.fortune} fate={character.fate} resolve={character.resolve} resilience={character.resilience}
         inCombat={inCombat}
+        useGroupAdvantage={character.houseRules?.useGroupAdvantage ?? false}
         onUpdateWounds={(d) => update('wCur', Math.max(0, Math.min(totalWounds, character.wCur + d)))}
         onUpdateAdvantage={(d) => update('advantage', d < 0 ? decrementAdvantage(character.advantage) : d === -character.advantage ? 0 : incrementAdvantage(character.advantage, character.houseRules.advantageCap))}
         onUpdateRound={(d) => update('combatState.currentRound', Math.max(0, character.combatState.currentRound + d))}
