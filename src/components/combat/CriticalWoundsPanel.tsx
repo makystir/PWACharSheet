@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import type { CriticalWound } from '../../types/character';
+import type { HitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { AddButton } from '../shared/AddButton';
+import { RollCriticalFlow } from './RollCriticalFlow';
 import { Activity } from 'lucide-react';
 import styles from './CriticalWoundsPanel.module.css';
 
@@ -13,6 +15,8 @@ interface CriticalWoundsPanelProps {
   onHeal: (woundId: number) => void;
   onUpdate: (index: number, field: string, value: string | number) => void;
   defaultCollapsed?: boolean;
+  preselectedLocation?: HitLocation;
+  onAddWound?: (wound: Omit<CriticalWound, 'id' | 'timestamp'>) => void;
 }
 
 function getSeverityClass(severity: number): string {
@@ -21,22 +25,54 @@ function getSeverityClass(severity: number): string {
   return styles.severityLow;
 }
 
-export function CriticalWoundsPanel({ criticalWounds, onAdd, onHeal, onUpdate, defaultCollapsed = false }: CriticalWoundsPanelProps) {
+export function CriticalWoundsPanel({ criticalWounds, onAdd, onHeal, onUpdate, defaultCollapsed = false, preselectedLocation, onAddWound }: CriticalWoundsPanelProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const [showRollFlow, setShowRollFlow] = useState(false);
   const activeWounds = criticalWounds.filter((w) => !w.healed);
+
+  function handleRollCriticalConfirm(wound: Omit<CriticalWound, 'id' | 'timestamp'>) {
+    if (onAddWound) {
+      onAddWound(wound);
+    } else {
+      onAdd();
+    }
+    setShowRollFlow(false);
+  }
+
+  function handleRollCriticalCancel() {
+    setShowRollFlow(false);
+  }
 
   return (
     <Card>
       <SectionHeader
         icon={Activity}
         title="Critical Wounds"
-        action={<AddButton label="Add" onClick={onAdd} />}
+        action={
+          <div className={styles.headerActions}>
+            <AddButton label="Add" onClick={onAdd} />
+            <button
+              type="button"
+              className={styles.rollCriticalBtn}
+              onClick={() => setShowRollFlow(true)}
+            >
+              Roll Critical
+            </button>
+          </div>
+        }
         collapsible
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed((prev) => !prev)}
       />
       {!collapsed && (
         <>
+          {showRollFlow && (
+            <RollCriticalFlow
+              preselectedLocation={preselectedLocation}
+              onConfirm={handleRollCriticalConfirm}
+              onCancel={handleRollCriticalCancel}
+            />
+          )}
           {activeWounds.length === 0 && (
             <div className={styles.emptyMessage}>
               No active critical wounds

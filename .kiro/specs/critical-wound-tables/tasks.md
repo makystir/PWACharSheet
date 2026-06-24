@@ -106,14 +106,14 @@ Implement structured critical wound reference tables for the WFRP 4e character s
     - Test random roll generates value 1–100 and auto-lookups
     - _Requirements: 3.1, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-- [ ] 5. Integrate Roll Critical flow into existing panels
+- [x] 5. Integrate Roll Critical flow into existing panels
   - [x] 5.1 Modify `src/components/combat/TakeDamagePanel.tsx` to add `onDown` callback
     - Add optional prop `onDown?: (location: HitLocation) => void`
     - Call `onDown(selectedLocation)` when the "Character is Down" alert is triggered
     - No visual changes to TakeDamagePanel
     - _Requirements: 3.2_
 
-  - [~] 5.2 Modify `src/components/combat/CriticalWoundsPanel.tsx` to add Roll Critical button and flow
+  - [x] 5.2 Modify `src/components/combat/CriticalWoundsPanel.tsx` to add Roll Critical button and flow
     - Add `preselectedLocation?: HitLocation` to props interface
     - Add internal state `showRollFlow: boolean`
     - Render "Roll Critical" button next to existing "Add" button in the header
@@ -123,14 +123,14 @@ Implement structured critical wound reference tables for the WFRP 4e character s
     - Existing "Add" button, edit, and heal functionality must remain unchanged
     - _Requirements: 3.1, 3.2, 3.7, 3.8, 4.1, 4.2, 4.3, 4.4, 4.5_
 
-  - [~] 5.3 Wire `onDown` from TakeDamagePanel to CriticalWoundsPanel in the parent component
+  - [x] 5.3 Wire `onDown` from TakeDamagePanel to CriticalWoundsPanel in the parent component
     - In `CombatDashboard.tsx` or `CombatPage.tsx`, add state to store the down location
     - Pass `onDown` handler to `TakeDamagePanel` that stores the selected location
     - Pass stored location as `preselectedLocation` to `CriticalWoundsPanel`
     - Clear the stored location when Roll Critical flow completes or is cancelled
     - _Requirements: 3.2_
 
-- [~] 6. Final checkpoint - Ensure all tests pass
+- [x] 6. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
   - Verify both "Add" and "Roll Critical" buttons are visible simultaneously
   - Verify wounds created via Roll Critical are fully editable and healable

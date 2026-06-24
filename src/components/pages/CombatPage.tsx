@@ -28,6 +28,7 @@ import { findSkillForWeapon, RANGED_GROUPS } from '../../logic/weapons';
 import { computeSkillTarget, type RollResult, type DifficultyLevel } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
 import type { CharacteristicKey } from '../../types/character';
+import type { HitLocation } from '../combat/hitLocationTable';
 
 // Re-exports for backward compatibility
 export { RANGED_GROUPS, findSkillForWeapon } from '../../logic/weapons';
@@ -55,6 +56,7 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
   const [rollResultState, setRollResultState] = useState<RollResult | null>(null);
   const [runeManagerTarget, setRuneManagerTarget] = useState<{ type: 'weapon' | 'armour'; index: number } | null>(null);
   const [showConditionPicker, setShowConditionPicker] = useState(false);
+  const [downLocation, setDownLocation] = useState<HitLocation | undefined>(undefined);
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const inCombat = character.combatState.inCombat;
@@ -113,7 +115,8 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
           <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} />
           <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
           <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} wCur={character.wCur} totalWounds={totalWounds}
-            onApplyWounds={(w) => update('wCur', Math.max(0, character.wCur - w))} min1Wound={character.houseRules.min1Wound} />
+            onApplyWounds={(w) => update('wCur', Math.max(0, character.wCur - w))} min1Wound={character.houseRules.min1Wound}
+            onDown={(location) => setDownLocation(location)} />
         </>
       )}
 
@@ -149,7 +152,9 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
             onAdd={() => updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, { location: 'Body', description: 'New wound', effects: '', duration: '', severity: 1, healed: false }) }))}
             onHeal={(id) => updateCharacter((c) => ({ ...c, criticalWounds: healCriticalWound(c.criticalWounds, id) }))}
             onUpdate={(i, field, value) => updateCharacter((c) => ({ ...c, criticalWounds: c.criticalWounds.map((w, j) => j === i ? { ...w, [field]: value } : w) }))}
-            defaultCollapsed={isMobile} />
+            defaultCollapsed={isMobile}
+            preselectedLocation={downLocation}
+            onAddWound={(wound) => { updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, wound) })); setDownLocation(undefined); }} />
           {rollHistory && clearHistory && <RollHistoryPanel history={rollHistory} onClear={clearHistory} defaultExpanded={!isMobile} />}
         </>
       )}

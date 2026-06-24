@@ -92,3 +92,29 @@
   text-align: center;
   padding: 8px;
 }
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rollCriticalBtn {
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rollCriticalBtn:hover {
+  background: rgba(200, 168, 76, 0.15);
+}
