@@ -1468,11 +1468,11 @@ describe('Up in Arms — Content Presence', () => {
     'Vengeful Wrath',
   ];
 
-  it('all Miracles of Myrmidia exist in SPELL_LIST with cn > "0"', () => {
+  it('all Miracles of Myrmidia exist in SPELL_LIST with cn === "-"', () => {
     for (const name of miraclesOfMyrmidia) {
       const spell = SPELL_LIST.find(s => s.name === name);
       expect(spell, `Missing miracle: ${name}`).toBeDefined();
-      expect(Number(spell!.cn), `${name} should have cn > 0`).toBeGreaterThan(0);
+      expect(spell!.cn, `${name} should have cn "-"`).toBe('-');
     }
   });
 

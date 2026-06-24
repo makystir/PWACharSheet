@@ -235,7 +235,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
             </thead>
             <tbody>
               {memorizedSpells.map((spell) => {
-                const isPetty = spell.cn === '0';
+                const isPetty = spell.cn === '0' || spell.cn === '-';
                 const cp = getChannellingProgress(spell.name);
                 const cn = parseInt(spell.cn, 10) || 0;
                 const isReady = cp != null && cp.accumulatedSL >= cn && cn > 0;
