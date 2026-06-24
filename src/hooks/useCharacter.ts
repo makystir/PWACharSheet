@@ -62,6 +62,9 @@ export function backfillCharacter(char: Character): Character {
   if (!patched.endeavours) {
     patched.endeavours = [];
   }
+  if (!patched.diseases) {
+    patched.diseases = [];
+  }
   // Always sync talent bonuses on load to ensure .b values are correct
   patched = syncTalentBonuses(patched);
 

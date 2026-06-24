@@ -27,6 +27,7 @@ import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
 import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer, Lock } from 'lucide-react';
 import { CorruptionCard } from '../shared/CorruptionCard';
+import { DiseasePanel } from '../shared/DiseasePanel';
 import { getRuneById } from '../../logic/runes';
 import { RUNE_CATALOGUE } from '../../data/runes';
 import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel } from '../../logic/priestRunes';
@@ -840,6 +841,9 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
 
       {/* Corruption & Mutation */}
       <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} />
+
+      {/* Diseases */}
+      <DiseasePanel character={character} updateCharacter={updateCharacter} />
 
       {/* Ambitions & Party */}
       <Card>

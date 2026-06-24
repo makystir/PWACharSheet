@@ -1,4 +1,5 @@
 import type { AncestorGod } from '../data/deityRunes';
+import type { ActiveDisease } from '../logic/diseases';
 
 export type CharacteristicKey = 'WS' | 'BS' | 'S' | 'T' | 'I' | 'Ag' | 'Dex' | 'Int' | 'WP' | 'Fel';
 
@@ -503,6 +504,7 @@ export interface Character {
   engineeringItems?: EngineeringItem[];
   doomRuneActivations?: DoomRuneActivation[];
   forgingCharges?: Record<string, number>;  // key: engineeringItem.id, value: remaining charges
+  diseases?: ActiveDisease[];
   log: string[];
 }
 
@@ -665,5 +667,6 @@ export const BLANK_CHARACTER: Character = {
   engineeringItems: [],
   doomRuneActivations: [],
   forgingCharges: {},
+  diseases: [],
   log: [],
 };
