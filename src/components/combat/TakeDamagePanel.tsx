@@ -15,6 +15,7 @@ export interface TakeDamagePanelProps {
   totalWounds: number;
   onApplyWounds: (woundsToApply: number) => void;
   min1Wound?: boolean;
+  onDown?: (location: HitLocation) => void;
 }
 
 // ─── Location mapping ────────────────────────────────────────────────────────
@@ -66,6 +67,7 @@ export function TakeDamagePanel({
   totalWounds: _totalWounds,
   onApplyWounds,
   min1Wound,
+  onDown,
 }: TakeDamagePanelProps) {
   // totalWounds kept in props interface for potential future use (e.g. percentage display)
   void _totalWounds;
@@ -90,6 +92,7 @@ export function TakeDamagePanel({
     // Show alert if character is down
     if (newWCur <= 0) {
       setShowDownAlert(true);
+      onDown?.(selectedLocation);
     } else {
       setShowDownAlert(false);
     }
