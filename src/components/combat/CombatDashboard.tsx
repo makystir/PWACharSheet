@@ -346,7 +346,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
             aria-label="Add condition"
             onClick={onOpenConditionPicker}
             className={styles.addConditionBtn}
-          >+</button>
+          >{conditions.length === 0 && <span className={styles.conditionLabel}>Conditions</span>}+</button>
         )}
       </div>
 
