@@ -1246,10 +1246,8 @@ describe('Up in Arms — Talent & Skill Properties', () => {
     // Talents referenced in careers that have no equivalent in TALENT_DB at all
     // (pre-existing data gaps from core rulebook or other source books)
     const knownMissing = new Set([
-      'Cadai Meditation',
       'Cat-tongued',
       'Flagellant',
-      "Lileath's Blessing",
       'Master Craftsman (Herbalist)',
       'Numerate',
       'Numismatics',
