@@ -37,7 +37,7 @@ import { activateDoomRune } from '../../logic/doomRunes';
 import { DeitySelector } from '../shared/DeitySelector';
 import { GrudgePanel } from '../shared/GrudgePanel';
 import { YenluiPanel } from '../shared/YenluiPanel';
-import { isYenluiVisible } from '../../logic/yenlui';
+import { isElf } from '../../logic/endeavours';
 import { MagicalBurnoutPanel } from '../shared/MagicalBurnoutPanel';
 import RunePanel from '../runes/RunePanel';
 import type { ProtectionItem, EngineeringItem } from '../../types/character';
@@ -337,7 +337,7 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       <GrudgePanel character={character} updateCharacter={updateCharacter} />
 
       {/* Yenlui Balance — only visible for Elf characters with useYenlui enabled */}
-      {isYenluiVisible(character) && (
+      {character.houseRules.useYenlui === true && isElf(character.species) && (
         <div className={styles.fieldWithHelp}>
           <YenluiPanel character={character} updateCharacter={updateCharacter} />
           <HelpPopover concept="yenlui-balance">{getHelpContent('yenlui-balance')}</HelpPopover>
