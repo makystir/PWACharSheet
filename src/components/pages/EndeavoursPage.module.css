@@ -5,6 +5,42 @@
   composes: sectionGap from '../shared/styles/shared.module.css';
 }
 
+/* First-use banner */
+.firstUseBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(100, 140, 200, 0.12);
+  border: 1px solid rgba(100, 140, 200, 0.35);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.firstUseBannerText {
+  flex: 1;
+}
+
+.firstUseBannerClose {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.firstUseBannerClose:hover {
+  color: var(--text-primary);
+}
+
 /* Slot badge */
 .slotBadge {
   font-size: 12px;
@@ -158,6 +194,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 150ms ease;
+}
+
+/* Desktop: hidden by default, revealed on row hover or focus-within */
+@media (min-width: 768px) {
+  .moveBtn {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .entryRow:hover .moveBtn,
+  .entryRow:focus-within .moveBtn,
+  .entryRowInProgress:hover .moveBtn,
+  .entryRowInProgress:focus-within .moveBtn,
+  .entryRowCompleted:hover .moveBtn,
+  .entryRowCompleted:focus-within .moveBtn {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 /* Checkbox */
@@ -198,21 +253,41 @@
   text-decoration: line-through;
 }
 
-/* Period header row */
+/* Period header row — responsive layout */
 .periodHeader {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-rows: auto auto;
+  gap: 8px;
   align-items: center;
-  gap: 12px;
   margin-bottom: 10px;
+  overflow: hidden;
 }
 
 .periodLabelField {
-  flex: 1;
+  grid-column: 1;
+  grid-row: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
-/* Period date input */
+.periodHeader .slotBadge {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.periodHeader .removeBtn {
+  grid-column: 3;
+  grid-row: 1;
+}
+
 .periodDateInput {
-  width: 130px;
+  grid-column: 1;
+  grid-row: 2;
+  width: 100%;
+  max-width: 130px;
   background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -221,8 +296,9 @@
   font-size: 12px;
 }
 
-/* Period session number input */
 .periodSessionInput {
+  grid-column: 2;
+  grid-row: 2;
   width: 80px;
   background: var(--bg-primary);
   border: 1px solid var(--border);
@@ -232,10 +308,113 @@
   font-size: 12px;
 }
 
-.periodSlotGroup {
+.periodSlotsField {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+/* Desktop (≥768px): single horizontal row */
+@media (min-width: 768px) {
+  .periodHeader {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  .periodLabelField {
+    flex: 1;
+    min-width: 0;
+    order: 1;
+  }
+
+  .periodDateInput {
+    width: 130px;
+    max-width: 130px;
+    order: 2;
+  }
+
+  .periodSessionInput {
+    width: 80px;
+    order: 3;
+  }
+
+  .periodSlotsField {
+    display: flex;
+    align-items: center;
+    order: 4;
+  }
+
+  .periodHeader .slotBadge {
+    order: 5;
+  }
+
+  .periodHeader .removeBtn {
+    order: 6;
+  }
+}
+
+/* Status legend row */
+.statusLegend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.statusLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statusLegendIcon {
+  font-size: 12px;
+}
+
+/* Status tooltip (first-entry hint) */
+.statusTooltipWrapper {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.statusTooltip {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 8px 12px;
+  background: rgba(100, 140, 200, 0.12);
+  border: 1px solid rgba(100, 140, 200, 0.35);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.statusTooltipText {
+  flex: 1;
+}
+
+.statusTooltipClose {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.statusTooltipClose:hover {
+  color: var(--text-primary);
 }
 
 /* Entries list */
@@ -363,4 +542,11 @@
     min-width: 44px;
     min-height: 44px;
   }
+}
+
+/* Last session label in page header */
+.lastSessionLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 4px 0 0;
 }

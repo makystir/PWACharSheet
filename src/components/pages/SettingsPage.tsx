@@ -5,9 +5,34 @@ import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { exportToClipboard, exportToFile, importFromJSON } from '../../storage/export-import';
-import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders } from 'lucide-react';
+import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders, Zap, X } from 'lucide-react';
 import type { ThemeMode } from '../../hooks/useTheme';
 import styles from './SettingsPage.module.css';
+
+export interface QuickActionConfig {
+  id: string;
+  skillName: string;
+  icon?: string;
+}
+
+const QUICK_ACTIONS_KEY = 'wfrp-quickActions';
+const MAX_QUICK_ACTIONS = 6;
+
+export function loadQuickActions(): QuickActionConfig[] {
+  try {
+    return JSON.parse(localStorage.getItem(QUICK_ACTIONS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickActions(actions: QuickActionConfig[]): void {
+  try {
+    localStorage.setItem(QUICK_ACTIONS_KEY, JSON.stringify(actions));
+  } catch {
+    // silently fail if localStorage is unavailable
+  }
+}
 
 interface SettingsPageProps {
   character: Character;
@@ -25,7 +50,34 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [importError, setImportError] = useState('');
   const [importSuccess, setImportSuccess] = useState('');
+  const [quickActions, setQuickActions] = useState<QuickActionConfig[]>(loadQuickActions);
+  const [selectedSkill, setSelectedSkill] = useState('');
 
+  // Get all available skills from the character
+  const allSkills = [...character.bSkills, ...character.aSkills]
+    .map(s => s.n)
+    .filter(name => name.trim() !== '')
+    .sort();
+
+  // Skills not already in quick actions
+  const availableSkills = allSkills.filter(
+    name => !quickActions.some(qa => qa.skillName === name)
+  );
+
+  const handleAddQuickAction = () => {
+    if (!selectedSkill || quickActions.length >= MAX_QUICK_ACTIONS) return;
+    if (quickActions.some(qa => qa.skillName === selectedSkill)) return;
+    const newActions = [...quickActions, { id: crypto.randomUUID(), skillName: selectedSkill }];
+    setQuickActions(newActions);
+    saveQuickActions(newActions);
+    setSelectedSkill('');
+  };
+
+  const handleRemoveQuickAction = (id: string) => {
+    const newActions = quickActions.filter(qa => qa.id !== id);
+    setQuickActions(newActions);
+    saveQuickActions(newActions);
+  };
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImportError('');
     setImportSuccess('');
@@ -92,6 +144,61 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
         </div>
       </Card>
       )}
+
+      {/* Quick Actions */}
+      <Card>
+        <SectionHeader icon={Zap} title="Quick Actions" />
+        <div className={styles.ruleDesc} style={{ marginBottom: '12px' }}>
+          Configure up to {MAX_QUICK_ACTIONS} skills for quick access from the floating action bar on mobile.
+        </div>
+
+        {quickActions.length > 0 && (
+          <div className={styles.quickActionsList}>
+            {quickActions.map(qa => (
+              <div key={qa.id} className={styles.quickActionItem}>
+                <span className={styles.quickActionName}>{qa.skillName}</span>
+                <button
+                  type="button"
+                  className={styles.quickActionRemoveBtn}
+                  onClick={() => handleRemoveQuickAction(qa.id)}
+                  aria-label={`Remove ${qa.skillName}`}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {quickActions.length < MAX_QUICK_ACTIONS && (
+          <div className={styles.quickActionAddRow}>
+            <select
+              value={selectedSkill}
+              onChange={(e) => setSelectedSkill(e.target.value)}
+              className={styles.quickActionSelect}
+            >
+              <option value="">Select a skill...</option>
+              {availableSkills.map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleAddQuickAction}
+              disabled={!selectedSkill}
+              className={styles.smallBtn}
+            >
+              Add
+            </button>
+          </div>
+        )}
+
+        {quickActions.length >= MAX_QUICK_ACTIONS && (
+          <div className={styles.ruleDesc}>
+            Maximum of {MAX_QUICK_ACTIONS} quick actions reached.
+          </div>
+        )}
+      </Card>
 
       {/* House Rules */}
       <Card>

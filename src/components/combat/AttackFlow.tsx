@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Character, WeaponItem, ArmourPoints, CharacteristicKey } from '../../types/character';
 import type { RollResult, DifficultyLevel } from '../../logic/dice-roller';
 import { performRoll, applyDifficulty, computeSkillTarget, DIFFICULTY_MODIFIERS } from '../../logic/dice-roller';
@@ -7,6 +7,7 @@ import { getBonus } from '../../logic/calculators';
 import { getHitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { Crosshair } from 'lucide-react';
 import styles from './AttackFlow.module.css';
 
@@ -37,16 +38,8 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
   const [opponentAP, setOpponentAP] = useState(0);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('Challenging');
   const [collapsed, setCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [collapsedSteps, setCollapsedSteps] = useState<Record<number, boolean>>({});
-
-  // Mobile detection
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
 
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
 

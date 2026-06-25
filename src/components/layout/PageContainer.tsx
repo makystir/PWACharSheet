@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { CharacterNameHeader } from '../shared/CharacterNameHeader';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import styles from './PageContainer.module.css';
 
 interface PageContainerProps {
@@ -14,6 +15,7 @@ interface PageContainerProps {
 export function PageContainer({ children, characterName, onOpenCharacterSheet, headerRef }: PageContainerProps) {
   const ref = useRef<HTMLElement>(null);
   const [showScroll, setShowScroll] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   const handleScroll = useCallback(() => {
     if (ref.current) {
@@ -34,7 +36,7 @@ export function PageContainer({ children, characterName, onOpenCharacterSheet, h
 
   return (
     <main ref={ref} className={styles.container}>
-      {characterName && onOpenCharacterSheet && (
+      {isMobile && characterName && onOpenCharacterSheet && (
         <CharacterNameHeader
           characterName={characterName}
           onOpen={onOpenCharacterSheet}

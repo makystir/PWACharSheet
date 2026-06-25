@@ -49,18 +49,37 @@ export function getDefaultSlots(tier: 'brass' | 'silver' | 'gold' | null): numbe
 }
 
 /**
- * Create a new DowntimePeriod with auto-calculated slots from the character's status.
+ * Get the maximum sessionNumber across all periods that have one set.
+ * Returns undefined if no periods have a numeric sessionNumber.
  */
-export function createDowntimePeriod(status: string, existingCount: number): DowntimePeriod {
+export function getMaxSessionNumber(periods: DowntimePeriod[]): number | undefined {
+  let max: number | undefined;
+  for (const p of periods) {
+    if (p.sessionNumber != null) {
+      if (max == null || p.sessionNumber > max) {
+        max = p.sessionNumber;
+      }
+    }
+  }
+  return max;
+}
+
+/**
+ * Create a new DowntimePeriod with auto-calculated slots from the character's status.
+ * Auto-populates sessionNumber = max(existing sessionNumbers) + 1 when at least one
+ * existing period has a numeric sessionNumber set.
+ */
+export function createDowntimePeriod(status: string, existingPeriods: DowntimePeriod[]): DowntimePeriod {
   const tier = parseStatusTier(status);
+  const maxSession = getMaxSessionNumber(existingPeriods);
   return {
     id: generateId(),
-    label: `Downtime #${existingCount + 1}`,
+    label: `Downtime #${existingPeriods.length + 1}`,
     slots: getDefaultSlots(tier),
     entries: [],
     statusWarning: tier === null,
     date: undefined,
-    sessionNumber: undefined,
+    sessionNumber: maxSession != null ? maxSession + 1 : undefined,
   };
 }
 
@@ -328,6 +347,15 @@ export function buildPickerItems(className: string, isElfChar: boolean): PickerI
   items.push({ group: 'Other', label: '✏️ Custom (free text)' });
 
   return items;
+}
+
+/**
+ * Get the next session number for a new period.
+ * Returns max(existing sessionNumbers) + 1, or undefined if none have a sessionNumber set.
+ */
+export function getNextSessionNumber(periods: DowntimePeriod[]): number | undefined {
+  const max = getMaxSessionNumber(periods);
+  return max !== undefined ? max + 1 : undefined;
 }
 
 /**

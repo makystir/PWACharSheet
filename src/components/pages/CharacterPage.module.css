@@ -5,38 +5,11 @@
   composes: sectionGap from '../shared/styles/shared.module.css';
 }
 
-/* Sub-tab navigation bar */
-.subTabBar {
+/* Inline field with help popover */
+.fieldWithHelp {
   display: flex;
-  gap: 0;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  overflow: hidden;
-  margin-bottom: 4px;
-}
-
-.subTab {
-  flex: 1;
-  padding: 10px 12px;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-heading);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  background: transparent;
-  color: var(--text-muted);
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s;
-}
-
-.subTabActive {
-  composes: subTab;
-  background: rgba(201, 168, 76, 0.15);
-  color: var(--accent-gold);
-  border-bottom: 2px solid var(--accent-gold);
+  align-items: center;
+  gap: 4px;
 }
 
 /* Grid and table patterns */
@@ -670,31 +643,6 @@
    ======================================================== */
 
 @media (max-width: 767px) {
-  /* Req 3.3: Sub-tab bar sticky at top of scroll area */
-  .subTabBar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  /* Req 3.1: Minimum height 44px per tab */
-  .subTab,
-  .subTabActive {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Req 3.2: Font size at least 12px for tab labels */
-  .subTab {
-    font-size: 12px;
-  }
-
-  .subTabActive {
-    font-size: 12px;
-  }
-
   /* Req 6.1: Characteristic abbreviations at minimum 13px bold */
   .charKey {
     font-size: 13px;
@@ -709,22 +657,8 @@
   }
 }
 
-/* Req 3.4: Horizontal scroll for sub-tabs below 360px */
+/* Req 6.3: Hide Bonus column below 360px */
 @media (max-width: 359px) {
-  .subTabBar {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-  }
-
-  .subTab,
-  .subTabActive {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    padding: 10px 14px;
-  }
-
-  /* Req 6.3: Hide Bonus column below 360px */
   .charBonusActive,
   .charBonusInactive {
     display: none;

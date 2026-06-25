@@ -102,7 +102,7 @@ describe('getDefaultSlots — Property 1: Tier maps to correct slot count', () =
 
 describe('createDowntimePeriod — Property 2: Period creation defaults', () => {
   it('"Silver 2" with count 0 → label "Downtime #1", slots 2, statusWarning false', () => {
-    const period = createDowntimePeriod('Silver 2', 0);
+    const period = createDowntimePeriod('Silver 2', []);
     expect(period.label).toBe('Downtime #1');
     expect(period.slots).toBe(2);
     expect(period.statusWarning).toBe(false);
@@ -113,7 +113,10 @@ describe('createDowntimePeriod — Property 2: Period creation defaults', () => 
   });
 
   it('"" with count 3 → label "Downtime #4", slots 1, statusWarning true', () => {
-    const period = createDowntimePeriod('', 3);
+    const existingPeriods = Array.from({ length: 3 }, (_, i) => ({
+      id: `p${i}`, label: '', slots: 1, entries: [], statusWarning: false,
+    })) as import('../../types/character').DowntimePeriod[];
+    const period = createDowntimePeriod('', existingPeriods);
     expect(period.label).toBe('Downtime #4');
     expect(period.slots).toBe(1);
     expect(period.statusWarning).toBe(true);
@@ -123,7 +126,10 @@ describe('createDowntimePeriod — Property 2: Period creation defaults', () => 
   });
 
   it('"Gold 1" with count 5 → label "Downtime #6", slots 3, statusWarning false', () => {
-    const period = createDowntimePeriod('Gold 1', 5);
+    const existingPeriods = Array.from({ length: 5 }, (_, i) => ({
+      id: `p${i}`, label: '', slots: 1, entries: [], statusWarning: false,
+    })) as import('../../types/character').DowntimePeriod[];
+    const period = createDowntimePeriod('Gold 1', existingPeriods);
     expect(period.label).toBe('Downtime #6');
     expect(period.slots).toBe(3);
     expect(period.statusWarning).toBe(false);

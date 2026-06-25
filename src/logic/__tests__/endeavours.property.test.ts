@@ -17,6 +17,8 @@ import {
   updateDowntimePeriod,
   parseStatusTier,
   getDefaultSlots,
+  getMaxSessionNumber,
+  getNextSessionNumber,
 } from '../endeavours';
 
 // ─── Generators ─────────────────────────────────────────────────────────────
@@ -459,7 +461,7 @@ describe('Feature: endeavours-improvements', () => {
           fc.string({ minLength: 1, maxLength: 50 }),
           (originalPeriods, status) => {
             // Create a new period via createDowntimePeriod
-            const newPeriod = createDowntimePeriod(status, originalPeriods.length);
+            const newPeriod = createDowntimePeriod(status, originalPeriods);
 
             // Add the new period
             const withAdded = addDowntimePeriod(originalPeriods, newPeriod);
@@ -680,7 +682,7 @@ describe('Feature: endeavours-improvements', () => {
      * **Validates: Requirements 10.8**
      */
 
-    it('entries empty, label matches pattern, slots >= 1, id is UUID, date/sessionNumber undefined', () => {
+    it('entries empty, label matches pattern, slots >= 1, id is UUID, date/sessionNumber undefined when no existing sessions', () => {
       const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
       fc.assert(
@@ -688,7 +690,11 @@ describe('Feature: endeavours-improvements', () => {
           fc.string({ minLength: 0, maxLength: 200 }),
           fc.integer({ min: 0, max: 1000 }),
           (statusInput, existingCount) => {
-            const result = createDowntimePeriod(statusInput, existingCount);
+            // Build a mock array of existingCount periods with no sessionNumbers
+            const existingPeriods = Array.from({ length: existingCount }, (_, i) => ({
+              id: `p${i}`, label: '', slots: 1, entries: [] as never[], statusWarning: false,
+            }));
+            const result = createDowntimePeriod(statusInput, existingPeriods);
 
             // entries is empty array
             expect(result.entries).toEqual([]);
@@ -705,10 +711,316 @@ describe('Feature: endeavours-improvements', () => {
             // date is undefined
             expect(result.date).toBeUndefined();
 
-            // sessionNumber is undefined
+            // sessionNumber is undefined (no existing sessions)
             expect(result.sessionNumber).toBeUndefined();
           }
         ),
+        { numRuns: 100 }
+      );
+    });
+  });
+});
+
+// ─── Feature: ux-improvements ────────────────────────────────────────────────
+
+describe('Feature: ux-improvements', () => {
+  describe('Property 14: Slot calculation from status tier', () => {
+    /**
+     * **Validates: Requirements 19.1, 19.2**
+     *
+     * For any status string, if it contains "Gold" (case-insensitive) the slot count
+     * SHALL be 3, if it contains "Silver" the slot count SHALL be 2, if it contains
+     * "Brass" the slot count SHALL be 1, and if it contains none of these keywords
+     * the slot count SHALL be 1 with statusWarning set to true.
+     */
+
+    it('Gold status (case-insensitive) yields 3 slots with no statusWarning', () => {
+      const arbGoldStatus = fc.tuple(
+        fc.string({ maxLength: 20 }),
+        fc.constantFrom('Gold', 'gold', 'GOLD', 'GoLd'),
+        fc.string({ maxLength: 20 }),
+      ).map(([prefix, gold, suffix]) => `${prefix}${gold}${suffix}`);
+
+      fc.assert(
+        fc.property(arbGoldStatus, (status) => {
+          const tier = parseStatusTier(status);
+          const slots = getDefaultSlots(tier);
+          expect(tier).toBe('gold');
+          expect(slots).toBe(3);
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it('Silver status (case-insensitive) yields 2 slots with no statusWarning', () => {
+      const arbSilverStatus = fc.tuple(
+        fc.string({ maxLength: 20 }),
+        fc.constantFrom('Silver', 'silver', 'SILVER', 'SiLvEr'),
+        fc.string({ maxLength: 20 }),
+      ).map(([prefix, silver, suffix]) => `${prefix}${silver}${suffix}`)
+        // Ensure "gold" doesn't appear (gold takes priority in parseStatusTier)
+        .filter(s => !s.toLowerCase().includes('gold'));
+
+      fc.assert(
+        fc.property(arbSilverStatus, (status) => {
+          const tier = parseStatusTier(status);
+          const slots = getDefaultSlots(tier);
+          expect(tier).toBe('silver');
+          expect(slots).toBe(2);
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it('Brass status (case-insensitive) yields 1 slot with no statusWarning', () => {
+      const arbBrassStatus = fc.tuple(
+        fc.string({ maxLength: 20 }),
+        fc.constantFrom('Brass', 'brass', 'BRASS', 'BrAsS'),
+        fc.string({ maxLength: 20 }),
+      ).map(([prefix, brass, suffix]) => `${prefix}${brass}${suffix}`)
+        // Ensure neither "gold" nor "silver" appears (they take priority)
+        .filter(s => !s.toLowerCase().includes('gold') && !s.toLowerCase().includes('silver'));
+
+      fc.assert(
+        fc.property(arbBrassStatus, (status) => {
+          const tier = parseStatusTier(status);
+          const slots = getDefaultSlots(tier);
+          expect(tier).toBe('brass');
+          expect(slots).toBe(1);
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it('Status without Gold/Silver/Brass yields 1 slot and statusWarning=true', () => {
+      const arbUnknownStatus = fc.string({ minLength: 0, maxLength: 100 })
+        .filter(s => {
+          const lower = s.toLowerCase();
+          return !lower.includes('gold') && !lower.includes('silver') && !lower.includes('brass');
+        });
+
+      fc.assert(
+        fc.property(arbUnknownStatus, (status) => {
+          const tier = parseStatusTier(status);
+          const slots = getDefaultSlots(tier);
+          expect(tier).toBeNull();
+          expect(slots).toBe(1);
+
+          // Verify createDowntimePeriod sets statusWarning when tier is null
+          const period = createDowntimePeriod(status, []);
+          expect(period.statusWarning).toBe(true);
+          expect(period.slots).toBe(1);
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it('createDowntimePeriod sets statusWarning=false when tier is recognized', () => {
+      const arbRecognizedStatus = fc.constantFrom(
+        'Gold 1', 'Silver 3', 'Brass 5', 'gold 2', 'SILVER 4', 'brass 1'
+      );
+
+      fc.assert(
+        fc.property(arbRecognizedStatus, (status) => {
+          const period = createDowntimePeriod(status, []);
+          expect(period.statusWarning).toBe(false);
+        }),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  describe('Property 15: Session number auto-increment', () => {
+    /**
+     * **Validates: Requirements 20.1**
+     *
+     * For any non-empty array of downtime periods where at least one period has a
+     * defined numeric sessionNumber, creating a new period SHALL auto-populate its
+     * sessionNumber with a value equal to the maximum sessionNumber across all
+     * existing periods plus 1.
+     */
+
+    it('getNextSessionNumber returns max + 1 when at least one period has a sessionNumber', () => {
+      const arbPeriodWithSession = fc.record({
+        id: fc.uuid(),
+        label: fc.string({ minLength: 1, maxLength: 30 }),
+        slots: fc.integer({ min: 1, max: 10 }),
+        entries: fc.constant([]) as fc.Arbitrary<EndeavourEntry[]>,
+        statusWarning: fc.boolean(),
+        date: fc.constant(undefined) as fc.Arbitrary<string | undefined>,
+        sessionNumber: fc.integer({ min: 1, max: 9999 }),
+      });
+
+      const arbPeriodWithoutSession = fc.record({
+        id: fc.uuid(),
+        label: fc.string({ minLength: 1, maxLength: 30 }),
+        slots: fc.integer({ min: 1, max: 10 }),
+        entries: fc.constant([]) as fc.Arbitrary<EndeavourEntry[]>,
+        statusWarning: fc.boolean(),
+        date: fc.constant(undefined) as fc.Arbitrary<string | undefined>,
+        sessionNumber: fc.constant(undefined) as fc.Arbitrary<number | undefined>,
+      });
+
+      // At least one period must have a sessionNumber set
+      const arbPeriods = fc.tuple(
+        fc.array(arbPeriodWithoutSession, { minLength: 0, maxLength: 10 }),
+        fc.array(arbPeriodWithSession, { minLength: 1, maxLength: 10 }),
+        fc.array(arbPeriodWithoutSession, { minLength: 0, maxLength: 10 }),
+      ).map(([before, withSession, after]) => [...before, ...withSession, ...after]);
+
+      fc.assert(
+        fc.property(arbPeriods, (periods) => {
+          const maxSession = getMaxSessionNumber(periods);
+          const nextSession = getNextSessionNumber(periods);
+
+          expect(maxSession).toBeDefined();
+          expect(nextSession).toBe(maxSession! + 1);
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it('getNextSessionNumber returns undefined when no period has a sessionNumber', () => {
+      const arbPeriodNoSession = fc.record({
+        id: fc.uuid(),
+        label: fc.string({ minLength: 1, maxLength: 30 }),
+        slots: fc.integer({ min: 1, max: 10 }),
+        entries: fc.constant([]) as fc.Arbitrary<EndeavourEntry[]>,
+        statusWarning: fc.boolean(),
+        date: fc.constant(undefined) as fc.Arbitrary<string | undefined>,
+        sessionNumber: fc.constant(undefined) as fc.Arbitrary<number | undefined>,
+      });
+
+      fc.assert(
+        fc.property(
+          fc.array(arbPeriodNoSession, { minLength: 1, maxLength: 20 }),
+          (periods) => {
+            const nextSession = getNextSessionNumber(periods);
+            expect(nextSession).toBeUndefined();
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('getNextSessionNumber correctly finds the maximum across scattered sessionNumbers', () => {
+      // Generate periods with known max session number to verify correctness
+      const arbSessionNumbers = fc.array(fc.integer({ min: 1, max: 9999 }), { minLength: 1, maxLength: 20 });
+
+      fc.assert(
+        fc.property(arbSessionNumbers, (sessionNumbers) => {
+          const expectedMax = Math.max(...sessionNumbers);
+          const periods: DowntimePeriod[] = sessionNumbers.map((sn, i) => ({
+            id: `p-${i}`,
+            label: `Period ${i}`,
+            slots: 1,
+            entries: [],
+            statusWarning: false,
+            date: undefined,
+            sessionNumber: sn,
+          }));
+
+          const nextSession = getNextSessionNumber(periods);
+          expect(nextSession).toBe(expectedMax + 1);
+        }),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  describe('Property 16: Last session label displays maximum session number', () => {
+    /**
+     * **Validates: Requirements 20.3**
+     *
+     * For any non-empty set of periods where at least one has a defined sessionNumber,
+     * the "Last session" label SHALL display a value equal to the maximum sessionNumber
+     * across all periods.
+     */
+
+    it('getMaxSessionNumber returns the maximum sessionNumber across all periods', () => {
+      const arbSessionNumbers = fc.array(fc.integer({ min: 1, max: 9999 }), { minLength: 1, maxLength: 20 });
+
+      fc.assert(
+        fc.property(arbSessionNumbers, (sessionNumbers) => {
+          const expectedMax = Math.max(...sessionNumbers);
+          const periods: DowntimePeriod[] = sessionNumbers.map((sn, i) => ({
+            id: `p-${i}`,
+            label: `Period ${i}`,
+            slots: 1,
+            entries: [],
+            statusWarning: false,
+            date: undefined,
+            sessionNumber: sn,
+          }));
+
+          const maxSession = getMaxSessionNumber(periods);
+          expect(maxSession).toBe(expectedMax);
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it('getMaxSessionNumber returns undefined when no periods have sessionNumber', () => {
+      const arbPeriodNoSession = fc.record({
+        id: fc.uuid(),
+        label: fc.string({ minLength: 1, maxLength: 30 }),
+        slots: fc.integer({ min: 1, max: 10 }),
+        entries: fc.constant([]) as fc.Arbitrary<EndeavourEntry[]>,
+        statusWarning: fc.boolean(),
+        date: fc.constant(undefined) as fc.Arbitrary<string | undefined>,
+        sessionNumber: fc.constant(undefined) as fc.Arbitrary<number | undefined>,
+      });
+
+      fc.assert(
+        fc.property(
+          fc.array(arbPeriodNoSession, { minLength: 1, maxLength: 20 }),
+          (periods) => {
+            const maxSession = getMaxSessionNumber(periods);
+            expect(maxSession).toBeUndefined();
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('getMaxSessionNumber ignores periods without sessionNumber when finding max', () => {
+      // Mix of periods with and without session numbers
+      const arbSessionNumbers = fc.array(fc.integer({ min: 1, max: 9999 }), { minLength: 1, maxLength: 10 });
+      const arbUndefinedCount = fc.integer({ min: 1, max: 10 });
+
+      fc.assert(
+        fc.property(arbSessionNumbers, arbUndefinedCount, (sessionNumbers, undefinedCount) => {
+          const expectedMax = Math.max(...sessionNumbers);
+
+          const periodsWithSession: DowntimePeriod[] = sessionNumbers.map((sn, i) => ({
+            id: `with-${i}`,
+            label: `Period ${i}`,
+            slots: 1,
+            entries: [],
+            statusWarning: false,
+            date: undefined,
+            sessionNumber: sn,
+          }));
+
+          const periodsWithoutSession: DowntimePeriod[] = Array.from(
+            { length: undefinedCount },
+            (_, i) => ({
+              id: `without-${i}`,
+              label: `No Session ${i}`,
+              slots: 1,
+              entries: [],
+              statusWarning: false,
+              date: undefined,
+              sessionNumber: undefined,
+            })
+          );
+
+          // Interleave periods with and without session numbers
+          const allPeriods = [...periodsWithoutSession, ...periodsWithSession, ...periodsWithoutSession];
+
+          const maxSession = getMaxSessionNumber(allPeriods);
+          expect(maxSession).toBe(expectedMax);
+        }),
         { numRuns: 100 }
       );
     });

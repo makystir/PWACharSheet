@@ -42,8 +42,8 @@ describe('CharacterPage', () => {
       const addFromRulebookButtons = screen.getAllByText('Add from Rulebook');
       fireEvent.click(addFromRulebookButtons[0]);
 
-      // Select the first skill from the picker (Animal Care)
-      fireEvent.click(screen.getByText('Animal Care (Int)'));
+      // Select the first skill from the picker (Animal Care) - grouped picker shows name without characteristic
+      fireEvent.click(screen.getByText('Animal Care'));
 
       expect(updateCharacter).toHaveBeenCalled();
       expect(captured.aSkills).toHaveLength(2);

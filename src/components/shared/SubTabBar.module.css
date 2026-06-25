@@ -1,0 +1,67 @@
+/* SubTabBar CSS Module */
+
+.subTabBar {
+  display: flex;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.tabActive {
+  composes: tab;
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--accent-gold);
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+/* Mobile: sticky positioning and 44px minimum touch target */
+@media (max-width: 767px) {
+  .subTabBar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .tab,
+  .tabActive {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Narrow viewports: horizontal scroll for many tabs */
+@media (max-width: 359px) {
+  .subTabBar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .tab,
+  .tabActive {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 14px;
+  }
+}

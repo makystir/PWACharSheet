@@ -1,30 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Character, Hireling } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { AddButton } from '../shared/AddButton';
 import { Picker } from '../shared/Picker';
-import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { Toast } from '../shared/Toast';
 import { HirelingCreationFlow } from '../retinue/HirelingCreationFlow';
 import { HirelingCard } from '../retinue/HirelingCard';
+import { useUndoToast } from '../../hooks/useUndoToast';
+import { removeAtIndex, restoreAtIndex } from '../../logic/undo';
 import { ANIMAL_TEMPLATES, TRAINED_SKILLS } from '../../data/animals';
 import { Users, Plus, PawPrint } from 'lucide-react';
+import { SubTabBar } from '../shared/SubTabBar';
+import { EmptyState } from '../shared/EmptyState';
 import styles from './RetinuePage.module.css';
 
 interface RetinuePageProps {
   character: Character;
   update: (field: string, value: unknown) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
+  subTab?: string | null;
+  onSubTabChange?: (tab: string) => void;
 }
 
 type RetinueSubTab = 'hirelings' | 'companions';
 
-export function RetinuePage({ character, update, updateCharacter }: RetinuePageProps) {
-  const [activeSubTab, setActiveSubTab] = useState<RetinueSubTab>('hirelings');
+export function RetinuePage({ character, update, updateCharacter, subTab, onSubTabChange }: RetinuePageProps) {
+  const VALID_SUBTABS: RetinueSubTab[] = ['hirelings', 'companions'];
+  const initialTab = (subTab && VALID_SUBTABS.includes(subTab as RetinueSubTab)) ? subTab as RetinueSubTab : 'hirelings';
+  const [activeSubTab, setActiveSubTabInternal] = useState<RetinueSubTab>(initialTab);
+
+  // Sync from external subTab prop (e.g. URL hash changes)
+  useEffect(() => {
+    if (subTab && VALID_SUBTABS.includes(subTab as RetinueSubTab)) {
+      setActiveSubTabInternal(subTab as RetinueSubTab);
+    }
+  }, [subTab]);
+
+  // Wrapper that notifies parent when sub-tab changes
+  const setActiveSubTab = (tab: RetinueSubTab) => {
+    setActiveSubTabInternal(tab);
+    onSubTabChange?.(tab);
+  };
+
   const [showCreationFlow, setShowCreationFlow] = useState(false);
   const [showAnimalPicker, setShowAnimalPicker] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: string; index: number } | null>(null);
+  const undoToast = useUndoToast();
 
   const hirelings = character.hirelings || [];
   const atMax = hirelings.length >= 10;
@@ -48,37 +70,41 @@ export function RetinuePage({ character, update, updateCharacter }: RetinuePageP
   };
 
   const handleHirelingDelete = (id: number) => {
+    const hirelingList = character.hirelings || [];
+    const index = hirelingList.findIndex((h) => h.id === id);
+    if (index === -1) return;
+    const hireling = hirelingList[index];
     updateCharacter((c) => ({
       ...c,
-      hirelings: (c.hirelings || []).filter((h) => h.id !== id),
+      hirelings: removeAtIndex(c.hirelings || [], index),
     }));
+    undoToast.show('Hireling removed', hireling, index, (item, idx) => {
+      updateCharacter((c) => ({
+        ...c,
+        hirelings: restoreAtIndex(c.hirelings || [], item as Hireling, idx),
+      }));
+    });
   };
 
-  const handleDeleteCompanion = () => {
-    if (!deleteTarget || deleteTarget.type !== 'companion') return;
-    updateCharacter((c) => ({ ...c, companions: c.companions.filter((_, i) => i !== deleteTarget.index) }));
-    setDeleteTarget(null);
+  const handleDeleteCompanion = (ci: number) => {
+    const companion = character.companions[ci];
+    updateCharacter((c) => ({ ...c, companions: removeAtIndex(c.companions, ci) }));
+    undoToast.show('Companion removed', companion, ci, (item, idx) => {
+      updateCharacter((c) => ({ ...c, companions: restoreAtIndex(c.companions, item as typeof companion, idx) }));
+    });
   };
 
   return (
     <div className={styles.sectionGap}>
       {/* Sub-tab navigation */}
-      <div className={styles.subTabBar}>
-        <button
-          type="button"
-          className={activeSubTab === 'hirelings' ? styles.subTabActive : styles.subTab}
-          onClick={() => setActiveSubTab('hirelings')}
-        >
-          Hirelings
-        </button>
-        <button
-          type="button"
-          className={activeSubTab === 'companions' ? styles.subTabActive : styles.subTab}
-          onClick={() => setActiveSubTab('companions')}
-        >
-          Animal Companions
-        </button>
-      </div>
+      <SubTabBar
+        tabs={[
+          { id: 'hirelings', label: 'Hirelings' },
+          { id: 'companions', label: 'Animal Companions' },
+        ]}
+        activeTab={activeSubTab}
+        onTabChange={(tab) => setActiveSubTab(tab as RetinueSubTab)}
+      />
 
       {activeSubTab === 'hirelings' && (
         <>
@@ -100,9 +126,11 @@ export function RetinuePage({ character, update, updateCharacter }: RetinuePageP
             />
 
             {hirelings.length === 0 && (
-              <p className={styles.emptyMessage}>
-                No hirelings yet. Hire followers from the Up in Arms profiles or create custom NPCs.
-              </p>
+              <EmptyState
+                icon={Users}
+                heading="No hirelings yet"
+                description="Hire followers from the Up in Arms profiles or create custom NPCs."
+              />
             )}
 
             {hirelings.length > 0 && (
@@ -139,9 +167,11 @@ export function RetinuePage({ character, update, updateCharacter }: RetinuePageP
             } />
 
             {character.companions.length === 0 && (
-              <p className={styles.emptyMessage}>
-                No animal companions yet. Add one from the templates or create a custom companion.
-              </p>
+              <EmptyState
+                icon={PawPrint}
+                heading="No animal companions yet"
+                description="Add one from the templates or create a custom companion."
+              />
             )}
 
             {character.companions.map((comp, ci) => {
@@ -168,7 +198,7 @@ export function RetinuePage({ character, update, updateCharacter }: RetinuePageP
                         🐴 Pack Animal
                       </label>
                     </div>
-                    <button type="button" onClick={() => setDeleteTarget({ type: 'companion', index: ci })} className={styles.deleteBtn}>✕</button>
+                    <button type="button" onClick={() => handleDeleteCompanion(ci)} className={styles.deleteBtn}>✕</button>
                   </div>
                   <div className={styles.companionStats}>
                     {charKeys.map((k) => (
@@ -234,20 +264,16 @@ export function RetinuePage({ character, update, updateCharacter }: RetinuePageP
 
           {/* Animal Picker */}
           {showAnimalPicker && (
-            <Picker items={ANIMAL_TEMPLATES} getLabel={(a) => `${a.name} (${a.species})`} onSelect={(a) => { updateCharacter((c) => ({ ...c, companions: [...c.companions, { name: '', species: a.species, M: a.M, WS: a.WS, BS: a.BS, S: a.S, T: a.T, I: a.I, Ag: a.Ag, Dex: a.Dex, Int: a.Int, WP: a.WP, Fel: a.Fel, W: a.W, wCur: a.W, traits: a.traits, trained: [...a.trained], notes: a.notes }] })); setShowAnimalPicker(false); }} onClose={() => setShowAnimalPicker(false)} title="Select Animal Template" />
-          )}
-
-          {/* Delete Confirmation */}
-          {deleteTarget && (
-            <ConfirmDialog
-              message="Remove this companion?"
-              onConfirm={handleDeleteCompanion}
-              onCancel={() => setDeleteTarget(null)}
-              confirmLabel="Remove"
-            />
+            <Picker items={ANIMAL_TEMPLATES} getLabel={(a) => a.name} getGroup={(a) => a.species} onSelect={(a) => { updateCharacter((c) => ({ ...c, companions: [...c.companions, { name: '', species: a.species, M: a.M, WS: a.WS, BS: a.BS, S: a.S, T: a.T, I: a.I, Ag: a.Ag, Dex: a.Dex, Int: a.Int, WP: a.WP, Fel: a.Fel, W: a.W, wCur: a.W, traits: a.traits, trained: [...a.trained], notes: a.notes }] })); setShowAnimalPicker(false); }} onClose={() => setShowAnimalPicker(false)} title="Select Animal Template" />
           )}
         </>
       )}
+
+      <Toast
+        message={undoToast.pending?.message ?? null}
+        duration={5000}
+        action={undoToast.pending ? { label: 'Undo', onAction: undoToast.undo } : undefined}
+      />
     </div>
   );
 }

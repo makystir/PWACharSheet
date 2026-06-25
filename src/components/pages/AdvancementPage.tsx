@@ -17,6 +17,8 @@ import { RuneLearningPanel } from '../shared/RuneLearningPanel';
 import { SwordDancingPanel } from '../shared/SwordDancingPanel';
 import { DeitySelector } from '../shared/DeitySelector';
 import { GraduationCap, TrendingUp, ScrollText, CheckCircle, Swords, BookOpen, Sparkles, Undo2, Redo2 } from 'lucide-react';
+import { HelpPopover } from '../shared/HelpPopover';
+import { getHelpContent } from '../../logic/help-content';
 import styles from './AdvancementPage.module.css';
 
 interface ActiveTooltip {
@@ -338,7 +340,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {/* Career Progress */}
       {scheme && (
         <Card>
-          <SectionHeader icon={CheckCircle} title="Career Progress" />
+          <div className={styles.sectionWithHelp}>
+            <SectionHeader icon={CheckCircle} title="Career Progress" />
+            <HelpPopover concept="career-advancement">{getHelpContent('career-advancement')}</HelpPopover>
+          </div>
           <div className={styles.progressPanel}>
             <div className={styles.progressTitle}>
               {character.career} — {character.careerLevel}
@@ -818,7 +823,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         <Picker items={levelTitles} getLabel={(t) => t} onSelect={handleLevelSelect} onClose={() => setShowLevelPicker(false)} title="Select Level" />
       )}
       {showSwitchCareerPicker && (
-        <Picker items={Object.keys(CAREER_SCHEMES).filter(c => c !== character.career)} getLabel={(c) => { const s = getCareerScheme(c); return s ? `${c} (${s.class})` : c; }} onSelect={handleSwitchCareer} onClose={() => setShowSwitchCareerPicker(false)} title="Switch to Career" />
+        <Picker items={Object.keys(CAREER_SCHEMES).filter(c => c !== character.career)} getLabel={(c) => c} getGroup={(c) => { const s = getCareerScheme(c); return s ? s.class : 'Other'; }} onSelect={handleSwitchCareer} onClose={() => setShowSwitchCareerPicker(false)} title="Switch to Career" />
       )}
 
       {activeTooltip && (

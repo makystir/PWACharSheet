@@ -177,6 +177,19 @@ a {
 
 /* ===== Responsive: Mobile (< 768px) ===== */
 @media (max-width: 767px) {
+  :root {
+    /* Touch target sizes */
+    --mobile-touch-min: 44px;
+    --mobile-touch-lg: 48px;
+    --mobile-font-min: 13px;
+
+    /* Large display number scaling (wounds, advantage, etc.) */
+    --mobile-display-number: clamp(24px, 5vw + 8px, 32px);
+
+    /* Secondary large display (round counter, AP values, fortune/resolve) */
+    --mobile-display-secondary: clamp(18px, 3.5vw + 6px, 24px);
+  }
+
   #root {
     flex-direction: column;
     padding-bottom: var(--nav-height-mobile);

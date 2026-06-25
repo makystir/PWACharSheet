@@ -231,3 +231,66 @@
   outline: none;
   border-color: var(--accent-gold);
 }
+
+/* Quick Actions */
+.quickActionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.quickActionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.quickActionName {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.quickActionRemoveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.quickActionRemoveBtn:hover {
+  background: rgba(200, 60, 60, 0.1);
+}
+
+.quickActionAddRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.quickActionSelect {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.quickActionSelect:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}

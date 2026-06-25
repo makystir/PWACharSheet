@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import type { Character, ArmourPoints } from '../../types/character';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import styles from './CombatPage.module.css';
 import { Picker } from '../shared/Picker';
-import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { Toast } from '../shared/Toast';
 import { RollDialog } from '../shared/RollDialog';
+import { useUndoToast } from '../../hooks/useUndoToast';
+import { removeAtIndex, restoreAtIndex } from '../../logic/undo';
 import { RollResultDisplay } from '../shared/RollResultDisplay';
 import { FortuneResolvePanel } from '../shared/FortuneResolvePanel';
 import { SpellCastingPanel } from '../shared/SpellCastingPanel';
 import { RuneManager } from '../shared/RuneManager';
 import { RollHistoryPanel } from '../shared/RollHistoryPanel';
+import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { CombatDashboard } from '../combat/CombatDashboard';
 import { AttackFlow } from '../combat/AttackFlow';
 import { QuickRollBar } from '../combat/QuickRollBar';
@@ -35,6 +39,7 @@ export { RANGED_GROUPS, findSkillForWeapon } from '../../logic/weapons';
 
 interface CombatPageProps {
   character: Character;
+  characterId: string;
   update: (field: string, value: unknown) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   totalWounds: number;
@@ -48,17 +53,17 @@ interface CombatPageProps {
 
 
 
-export function CombatPage({ character, update, updateCharacter, totalWounds, armourPoints, addRoll, rollHistory, clearHistory }: CombatPageProps) {
+export function CombatPage({ character, characterId, update, updateCharacter, totalWounds, armourPoints, addRoll, rollHistory, clearHistory }: CombatPageProps) {
   const [showWeaponPicker, setShowWeaponPicker] = useState(false);
   const [showArmourPicker, setShowArmourPicker] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: string; index: number } | null>(null);
   const [rollDialogState, setRollDialogState] = useState<{ name: string; baseTarget: number; defaultDifficulty?: DifficultyLevel } | null>(null);
+  const undoToast = useUndoToast();
   const [rollResultState, setRollResultState] = useState<RollResult | null>(null);
   const [runeManagerTarget, setRuneManagerTarget] = useState<{ type: 'weapon' | 'armour'; index: number } | null>(null);
   const [showConditionPicker, setShowConditionPicker] = useState(false);
   const [downLocation, setDownLocation] = useState<HitLocation | undefined>(undefined);
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const inCombat = character.combatState.inCombat;
   const TB = getBonus(character.chars.T.i + character.chars.T.a + character.chars.T.b);
 
@@ -112,11 +117,17 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
       {/* ── Active Combat panels ── */}
       {inCombat && (
         <>
-          <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} />
-          <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
-          <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} wCur={character.wCur} totalWounds={totalWounds}
-            onApplyWounds={(w) => update('wCur', Math.max(0, character.wCur - w))} min1Wound={character.houseRules.min1Wound}
-            onDown={(location) => setDownLocation(location)} />
+          <CollapsibleSection title="Attack Flow" storageKey={`combat-attack-${characterId}`} defaultExpanded={true}>
+            <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} />
+          </CollapsibleSection>
+          <CollapsibleSection title="Quick Roll" storageKey={`combat-quickroll-${characterId}`} defaultExpanded={true}>
+            <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
+          </CollapsibleSection>
+          <CollapsibleSection title="Take Damage" storageKey={`combat-damage-${characterId}`} defaultExpanded={true}>
+            <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} wCur={character.wCur} totalWounds={totalWounds}
+              onApplyWounds={(w) => update('wCur', Math.max(0, character.wCur - w))} min1Wound={character.houseRules.min1Wound}
+              onDown={(location) => setDownLocation(location)} />
+          </CollapsibleSection>
         </>
       )}
 
@@ -127,35 +138,57 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
       {hasSpellcasting && <SpellCastingPanel character={character} update={update} updateCharacter={updateCharacter} addRoll={addRoll} />}
 
       {/* ── Weapons ── */}
-      <WeaponCards weapons={character.weapons} character={character} onRollWeapon={openWeaponRoll}
-        onDeleteWeapon={(i) => setDeleteTarget({ type: 'weapon', index: i })}
-        onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'weapon', index: i })}
-        onOpenWeaponPicker={() => setShowWeaponPicker(true)}
-        onAddCustomWeapon={() => updateCharacter((c) => ({ ...c, weapons: [...c.weapons, { name: '', group: '', enc: '0', damage: '', qualities: '' }] }))} />
+      <CollapsibleSection title="Weapons" storageKey={`combat-weapons-${characterId}`} defaultExpanded={true}>
+        <WeaponCards weapons={character.weapons} character={character} onRollWeapon={openWeaponRoll}
+          onDeleteWeapon={(i) => {
+            const weapon = character.weapons[i];
+            updateCharacter((c) => ({ ...c, weapons: removeAtIndex(c.weapons, i) }));
+            undoToast.show('Weapon removed', weapon, i, (item, index) => {
+              updateCharacter((c) => ({ ...c, weapons: restoreAtIndex(c.weapons, item as typeof weapon, index) }));
+            });
+          }}
+          onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'weapon', index: i })}
+          onOpenWeaponPicker={() => setShowWeaponPicker(true)}
+          onAddCustomWeapon={() => updateCharacter((c) => ({ ...c, weapons: [...c.weapons, { name: '', group: '', enc: '0', damage: '', qualities: '' }] }))} />
+      </CollapsibleSection>
 
       {/* ── Armour ── */}
-      <ArmourMap armourPoints={armourPoints} armourList={character.armour}
-        onDeleteArmour={(i) => setDeleteTarget({ type: 'armour', index: i })}
-        onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'armour', index: i })}
-        onOpenArmourPicker={() => setShowArmourPicker(true)}
-        onAddCustomArmour={() => updateCharacter((c) => ({ ...c, armour: [...c.armour, { name: '', locations: '', enc: '0', ap: 0, qualities: '' }] }))} />
+      <CollapsibleSection title="Armour" storageKey={`combat-armour-${characterId}`} defaultExpanded={true}>
+        <ArmourMap armourPoints={armourPoints} armourList={character.armour}
+          onDeleteArmour={(i) => {
+            const armourPiece = character.armour[i];
+            updateCharacter((c) => ({ ...c, armour: removeAtIndex(c.armour, i) }));
+            undoToast.show('Armour removed', armourPiece, i, (item, index) => {
+              updateCharacter((c) => ({ ...c, armour: restoreAtIndex(c.armour, item as typeof armourPiece, index) }));
+            });
+          }}
+          onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'armour', index: i })}
+          onOpenArmourPicker={() => setShowArmourPicker(true)}
+          onAddCustomArmour={() => updateCharacter((c) => ({ ...c, armour: [...c.armour, { name: '', locations: '', enc: '0', ap: 0, qualities: '' }] }))} />
+      </CollapsibleSection>
 
       {/* ── Active Combat: Ammo, Critical Wounds, Roll History ── */}
       {inCombat && (
         <>
-          <AmmoTracker ammo={character.ammo}
-            onUpdate={(i, field, value) => update(`ammo.${i}.${field}`, value)}
-            onAdd={() => updateCharacter((c) => ({ ...c, ammo: [...c.ammo, { name: 'New Ammo', quantity: 12, max: 12, enc: '0', qualities: '' }] }))}
-            onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))}
-            defaultCollapsed={isMobile} />
-          <CriticalWoundsPanel criticalWounds={character.criticalWounds}
-            onAdd={() => updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, { location: 'Body', description: 'New wound', effects: '', duration: '', severity: 1, healed: false }) }))}
-            onHeal={(id) => updateCharacter((c) => ({ ...c, criticalWounds: healCriticalWound(c.criticalWounds, id) }))}
-            onUpdate={(i, field, value) => updateCharacter((c) => ({ ...c, criticalWounds: c.criticalWounds.map((w, j) => j === i ? { ...w, [field]: value } : w) }))}
-            defaultCollapsed={isMobile}
-            preselectedLocation={downLocation}
-            onAddWound={(wound) => { updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, wound) })); setDownLocation(undefined); }} />
-          {rollHistory && clearHistory && <RollHistoryPanel history={rollHistory} onClear={clearHistory} defaultExpanded={!isMobile} />}
+          <CollapsibleSection title="Ammo Tracker" storageKey={`combat-ammo-${characterId}`} defaultExpanded={!isMobile}>
+            <AmmoTracker ammo={character.ammo}
+              onUpdate={(i, field, value) => update(`ammo.${i}.${field}`, value)}
+              onAdd={() => updateCharacter((c) => ({ ...c, ammo: [...c.ammo, { name: 'New Ammo', quantity: 12, max: 12, enc: '0', qualities: '' }] }))}
+              onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))}
+              defaultCollapsed={isMobile} />
+          </CollapsibleSection>
+          <CollapsibleSection title="Critical Wounds" storageKey={`combat-critical-${characterId}`} defaultExpanded={!isMobile}>
+            <CriticalWoundsPanel criticalWounds={character.criticalWounds}
+              onAdd={() => updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, { location: 'Body', description: 'New wound', effects: '', duration: '', severity: 1, healed: false }) }))}
+              onHeal={(id) => updateCharacter((c) => ({ ...c, criticalWounds: healCriticalWound(c.criticalWounds, id) }))}
+              onUpdate={(i, field, value) => updateCharacter((c) => ({ ...c, criticalWounds: c.criticalWounds.map((w, j) => j === i ? { ...w, [field]: value } : w) }))}
+              defaultCollapsed={isMobile}
+              preselectedLocation={downLocation}
+              onAddWound={(wound) => { updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, wound) })); setDownLocation(undefined); }} />
+          </CollapsibleSection>
+          <CollapsibleSection title="Roll History" storageKey={`combat-history-${characterId}`} defaultExpanded={!isMobile}>
+            {rollHistory && clearHistory && <RollHistoryPanel history={rollHistory} onClear={clearHistory} defaultExpanded={true} />}
+          </CollapsibleSection>
         </>
       )}
 
@@ -209,15 +242,15 @@ export function CombatPage({ character, update, updateCharacter, totalWounds, ar
             onClose={() => setRuneManagerTarget(null)} />
         );
       })()}
-      {showWeaponPicker && <Picker items={WEAPONS} getLabel={(w) => `${w.name} (${w.group})`} onSelect={(w) => { updateCharacter((c) => ({ ...c, weapons: [...c.weapons, { ...w }] })); setShowWeaponPicker(false); }} onClose={() => setShowWeaponPicker(false)} title="Select Weapon" />}
+      {showWeaponPicker && <Picker items={WEAPONS} getLabel={(w) => w.name} getGroup={(w) => w.group} onSelect={(w) => { updateCharacter((c) => ({ ...c, weapons: [...c.weapons, { ...w }] })); setShowWeaponPicker(false); }} onClose={() => setShowWeaponPicker(false)} title="Select Weapon" />}
       {showArmourPicker && <Picker items={ARMOURS} getLabel={(a) => `${a.name} (AP ${a.ap})`} onSelect={(a) => { updateCharacter((c) => ({ ...c, armour: [...c.armour, { ...a }] })); setShowArmourPicker(false); }} onClose={() => setShowArmourPicker(false)} title="Select Armour" />}
-      {deleteTarget && <ConfirmDialog message={`Remove this ${deleteTarget.type}?`} onConfirm={() => {
-        if (deleteTarget.type === 'weapon') updateCharacter((c) => ({ ...c, weapons: c.weapons.filter((_, i) => i !== deleteTarget.index) }));
-        else if (deleteTarget.type === 'armour') updateCharacter((c) => ({ ...c, armour: c.armour.filter((_, i) => i !== deleteTarget.index) }));
-        setDeleteTarget(null);
-      }} onCancel={() => setDeleteTarget(null)} confirmLabel="Remove" />}
       {rollDialogState && <RollDialog skillOrCharName={rollDialogState.name} baseTarget={rollDialogState.baseTarget} defaultDifficulty={rollDialogState.defaultDifficulty} onRoll={handleRollResult} onClose={() => setRollDialogState(null)} />}
       {rollResultState && <RollResultDisplay result={rollResultState} onClose={() => setRollResultState(null)} />}
+      <Toast
+        message={undoToast.pending?.message ?? null}
+        duration={5000}
+        action={undoToast.pending ? { label: 'Undo', onAction: undoToast.undo } : undefined}
+      />
     </div>
   );
 }

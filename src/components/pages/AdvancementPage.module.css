@@ -5,6 +5,13 @@
   composes: sectionGap from '../shared/styles/shared.module.css';
 }
 
+/* Section header with inline help popover */
+.sectionWithHelp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Grid and table patterns */
 .gridAutoFill {
   composes: gridAutoFill from '../shared/styles/shared.module.css';

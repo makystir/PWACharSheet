@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Character, CharacteristicKey, ArmourPoints, Skill, Talent, SpellItem } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -28,6 +28,7 @@ import type { RollHistoryEntry } from '../../hooks/useRollHistory';
 import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer, Lock } from 'lucide-react';
 import { CorruptionCard } from '../shared/CorruptionCard';
 import { DiseasePanel } from '../shared/DiseasePanel';
+import { EmptyState } from '../shared/EmptyState';
 import { getRuneById } from '../../logic/runes';
 import { RUNE_CATALOGUE } from '../../data/runes';
 import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel } from '../../logic/priestRunes';
@@ -39,6 +40,11 @@ import { YenluiPanel } from '../shared/YenluiPanel';
 import { MagicalBurnoutPanel } from '../shared/MagicalBurnoutPanel';
 import RunePanel from '../runes/RunePanel';
 import type { ProtectionItem, EngineeringItem } from '../../types/character';
+import { SubTabBar } from '../shared/SubTabBar';
+import { HelpPopover } from '../shared/HelpPopover';
+import { getHelpContent } from '../../logic/help-content';
+import { CurrencyInput } from '../shared/CurrencyInput';
+import { applyCurrencyDelta } from '../../logic/currency';
 import styles from './CharacterPage.module.css';
 
 interface CharacterPageProps {
@@ -52,6 +58,8 @@ interface CharacterPageProps {
   rollHistory?: RollHistoryEntry[];
   addRoll?: (result: RollResult) => void;
   clearHistory?: () => void;
+  subTab?: string | null;
+  onSubTabChange?: (tab: string) => void;
 }
 
 const CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
@@ -64,8 +72,24 @@ const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
 
 type CharSubTab = 'identity' | 'abilities' | 'gear' | 'notes';
 
-export function CharacterPage({ character, update, updateCharacter, rollHistory = [], addRoll, clearHistory }: CharacterPageProps) {
-  const [activeSubTab, setActiveSubTab] = useState<CharSubTab>('identity');
+export function CharacterPage({ character, update, updateCharacter, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
+  const VALID_SUBTABS: CharSubTab[] = ['identity', 'abilities', 'gear', 'notes'];
+  const initialTab = (subTab && VALID_SUBTABS.includes(subTab as CharSubTab)) ? subTab as CharSubTab : 'identity';
+  const [activeSubTab, setActiveSubTabInternal] = useState<CharSubTab>(initialTab);
+
+  // Sync from external subTab prop (e.g. URL hash changes)
+  useEffect(() => {
+    if (subTab && VALID_SUBTABS.includes(subTab as CharSubTab)) {
+      setActiveSubTabInternal(subTab as CharSubTab);
+    }
+  }, [subTab]);
+
+  // Wrapper that notifies parent when sub-tab changes
+  const setActiveSubTab = (tab: CharSubTab) => {
+    setActiveSubTabInternal(tab);
+    onSubTabChange?.(tab);
+  };
+
   const [hideUntrainedSkills, setHideUntrainedSkills] = useState(() => {
     try { return localStorage.getItem('wfrp-hideUntrainedSkills') === 'true'; } catch { return false; }
   });
@@ -239,12 +263,16 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
   return (
     <div className={styles.sectionGap}>
       {/* Sub-tab navigation */}
-      <div className={styles.subTabBar}>
-        <button type="button" className={activeSubTab === 'identity' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('identity')}>Identity</button>
-        <button type="button" className={activeSubTab === 'abilities' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('abilities')}>Abilities</button>
-        <button type="button" className={activeSubTab === 'gear' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('gear')}>Gear &amp; Wealth</button>
-        <button type="button" className={activeSubTab === 'notes' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('notes')}>Notes</button>
-      </div>
+      <SubTabBar
+        tabs={[
+          { id: 'identity', label: 'Identity' },
+          { id: 'abilities', label: 'Abilities' },
+          { id: 'gear', label: 'Gear & Wealth' },
+          { id: 'notes', label: 'Notes' },
+        ]}
+        activeTab={activeSubTab}
+        onTabChange={(tab) => setActiveSubTab(tab as CharSubTab)}
+      />
 
       {/* ═══ IDENTITY TAB ═══ */}
       {activeSubTab === 'identity' && (<>
@@ -289,7 +317,10 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
             </div>
             <EditableField label="Career Level" value={character.careerLevel} onSave={(v) => update('careerLevel', v)} />
             <EditableField label="Career Path" value={character.careerPath} onSave={(v) => update('careerPath', v)} />
-            <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
+            <div className={styles.fieldWithHelp}>
+              <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
+              <HelpPopover concept="status-tier">{getHelpContent('status-tier')}</HelpPopover>
+            </div>
             <EditableField label="Age" value={character.age} onSave={(v) => update('age', v)} />
             <EditableField label="Height" value={character.height} onSave={(v) => update('height', v)} />
             <EditableField label="Hair" value={character.hair} onSave={(v) => update('hair', v)} />
@@ -305,7 +336,10 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       <GrudgePanel character={character} updateCharacter={updateCharacter} />
 
       {/* Yenlui Balance — only visible for Elf characters with useYenlui enabled */}
-      <YenluiPanel character={character} updateCharacter={updateCharacter} />
+      <div className={styles.fieldWithHelp}>
+        <YenluiPanel character={character} updateCharacter={updateCharacter} />
+        <HelpPopover concept="yenlui-balance">{getHelpContent('yenlui-balance')}</HelpPopover>
+      </div>
 
       {/* Magical Burnout — only visible for High Magic users */}
       <MagicalBurnoutPanel character={character} updateCharacter={updateCharacter} />
@@ -771,22 +805,30 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
             <AddButton label="Add Custom" onClick={() => updateCharacter((c) => ({ ...c, trappings: [...c.trappings, { name: '', enc: '0', quantity: 1 }] }))} />
           </div>
         } />
-        <table className={styles.tableBase}>
-          <thead><tr><th className={styles.th}>Name</th><th className={styles.th} title="Encumbrance value — total Enc is shown in the Wealth & Encumbrance section">Enc</th><th className={styles.th}>Qty</th><th className={styles.thCenter} title="Stored on horse companion — excluded from character encumbrance">🐴</th><th className={styles.th}></th></tr></thead>
-          <tbody>
-            {character.trappings.map((t, i) => (
-              <tr key={i} className={t.storedOnHorse ? styles.rowHorse : i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                <td className={styles.td}><EditableField label="" value={t.name} onSave={(v) => update(`trappings.${i}.name`, v)} /></td>
-                <td className={styles.td}><EditableField label="" value={t.enc} onSave={(v) => update(`trappings.${i}.enc`, v)} style={{ minWidth: '40px' }} /></td>
-                <td className={styles.td}><EditableField label="" value={t.quantity} type="number" onSave={(v) => update(`trappings.${i}.quantity`, v)} style={{ minWidth: '40px' }} /></td>
-                <td className={styles.tdCenter}>
-                  <input type="checkbox" checked={!!t.storedOnHorse} onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)} title="Stored on horse" className={styles.checkboxCell} />
-                </td>
-                <td className={styles.td}><button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn}>✕</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {character.trappings.length === 0 ? (
+          <EmptyState
+            icon={Package}
+            heading="No gear yet"
+            description="Add trappings and equipment."
+          />
+        ) : (
+          <table className={styles.tableBase}>
+            <thead><tr><th className={styles.th}>Name</th><th className={styles.th} title="Encumbrance value — total Enc is shown in the Wealth & Encumbrance section">Enc</th><th className={styles.th}>Qty</th><th className={styles.thCenter} title="Stored on horse companion — excluded from character encumbrance">🐴</th><th className={styles.th}></th></tr></thead>
+            <tbody>
+              {character.trappings.map((t, i) => (
+                <tr key={i} className={t.storedOnHorse ? styles.rowHorse : i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                  <td className={styles.td}><EditableField label="" value={t.name} onSave={(v) => update(`trappings.${i}.name`, v)} /></td>
+                  <td className={styles.td}><EditableField label="" value={t.enc} onSave={(v) => update(`trappings.${i}.enc`, v)} style={{ minWidth: '40px' }} /></td>
+                  <td className={styles.td}><EditableField label="" value={t.quantity} type="number" onSave={(v) => update(`trappings.${i}.quantity`, v)} style={{ minWidth: '40px' }} /></td>
+                  <td className={styles.tdCenter}>
+                    <input type="checkbox" checked={!!t.storedOnHorse} onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)} title="Stored on horse" className={styles.checkboxCell} />
+                  </td>
+                  <td className={styles.td}><button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn}>✕</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </Card>
 
       {/* Wealth & Encumbrance */}
@@ -794,9 +836,16 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
         <div className={styles.wealthEncGrid}>
           <div>
             <SectionHeader icon={Coins} title="Wealth" />
-            <EditableField label="Gold Crowns (GC)" value={character.wGC} type="number" onSave={(v) => update('wGC', v)} />
-            <EditableField label="Silver Shillings (SS)" value={character.wSS} type="number" onSave={(v) => update('wSS', v)} />
-            <EditableField label="Brass Pennies (D)" value={character.wD} type="number" onSave={(v) => update('wD', v)} />
+            <EditableField label="Gold Crowns (GC)" value={character.wGC} type="number" mode="always-editable" onSave={(v) => update('wGC', v)} />
+            <EditableField label="Silver Shillings (SS)" value={character.wSS} type="number" mode="always-editable" onSave={(v) => update('wSS', v)} />
+            <EditableField label="Brass Pennies (D)" value={character.wD} type="number" mode="always-editable" onSave={(v) => update('wD', v)} />
+            <CurrencyInput onSubmit={(delta) => {
+              const current = { gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 };
+              const result = applyCurrencyDelta(current, delta);
+              update('wGC', result.gc);
+              update('wSS', result.ss);
+              update('wD', result.d);
+            }} />
           </div>
           <div>
             <SectionHeader icon={Scale} title="Encumbrance" />
@@ -876,7 +925,7 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
 
       {/* Pickers */}
       {showAdvSkillPicker && (
-        <Picker items={ADV_SKILL_DB} getLabel={(s) => `${s.n} (${s.c})`} onSelect={addAdvancedSkillFromPicker} onClose={() => setShowAdvSkillPicker(false)} title="Select Advanced Skill" />
+        <Picker items={ADV_SKILL_DB} getLabel={(s) => s.n} getGroup={(s) => s.c} onSelect={addAdvancedSkillFromPicker} onClose={() => setShowAdvSkillPicker(false)} title="Select Advanced Skill" />
       )}
       {showTalentPicker && (
         <Picker items={TALENT_DB} getLabel={(t) => t.name} onSelect={addTalentFromPicker} onClose={() => setShowTalentPicker(false)} title="Select Talent" />

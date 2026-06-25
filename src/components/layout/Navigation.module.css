@@ -279,3 +279,52 @@
     padding-top: 5px; /* match active state spacing */
   }
 }
+
+/* Overflow popover (positioned above mobile nav bar) */
+.overflowPopover {
+  position: absolute;
+  bottom: calc(var(--nav-height-mobile, 64px) + env(safe-area-inset-bottom, 0px));
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 4px;
+  z-index: 101;
+  min-width: 180px;
+}
+
+.overflowItem,
+.overflowItemActive {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border-radius: var(--radius-sm, 4px);
+  min-height: 44px;
+  min-width: 44px;
+  transition: background 0.1s, color 0.1s;
+}
+
+.overflowItem:hover {
+  background: var(--bg-tertiary);
+}
+
+.overflowItemActive {
+  color: var(--accent-gold);
+  background: var(--bg-tertiary);
+}
+
+.overflowItemActive:hover {
+  background: var(--bg-tertiary);
+}

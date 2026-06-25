@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import type { Character, ArmourPoints, Holding, Estate, Hireling } from '../../types/character';
+import { useState, useEffect } from 'react';
+import type { Character, Holding, Estate, Hireling } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { AddButton } from '../shared/AddButton';
 import { Home, Coins, ScrollText, Building } from 'lucide-react';
 import { computeHirelingUpkeep } from '../../logic/hirelings';
+import { SubTabBar } from '../shared/SubTabBar';
+import { EmptyState } from '../shared/EmptyState';
 import styles from './EstatePage.module.css';
 
 interface CurrencyAmount {
@@ -45,16 +47,30 @@ interface EstatePageProps {
   character: Character;
   update: (field: string, value: unknown) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
-  totalWounds: number;
-  armourPoints: ArmourPoints;
-  maxEncumbrance: number;
-  coinWeight: number;
+  subTab?: string | null;
+  onSubTabChange?: (tab: string) => void;
 }
 
 type EstateSubTab = 'estate' | 'holdings' | 'wealth';
 
-export function EstatePage({ character, update, updateCharacter }: EstatePageProps) {
-  const [activeSubTab, setActiveSubTab] = useState<EstateSubTab>('wealth');
+export function EstatePage({ character, update, updateCharacter, subTab, onSubTabChange }: EstatePageProps) {
+  const VALID_SUBTABS: EstateSubTab[] = ['estate', 'holdings', 'wealth'];
+  const initialTab = (subTab && VALID_SUBTABS.includes(subTab as EstateSubTab)) ? subTab as EstateSubTab : 'wealth';
+  const [activeSubTab, setActiveSubTabInternal] = useState<EstateSubTab>(initialTab);
+
+  // Sync from external subTab prop (e.g. URL hash changes)
+  useEffect(() => {
+    if (subTab && VALID_SUBTABS.includes(subTab as EstateSubTab)) {
+      setActiveSubTabInternal(subTab as EstateSubTab);
+    }
+  }, [subTab]);
+
+  // Wrapper that notifies parent when sub-tab changes
+  const setActiveSubTab = (tab: EstateSubTab) => {
+    setActiveSubTabInternal(tab);
+    onSubTabChange?.(tab);
+  };
+
   const [noteInput, setNoteInput] = useState('');
 
   const est = character.estate;
@@ -86,11 +102,15 @@ export function EstatePage({ character, update, updateCharacter }: EstatePagePro
   return (
     <div className={styles.sectionGap}>
       {/* Sub-tab navigation */}
-      <div className={styles.subTabBar}>
-        <button type="button" className={activeSubTab === 'wealth' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('wealth')}>Wealth &amp; Finances</button>
-        <button type="button" className={activeSubTab === 'estate' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('estate')}>Estate</button>
-        <button type="button" className={activeSubTab === 'holdings' ? styles.subTabActive : styles.subTab} onClick={() => setActiveSubTab('holdings')}>Holdings</button>
-      </div>
+      <SubTabBar
+        tabs={[
+          { id: 'wealth', label: 'Wealth & Finances' },
+          { id: 'estate', label: 'Estate' },
+          { id: 'holdings', label: 'Holdings' },
+        ]}
+        activeTab={activeSubTab}
+        onTabChange={(tab) => setActiveSubTab(tab as EstateSubTab)}
+      />
 
       {activeSubTab === 'estate' && (
       <>
@@ -203,7 +223,10 @@ export function EstatePage({ character, update, updateCharacter }: EstatePagePro
           }} />
         } />
         {(est.properties || []).length === 0 && (est.holdings || []).length === 0 && (
-          <div className={styles.emptyMessage}>No properties yet. Add one to start managing your holdings.</div>
+          <EmptyState
+            icon={Building}
+            heading="No holdings yet"
+          />
         )}
         {/* Legacy string holdings (read-only migration display) */}
         {(est.holdings || []).filter(h => typeof h === 'string' && h).map((h, i) => (

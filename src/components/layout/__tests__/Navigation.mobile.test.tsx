@@ -53,13 +53,14 @@ describe('Navigation mobile touch targets and height', () => {
     expect(nav.className).toContain('sidebar');
   });
 
-  it('renders all 7 navigation tabs as buttons (Req 1.1)', () => {
+  it('renders 5 visible tab buttons on mobile: 4 primary + More (Req 2.1)', () => {
     render(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     const navButtons = screen.getAllByRole('button').filter(
       (btn) => btn.getAttribute('data-section') !== null
     );
-    expect(navButtons).toHaveLength(7);
+    // 4 primary tabs (Character, Combat, Retinue, Settings) + 1 More button
+    expect(navButtons).toHaveLength(5);
   });
 
   it('nav items have min-height for 48px touch targets via CSS class (Req 1.1)', () => {
@@ -94,10 +95,11 @@ describe('Navigation mobile touch targets and height', () => {
     });
   });
 
-  it('renders label text in span elements for each nav item (Req 1.3)', () => {
+  it('renders label text in span elements for each visible nav item (Req 1.3)', () => {
     render(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
-    const expectedLabels = ['Character', 'Combat', 'Holdings & Wealth', 'Endeavours', 'Advancement', 'Settings'];
+    // Mobile shows primary tabs + More button (overflow tabs are hidden until popover opens)
+    const expectedLabels = ['Character', 'Combat', 'Retinue', 'Settings', 'More'];
 
     expectedLabels.forEach((label) => {
       const labelElement = screen.getByText(label);
@@ -124,7 +126,7 @@ describe('Navigation mobile touch targets and height', () => {
     expect(characterButton!.className).not.toContain('navItemActive');
   });
 
-  it('hides app title and character name on mobile', () => {
+  it('does not render app title and character name elements on mobile (hidden via conditional rendering)', () => {
     render(
       <Navigation
         activePage="character"
@@ -133,13 +135,11 @@ describe('Navigation mobile touch targets and height', () => {
       />
     );
 
-    // On mobile, .appTitle and .charName have display: none via CSS
-    // We verify the classes are present which have the mobile override
+    // On mobile, appTitle and charName are not rendered (conditional rendering via isMobile)
     const nav = screen.getByRole('navigation', { name: /main navigation/i });
     const appTitle = nav.querySelector('[class*="appTitle"]');
     const charName = nav.querySelector('[class*="charName"]');
-    // These elements exist in DOM but are hidden via CSS display: none on mobile
-    expect(appTitle).toBeInTheDocument();
-    expect(charName).toBeInTheDocument();
+    expect(appTitle).not.toBeInTheDocument();
+    expect(charName).not.toBeInTheDocument();
   });
 });

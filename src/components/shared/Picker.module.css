@@ -78,6 +78,25 @@
   text-align: center;
 }
 
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.groupHeader {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.04));
+  border-radius: var(--radius-sm);
+  user-select: none;
+  pointer-events: none;
+}
+
 /* Mobile overrides */
 @media (max-width: 767px) {
   .modal {

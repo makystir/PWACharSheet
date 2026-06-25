@@ -10,6 +10,9 @@
 }
 
 .toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--border);
@@ -19,6 +22,33 @@
   font-size: 14px;
   animation: fadeIn 200ms ease-out;
   pointer-events: auto;
+}
+
+.message {
+  flex: 1;
+}
+
+.actionButton {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.actionButton:hover {
+  background: rgba(201, 168, 76, 0.15);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 @keyframes fadeIn {

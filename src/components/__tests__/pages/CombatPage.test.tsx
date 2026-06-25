@@ -22,6 +22,7 @@ function renderCombatPage(overrides: Partial<Character> = {}) {
   render(
     <CombatPage
       character={char}
+      characterId="test-char-id"
       update={update}
       updateCharacter={updateCharacter}
       totalWounds={10}
@@ -143,8 +144,8 @@ describe('CombatPage layout', () => {
 
   it('renders WeaponCards and ArmourMap in readiness mode', () => {
     renderCombatPage();
-    expect(screen.getByText('Weapons')).toBeInTheDocument();
-    expect(screen.getByText('Armour')).toBeInTheDocument();
+    expect(screen.getAllByText('Weapons').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Armour').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders AttackFlow and QuickRollBar in active combat mode', () => {
@@ -152,8 +153,8 @@ describe('CombatPage layout', () => {
       combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
       weapons: [{ name: 'Sword', group: 'Basic', enc: '1', damage: '+SB+4', qualities: '—' }],
     });
-    expect(screen.getByText('Attack Flow')).toBeInTheDocument();
-    expect(screen.getByText('Quick Rolls')).toBeInTheDocument();
+    expect(screen.getAllByText('Attack Flow').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Quick Rolls').length).toBeGreaterThanOrEqual(1);
   });
 });
 

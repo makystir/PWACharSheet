@@ -233,14 +233,17 @@ describe('AttackFlow — mobile collapse behavior (Requirement 8.4)', () => {
   });
 
   it('does not render collapse headers on desktop viewport', () => {
-    // Override back to desktop
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 1024,
-    });
-    // Re-dispatch resize to trigger the effect
-    window.dispatchEvent(new Event('resize'));
+    // Override matchMedia to report desktop viewport
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: !query.includes('max-width: 767px'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
 
     render(<AttackFlow {...makeProps()} />);
 

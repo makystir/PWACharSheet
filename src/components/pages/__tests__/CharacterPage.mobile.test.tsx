@@ -160,10 +160,10 @@ describe('CharacterPage mobile: sub-tab bar and grid collapse', () => {
       render(<CharacterPage {...defaultProps} />);
 
       // The sub-tab buttons should be rendered
-      const identityTab = screen.getByRole('button', { name: /identity/i });
-      const abilitiesTab = screen.getByRole('button', { name: /abilities/i });
-      const gearTab = screen.getByRole('button', { name: /gear/i });
-      const notesTab = screen.getByRole('button', { name: /notes/i });
+      const identityTab = screen.getByRole('tab', { name: /identity/i });
+      const abilitiesTab = screen.getByRole('tab', { name: /abilities/i });
+      const gearTab = screen.getByRole('tab', { name: /gear/i });
+      const notesTab = screen.getByRole('tab', { name: /notes/i });
 
       // All tabs should be present
       expect(identityTab).toBeInTheDocument();
@@ -171,27 +171,27 @@ describe('CharacterPage mobile: sub-tab bar and grid collapse', () => {
       expect(gearTab).toBeInTheDocument();
       expect(notesTab).toBeInTheDocument();
 
-      // The active tab should have the subTabActive class (which carries the min-height 44px in mobile CSS)
+      // The active tab should have the tabActive class (which carries the min-height 44px in mobile CSS)
       // CSS modules mangle class names, but we can verify they have a class attribute set
       expect(identityTab).toHaveAttribute('class');
-      expect(identityTab.className).toMatch(/subTabActive/);
+      expect(identityTab.className).toMatch(/tabActive/);
     });
 
-    it('all sub-tab buttons have the subTab or subTabActive class', () => {
+    it('all sub-tab buttons have the tab or tabActive class', () => {
       window.matchMedia = mockMatchMedia(375);
 
       render(<CharacterPage {...defaultProps} />);
 
-      const buttons = screen.getAllByRole('button').filter(
-        (btn) => btn.className.match(/subTab/)
+      const buttons = screen.getAllByRole('tab').filter(
+        (btn) => btn.className.match(/tab/)
       );
 
       // Expect exactly 4 sub-tab buttons
       expect(buttons).toHaveLength(4);
 
-      // Each should have the subTab class (which carries min-height: 44px on mobile)
+      // Each should have the tab class (which carries min-height: 44px on mobile)
       buttons.forEach((btn) => {
-        expect(btn.className).toMatch(/subTab/);
+        expect(btn.className).toMatch(/tab/);
       });
     });
   });
@@ -203,7 +203,7 @@ describe('CharacterPage mobile: sub-tab bar and grid collapse', () => {
       render(<CharacterPage {...defaultProps} />);
 
       // The sub-tab bar container wraps the tab buttons
-      const identityTab = screen.getByRole('button', { name: /identity/i });
+      const identityTab = screen.getByRole('tab', { name: /identity/i });
       const subTabBar = identityTab.parentElement;
 
       expect(subTabBar).not.toBeNull();

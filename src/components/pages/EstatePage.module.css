@@ -5,40 +5,6 @@
   composes: sectionGap from '../shared/styles/shared.module.css';
 }
 
-/* Sub-tab navigation bar */
-.subTabBar {
-  display: flex;
-  gap: 0;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  overflow: hidden;
-  margin-bottom: 4px;
-}
-
-.subTab {
-  flex: 1;
-  padding: 10px 12px;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-heading);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  background: transparent;
-  color: var(--text-muted);
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s;
-}
-
-.subTabActive {
-  composes: subTab;
-  background: rgba(201, 168, 76, 0.15);
-  color: var(--accent-gold);
-  border-bottom: 2px solid var(--accent-gold);
-}
-
 /* Two-column grid */
 .twoColGrid {
   display: grid;
