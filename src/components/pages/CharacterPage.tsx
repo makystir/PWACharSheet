@@ -34,6 +34,7 @@ import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel } from '.
 import { activateRuneOfForging, resetForgingCharges, calculateForgingCharges } from '../../logic/engineeringRunes';
 import { activateDoomRune } from '../../logic/doomRunes';
 import { DeitySelector } from '../shared/DeitySelector';
+import { YenluiPanel } from '../shared/YenluiPanel';
 import RunePanel from '../runes/RunePanel';
 import type { ProtectionItem, EngineeringItem } from '../../types/character';
 import styles from './CharacterPage.module.css';
@@ -297,6 +298,9 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
 
       {/* Patron Deity — only visible for Dwarf priest characters */}
       <DeitySelector character={character} updateCharacter={updateCharacter} />
+
+      {/* Yenlui Balance — only visible for Elf characters with useYenlui enabled */}
+      <YenluiPanel character={character} updateCharacter={updateCharacter} />
 
       {/* Characteristics */}
       <Card>

@@ -415,12 +415,15 @@ export interface Estate {
 
 export type RangedDamageSBMode = 'none' | 'halfSB' | 'fullSB';
 
+export type YenluiState = 'light' | 'balanced' | 'dark';
+
 export interface HouseRules {
   rangedDamageSBMode: RangedDamageSBMode;
   impaleCritsOnTens: boolean;
   min1Wound: boolean;
   advantageCap: number;
   useGroupAdvantage: boolean;
+  useYenlui: boolean;
 }
 
 export interface Character {
@@ -505,6 +508,7 @@ export interface Character {
   doomRuneActivations?: DoomRuneActivation[];
   forgingCharges?: Record<string, number>;  // key: engineeringItem.id, value: remaining charges
   diseases?: ActiveDisease[];
+  yenluiState?: YenluiState;
   log: string[];
 }
 
@@ -660,6 +664,7 @@ export const BLANK_CHARACTER: Character = {
     min1Wound: true,
     advantageCap: 10,
     useGroupAdvantage: false,
+    useYenlui: false,
   },
   knownRunes: [],
   learnedTechniques: [],

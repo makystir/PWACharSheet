@@ -35,6 +35,7 @@ const RAW_DEFAULTS = {
   min1Wound: true,
   advantageCap: 10,
   useGroupAdvantage: false,
+  useYenlui: false,
 };
 
 /** Create a character missing the houseRules field (simulates pre-feature data). */
@@ -64,6 +65,7 @@ describe('Backfill — character loaded without houseRules', () => {
       min1Wound: false,
       advantageCap: 0,
       useGroupAdvantage: false,
+      useYenlui: false,
     };
 
     const patched = backfillCharacter(char);
@@ -74,6 +76,7 @@ describe('Backfill — character loaded without houseRules', () => {
       min1Wound: false,
       advantageCap: 0,
       useGroupAdvantage: false,
+      useYenlui: false,
     });
   });
 });
@@ -118,6 +121,7 @@ describe('Import — character imported with custom houseRules', () => {
       min1Wound: false,
       advantageCap: 5,
       useGroupAdvantage: false,
+      useYenlui: false,
     };
     const importData = {
       _v: 6,
@@ -183,6 +187,7 @@ describe('Import — character imported with custom houseRules', () => {
       min1Wound: false,
       advantageCap: 20,
       useGroupAdvantage: false,
+      useYenlui: false,
     };
 
     const json = exportToJSON(original);

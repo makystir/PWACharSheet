@@ -6,6 +6,7 @@ import {
   getTechniqueXpCost,
   learnTechnique,
 } from '../../logic/swordDancing';
+import { getYenluiDifficulty } from '../../logic/yenlui';
 import { SWORD_DANCING_TECHNIQUES } from '../../data/swordDancingTechniques';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -21,10 +22,12 @@ function TechniqueRow({
   technique,
   character,
   updateCharacter,
+  showDifficulty,
 }: {
   technique: SwordDancingTechnique;
   character: Character;
   updateCharacter: (mutator: (char: Character) => Character) => void;
+  showDifficulty: boolean;
 }) {
   const learned = getLearnedTechniques(character);
   const isLearned = learned.includes(technique.id);
@@ -46,6 +49,8 @@ function TechniqueRow({
       ? styles.rowUnavailable
       : styles.rowDefault;
 
+  const difficulty = isLearned && showDifficulty ? getYenluiDifficulty(character) : null;
+
   return (
     <div className={rowClass}>
       <div>
@@ -55,7 +60,14 @@ function TechniqueRow({
       </div>
       <div className={styles.rightCol}>
         {isLearned ? (
-          <span className={styles.learnedBadge}>✓ Learned</span>
+          <>
+            <span className={styles.learnedBadge}>✓ Learned</span>
+            {difficulty && (
+              <span className={difficulty.label === 'Very Hard' ? styles.difficultyWarning : styles.difficultyBadge}>
+                {difficulty.label === 'Very Hard' ? '⚠️ ' : ''}{difficulty.label} {difficulty.modifier}
+              </span>
+            )}
+          </>
         ) : check.canLearn ? (
           <button
             type="button"
@@ -81,6 +93,7 @@ export function SwordDancingPanel({ character, updateCharacter }: SwordDancingPa
   const learned = getLearnedTechniques(character);
   const nextCost = getTechniqueXpCost(learned.length);
   const sortedTechniques = [...SWORD_DANCING_TECHNIQUES].sort((a, b) => a.order - b.order);
+  const showDifficulty = learned.length > 0;
 
   return (
     <Card>
@@ -94,6 +107,7 @@ export function SwordDancingPanel({ character, updateCharacter }: SwordDancingPa
           technique={technique}
           character={character}
           updateCharacter={updateCharacter}
+          showDifficulty={showDifficulty}
         />
       ))}
     </Card>

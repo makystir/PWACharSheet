@@ -95,3 +95,16 @@
 .rightCol {
   text-align: right;
 }
+
+.difficultyBadge {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+.difficultyWarning {
+  composes: difficultyBadge;
+  color: var(--danger);
+  font-weight: 600;
+}

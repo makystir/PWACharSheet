@@ -190,6 +190,23 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
               </button>
             </div>
           </div>
+
+          {/* Yenlui Balance */}
+          <div className={styles.ruleItem}>
+            <div className={styles.toggleRow}>
+              <div className={styles.toggleInfo}>
+                <div className={styles.ruleLabel}>Yenlui Balance (High Elf)</div>
+                <div className={styles.ruleDesc}>Track Elven spiritual balance (High Elf Player's Guide)</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => update('houseRules.useYenlui', !character.houseRules.useYenlui)}
+                className={character.houseRules.useYenlui ? styles.toggleBtnOn : styles.toggleBtnOff}
+              >
+                {character.houseRules.useYenlui ? 'ON' : 'OFF'}
+              </button>
+            </div>
+          </div>
         </div>
       </Card>
 
