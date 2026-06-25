@@ -413,6 +413,21 @@ export interface Estate {
   properties?: Holding[];
 }
 
+export type GrudgeType = 'standard' | 'blood';
+export type GrudgeStatus = 'outstanding' | 'satisfied';
+
+export interface GrudgeEntry {
+  id: string;              // crypto.randomUUID() or fallback
+  offence: string;         // Description of the wrong
+  perpetrator: string;     // Who did it
+  restitution: string;     // What's required
+  type: GrudgeType;        // Standard (25 XP) or Blood (50 XP)
+  status: GrudgeStatus;    // Outstanding or Satisfied
+  isPartyGrudge: boolean;  // Shared by party
+  dateRecorded: string;    // ISO date string (YYYY-MM-DD)
+  dateSatisfied?: string;  // ISO date string, set when satisfied
+}
+
 export type RangedDamageSBMode = 'none' | 'halfSB' | 'fullSB';
 
 export interface MagicalBurnout {
@@ -430,6 +445,7 @@ export interface HouseRules {
   advantageCap: number;
   useGroupAdvantage: boolean;
   useYenlui: boolean;
+  useGrudgeBook: boolean;
 }
 
 export interface Character {
@@ -514,6 +530,7 @@ export interface Character {
   doomRuneActivations?: DoomRuneActivation[];
   forgingCharges?: Record<string, number>;  // key: engineeringItem.id, value: remaining charges
   diseases?: ActiveDisease[];
+  grudges?: GrudgeEntry[];
   yenluiState?: YenluiState;
   magicalBurnout?: MagicalBurnout;
   log: string[];
@@ -672,6 +689,7 @@ export const BLANK_CHARACTER: Character = {
     advantageCap: 10,
     useGroupAdvantage: false,
     useYenlui: false,
+    useGrudgeBook: false,
   },
   knownRunes: [],
   learnedTechniques: [],

@@ -34,6 +34,7 @@ import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel } from '.
 import { activateRuneOfForging, resetForgingCharges, calculateForgingCharges } from '../../logic/engineeringRunes';
 import { activateDoomRune } from '../../logic/doomRunes';
 import { DeitySelector } from '../shared/DeitySelector';
+import { GrudgePanel } from '../shared/GrudgePanel';
 import { YenluiPanel } from '../shared/YenluiPanel';
 import { MagicalBurnoutPanel } from '../shared/MagicalBurnoutPanel';
 import RunePanel from '../runes/RunePanel';
@@ -299,6 +300,9 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
 
       {/* Patron Deity — only visible for Dwarf priest characters */}
       <DeitySelector character={character} updateCharacter={updateCharacter} />
+
+      {/* Grudge Book — only visible for Dwarf characters with useGrudgeBook enabled */}
+      <GrudgePanel character={character} updateCharacter={updateCharacter} />
 
       {/* Yenlui Balance — only visible for Elf characters with useYenlui enabled */}
       <YenluiPanel character={character} updateCharacter={updateCharacter} />

@@ -207,6 +207,23 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
               </button>
             </div>
           </div>
+
+          {/* Grudge Book */}
+          <div className={styles.ruleItem}>
+            <div className={styles.toggleRow}>
+              <div className={styles.toggleInfo}>
+                <div className={styles.ruleLabel}>Grudge Book (Dwarf)</div>
+                <div className={styles.ruleDesc}>Track Dwarf grudges for XP (Dwarf Player's Guide)</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => update('houseRules.useGrudgeBook', !character.houseRules.useGrudgeBook)}
+                className={character.houseRules.useGrudgeBook ? styles.toggleBtnOn : styles.toggleBtnOff}
+              >
+                {character.houseRules.useGrudgeBook ? 'ON' : 'OFF'}
+              </button>
+            </div>
+          </div>
         </div>
       </Card>
 

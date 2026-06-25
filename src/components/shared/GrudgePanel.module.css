@@ -1,0 +1,503 @@
+/* GrudgePanel — co-located CSS Module */
+
+/* ── Panel Container (Card pattern) ── */
+.container {
+  margin-bottom: 12px;
+}
+
+/* ── XP Reference Header ── */
+.xpHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.xpBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.xpValue {
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+/* ── Grudge List ── */
+.grudgeList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+/* ── Grudge Item ── */
+.grudgeItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--bg-inset, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.grudgeItemSatisfied {
+  composes: grudgeItem;
+  opacity: 0.55;
+  text-decoration: line-through;
+  text-decoration-color: var(--text-muted);
+}
+
+/* ── Grudge Item Header Row ── */
+.grudgeItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grudgeOffence {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* ── Blood Grudge Indicator (icon + label, not colour alone) ── */
+.bloodIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(200, 80, 80, 0.15);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.bloodIcon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* ── Party Grudge Badge ── */
+.partyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+/* ── Grudge Detail Rows ── */
+.grudgeDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.detailRow {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.detailLabel {
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.detailValue {
+  color: var(--text-primary);
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+/* ── Grudge Item Actions ── */
+.grudgeActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.satisfyBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: rgba(90, 154, 90, 0.2);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.satisfyBtn:hover {
+  background: rgba(90, 154, 90, 0.3);
+}
+
+.deleteBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.deleteBtn:hover {
+  background: rgba(200, 80, 80, 0.1);
+  border-color: var(--danger);
+}
+
+/* ── Empty State ── */
+.emptyState {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ── Add Grudge Form ── */
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-top: 12px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.formInput {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  min-height: 44px;
+  font-family: inherit;
+}
+
+.formInput::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.formInputError {
+  composes: formInput;
+  border-color: var(--danger);
+}
+
+.fieldError {
+  font-size: 11px;
+  color: var(--danger);
+  font-weight: 500;
+}
+
+/* ── Type Selector (Standard / Blood) ── */
+.typeSelector {
+  display: flex;
+  gap: 4px;
+}
+
+.typeBtn {
+  flex: 1;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.typeBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.typeBtnActive {
+  composes: typeBtn;
+  background: rgba(201, 168, 76, 0.15);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+/* ── Party Grudge Checkbox ── */
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.checkboxLabel {
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ── Form Submit / Cancel Buttons ── */
+.formActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.submitBtn {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: rgba(201, 168, 76, 0.2);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-heading);
+}
+
+.submitBtn:hover {
+  background: rgba(201, 168, 76, 0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: var(--bg-tertiary);
+}
+
+/* ── Add Grudge Toggle Button ── */
+.addToggleBtn {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.addToggleBtn:hover {
+  background: rgba(201, 168, 76, 0.1);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ── XP Confirmation Toast ── */
+.xpConfirmation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(90, 154, 90, 0.15);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 8px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Party Limit Warning ── */
+.limitWarning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(230, 126, 34, 0.1);
+  border: 1px solid var(--text-warning, #e67e22);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-warning, #e67e22);
+  margin-top: 8px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Responsive: ≥768px — full width within identity tab column
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  .container {
+    width: 100%;
+  }
+
+  .grudgeItemHeader {
+    flex-wrap: nowrap;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Responsive: <768px — vertical stack, no horizontal overflow, 44px touch targets
+   Requirements: 10.4, 10.5
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .container {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .xpHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .grudgeItem,
+  .grudgeItemSatisfied {
+    padding: 10px;
+  }
+
+  .grudgeItemHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Ensure all interactive elements meet 44×44 touch targets */
+  .satisfyBtn,
+  .deleteBtn,
+  .submitBtn,
+  .cancelBtn,
+  .addToggleBtn,
+  .typeBtn,
+  .typeBtnActive {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .formInput,
+  .formInputError {
+    min-height: 44px;
+    font-size: 16px; /* prevent iOS zoom on focus */
+  }
+
+  .grudgeActions {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .satisfyBtn,
+  .deleteBtn {
+    flex: 1;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .submitBtn,
+  .cancelBtn {
+    width: 100%;
+  }
+}

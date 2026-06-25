@@ -36,6 +36,7 @@ const RAW_DEFAULTS = {
   advantageCap: 10,
   useGroupAdvantage: false,
   useYenlui: false,
+  useGrudgeBook: false,
 };
 
 /** Create a character missing the houseRules field (simulates pre-feature data). */
@@ -66,6 +67,7 @@ describe('Backfill — character loaded without houseRules', () => {
       advantageCap: 0,
       useGroupAdvantage: false,
       useYenlui: false,
+      useGrudgeBook: false,
     };
 
     const patched = backfillCharacter(char);
@@ -77,6 +79,7 @@ describe('Backfill — character loaded without houseRules', () => {
       advantageCap: 0,
       useGroupAdvantage: false,
       useYenlui: false,
+      useGrudgeBook: false,
     });
   });
 });
@@ -122,6 +125,7 @@ describe('Import — character imported with custom houseRules', () => {
       advantageCap: 5,
       useGroupAdvantage: false,
       useYenlui: false,
+      useGrudgeBook: false,
     };
     const importData = {
       _v: 6,
@@ -188,6 +192,7 @@ describe('Import — character imported with custom houseRules', () => {
       advantageCap: 20,
       useGroupAdvantage: false,
       useYenlui: false,
+      useGrudgeBook: false,
     };
 
     const json = exportToJSON(original);
