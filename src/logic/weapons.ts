@@ -5,16 +5,31 @@ export const RANGED_GROUPS = ['Bow', 'Blackpowder', 'Crossbow', 'Sling', 'Throwi
 
 /**
  * Match a weapon to the best skill the character has.
+ * Engineering weapons are special: classified by maxR presence (ranged if maxR defined, melee otherwise).
  * Ranged weapons → Ranged(<group>).
  * Melee weapons → exact Melee(<group>), then fallback to Melee (Basic).
  */
 export function findSkillForWeapon(
-  weapon: { group: string },
+  weapon: { group: string; maxR?: string },
   bSkills: { n: string; c: string; a: number }[],
   aSkills: { n: string; c: string; a: number }[],
 ) {
-  const isRanged = RANGED_GROUPS.includes(weapon.group);
   const allSkills = [...bSkills, ...aSkills];
+
+  // Engineering weapons: classified per-weapon by maxR presence
+  if (weapon.group === 'Engineering') {
+    if (weapon.maxR) {
+      // Ranged Engineering weapon — look for Ranged (Engineering), no fallback
+      const skill = allSkills.find(s => s.n === 'Ranged (Engineering)');
+      return skill || null;
+    } else {
+      // Melee Engineering weapon — look for Melee (Engineering), fallback to Melee (Basic)
+      const skill = allSkills.find(s => s.n === 'Melee (Engineering)');
+      return skill || allSkills.find(s => s.n === 'Melee (Basic)') || null;
+    }
+  }
+
+  const isRanged = RANGED_GROUPS.includes(weapon.group);
 
   if (isRanged) {
     const skillName = `Ranged (${weapon.group})`;
@@ -58,7 +73,7 @@ export function calcWeaponDamage(
   if (!weapon.damage || weapon.damage === '—') return { num: null, breakdown: '' };
 
   const halfSB = Math.floor(SB / 2);
-  const ranged = RANGED_GROUPS.includes(weapon.group);
+  const ranged = RANGED_GROUPS.includes(weapon.group) || (weapon.group === 'Engineering' && !!weapon.maxR);
   let num = 0;
   const parts: string[] = [];
 

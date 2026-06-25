@@ -679,7 +679,7 @@ describe('Dwarf Players Guide — Melee Weapons', () => {
     '(2H) Dwarf Greataxe',
     '(2H) Dwarf Greathammer',
     '(2H) Dwarf Pick',
-    'Steam Drill',
+    '(2H) Steam Drill',
     'Cog Axe',
     'Steam Gauntlet',
   ];
@@ -697,7 +697,7 @@ describe('Dwarf Players Guide — Melee Weapons', () => {
   });
 
   it('Engineering group weapons have rangeReach (melee indicator)', () => {
-    const engineeringNames = ['Steam Drill', 'Cog Axe', 'Steam Gauntlet'];
+    const engineeringNames = ['(2H) Steam Drill', 'Cog Axe', 'Steam Gauntlet'];
     for (const name of engineeringNames) {
       const w = WEAPONS.find(w => w.name === name);
       expect(w, `Missing Engineering weapon: ${name}`).toBeDefined();

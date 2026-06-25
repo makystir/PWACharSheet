@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { findSkillForWeapon, calcWeaponDamage, RANGED_GROUPS } from '../weapons';
+import { WEAPONS } from '../../data/weapons';
 import type { WeaponItem, Talent } from '../../types/character';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -129,6 +130,32 @@ describe('findSkillForWeapon', () => {
     const result = findSkillForWeapon({ group: 'Explosives' }, [], skills);
     expect(result).not.toBeNull();
     expect(result!.n).toBe('Ranged (Explosives)');
+  });
+
+  // ── Engineering weapon edge cases ──
+
+  it('ranged Engineering weapon (with maxR) resolves to Ranged (Engineering)', () => {
+    const skills = [{ n: 'Ranged (Engineering)', c: 'BS', a: 15 }];
+    const result = findSkillForWeapon({ group: 'Engineering', maxR: '30' }, skills, []);
+    expect(result).not.toBeNull();
+    expect(result!.n).toBe('Ranged (Engineering)');
+  });
+
+  it('ranged Engineering weapon returns null when Ranged (Engineering) missing', () => {
+    const skills = [
+      { n: 'Melee (Basic)', c: 'WS', a: 10 },
+      { n: 'Melee (Engineering)', c: 'WS', a: 10 },
+      { n: 'Ranged (Bow)', c: 'BS', a: 15 },
+    ];
+    const result = findSkillForWeapon({ group: 'Engineering', maxR: '30' }, skills, []);
+    expect(result).toBeNull();
+  });
+
+  it('melee Engineering weapon falls back to Melee (Basic) when Melee (Engineering) missing', () => {
+    const skills = [{ n: 'Melee (Basic)', c: 'WS', a: 10 }];
+    const result = findSkillForWeapon({ group: 'Engineering' }, skills, []);
+    expect(result).not.toBeNull();
+    expect(result!.n).toBe('Melee (Basic)');
   });
 });
 
@@ -399,5 +426,367 @@ describe('calcWeaponDamage with rangedDamageSBMode', () => {
       expect(withUndefined.num).toBe(4);
       expect(withUndefined.breakdown).toBe(withNone.breakdown);
     });
+  });
+});
+
+
+// ─── Dwarf Melee Weapon Catalogue Entries ────────────────────────────────────
+
+describe('Dwarf melee weapon catalogue entries', () => {
+  function findWeapon(name: string) {
+    return WEAPONS.find(w => w.name === name);
+  }
+
+  it('Dwarf Axe has correct profile', () => {
+    const w = findWeapon('Dwarf Axe');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Basic');
+    expect(w!.enc).toBe('1');
+    expect(w!.rangeReach).toBe('Average');
+    expect(w!.damage).toBe('+SB+4');
+    expect(w!.qualities).toBe('Hack');
+  });
+
+  it('Dwarf Warhammer has correct profile', () => {
+    const w = findWeapon('Dwarf Warhammer');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Basic');
+    expect(w!.enc).toBe('1');
+    expect(w!.rangeReach).toBe('Average');
+    expect(w!.damage).toBe('+SB+4');
+    expect(w!.qualities).toBe('Pummel');
+  });
+
+  it('Whirling Blades of Death has correct profile', () => {
+    const w = findWeapon('Whirling Blades of Death');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Flail');
+    expect(w!.enc).toBe('3');
+    expect(w!.rangeReach).toBe('Long');
+    expect(w!.damage).toBe('+SB+5');
+    expect(w!.qualities).toBe('Distract, Hack, Impact, Tiring, Wrap');
+  });
+
+  it('(2H) Dwarf Greataxe has correct profile', () => {
+    const w = findWeapon('(2H) Dwarf Greataxe');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Two-Handed');
+    expect(w!.enc).toBe('3');
+    expect(w!.rangeReach).toBe('Long');
+    expect(w!.damage).toBe('+SB+6');
+    expect(w!.qualities).toBe('Hack, Impact, Tiring');
+  });
+
+  it('(2H) Dwarf Greathammer has correct profile', () => {
+    const w = findWeapon('(2H) Dwarf Greathammer');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Two-Handed');
+    expect(w!.enc).toBe('3');
+    expect(w!.rangeReach).toBe('Long');
+    expect(w!.damage).toBe('+SB+7');
+    expect(w!.qualities).toBe('Damaging, Pummel');
+  });
+
+  it('(2H) Dwarf Pick has correct profile', () => {
+    const w = findWeapon('(2H) Dwarf Pick');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Two-Handed');
+    expect(w!.enc).toBe('2');
+    expect(w!.rangeReach).toBe('Average');
+    expect(w!.damage).toBe('+SB+6');
+    expect(w!.qualities).toBe('Damaging, Impale');
+  });
+
+  it('(2H) Steam Drill has correct profile', () => {
+    const w = findWeapon('(2H) Steam Drill');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Engineering');
+    expect(w!.enc).toBe('3');
+    expect(w!.rangeReach).toBe('Short');
+    expect(w!.damage).toBe('+SB+6');
+    expect(w!.qualities).toBe('Impact, Impale');
+  });
+
+  it('Cog Axe has correct profile', () => {
+    const w = findWeapon('Cog Axe');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Engineering');
+    expect(w!.enc).toBe('2');
+    expect(w!.rangeReach).toBe('Average');
+    expect(w!.damage).toBe('+SB+4');
+    expect(w!.qualities).toBe('Hack, Penetrating, Trap Blade');
+  });
+
+  it('Steam Gauntlet has correct profile', () => {
+    const w = findWeapon('Steam Gauntlet');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Engineering');
+    expect(w!.enc).toBe('2');
+    expect(w!.rangeReach).toBe('Very Short');
+    expect(w!.damage).toBe('+SB+7');
+    expect(w!.qualities).toBe('Pummel, Shield 1');
+  });
+});
+
+
+// ─── Dwarf Ranged Weapon Catalogue Entries ───────────────────────────────────
+
+describe('Dwarf ranged weapon catalogue entries', () => {
+  function findWeapon(name: string) {
+    return WEAPONS.find(w => w.name === name);
+  }
+
+  it('(2H) Dwarf Handgun has correct profile', () => {
+    const w = findWeapon('(2H) Dwarf Handgun');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Blackpowder');
+    expect(w!.enc).toBe('2');
+    expect(w!.maxR).toBe('50');
+    expect(w!.optR).toBe('16');
+    expect(w!.rangeMod).toBe('10');
+    expect(w!.damage).toBe('+10');
+    expect(w!.qualities).toContain('Damaging');
+    expect(w!.qualities).toContain('Impale');
+    expect(w!.qualities).toContain('Penetrating');
+    expect(w!.qualities).toContain('Reload 3');
+    expect(w!.qualities).toContain('BP');
+  });
+
+  it('Dwarf Pistol has correct profile', () => {
+    const w = findWeapon('Dwarf Pistol');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Blackpowder');
+    expect(w!.enc).toBe('0');
+    expect(w!.maxR).toBe('20');
+    expect(w!.optR).toBe('6');
+    expect(w!.rangeMod).toBe('4');
+    expect(w!.damage).toBe('+10');
+    expect(w!.qualities).toContain('Damaging');
+    expect(w!.qualities).toContain('Impale');
+    expect(w!.qualities).toContain('Penetrating');
+    expect(w!.qualities).toContain('Pistol');
+    expect(w!.qualities).toContain('Reload 1');
+    expect(w!.qualities).toContain('BP');
+  });
+
+  it('(2H) Dwarf Crossbow has correct profile', () => {
+    const w = findWeapon('(2H) Dwarf Crossbow');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Crossbow');
+    expect(w!.enc).toBe('2');
+    expect(w!.maxR).toBe('80');
+    expect(w!.optR).toBe('26');
+    expect(w!.rangeMod).toBe('16');
+    expect(w!.damage).toBe('+10');
+    expect(w!.qualities).toBe('Impale, Precise, Damaging, Reload 1');
+  });
+
+  it('Dwarf Throwing Axe has correct profile', () => {
+    const w = findWeapon('Dwarf Throwing Axe');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Throwing');
+    expect(w!.maxR).toBe('SBx2');
+    expect(w!.damage).toBe('+SB+4');
+    expect(w!.qualities).toBe('Hack');
+    // Non-numeric maxR — no optR/rangeMod
+    expect(w!.optR).toBeUndefined();
+    expect(w!.rangeMod).toBeUndefined();
+  });
+
+  it('(2H) Drakegun has correct profile', () => {
+    const w = findWeapon('(2H) Drakegun');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Engineering');
+    expect(w!.enc).toBe('3');
+    expect(w!.maxR).toBe('30');
+    expect(w!.optR).toBe('10');
+    expect(w!.rangeMod).toBe('6');
+    expect(w!.damage).toBe('+12');
+    expect(w!.qualities).toContain('Blast 6');
+    expect(w!.qualities).toContain('Damaging');
+    expect(w!.qualities).toContain('Dangerous');
+    expect(w!.qualities).toContain('Penetrating');
+    expect(w!.qualities).toContain('Reload 4');
+    expect(w!.qualities).toContain('BP');
+  });
+
+  it('Drakefire Pistol has correct profile', () => {
+    const w = findWeapon('Drakefire Pistol');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Engineering');
+    expect(w!.enc).toBe('1');
+    expect(w!.maxR).toBe('20');
+    expect(w!.optR).toBe('6');
+    expect(w!.rangeMod).toBe('4');
+    expect(w!.damage).toBe('+11');
+    expect(w!.qualities).toContain('Blast 3');
+    expect(w!.qualities).toContain('Damaging');
+    expect(w!.qualities).toContain('Dangerous');
+    expect(w!.qualities).toContain('Penetrating');
+    expect(w!.qualities).toContain('Pistol');
+    expect(w!.qualities).toContain('Reload 4');
+    expect(w!.qualities).toContain('BP');
+  });
+
+  it('Trollhammer Torpedo has correct profile', () => {
+    const w = findWeapon('Trollhammer Torpedo');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Engineering');
+    expect(w!.enc).toBe('3');
+    expect(w!.maxR).toBe('40');
+    expect(w!.optR).toBe('13');
+    expect(w!.rangeMod).toBe('8');
+    expect(w!.damage).toBe('+14');
+    expect(w!.qualities).toBe('Dangerous, Impact, Reload 6');
+  });
+
+  it('(2H) Repeating Dwarf Handgun has correct profile', () => {
+    const w = findWeapon('(2H) Repeating Dwarf Handgun');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Engineering');
+    expect(w!.enc).toBe('3');
+    expect(w!.maxR).toBe('50');
+    expect(w!.optR).toBe('16');
+    expect(w!.rangeMod).toBe('10');
+    expect(w!.damage).toBe('+10');
+    expect(w!.qualities).toBe('Damaging, Dangerous, Impale, Penetrating, Reload 4, Repeater 3');
+  });
+
+  it('(2H) Grudge-raker has correct profile', () => {
+    const w = findWeapon('(2H) Grudge-raker');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Engineering');
+    expect(w!.enc).toBe('2');
+    expect(w!.maxR).toBe('30');
+    expect(w!.optR).toBe('10');
+    expect(w!.rangeMod).toBe('6');
+    expect(w!.damage).toBe('+10');
+    expect(w!.qualities).toBe('Damaging, Dangerous, Impale, Penetrating, Reload 3, Salvo 2, Spread 3');
+  });
+
+  it('Blasting Charge has correct profile', () => {
+    const w = findWeapon('Blasting Charge');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Explosives');
+    expect(w!.enc).toBe('0');
+    expect(w!.maxR).toBe('SB');
+    expect(w!.damage).toBe('+12');
+    expect(w!.qualities).toBe('Blast 2, Dangerous, Impact, Penetrating');
+    // Non-numeric maxR — no optR/rangeMod
+    expect(w!.optR).toBeUndefined();
+    expect(w!.rangeMod).toBeUndefined();
+  });
+
+  it('Cinderblast Bomb has correct profile', () => {
+    const w = findWeapon('Cinderblast Bomb');
+    expect(w).toBeDefined();
+    expect(w!.group).toBe('Explosives');
+    expect(w!.enc).toBe('0');
+    expect(w!.maxR).toBe('SBx2');
+    expect(w!.damage).toBe('+10');
+    expect(w!.qualities).toBe('Blast 5, Dangerous, Impact, Penetrating');
+    // Non-numeric maxR — no optR/rangeMod
+    expect(w!.optR).toBeUndefined();
+    expect(w!.rangeMod).toBeUndefined();
+  });
+
+  // ── Range derivation verification ──
+
+  it('Dwarf ranged weapons with numeric maxR have correct optR and rangeMod derivations', () => {
+    const dwarfRangedWeaponNames = [
+      '(2H) Dwarf Handgun', 'Dwarf Pistol', '(2H) Dwarf Crossbow',
+      '(2H) Drakegun', 'Drakefire Pistol', 'Trollhammer Torpedo',
+      '(2H) Repeating Dwarf Handgun', '(2H) Grudge-raker',
+    ];
+
+    const dwarfNumericMaxR = WEAPONS.filter(
+      w => dwarfRangedWeaponNames.includes(w.name) && w.maxR && /^\d+$/.test(w.maxR)
+    );
+    expect(dwarfNumericMaxR.length).toBe(8);
+
+    for (const w of dwarfNumericMaxR) {
+      const maxR = parseInt(w.maxR!, 10);
+      const expectedOptR = Math.floor(maxR / 3).toString();
+      const expectedRangeMod = Math.floor(maxR / 5).toString();
+      expect(w.optR).toBe(expectedOptR);
+      expect(w.rangeMod).toBe(expectedRangeMod);
+    }
+  });
+});
+
+
+// ─── Engineering Weapon Damage Calculation ───────────────────────────────────
+
+describe('Engineering weapon damage calculation', () => {
+  const noTalents: Talent[] = [];
+  const noRunes: string[] = [];
+
+  it('(2H) Drakegun applies Accurate Shot and Sure Shot', () => {
+    const weapon: WeaponItem = {
+      name: '(2H) Drakegun',
+      group: 'Engineering',
+      enc: '3',
+      damage: '+12',
+      qualities: 'Blast 6, Damaging, Dangerous, Penetrating, Reload 4, BP',
+      maxR: '30',
+    };
+    const talents: Talent[] = [
+      { n: 'Accurate Shot', lvl: 2, desc: '' },
+      { n: 'Sure Shot', lvl: 1, desc: '' },
+    ];
+    const result = calcWeaponDamage(weapon, 4, talents, noRunes);
+    // +12 flat + AS(2) + SS(1) = 15
+    expect(result.num).toBe(15);
+    expect(result.breakdown).toContain('AS+2');
+    expect(result.breakdown).toContain('SS+1');
+  });
+
+  it('(2H) Steam Drill applies Strike Mighty Blow', () => {
+    const weapon: WeaponItem = {
+      name: '(2H) Steam Drill',
+      group: 'Engineering',
+      enc: '3',
+      damage: '+SB+6',
+      qualities: 'Impact, Impale',
+      rangeReach: 'Short',
+    };
+    const talents: Talent[] = [
+      { n: 'Strike Mighty Blow', lvl: 3, desc: '' },
+    ];
+    const result = calcWeaponDamage(weapon, 5, talents, noRunes);
+    // SB(5) + 6 + SM(3) = 14
+    expect(result.num).toBe(14);
+    expect(result.breakdown).toContain('SB(5)');
+    expect(result.breakdown).toContain('SM+3');
+  });
+
+  it('rangedDamageSBMode "halfSB" applies to Engineering ranged weapon', () => {
+    const weapon: WeaponItem = {
+      name: 'Drakefire Pistol',
+      group: 'Engineering',
+      enc: '1',
+      damage: '+11',
+      qualities: 'Blast 3, Damaging, Dangerous, Penetrating, Pistol, Reload 4, BP',
+      maxR: '20',
+    };
+    const result = calcWeaponDamage(weapon, 6, noTalents, noRunes, 'halfSB');
+    // 11 + ½SB(3) = 14
+    expect(result.num).toBe(14);
+    expect(result.breakdown).toContain('½SB(3)');
+  });
+
+  it('Engineering melee weapon is NOT affected by rangedDamageSBMode', () => {
+    const weapon: WeaponItem = {
+      name: 'Steam Gauntlet',
+      group: 'Engineering',
+      enc: '2',
+      damage: '+SB+7',
+      qualities: 'Pummel, Shield 1',
+      rangeReach: 'Very Short',
+    };
+    const result = calcWeaponDamage(weapon, 4, noTalents, noRunes, 'fullSB');
+    // SB(4) + 7 = 11, unchanged by mode since it's melee
+    expect(result.num).toBe(11);
+    expect(result.breakdown).toContain('SB(4)');
   });
 });
