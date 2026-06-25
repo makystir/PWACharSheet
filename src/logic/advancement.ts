@@ -362,7 +362,7 @@ export function advanceSkill(
  * WFRP 4e career completion advance thresholds by level.
  * Level 1 = 5, Level 2 = 10, Level 3 = 15, Level 4 = 20.
  */
-const CAREER_COMPLETION_THRESHOLDS: Record<number, number> = { 1: 5, 2: 10, 3: 15, 4: 20 };
+const CAREER_COMPLETION_THRESHOLDS: Record<number, number> = { 1: 5, 2: 10, 3: 15, 4: 20, 5: 25 };
 
 /**
  * Check if a career skill name matches a character's skill.

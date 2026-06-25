@@ -415,6 +415,12 @@ export interface Estate {
 
 export type RangedDamageSBMode = 'none' | 'halfSB' | 'fullSB';
 
+export interface MagicalBurnout {
+  type: 'temporary' | 'permanent';
+  daysRemaining: number;    // For temporary: days of no-casting remaining. For permanent: 0
+  startedAt: number;        // Timestamp when burnout started
+}
+
 export type YenluiState = 'light' | 'balanced' | 'dark';
 
 export interface HouseRules {
@@ -509,6 +515,7 @@ export interface Character {
   forgingCharges?: Record<string, number>;  // key: engineeringItem.id, value: remaining charges
   diseases?: ActiveDisease[];
   yenluiState?: YenluiState;
+  magicalBurnout?: MagicalBurnout;
   log: string[];
 }
 

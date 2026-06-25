@@ -1,0 +1,141 @@
+/* MagicalBurnoutPanel — co-located CSS Module */
+
+.container {
+  margin-bottom: 12px;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.statusOk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.statusTemporary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--text-warning, #e67e22);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-warning, #e67e22);
+}
+
+.statusPermanent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--danger, #e74c3c);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--danger, #e74c3c);
+}
+
+.icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.desc {
+  font-size: 12px;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.clearBtn {
+  margin-top: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.clearBtn:hover {
+  background: var(--bg-secondary, #e8e8e8);
+}
+
+.clearBtn:focus-visible {
+  outline: 2px solid var(--focus-ring, #4a90d9);
+  outline-offset: 2px;
+}
+
+.applyRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rollInput {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+.rollInput:focus {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 1px;
+}
+
+.applyBtn {
+  min-height: 44px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.applyBtn:hover:not(:disabled) {
+  background: var(--bg-secondary, #e8e8e8);
+}
+
+.applyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.applyBtn:focus-visible {
+  outline: 2px solid var(--focus-ring, #4a90d9);
+  outline-offset: 2px;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.3;
+}

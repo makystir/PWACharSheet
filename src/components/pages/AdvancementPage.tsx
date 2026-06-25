@@ -121,12 +121,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   };
 
   const scheme = getCareerScheme(character.career);
-  const careerLevel = scheme
-    ? ([scheme.level1, scheme.level2, scheme.level3, scheme.level4] as CareerLevel[]).find(l => l.title === character.careerLevel)
-    : undefined;
-  const careerLevelNum = scheme
-    ? [scheme.level1, scheme.level2, scheme.level3, scheme.level4].findIndex(l => l.title === character.careerLevel) + 1
-    : 0;
+  const allLevels = scheme
+    ? [scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5].filter(Boolean) as CareerLevel[]
+    : [];
+  const careerLevel = allLevels.find(l => l.title === character.careerLevel);
+  const careerLevelNum = allLevels.findIndex(l => l.title === character.careerLevel) + 1;
   const isComplete = scheme && careerLevelNum > 0 ? isCareerLevelComplete(character, character.career, careerLevelNum) : false;
 
   const careerChars = careerLevel?.characteristics ?? [];
@@ -143,9 +142,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     ? sortedSkills.filter(e => !e.inCareer && e.skill.a > 0)
     : sortedSkills.filter(e => !e.inCareer);
 
-  // Career progress analysis — WFRP 4e completion thresholds: Level 1=5, 2=10, 3=15, 4=20
-  const completionThreshold = ({ 1: 5, 2: 10, 3: 15, 4: 20 } as Record<number, number>)[careerLevelNum] ?? 5;
-  const isMaxLevel = careerLevelNum >= 4;
+  // Career progress analysis — WFRP 4e completion thresholds: Level 1=5, 2=10, 3=15, 4=20, 5=25
+  const completionThreshold = ({ 1: 5, 2: 10, 3: 15, 4: 20, 5: 25 } as Record<number, number>)[careerLevelNum] ?? 5;
+  const maxLevel = allLevels.length;
+  const isMaxLevel = careerLevelNum >= maxLevel;
   const charsProgress = careerChars.map(k => ({ name: k, advances: character.chars[k].a, met: character.chars[k].a >= completionThreshold }));
   const charsMet = charsProgress.every(c => c.met);
   const allSkills = [...character.bSkills, ...character.aSkills];
@@ -216,7 +216,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   };
   const handleLevelSelect = (levelTitle: string) => {
     if (!scheme) return;
-    const level = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].find(l => l.title === levelTitle);
+    const level = allLevels.find(l => l.title === levelTitle);
     if (level) updateCharacter((c) => ({ ...c, careerLevel: level.title, status: level.status }));
     setShowLevelPicker(false);
   };
@@ -299,7 +299,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   };
 
   const careerNames = character.class ? getCareersByClass(character.class) : Object.keys(CAREER_SCHEMES);
-  const levelTitles = scheme ? [scheme.level1.title, scheme.level2.title, scheme.level3.title, scheme.level4.title] : [];
+  const levelTitles = allLevels.map(l => l.title);
 
   return (
     <div className={styles.sectionGap}>
@@ -623,11 +623,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           </>
         )}
         {/* Future career talents not yet owned and not currently in-career */}
-        {scheme && careerLevelNum < 4 && (() => {
+        {scheme && careerLevelNum < maxLevel && (() => {
           const ownedNames = new Set(character.talents.map(t => t.n));
           const inCareerSet = new Set(careerTalents);
           const futureTalents: { name: string; level: number }[] = [];
-          for (let lvl = careerLevelNum + 1; lvl <= 4; lvl++) {
+          for (let lvl = careerLevelNum + 1; lvl <= maxLevel; lvl++) {
             const lvlData = scheme[`level${lvl}` as keyof typeof scheme] as CareerLevel;
             for (const tn of lvlData.talents) {
               if (!inCareerSet.has(tn) && !ownedNames.has(tn) && !futureTalents.some(ft => ft.name === tn)) {
@@ -685,7 +685,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         <Card>
           <SectionHeader icon={ScrollText} title="Career Scheme" />
           <div className={styles.schemeGrid}>
-            {([scheme.level1, scheme.level2, scheme.level3, scheme.level4]).map((level, i) => (
+            {allLevels.map((level, i) => (
               <div key={i} className={level.title === character.careerLevel ? styles.schemeLevelCardActive : styles.schemeLevelCard}>
                 <div className={styles.schemeLevelTitle}>{level.title}</div>
                 <div className={styles.schemeLevelStatus}>{level.status}</div>

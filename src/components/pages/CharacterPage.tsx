@@ -35,6 +35,7 @@ import { activateRuneOfForging, resetForgingCharges, calculateForgingCharges } f
 import { activateDoomRune } from '../../logic/doomRunes';
 import { DeitySelector } from '../shared/DeitySelector';
 import { YenluiPanel } from '../shared/YenluiPanel';
+import { MagicalBurnoutPanel } from '../shared/MagicalBurnoutPanel';
 import RunePanel from '../runes/RunePanel';
 import type { ProtectionItem, EngineeringItem } from '../../types/character';
 import styles from './CharacterPage.module.css';
@@ -301,6 +302,9 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
 
       {/* Yenlui Balance — only visible for Elf characters with useYenlui enabled */}
       <YenluiPanel character={character} updateCharacter={updateCharacter} />
+
+      {/* Magical Burnout — only visible for High Magic users */}
+      <MagicalBurnoutPanel character={character} updateCharacter={updateCharacter} />
 
       {/* Characteristics */}
       <Card>
