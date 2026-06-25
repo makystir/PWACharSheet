@@ -4,12 +4,13 @@ import styles from './Picker.module.css';
 interface PickerProps<T> {
   items: T[];
   getLabel: (item: T) => string;
+  isDisabled?: (item: T) => boolean;
   onSelect: (item: T) => void;
   onClose: () => void;
   title?: string;
 }
 
-export function Picker<T>({ items, getLabel, onSelect, onClose, title }: PickerProps<T>) {
+export function Picker<T>({ items, getLabel, isDisabled, onSelect, onClose, title }: PickerProps<T>) {
   const [search, setSearch] = useState('');
 
   const filtered = items.filter((item) =>
@@ -33,16 +34,27 @@ export function Picker<T>({ items, getLabel, onSelect, onClose, title }: PickerP
           autoFocus
         />
         <div className={styles.list}>
-          {filtered.map((item, i) => (
-            <button
-              key={i}
-              type="button"
-              className={styles.item}
-              onClick={() => onSelect(item)}
-            >
-              {getLabel(item)}
-            </button>
-          ))}
+          {filtered.map((item, i) => {
+            const disabled = isDisabled?.(item) ?? false;
+            return disabled ? (
+              <div
+                key={i}
+                className={styles.itemDisabled}
+                aria-disabled="true"
+              >
+                {getLabel(item)}
+              </div>
+            ) : (
+              <button
+                key={i}
+                type="button"
+                className={styles.item}
+                onClick={() => onSelect(item)}
+              >
+                {getLabel(item)}
+              </button>
+            );
+          })}
           {filtered.length === 0 && (
             <div className={styles.emptyMessage}>
               No items found

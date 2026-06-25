@@ -187,19 +187,24 @@ export interface Hireling {
   notes: string;
 }
 
+export type EntryStatus = 'pending' | 'in_progress' | 'completed';
+
 export interface EndeavourEntry {
-  id: number;
+  id: string;
   type: string;
   notes: string;
-  completed: boolean;
+  status: EntryStatus;
+  cost?: string;
 }
 
 export interface DowntimePeriod {
-  id: number;
+  id: string;
   label: string;
   slots: number;
   entries: EndeavourEntry[];
   statusWarning: boolean;
+  date?: string;
+  sessionNumber?: number;
 }
 
 export interface Skill {

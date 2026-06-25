@@ -1,16 +1,15 @@
 import { useState } from 'react';
-import type { Character, ArmourPoints, EndeavourEntry } from '../../types/character';
+import type { Character, ArmourPoints, EntryStatus } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { AddButton } from '../shared/AddButton';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { Picker } from '../shared/Picker';
-import { CalendarCheck, Trash2, AlertTriangle, Info, Check } from 'lucide-react';
+import { CalendarCheck, Trash2, AlertTriangle, Info, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import styles from './EndeavoursPage.module.css';
+import { Toast } from '../shared/Toast';
 import {
-  GENERAL_ENDEAVOURS,
-  CLASS_ENDEAVOURS,
   createDowntimePeriod,
   addDowntimePeriod,
   removeDowntimePeriod as removeDowntimePeriodFn,
@@ -18,8 +17,19 @@ import {
   removeEndeavourEntry,
   updateEndeavourEntry,
   updateDowntimePeriod,
+  movePeriodUp,
+  movePeriodDown,
+  moveEntryUp,
+  moveEntryDown,
+  validateSessionNumber,
   isElf,
+  cycleStatus,
+  migrateEntryStatus,
+  getCostSummary,
+  buildPickerItems,
+  createEndeavourEntry,
 } from '../../logic/endeavours';
+import type { PickerItem } from '../../logic/endeavours';
 
 interface EndeavoursPageProps {
   character: Character;
@@ -31,40 +41,43 @@ interface EndeavoursPageProps {
   coinWeight: number;
 }
 
-interface PickerItem {
-  group: string;
-  label: string;
+/** Get the CSS class for an entry row based on its status */
+function getEntryRowClass(status: EntryStatus): string {
+  if (status === 'in_progress') return styles.entryRowInProgress;
+  if (status === 'completed') return styles.entryRowCompleted;
+  return styles.entryRow;
+}
+
+/** Get the CSS class for the status cycling button */
+function getStatusBtnClass(status: EntryStatus): string {
+  if (status === 'in_progress') return styles.statusBtnInProgress;
+  if (status === 'completed') return styles.statusBtnCompleted;
+  return styles.statusBtn;
+}
+
+/** Get the visual indicator for a status */
+function getStatusIndicator(status: EntryStatus): string {
+  if (status === 'in_progress') return '◐';
+  if (status === 'completed') return '✓';
+  return '○';
+}
+
+/** Get accessible title for the status button */
+function getStatusTitle(status: EntryStatus): string {
+  if (status === 'pending') return 'Status: Pending — click to set In Progress';
+  if (status === 'in_progress') return 'Status: In Progress — click to set Completed';
+  return 'Status: Completed — click to set Pending';
 }
 
 export function EndeavoursPage({ character, updateCharacter }: EndeavoursPageProps) {
-  const [deletingPeriodId, setDeletingPeriodId] = useState<number | null>(null);
-  const [addingToPeriodId, setAddingToPeriodId] = useState<number | null>(null);
-  const [customForPeriodId, setCustomForPeriodId] = useState<number | null>(null);
+  const [deletingPeriodId, setDeletingPeriodId] = useState<string | null>(null);
+  const [addingToPeriodId, setAddingToPeriodId] = useState<string | null>(null);
+  const [customForPeriodId, setCustomForPeriodId] = useState<string | null>(null);
   const [customInput, setCustomInput] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const endeavours = character.endeavours || [];
   const elfChar = isElf(character.species);
-
-  // Build grouped picker items for endeavour selection
-  const buildPickerItems = (): PickerItem[] => {
-    const items: PickerItem[] = [];
-    // General Endeavours
-    for (const e of GENERAL_ENDEAVOURS) {
-      items.push({ group: 'General', label: e });
-    }
-    // Class Endeavours filtered by character class
-    const classEndeavours = CLASS_ENDEAVOURS[character.class] || [];
-    for (const e of classEndeavours) {
-      items.push({ group: `${character.class} Class`, label: e });
-    }
-    // Elf Obligation if applicable
-    if (elfChar) {
-      items.push({ group: 'Species', label: 'Elf Obligation' });
-    }
-    // Custom option
-    items.push({ group: 'Other', label: '✏️ Custom (free text)' });
-    return items;
-  };
 
   const handleNewPeriod = () => {
     const period = createDowntimePeriod(character.status, endeavours.length);
@@ -72,44 +85,37 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
       ...c,
       endeavours: addDowntimePeriod(c.endeavours, period),
     }));
+    setToastMessage('Period added');
   };
 
-  const handleDeletePeriod = (periodId: number) => {
+  const handleDeletePeriod = (periodId: string) => {
     updateCharacter((c) => ({
       ...c,
       endeavours: removeDowntimePeriodFn(c.endeavours, periodId),
     }));
     setDeletingPeriodId(null);
+    setToastMessage('Period removed');
   };
 
-  const handleSelectEndeavour = (periodId: number, item: PickerItem) => {
+  const handleSelectEndeavour = (periodId: string, item: PickerItem) => {
     if (item.label === '✏️ Custom (free text)') {
       setAddingToPeriodId(null);
       setCustomForPeriodId(periodId);
       setCustomInput('');
       return;
     }
-    const entry: EndeavourEntry = {
-      id: Date.now(),
-      type: item.label,
-      notes: '',
-      completed: false,
-    };
+    const entry = createEndeavourEntry(item.label);
     updateCharacter((c) => ({
       ...c,
       endeavours: addEndeavourEntry(c.endeavours, periodId, entry),
     }));
     setAddingToPeriodId(null);
+    setToastMessage('Endeavour added');
   };
 
   const handleAddCustom = () => {
     if (!customInput.trim() || customForPeriodId === null) return;
-    const entry: EndeavourEntry = {
-      id: Date.now(),
-      type: customInput.trim(),
-      notes: '',
-      completed: false,
-    };
+    const entry = createEndeavourEntry(customInput.trim());
     const pid = customForPeriodId;
     updateCharacter((c) => ({
       ...c,
@@ -117,6 +123,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
     }));
     setCustomInput('');
     setCustomForPeriodId(null);
+    setToastMessage('Endeavour added');
   };
 
   return (
@@ -142,10 +149,11 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
         const total = period.slots;
         const allFilled = used === total && total > 0;
         const exceeded = used > total;
+        const costSummary = getCostSummary(period.entries);
 
         return (
           <Card key={period.id}>
-            {/* Period header: label, slots, delete */}
+            {/* Period header: label, date, session, slots, delete */}
             <div className={styles.periodHeader}>
               <div className={styles.periodLabelField}>
                 <EditableField
@@ -159,6 +167,46 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
                   }
                 />
               </div>
+              <input
+                type="date"
+                value={period.date || ''}
+                onChange={(e) =>
+                  updateCharacter((c) => ({
+                    ...c,
+                    endeavours: updateDowntimePeriod(c.endeavours, period.id, 'date', e.target.value || undefined),
+                  }))
+                }
+                className={styles.periodDateInput}
+                title="Period date"
+                aria-label="Period date"
+              />
+              <input
+                type="number"
+                min={1}
+                max={9999}
+                value={period.sessionNumber ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    updateCharacter((c) => ({
+                      ...c,
+                      endeavours: updateDowntimePeriod(c.endeavours, period.id, 'sessionNumber', undefined),
+                    }));
+                  } else {
+                    const validated = validateSessionNumber(val);
+                    if (validated !== null) {
+                      updateCharacter((c) => ({
+                        ...c,
+                        endeavours: updateDowntimePeriod(c.endeavours, period.id, 'sessionNumber', validated),
+                      }));
+                    }
+                  }
+                }}
+                placeholder="Session #"
+                className={styles.periodSessionInput}
+                title="Session number"
+                aria-label="Session number"
+              />
               <div className={styles.periodSlotGroup}>
                 <EditableField
                   label="Slots"
@@ -224,53 +272,98 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
 
             {/* Endeavour entries list */}
             <div className={styles.entriesList}>
-              {period.entries.map((entry) => (
-                <div
-                  key={entry.id}
-                  className={entry.completed ? styles.entryRowCompleted : styles.entryRow}
-                >
-                  <input
-                    type="checkbox"
-                    checked={entry.completed}
-                    onChange={() =>
-                      updateCharacter((c) => ({
-                        ...c,
-                        endeavours: updateEndeavourEntry(c.endeavours, period.id, entry.id, 'completed', !entry.completed),
-                      }))
-                    }
-                    className={styles.checkbox}
-                    title={entry.completed ? 'Mark as pending' : 'Mark as completed'}
-                  />
-                  <span className={entry.completed ? styles.entryTypeCompleted : styles.entryType}>
-                    {entry.type}
-                  </span>
-                  <input
-                    type="text"
-                    value={entry.notes}
-                    onChange={(e) =>
-                      updateCharacter((c) => ({
-                        ...c,
-                        endeavours: updateEndeavourEntry(c.endeavours, period.id, entry.id, 'notes', e.target.value),
-                      }))
-                    }
-                    placeholder="Notes..."
-                    className={entry.completed ? styles.notesInputCompleted : styles.notesInput}
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateCharacter((c) => ({
-                        ...c,
-                        endeavours: removeEndeavourEntry(c.endeavours, period.id, entry.id),
-                      }))
-                    }
-                    className={styles.removeBtn}
-                    title="Remove endeavour"
+              {period.entries.map((rawEntry) => {
+                const entry = migrateEntryStatus(rawEntry as unknown as Record<string, unknown>);
+                return (
+                  <div
+                    key={entry.id}
+                    className={getEntryRowClass(entry.status)}
                   >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateCharacter((c) => ({
+                          ...c,
+                          endeavours: updateEndeavourEntry(c.endeavours, period.id, entry.id, 'status', cycleStatus(entry.status)),
+                        }))
+                      }
+                      className={getStatusBtnClass(entry.status)}
+                      title={getStatusTitle(entry.status)}
+                      aria-label={getStatusTitle(entry.status)}
+                    >
+                      {getStatusIndicator(entry.status)}
+                    </button>
+                    <span className={entry.status === 'completed' ? styles.entryTypeCompleted : styles.entryType}>
+                      {entry.type}
+                    </span>
+                    <input
+                      type="text"
+                      value={entry.cost || ''}
+                      onChange={(e) =>
+                        updateCharacter((c) => ({
+                          ...c,
+                          endeavours: updateEndeavourEntry(c.endeavours, period.id, entry.id, 'cost', e.target.value),
+                        }))
+                      }
+                      maxLength={50}
+                      placeholder="Cost..."
+                      className={entry.status === 'completed' ? styles.costInputCompleted : styles.costInput}
+                    />
+                    <input
+                      type="text"
+                      value={entry.notes}
+                      onChange={(e) =>
+                        updateCharacter((c) => ({
+                          ...c,
+                          endeavours: updateEndeavourEntry(c.endeavours, period.id, entry.id, 'notes', e.target.value),
+                        }))
+                      }
+                      placeholder="Notes..."
+                      className={entry.status === 'completed' ? styles.notesInputCompleted : styles.notesInput}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateCharacter((c) => ({
+                          ...c,
+                          endeavours: moveEntryUp(c.endeavours, period.id, entry.id),
+                        }))
+                      }
+                      className={styles.moveBtn}
+                      title="Move up"
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateCharacter((c) => ({
+                          ...c,
+                          endeavours: moveEntryDown(c.endeavours, period.id, entry.id),
+                        }))
+                      }
+                      className={styles.moveBtn}
+                      title="Move down"
+                    >
+                      <ChevronDown size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateCharacter((c) => ({
+                          ...c,
+                          endeavours: removeEndeavourEntry(c.endeavours, period.id, entry.id),
+                        }));
+                        setToastMessage('Endeavour removed');
+                      }}
+                      className={styles.removeBtn}
+                      title="Remove endeavour"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                );
+              })}
               {period.entries.length === 0 && (
                 <p className={styles.emptyEntries}>
                   No endeavours yet. Add one below.
@@ -278,14 +371,22 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
               )}
             </div>
 
+            {/* Cost summary line */}
+            {costSummary && (
+              <div className={styles.costSummary}>
+                Costs: {costSummary}
+              </div>
+            )}
+
             {/* Add Endeavour button */}
             <AddButton label="Add Endeavour" onClick={() => setAddingToPeriodId(period.id)} />
 
             {/* Endeavour type picker */}
             {addingToPeriodId === period.id && (
               <Picker<PickerItem>
-                items={buildPickerItems()}
+                items={buildPickerItems(character.class, elfChar)}
                 getLabel={(item) => `[${item.group}] ${item.label}`}
+                isDisabled={(item) => item.disabled === true}
                 onSelect={(item) => handleSelectEndeavour(period.id, item)}
                 onClose={() => setAddingToPeriodId(null)}
                 title="Select Endeavour Type"
@@ -327,6 +428,8 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
           cancelLabel="Cancel"
         />
       )}
+
+      <Toast message={toastMessage} />
     </div>
   );
 }

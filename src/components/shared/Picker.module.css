@@ -52,6 +52,16 @@
   background: var(--bg-tertiary);
 }
 
+.itemDisabled {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-style: italic;
+  cursor: default;
+  user-select: none;
+}
+
 .close {
   padding: 8px;
   background: none;

@@ -66,9 +66,74 @@
   border-radius: var(--radius-sm);
 }
 
+.entryRowInProgress {
+  composes: entryRow;
+  background: rgba(100, 140, 200, 0.1);
+  border-color: rgba(100, 140, 200, 0.4);
+}
+
 .entryRowCompleted {
   composes: entryRow;
   opacity: 0.6;
+}
+
+/* Status cycling button */
+.statusBtn {
+  background: none;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.statusBtnInProgress {
+  composes: statusBtn;
+  border-color: rgba(100, 140, 200, 0.7);
+  background: rgba(100, 140, 200, 0.15);
+  color: rgba(100, 160, 220, 1);
+}
+
+.statusBtnCompleted {
+  composes: statusBtn;
+  border-color: var(--success);
+  background: rgba(90, 154, 90, 0.15);
+  color: var(--success);
+}
+
+/* Cost input */
+.costInput {
+  width: 80px;
+  max-width: 80px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.costInputCompleted {
+  composes: costInput;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Cost summary line */
+.costSummary {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  font-style: italic;
 }
 
 /* Remove button */
@@ -80,6 +145,19 @@
   padding: 4px;
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+/* Move button */
+.moveBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Checkbox */
@@ -130,6 +208,28 @@
 
 .periodLabelField {
   flex: 1;
+}
+
+/* Period date input */
+.periodDateInput {
+  width: 130px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+/* Period session number input */
+.periodSessionInput {
+  width: 80px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 4px 6px;
+  font-size: 12px;
 }
 
 .periodSlotGroup {
@@ -222,4 +322,45 @@
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
+}
+
+/* Mobile touch targets — WCAG 2.5.5 minimum 44×44px */
+@media (pointer: coarse) {
+  .statusBtn {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .statusBtnInProgress {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .statusBtnCompleted {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .removeBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .moveBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .checkbox {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

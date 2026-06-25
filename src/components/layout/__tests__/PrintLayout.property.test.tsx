@@ -65,7 +65,7 @@ describe('Feature: print-layout-redesign', () => {
           xpSpent: 888,
           xpTotal: 1887,
           portrait: 'data:image/png;base64,PORTRAIT_MARKER',
-          endeavours: [{ id: 1, label: 'ENDEAVOUR_MARKER', slots: 2, entries: [], statusWarning: false }],
+          endeavours: [{ id: '1', label: 'ENDEAVOUR_MARKER', slots: 2, entries: [], statusWarning: false }],
           estate: { ...c.estate, ledger: [{ timestamp: 1000, type: 'income', description: 'LEDGER_MARKER', amount: { d: 0, ss: 0, gc: 10 } }] },
         })),
         arbitraryArmourPoints,
