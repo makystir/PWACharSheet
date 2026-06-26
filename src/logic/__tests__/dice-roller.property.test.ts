@@ -46,11 +46,12 @@ describe('Feature: ux-polish-and-functionality, Opposed Test Resolution', () => 
   });
 
   /**
-   * **Validates: Requirements 7.5, 7.6**
+   * **Validates: Requirements 4.2, 4.3, 4.5**
    *
    * Property 6: Opposed Test Tie Resolution — when net SL = 0, higher
-   * roll value wins. If both rolls are equal and net SL is 0, the result
-   * is a tie.
+   * target number (tested skill/characteristic) wins. If both targets
+   * are equal and net SL is 0, the result is a tie.
+   * Roll values do NOT influence the tie-breaking outcome.
    */
   it('Property 6: Opposed Test Tie Resolution', () => {
     fc.assert(
@@ -63,13 +64,13 @@ describe('Feature: ux-polish-and-functionality, Opposed Test Resolution', () => 
           const result = resolveOpposedTest(playerTarget, playerRoll, opponentTarget, opponentRoll);
 
           if (result.netSL === 0) {
-            // Tie-breaker: higher roll wins
-            if (playerRoll > opponentRoll) {
+            // Tie-breaker: higher target number (skill) wins
+            if (playerTarget > opponentTarget) {
               expect(result.winner).toBe('player');
-            } else if (opponentRoll > playerRoll) {
+            } else if (opponentTarget > playerTarget) {
               expect(result.winner).toBe('opponent');
             } else {
-              // Equal rolls and equal SL = tie
+              // Equal targets and equal SL = tie
               expect(result.winner).toBe('tie');
             }
           } else if (result.netSL > 0) {

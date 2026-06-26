@@ -72,7 +72,11 @@ describe('Conditions Data', () => {
     expect(stackable).toContain('Ablaze');
     expect(stackable).toContain('Bleeding');
     expect(stackable).toContain('Fatigued');
-    expect(stackable).toHaveLength(3);
+    expect(stackable).toContain('Stunned');
+    expect(stackable).toContain('Blinded');
+    expect(stackable).toContain('Deafened');
+    expect(stackable).toContain('Poisoned');
+    expect(stackable).toHaveLength(7);
   });
 
   it('non-stackable conditions have maxLevel 1', () => {

@@ -773,6 +773,15 @@
   color: var(--success);
 }
 
+.endTurnEffectReminder {
+  color: var(--accent-gold);
+  font-style: italic;
+}
+
+.reminderIcon {
+  font-style: normal;
+}
+
 .endTurnNoEffects {
   color: var(--text-muted);
   font-style: italic;

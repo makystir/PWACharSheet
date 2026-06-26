@@ -116,7 +116,7 @@ export function isMagicMissile(spell: SpellItem): boolean {
  * Recognises patterns: "Dmg +4", "Dmg +0", "Dmg WPB", "Dmg TB".
  * Returns the numeric damage component.
  */
-function parseDamageFromEffect(effect: string, wpBonus: number): number {
+export function parseDamageFromEffect(effect: string, wpBonus?: number, tbBonus?: number): number {
   // Try "Dmg +N" or "Dmg N" patterns
   const plusMatch = effect.match(/Dmg\s*\+?\s*(\d+)/i);
   if (plusMatch) {
@@ -125,27 +125,30 @@ function parseDamageFromEffect(effect: string, wpBonus: number): number {
 
   // Try "Dmg WPB"
   if (/Dmg\s+WPB/i.test(effect)) {
-    return wpBonus;
+    return wpBonus ?? 0;
   }
 
-  // Try "Dmg TB" — TB not available in this context, return 0
+  // Try "Dmg TB"
   if (/Dmg\s+TB/i.test(effect)) {
-    return 0;
+    return tbBonus ?? 0;
   }
 
   return 0;
 }
 
 /**
- * Compute magic missile damage: parsed_damage + wpBonus + castingSL.
+ * Compute magic missile damage: parseDamageFromEffect(effect, wpBonus, tbBonus) + castingSL.
+ * The parseDamageFromEffect function resolves "Dmg WPB" to the wpBonus value already,
+ * so we do NOT add wpBonus again on top.
  */
 export function computeMagicMissileDamage(
   spell: SpellItem,
-  wpBonus: number,
   castingSL: number,
+  wpBonus?: number,
+  tbBonus?: number,
 ): number {
-  const baseDamage = parseDamageFromEffect(spell.effect, wpBonus);
-  return baseDamage + wpBonus + castingSL;
+  const baseDamage = parseDamageFromEffect(spell.effect, wpBonus, tbBonus);
+  return baseDamage + castingSL;
 }
 
 /**
@@ -302,7 +305,10 @@ export function resolveCastingResult(
     const wpChar = character.chars.WP;
     const wpTotal = wpChar.i + wpChar.a + wpChar.b;
     const wpb = getBonus(wpTotal);
-    damage = computeMagicMissileDamage(spell, wpb, slAchieved);
+    const tChar = character.chars.T;
+    const tTotal = tChar.i + tChar.a + tChar.b;
+    const tbBonus = getBonus(tTotal);
+    damage = computeMagicMissileDamage(spell, slAchieved, wpb, tbBonus);
   }
 
   const isFullyChannelled = options?.channelledCN === 0;

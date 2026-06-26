@@ -149,13 +149,38 @@ export function applyDifficulty(baseTarget: number, difficulty: DifficultyLevel)
   return baseTarget + DIFFICULTY_MODIFIERS[difficulty];
 }
 
-/** Calculate opposed test result */
-export function calculateOpposedResult(playerSL: number, opponentSL: number): OpposedResult {
+/**
+ * Calculate opposed test result from pre-computed SL values.
+ * When netSL === 0, uses target numbers (higher tested skill wins) as tie-breaker.
+ * If target numbers are not provided or are equal, result is 'tie'.
+ * Roll values are NOT used as a tie-breaker.
+ */
+export function calculateOpposedResult(
+  playerSL: number,
+  opponentSL: number,
+  playerTarget?: number,
+  opponentTarget?: number,
+): OpposedResult {
   const netSL = playerSL - opponentSL;
   let winner: 'player' | 'opponent' | 'tie';
-  if (netSL > 0) winner = 'player';
-  else if (netSL < 0) winner = 'opponent';
-  else winner = 'tie';
+  if (netSL > 0) {
+    winner = 'player';
+  } else if (netSL < 0) {
+    winner = 'opponent';
+  } else {
+    // Tie-breaker: higher tested skill/characteristic wins when net SL = 0
+    if (playerTarget !== undefined && opponentTarget !== undefined) {
+      if (playerTarget > opponentTarget) {
+        winner = 'player';
+      } else if (opponentTarget > playerTarget) {
+        winner = 'opponent';
+      } else {
+        winner = 'tie';
+      }
+    } else {
+      winner = 'tie';
+    }
+  }
   return { playerSL, opponentSL, netSL, winner };
 }
 
@@ -172,8 +197,8 @@ export interface OpposedTestResult {
  * Resolve a full opposed test between player and opponent.
  * Computes SL for each side using resolveRoll (which handles auto-success/failure
  * adjustments on doubles ≤ 5 giving at least +1 SL, and doubles > 5 giving at most -1 SL).
- * Tie resolution: when net SL = 0, the side with the higher roll value wins.
- * If both rolls are equal and net SL = 0, result is a tie.
+ * Tie resolution: when net SL = 0, the side with the higher target number (tested skill) wins.
+ * If both target numbers are equal and net SL = 0, result is a tie.
  */
 export function resolveOpposedTest(
   playerTarget: number,
@@ -192,12 +217,10 @@ export function resolveOpposedTest(
   } else if (netSL < 0) {
     winner = 'opponent';
   } else {
-    // Tie-breaker: higher roll wins when net SL = 0
-    const clampedPlayerRoll = Math.min(100, Math.max(1, playerRoll));
-    const clampedOpponentRoll = Math.min(100, Math.max(1, opponentRoll));
-    if (clampedPlayerRoll > clampedOpponentRoll) {
+    // Tie-breaker: higher tested skill/characteristic wins when net SL = 0
+    if (playerTarget > opponentTarget) {
       winner = 'player';
-    } else if (clampedOpponentRoll > clampedPlayerRoll) {
+    } else if (opponentTarget > playerTarget) {
       winner = 'opponent';
     } else {
       winner = 'tie';

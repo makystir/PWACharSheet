@@ -464,23 +464,28 @@ describe('reverseRollDigits & getHitLocation — Property 10: Reverse roll digit
 // ─── Property 11: Magic missile damage computation ───────────────────────────
 // **Validates: Requirements 8.4**
 describe('computeMagicMissileDamage — Property 11: Magic missile damage computation', () => {
-  it('Dmg +4, WPB 4, SL 3 → 11', () => {
+  it('Dmg +4, WPB 4, SL 3 → 7', () => {
     const spell = makeSpell({ effect: 'Dmg +4' });
-    expect(computeMagicMissileDamage(spell, 4, 3)).toBe(11);
+    // New signature: (spell, castingSL, wpBonus?, tbBonus?)
+    // baseDamage = parseDamageFromEffect("Dmg +4", 4) = 4, result = 4 + 3 = 7
+    expect(computeMagicMissileDamage(spell, 3, 4)).toBe(7);
   });
 
-  it('Dmg +0, WPB 3, SL 1 → 4', () => {
+  it('Dmg +0, WPB 3, SL 1 → 1', () => {
     const spell = makeSpell({ effect: 'Dmg +0' });
-    expect(computeMagicMissileDamage(spell, 3, 1)).toBe(4);
+    // baseDamage = 0, result = 0 + 1 = 1
+    expect(computeMagicMissileDamage(spell, 1, 3)).toBe(1);
   });
 
-  it('Dmg +12, WPB 5, SL 6 → 23', () => {
+  it('Dmg +12, WPB 5, SL 6 → 18', () => {
     const spell = makeSpell({ effect: 'Dmg +12' });
-    expect(computeMagicMissileDamage(spell, 5, 6)).toBe(23);
+    // baseDamage = 12, result = 12 + 6 = 18
+    expect(computeMagicMissileDamage(spell, 6, 5)).toBe(18);
   });
 
-  it('no damage pattern in effect → 0 + WPB + SL', () => {
+  it('no damage pattern in effect → 0 + SL', () => {
     const spell = makeSpell({ effect: 'Target is healed.' });
-    expect(computeMagicMissileDamage(spell, 4, 2)).toBe(6);
+    // baseDamage = 0, result = 0 + 2 = 2
+    expect(computeMagicMissileDamage(spell, 2, 4)).toBe(2);
   });
 });

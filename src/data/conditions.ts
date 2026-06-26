@@ -5,8 +5,8 @@ export const CONDITIONS: ConditionData[] = [
     name: "Ablaze",
     stackable: true,
     maxLevel: 10,
-    description: "You are on fire. At the end of each round, lose 1 Wound per level. Make an Agility test to extinguish (remove 1 level on success).",
-    effects: "Lose 1 Wound per level at end of round",
+    description: "You are on fire. At end of each round, suffer 1d10 + (level-1) Wounds reduced by TB and lowest AP (minimum 1 Wound). Athletics test to extinguish (each SL removes 1 level).",
+    effects: "1d10 + (level-1) Damage at end of round, reduced by TB and lowest AP (minimum 1 Wound)",
     defaultDuration: "Until extinguished",
     removedBy: "Agility test (end of round) or water/smothering"
   },
@@ -21,8 +21,8 @@ export const CONDITIONS: ConditionData[] = [
   },
   {
     name: "Blinded",
-    stackable: false,
-    maxLevel: 1,
+    stackable: true,
+    maxLevel: 10,
     description: "You cannot see. All Tests relying on vision fail automatically. Opponents gain +20 to hit you in melee, +40 at range.",
     effects: "Vision-based tests auto-fail; opponents gain +20 melee, +40 ranged to hit",
     defaultDuration: "Until condition removed",
@@ -39,8 +39,8 @@ export const CONDITIONS: ConditionData[] = [
   },
   {
     name: "Deafened",
-    stackable: false,
-    maxLevel: 1,
+    stackable: true,
+    maxLevel: 10,
     description: "You cannot hear. All Tests relying on hearing fail automatically. Surprised by attacks you cannot see coming.",
     effects: "Hearing-based tests auto-fail; may be Surprised by unseen attacks",
     defaultDuration: "Until condition removed",
@@ -66,8 +66,8 @@ export const CONDITIONS: ConditionData[] = [
   },
   {
     name: "Poisoned",
-    stackable: false,
-    maxLevel: 1,
+    stackable: true,
+    maxLevel: 10,
     description: "You are poisoned. Effects vary by poison type. Typically suffer ongoing damage or penalties until poison is neutralized.",
     effects: "Varies by poison (ongoing damage, penalties, etc.)",
     defaultDuration: "Until poison runs its course or is neutralized",
@@ -84,12 +84,12 @@ export const CONDITIONS: ConditionData[] = [
   },
   {
     name: "Stunned",
-    stackable: false,
-    maxLevel: 1,
-    description: "You are dazed and reeling. You may take only a Move action on your turn (no Actions). Opponents gain +20 to hit you.",
-    effects: "Can only take Move action; opponents gain +20 to hit",
-    defaultDuration: "End of your next turn",
-    removedBy: "Automatically removed at end of your next turn"
+    stackable: true,
+    maxLevel: 10,
+    description: "Dazed and reeling. Only Move action on your turn. Opponents gain +20 to hit. At end of each round, attempt Challenging (+0) Endurance Test to remove; each SL removes an extra Stunned Condition.",
+    effects: "Can only take Move action; opponents gain +20 to hit; Endurance Test to remove",
+    defaultDuration: "Until removed by Endurance Test",
+    removedBy: "Challenging (+0) Endurance Test at end of each round (each SL removes extra)"
   },
   {
     name: "Surprised",

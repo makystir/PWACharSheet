@@ -4,7 +4,7 @@ import type { RollResult, DifficultyLevel } from '../../logic/dice-roller';
 import { performRoll, applyDifficulty, computeSkillTarget, DIFFICULTY_MODIFIERS } from '../../logic/dice-roller';
 import { findSkillForWeapon, calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
 import { getBonus } from '../../logic/calculators';
-import { computeOffHandTarget } from '../../logic/combat';
+import { computeOffHandTarget, calculateDamage } from '../../logic/combat';
 import { getHitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -159,7 +159,14 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
   const sl = lastRollResult?.sl ?? 0;
   const totalDamage = (weaponDamage.num ?? 0) + sl;
   const netWounds = Math.max(0, totalDamage - opponentTB - opponentAP);
-  const effectiveWounds = character.houseRules.min1Wound && totalDamage > opponentTB + opponentAP && netWounds < 1 ? 1 : netWounds;
+  const effectiveWounds = (() => {
+    if (character.houseRules.min1Wound && totalDamage > opponentTB + opponentAP) {
+      // RAW: minimum 1 wound when damage exceeds reduction
+      return calculateDamage(weaponDamage.num ?? 0, sl, opponentAP, opponentTB);
+    }
+    // No min-1 rule or damage doesn't exceed reduction
+    return netWounds;
+  })();
 
   // ── Result display helper ──
   function getResultClass(result: RollResult): string {

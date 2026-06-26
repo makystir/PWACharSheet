@@ -35,8 +35,8 @@ describe('applyCondition — Property 7', () => {
   });
 
   it('non-stackable condition stays at level 1', () => {
-    const conditions: Condition[] = [{ name: 'Blinded', level: 1 }];
-    const result = applyCondition(conditions, 'Blinded');
+    const conditions: Condition[] = [{ name: 'Prone', level: 1 }];
+    const result = applyCondition(conditions, 'Prone');
     expect(result).toHaveLength(1);
     expect(result[0].level).toBe(1);
   });
@@ -95,14 +95,14 @@ describe('removeCondition', () => {
   });
 
   it('removes non-stackable condition entirely', () => {
-    const conditions: Condition[] = [{ name: 'Blinded', level: 1 }];
-    const result = removeCondition(conditions, 'Blinded');
+    const conditions: Condition[] = [{ name: 'Prone', level: 1 }];
+    const result = removeCondition(conditions, 'Prone');
     expect(result).toHaveLength(0);
   });
 
   it('returns unchanged copy when condition not present', () => {
     const conditions: Condition[] = [{ name: 'Ablaze', level: 1 }];
-    const result = removeCondition(conditions, 'Blinded');
+    const result = removeCondition(conditions, 'Prone');
     expect(result).toHaveLength(1);
   });
 });
@@ -235,49 +235,44 @@ describe('incrementAdvantage with cap parameter', () => {
 // ─── Property 9: Damage calculation ──────────────────────────────────────────
 // Validates: Requirements 4.7
 
-describe('calculateDamage — Property 9', () => {
-  it('melee: weaponBonus + SB - (AP + TB)', () => {
-    // weapon +4, SB 3, AP 1, TB 2 → 4 + 3 - (1 + 2) = 4
-    expect(calculateDamage(4, 3, 1, 2, false)).toBe(4);
+describe('calculateDamage — Property 9 (updated: weaponDamage + SL - AP - TB, min 1)', () => {
+  it('basic damage: weaponDamage + SL - (AP + TB)', () => {
+    // weaponDmg 7, SL 3, AP 1, TB 2 → 7 + 3 - (1 + 2) = 7
+    expect(calculateDamage(7, 3, 1, 2)).toBe(7);
   });
 
-  it('ranged: floor(SB/2) + weaponBonus - (AP + TB)', () => {
-    // weapon +4, SB 5, AP 1, TB 2 → floor(5/2) + 4 - (1 + 2) = 2 + 4 - 3 = 3
-    expect(calculateDamage(4, 5, 1, 2, true)).toBe(3);
+  it('SL contributes to damage', () => {
+    // weaponDmg 5, SL 4, AP 2, TB 3 → 5 + 4 - (2 + 3) = 4
+    expect(calculateDamage(5, 4, 2, 3)).toBe(4);
   });
 
-  it('ranged with odd SB floors correctly', () => {
-    // SB 3 → floor(3/2) = 1, weapon +2, AP 0, TB 1 → 1 + 2 - 1 = 2
-    expect(calculateDamage(2, 3, 0, 1, true)).toBe(2);
+  it('negative SL reduces damage', () => {
+    // weaponDmg 5, SL -2, AP 0, TB 0 → 5 + (-2) - 0 = 3
+    expect(calculateDamage(5, -2, 0, 0)).toBe(3);
   });
 
-  it('damage floors at 0 when AP + TB exceeds attack', () => {
-    // weapon +2, SB 2, AP 5, TB 3 → 2 + 2 - 8 = -4 → 0
-    expect(calculateDamage(2, 2, 5, 3, false)).toBe(0);
+  it('minimum damage is 1 when AP + TB exceeds attack', () => {
+    // weaponDmg 2, SL 2, AP 5, TB 3 → 2 + 2 - 8 = -4 → min 1
+    expect(calculateDamage(2, 2, 5, 3)).toBe(1);
   });
 
   it('zero AP and TB: full damage', () => {
-    // weapon +3, SB 4, AP 0, TB 0 → 3 + 4 = 7
-    expect(calculateDamage(3, 4, 0, 0, false)).toBe(7);
+    // weaponDmg 7, SL 4, AP 0, TB 0 → 7 + 4 = 11
+    expect(calculateDamage(7, 4, 0, 0)).toBe(11);
   });
 
-  it('high AP absorbs all damage', () => {
-    // weapon +5, SB 3, AP 10, TB 3 → 5 + 3 - 13 = -5 → 0
-    expect(calculateDamage(5, 3, 10, 3, false)).toBe(0);
+  it('high AP still results in minimum 1', () => {
+    // weaponDmg 5, SL 3, AP 10, TB 3 → 5 + 3 - 13 = -5 → min 1
+    expect(calculateDamage(5, 3, 10, 3)).toBe(1);
   });
 
-  it('melee with zero SB', () => {
-    // weapon +3, SB 0, AP 1, TB 1 → 0 + 3 - 2 = 1
-    expect(calculateDamage(3, 0, 1, 1, false)).toBe(1);
+  it('zero SL: only weaponDamage vs defenses', () => {
+    // weaponDmg 3, SL 0, AP 1, TB 1 → 3 + 0 - 2 = 1
+    expect(calculateDamage(3, 0, 1, 1)).toBe(1);
   });
 
-  it('ranged with zero SB', () => {
-    // weapon +3, SB 0, AP 0, TB 0 → 0 + 3 - 0 = 3
-    expect(calculateDamage(3, 0, 0, 0, true)).toBe(3);
-  });
-
-  it('all zeros returns 0', () => {
-    expect(calculateDamage(0, 0, 0, 0, false)).toBe(0);
-    expect(calculateDamage(0, 0, 0, 0, true)).toBe(0);
+  it('all zeros still returns minimum 1', () => {
+    // weaponDmg 0, SL 0, AP 0, TB 0 → 0 → min 1
+    expect(calculateDamage(0, 0, 0, 0)).toBe(1);
   });
 });

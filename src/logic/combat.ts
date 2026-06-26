@@ -3,18 +3,17 @@ import { CONDITIONS } from '../data/conditions';
 
 /**
  * Calculate damage dealt.
- * Melee: weaponBonus + SB - (AP + TB), floored at 0
- * Ranged: floor(SB/2) + weaponBonus - (AP + TB), floored at 0
+ * Formula: weaponDamage + SL - (AP + TB), minimum 1 wound per RAW.
+ * weaponDamage is pre-computed (includes SB per weapon formula via calcWeaponDamage).
  */
 export function calculateDamage(
-  weaponBonus: number,
-  SB: number,
+  weaponDamage: number,
+  sl: number,
   targetAP: number,
-  targetTB: number,
-  isRanged: boolean
+  targetTB: number
 ): number {
-  const effectiveSB = isRanged ? Math.floor(SB / 2) : SB;
-  return Math.max(0, effectiveSB + weaponBonus - (targetAP + targetTB));
+  const raw = weaponDamage + sl - (targetAP + targetTB);
+  return Math.max(1, raw);
 }
 
 /**

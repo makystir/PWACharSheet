@@ -236,7 +236,23 @@ export function CombatDashboard(props: CombatDashboardProps) {
 
   // ── End Turn handler (Req 8) ──
   const handleEndTurn = useCallback(() => {
-    const result = processEndOfTurn(wCur, conditions, combatState.currentRound);
+    // Compute Toughness Bonus from character characteristics
+    const tb = character
+      ? Math.floor((character.chars.T.i + character.chars.T.a + character.chars.T.b) / 10)
+      : 0;
+
+    // Compute lowest AP across body locations (excluding shield)
+    const lowestAP = character
+      ? Math.min(character.ap.head, character.ap.lArm, character.ap.rArm, character.ap.body, character.ap.lLeg, character.ap.rLeg)
+      : 0;
+
+    const result = processEndOfTurn({
+      currentWounds: wCur,
+      conditions,
+      currentRound: combatState.currentRound,
+      tb,
+      lowestAP,
+    });
     // Show summary
     setEndTurnSummary(result);
     // Apply effects via parent callbacks
@@ -253,7 +269,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
     }
     // Auto-dismiss summary after 5 seconds
     setTimeout(() => setEndTurnSummary(null), 5000);
-  }, [wCur, conditions, combatState.currentRound, onEndTurn, onUpdateWounds, onRemoveCondition, onUpdateRound]);
+  }, [wCur, conditions, combatState.currentRound, character, onEndTurn, onUpdateWounds, onRemoveCondition, onUpdateRound]);
 
   // Sticky positioning remains inline because tests assert on style.position
   const stickyStyle: CSSProperties | undefined = inCombat
@@ -568,8 +584,15 @@ export function CombatDashboard(props: CombatDashboardProps) {
               <div className={styles.endTurnSummaryTitle}>End of Turn Effects (Round {endTurnSummary.roundAdvanced})</div>
               <ul className={styles.endTurnSummaryList}>
                 {endTurnSummary.effects.map((effect, idx) => (
-                  <li key={idx} className={effect.type === 'damage' ? styles.endTurnEffectDamage : styles.endTurnEffectRemove}>
-                    {effect.description}
+                  <li key={idx} className={
+                    effect.type === 'damage' ? styles.endTurnEffectDamage
+                    : effect.type === 'reminder' ? styles.endTurnEffectReminder
+                    : styles.endTurnEffectRemove
+                  }>
+                    {effect.type === 'reminder' && <span className={styles.reminderIcon} aria-hidden="true">⚠ </span>}
+                    {effect.type === 'reminder'
+                      ? `${effect.condition}: ${effect.description}`
+                      : effect.description}
                   </li>
                 ))}
               </ul>

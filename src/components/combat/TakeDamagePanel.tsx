@@ -66,12 +66,13 @@ export function TakeDamagePanel({
   wCur,
   totalWounds: _totalWounds,
   onApplyWounds,
-  min1Wound,
+  min1Wound = true,
   onDown,
 }: TakeDamagePanelProps) {
   // totalWounds kept in props interface for potential future use (e.g. percentage display)
   void _totalWounds;
   const [incomingDamage, setIncomingDamage] = useState(0);
+  const [sl, setSl] = useState(0);
   const [selectedLocation, setSelectedLocation] = useState<HitLocation>('Body');
   const [collapsed, setCollapsed] = useState(false);
   const [showDownAlert, setShowDownAlert] = useState(false);
@@ -80,8 +81,19 @@ export function TakeDamagePanel({
   const selectedLocationOption = HIT_LOCATIONS.find(l => l.label === selectedLocation)!;
   const apAtLocation = armourPoints[selectedLocationOption.apKey];
 
-  // Calculate net wounds
-  const netWounds = calculateNetWounds(incomingDamage, toughnessBonus, apAtLocation, min1Wound);
+  // Calculate net wounds using the combat damage formula (weaponDamage + SL - AP - TB)
+  // The min-1-wound rule only applies when incoming damage exceeds reduction (TB+AP);
+  // when damage does not penetrate armor, result is 0.
+  const netWounds = (() => {
+    if (incomingDamage <= 0 && sl === 0) return 0;
+    const totalIncoming = incomingDamage + sl;
+    const reduction = apAtLocation + toughnessBonus;
+    const raw = totalIncoming - reduction;
+    if (raw >= 1) return raw;
+    // Min-1-wound rule: if totalIncoming > reduction → at least 1 wound
+    if (min1Wound && totalIncoming > reduction && raw < 1) return 1;
+    return Math.max(0, raw);
+  })();
 
   function handleApplyWounds() {
     if (netWounds <= 0) return;
@@ -99,11 +111,18 @@ export function TakeDamagePanel({
 
     // Reset damage input but retain location selection (8.9)
     setIncomingDamage(0);
+    setSl(0);
   }
 
   function handleDamageChange(value: string) {
     const num = Math.max(0, Number(value) || 0);
     setIncomingDamage(num);
+    setShowDownAlert(false);
+  }
+
+  function handleSlChange(value: string) {
+    const num = Number(value) || 0;
+    setSl(num);
     setShowDownAlert(false);
   }
 
@@ -150,6 +169,19 @@ export function TakeDamagePanel({
             />
           </div>
 
+          {/* SL input for combat damage formula */}
+          <div className={styles.formRow}>
+            <label htmlFor="attack-sl" className={styles.label}>SL:</label>
+            <input
+              id="attack-sl"
+              type="number"
+              value={sl}
+              onChange={(e) => handleSlChange(e.target.value)}
+              className={styles.input}
+              aria-label="Success Levels"
+            />
+          </div>
+
           {/* 8.3: Hit location selector */}
           <div className={styles.formRow}>
             <label htmlFor="hit-location" className={styles.label}>Location:</label>
@@ -185,9 +217,8 @@ export function TakeDamagePanel({
               <span className={styles.netWoundsValue} data-testid="net-wounds">{netWounds}</span>
             </div>
             <div className={styles.breakdownText}>
-              {incomingDamage} − {toughnessBonus} (TB) − {apAtLocation} (AP) = {Math.max(0, incomingDamage - toughnessBonus - apAtLocation)}
-              {netWounds > 0 && netWounds === 1 && incomingDamage - toughnessBonus - apAtLocation < 1 && incomingDamage > toughnessBonus + apAtLocation
-                && min1Wound !== false
+              {incomingDamage} + {sl} (SL) − {toughnessBonus} (TB) − {apAtLocation} (AP) = {incomingDamage + sl - toughnessBonus - apAtLocation}
+              {netWounds === 1 && incomingDamage + sl - toughnessBonus - apAtLocation < 1 && min1Wound && incomingDamage + sl > apAtLocation + toughnessBonus
                 ? ' → min 1 wound'
                 : ''}
             </div>

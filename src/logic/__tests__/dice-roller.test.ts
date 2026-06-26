@@ -253,8 +253,26 @@ describe('calculateOpposedResult', () => {
     expect(r.winner).toBe('opponent');
   });
 
-  it('tie when netSL is zero', () => {
+  it('tie when netSL is zero and no target numbers provided', () => {
     const r = calculateOpposedResult(3, 3);
+    expect(r.netSL).toBe(0);
+    expect(r.winner).toBe('tie');
+  });
+
+  it('player wins tie-break when playerTarget > opponentTarget', () => {
+    const r = calculateOpposedResult(3, 3, 55, 40);
+    expect(r.netSL).toBe(0);
+    expect(r.winner).toBe('player');
+  });
+
+  it('opponent wins tie-break when opponentTarget > playerTarget', () => {
+    const r = calculateOpposedResult(3, 3, 30, 50);
+    expect(r.netSL).toBe(0);
+    expect(r.winner).toBe('opponent');
+  });
+
+  it('tie when netSL is zero and target numbers are equal', () => {
+    const r = calculateOpposedResult(3, 3, 45, 45);
     expect(r.netSL).toBe(0);
     expect(r.winner).toBe('tie');
   });
