@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { WelcomeScreen } from '../shared/WelcomeScreen';
 import { importFromJSON } from '../../storage/export-import';
+import type { Character } from '../../types/character';
 
 vi.mock('../../storage/export-import', () => ({
   importFromJSON: vi.fn(),
@@ -212,7 +213,7 @@ describe('Import from File', () => {
   // 3.3 successful file import calls onImportCharacter with parsed character
   it('successful file import calls onImportCharacter with parsed character', async () => {
     const mockCharacter = { name: 'Imported Hero', species: 'Human', _v: 6, chars: {} };
-    mockedImportFromJSON.mockReturnValue({ success: true, character: mockCharacter as any });
+    mockedImportFromJSON.mockReturnValue({ success: true, character: mockCharacter as Character });
 
     const onImportCharacter = vi.fn();
     renderWelcome({ onImportCharacter });
@@ -261,7 +262,7 @@ describe('Import from File', () => {
 
     // Second import succeeds — error should clear
     const mockCharacter = { name: 'Retry Hero', species: 'Dwarf', _v: 6, chars: {} };
-    mockedImportFromJSON.mockReturnValue({ success: true, character: mockCharacter as any });
+    mockedImportFromJSON.mockReturnValue({ success: true, character: mockCharacter as Character });
 
     fireEvent.change(fileInput, { target: { files: [createFile(JSON.stringify(mockCharacter))] } });
 

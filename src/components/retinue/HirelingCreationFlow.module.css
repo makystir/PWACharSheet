@@ -220,13 +220,6 @@
   background: var(--accent-gold);
 }
 
-/* Error message */
-.errorMsg {
-  color: var(--danger);
-  font-size: 12px;
-  font-style: italic;
-}
-
 /* Mobile overrides */
 @media (max-width: 767px) {
   .dialog {

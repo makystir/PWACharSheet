@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getFutureCareerLevel, hasSpellcastingTalent, hasRuneMagicTalent } from '../advancement';
 import type { Character } from '../../types/character';
+import { BLANK_CHARACTER } from '../../types/character';
 
 // ─── getFutureCareerLevel ────────────────────────────────────────────────────
 // Validates: Requirements 4.1, 4.2, 4.3, 4.4
@@ -180,8 +181,9 @@ describe('getFutureCareerLevel', () => {
 /** Build a minimal Character with the given talent names. */
 function charWithTalents(...talentNames: string[]): Character {
   return {
+    ...structuredClone(BLANK_CHARACTER),
     talents: talentNames.map(n => ({ n, lvl: 1, desc: '' })),
-  } as unknown as Character;
+  };
 }
 
 // ─── hasSpellcastingTalent ───────────────────────────────────────────────────

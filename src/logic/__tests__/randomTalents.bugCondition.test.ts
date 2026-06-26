@@ -23,16 +23,16 @@ describe('Property 1: Bug Condition - Missing Random Talent Slots and Rolling Me
   it('SPECIES_DATA["Human / Reiklander"].randomTalentSlots exists and equals 3', () => {
     const humanData = SPECIES_DATA['Human / Reiklander'];
     expect(humanData).toBeDefined();
-    expect((humanData as any).randomTalentSlots).toBeDefined();
-    expect((humanData as any).randomTalentSlots).toBe(3);
+    expect(humanData.randomTalentSlots).toBeDefined();
+    expect(humanData.randomTalentSlots).toBe(3);
   });
 
   // 1.2 — Halfling should have randomTalentSlots = 2
   it('SPECIES_DATA["Halfling"].randomTalentSlots exists and equals 2', () => {
     const halflingData = SPECIES_DATA['Halfling'];
     expect(halflingData).toBeDefined();
-    expect((halflingData as any).randomTalentSlots).toBeDefined();
-    expect((halflingData as any).randomTalentSlots).toBe(2);
+    expect(halflingData.randomTalentSlots).toBeDefined();
+    expect(halflingData.randomTalentSlots).toBe(2);
   });
 
   // 1.4 — RANDOM_TALENT_TABLE module must exist as a file

@@ -1,18 +1,21 @@
-import { useState, useEffect, useRef, Component } from 'react';
+import { useState, useEffect, useRef, Component, lazy } from 'react';
 import type { ReactNode } from 'react';
 import type { Character, CharacteristicKey } from './types/character';
 import { Navigation } from './components/layout/Navigation';
 import { PageContainer } from './components/layout/PageContainer';
+import { PageLoader } from './components/layout/PageLoader';
 import { useTheme } from './hooks/useTheme';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { PrintLayout } from './components/layout/PrintLayout';
 import { CharacterPage } from './components/pages/CharacterPage';
-import { CombatPage } from './components/pages/CombatPage';
-import { EstatePage } from './components/pages/EstatePage';
-import { AdvancementPage } from './components/pages/AdvancementPage';
-import { EndeavoursPage } from './components/pages/EndeavoursPage';
-import { SettingsPage, loadQuickActions } from './components/pages/SettingsPage';
-import { RetinuePage } from './components/pages/RetinuePage';
+import { loadQuickActions } from './storage/quick-actions';
+
+const CombatPage = lazy(() => import('./components/pages/CombatPage'));
+const EstatePage = lazy(() => import('./components/pages/EstatePage'));
+const EndeavoursPage = lazy(() => import('./components/pages/EndeavoursPage'));
+const RetinuePage = lazy(() => import('./components/pages/RetinuePage'));
+const AdvancementPage = lazy(() => import('./components/pages/AdvancementPage'));
+const SettingsPage = lazy(() => import('./components/pages/SettingsPage'));
 import { CharacterWizard } from './components/shared/CharacterWizard';
 import { CharacterManagementSheet } from './components/shared/CharacterManagementSheet';
 import { QuickActionBar } from './components/shared/QuickActionBar';
@@ -29,6 +32,7 @@ import { runMigration } from './storage/migration';
 import { saveCharacter } from './storage/character-manager';
 import { WelcomeScreen } from './components/shared/WelcomeScreen';
 import type { PageSection } from './components/layout/Navigation';
+import errorStyles from './ErrorBoundary.module.css';
 
 // Simple error boundary
 interface ErrorBoundaryProps {
@@ -52,28 +56,17 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          padding: '32px',
-          textAlign: 'center',
-          color: 'var(--text-primary)',
-        }}>
-          <h2 style={{ color: 'var(--danger)', fontFamily: 'var(--font-heading)' }}>
+        <div role="alert" className={errorStyles.container}>
+          <h2 className={errorStyles.heading}>
             Something went wrong
           </h2>
-          <p style={{ color: 'var(--text-secondary)', margin: '12px 0' }}>
+          <p className={errorStyles.message}>
             {this.state.error?.message || 'An unexpected error occurred.'}
           </p>
           <button
             type="button"
             onClick={() => this.setState({ hasError: false, error: null })}
-            style={{
-              padding: '8px 16px',
-              background: 'var(--bg-tertiary)',
-              color: 'var(--parchment)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-            }}
+            className={errorStyles.retryButton}
           >
             Try Again
           </button>
@@ -191,17 +184,17 @@ function AppWithCharacter({
       case 'character':
         return <CharacterPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} subTab={subTab} onSubTabChange={(tab) => navigate('character', tab)} />;
       case 'combat':
-        return <CombatPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} />;
+        return <PageLoader><CombatPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} /></PageLoader>;
       case 'retinue':
-        return <RetinuePage character={character} update={update} updateCharacter={updateCharacter} subTab={subTab} onSubTabChange={(tab) => navigate('retinue', tab)} />;
+        return <PageLoader><RetinuePage character={character} update={update} updateCharacter={updateCharacter} subTab={subTab} onSubTabChange={(tab) => navigate('retinue', tab)} /></PageLoader>;
       case 'estate':
-        return <EstatePage {...pageProps} subTab={subTab} onSubTabChange={(tab) => navigate('estate', tab)} />;
+        return <PageLoader><EstatePage {...pageProps} subTab={subTab} onSubTabChange={(tab) => navigate('estate', tab)} /></PageLoader>;
       case 'endeavours':
-        return <EndeavoursPage {...pageProps} />;
+        return <PageLoader><EndeavoursPage {...pageProps} /></PageLoader>;
       case 'advancement':
-        return <AdvancementPage {...pageProps} />;
+        return <PageLoader><AdvancementPage {...pageProps} /></PageLoader>;
       case 'settings':
-        return <SettingsPage {...pageProps} currentTheme={currentTheme} onThemeChange={setTheme} />;
+        return <PageLoader><SettingsPage {...pageProps} currentTheme={currentTheme} onThemeChange={setTheme} /></PageLoader>;
       default:
         return <CharacterPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} subTab={subTab} onSubTabChange={(tab) => navigate('character', tab)} />;
     }

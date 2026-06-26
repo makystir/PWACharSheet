@@ -39,8 +39,8 @@ describe('Feature: hirelings, Property 11: Migration defaults missing hirelings 
     fc.assert(
       fc.property(characterWithoutHirelingsArb, (charData) => {
         const result = deepMerge(
-          structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
-          charData as unknown as Record<string, unknown>,
+          structuredClone(BLANK_CHARACTER),
+          charData as Record<string, unknown>,
         );
         expect(result.hirelings).toEqual([]);
       }),
@@ -69,7 +69,7 @@ describe('Feature: hirelings, Property 11: Migration defaults missing hirelings 
           delete source['hirelings'];
 
           const result = deepMerge(
-            structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
+            structuredClone(BLANK_CHARACTER),
             source,
           );
           expect(result.hirelings).toEqual([]);
@@ -119,9 +119,9 @@ describe('Feature: hirelings, Property 11: Migration defaults missing hirelings 
           hirelings: fc.array(hirelingArb, { minLength: 1, maxLength: 5 }),
         }),
         (charData) => {
-          const source = charData as unknown as Record<string, unknown>;
+          const source = charData as Record<string, unknown>;
           const result = deepMerge(
-            structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
+            structuredClone(BLANK_CHARACTER),
             source,
           );
           // Source hirelings array should be preserved (deepMerge uses source array when both are arrays)

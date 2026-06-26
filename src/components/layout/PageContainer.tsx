@@ -36,7 +36,7 @@ export function PageContainer({ children, characterName, onOpenCharacterSheet, h
   };
 
   return (
-    <main ref={ref} className={styles.container}>
+    <main ref={ref} id="main-content" className={styles.container}>
       <div className={styles.offlineWrapper}>
         <OfflineIndicator />
       </div>

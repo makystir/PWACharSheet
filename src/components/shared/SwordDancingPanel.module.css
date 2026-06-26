@@ -11,14 +11,6 @@
   margin-bottom: 12px;
 }
 
-.categoryLabel {
-  color: var(--text-muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 12px 0 6px 0;
-}
-
 .techniqueRow {
   display: flex;
   align-items: center;

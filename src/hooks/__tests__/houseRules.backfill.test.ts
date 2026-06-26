@@ -41,16 +41,15 @@ const RAW_DEFAULTS = {
 
 /** Create a character missing the houseRules field (simulates pre-feature data). */
 function makeLegacyCharacter(): Character {
-  const char = structuredClone(BLANK_CHARACTER);
-  // Remove houseRules to simulate a character saved before the feature existed
-  delete (char as unknown as Record<string, unknown>).houseRules;
-  return char as Character;
+  const { houseRules: _, ...rest } = structuredClone(BLANK_CHARACTER);
+  // Return without houseRules to simulate a character saved before the feature existed
+  return rest as Character;
 }
 
 describe('Backfill — character loaded without houseRules', () => {
   it('backfillCharacter adds RAW defaults when houseRules is missing', () => {
     const legacy = makeLegacyCharacter();
-    expect((legacy as unknown as Record<string, unknown>).houseRules).toBeUndefined();
+    expect('houseRules' in legacy).toBe(false);
 
     const patched = backfillCharacter(legacy);
 

@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Build artifacts (root-level)
+/assets/
+/dist/
+
+# Root-level duplicates of public/ contents
+/404.html
+/manifest.json
+/favicon.svg
+/icons/
+/icons.svg
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

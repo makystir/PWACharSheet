@@ -8,6 +8,7 @@ import {
   resolveCareerName,
   getCareerSkills,
 } from '../careers';
+import { BLANK_CHARACTER } from '../../types/character';
 
 // ─── Property 11: Career class filtering returns correct careers ─────────────
 // Validates: Requirements 6.1
@@ -140,13 +141,13 @@ describe('resolveCareerName', () => {
 
 describe('applyCareerSkills', () => {
   it('returns unchanged character for unknown career', () => {
-    const char = { career: '', careerLevel: '', class: '', status: '' } as any;
+    const char = { ...structuredClone(BLANK_CHARACTER), career: '', careerLevel: '', class: '', status: '' };
     const result = applyCareerSkills(char, 'Unknown', '1');
     expect(result.career).toBe('');
   });
 
   it('sets career fields for valid career and level', () => {
-    const char = { career: '', careerLevel: '', class: '', status: '' } as any;
+    const char = { ...structuredClone(BLANK_CHARACTER), career: '', careerLevel: '', class: '', status: '' };
     const result = applyCareerSkills(char, 'Soldier', '2');
     expect(result.career).toBe('Soldier');
     expect(result.careerLevel).toBe('Soldier');

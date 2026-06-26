@@ -16,10 +16,9 @@ import { BLANK_CHARACTER } from '../../types/character';
 const ALL_CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
 
 function makeTestCharacter(overrides: Partial<Character> = {}): Character {
-  const chars: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-  for (const key of ALL_CHAR_KEYS) {
-    chars[key] = { i: 20, a: 0, b: 0 };
-  }
+  const chars = Object.fromEntries(
+    ALL_CHAR_KEYS.map(key => [key, { i: 20, a: 0, b: 0 }])
+  ) as Record<CharacteristicKey, CharacteristicValue>;
   return {
     ...structuredClone(BLANK_CHARACTER),
     name: 'Test',

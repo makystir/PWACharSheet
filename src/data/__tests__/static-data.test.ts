@@ -1149,7 +1149,7 @@ describe('Up in Arms — Career Properties', () => {
  */
 describe('Up in Arms — Advance Scheme Properties', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const advanceSchemes = require('../../../careeradvanceschemes.json') as {
+  const advanceSchemes = require('../careeradvanceschemes.json') as {
     careers: Record<string, Record<string, { advance_scheme?: Record<string, string | null>; [key: string]: unknown }>>;
     [key: string]: unknown;
   };

@@ -8,11 +8,20 @@ import { CAREER_SCHEMES } from '../../data/careers';
 
 const ALL_CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
 
-function makeTestCharacter(overrides: Partial<Character> = {}): Character {
-  const chars: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-  for (const key of ALL_CHAR_KEYS) {
-    chars[key] = { i: 30, a: 0, b: 0 };
+function makeChars(overrides: Partial<Record<CharacteristicKey, CharacteristicValue>> = {}): Record<CharacteristicKey, CharacteristicValue> {
+  const chars = Object.fromEntries(
+    ALL_CHAR_KEYS.map(key => [key, { i: 30, a: 0, b: 0 }])
+  ) as Record<CharacteristicKey, CharacteristicValue>;
+  for (const [key, value] of Object.entries(overrides)) {
+    chars[key as CharacteristicKey] = value!;
   }
+  return chars;
+}
+
+function makeTestCharacter(overrides: Partial<Character> = {}): Character {
+  const chars = Object.fromEntries(
+    ALL_CHAR_KEYS.map(key => [key, { i: 30, a: 0, b: 0 }])
+  ) as Record<CharacteristicKey, CharacteristicValue>;
   return {
     ...structuredClone(BLANK_CHARACTER),
     name: 'Test Hero',
@@ -61,12 +70,7 @@ describe('Property 1: Undo-then-redo round trip', () => {
   it('characteristic: advance WS 0→1, undo, redo → matches original advanced state', () => {
     const entry = makeEntry({ type: 'characteristic', name: 'WS', from: 0, to: 1, xpCost: 25 });
     const advanced = makeTestCharacter({
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.WS = { i: 30, a: 1, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ WS: { i: 30, a: 1, b: 0 } }),
       xpCur: 475,
       xpSpent: 25,
       advancementLog: [entry],
@@ -142,12 +146,7 @@ describe('Property 2: Undo removes last log entry and returns it', () => {
   it('single entry log → undo produces empty log, returned entry matches', () => {
     const entry = makeEntry({ type: 'characteristic', name: 'BS', from: 0, to: 1, xpCost: 25 });
     const char = makeTestCharacter({
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.BS = { i: 30, a: 1, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ BS: { i: 30, a: 1, b: 0 } }),
       xpCur: 475,
       xpSpent: 25,
       advancementLog: [entry],
@@ -165,13 +164,7 @@ describe('Property 2: Undo removes last log entry and returns it', () => {
     const entry3 = makeEntry({ timestamp: 3000, type: 'characteristic', name: 'T', from: 0, to: 1, xpCost: 25 });
 
     const char = makeTestCharacter({
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.WS = { i: 30, a: 1, b: 0 };
-        c.T = { i: 30, a: 1, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ WS: { i: 30, a: 1, b: 0 }, T: { i: 30, a: 1, b: 0 } }),
       bSkills: [
         { n: 'Athletics', c: 'Ag', a: 1 },
         { n: 'Cool', c: 'WP', a: 5 },
@@ -210,10 +203,7 @@ describe('Property 3: Undo restores XP, redo deducts XP', () => {
       advancementLog: [entry],
     };
     if (type === 'characteristic') {
-      const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-      for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-      c[name as CharacteristicKey] = { i: 30, a: 1, b: 0 };
-      overrides.chars = c;
+      overrides.chars = makeChars({ [name as CharacteristicKey]: { i: 30, a: 1, b: 0 } });
     } else if (type === 'skill') {
       overrides.bSkills = [
         { n: 'Athletics', c: 'Ag', a: 1 },
@@ -247,12 +237,7 @@ describe('Property 4: Undo decrements characteristic and skill advances', () => 
   it('undo WS advance 0→1 → WS.a becomes 0', () => {
     const entry = makeEntry({ type: 'characteristic', name: 'WS', from: 0, to: 1, xpCost: 25 });
     const char = makeTestCharacter({
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.WS = { i: 30, a: 1, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ WS: { i: 30, a: 1, b: 0 } }),
       xpCur: 475,
       xpSpent: 25,
       advancementLog: [entry],
@@ -265,12 +250,7 @@ describe('Property 4: Undo decrements characteristic and skill advances', () => 
   it('undo T advance 3→4 → T.a becomes 3', () => {
     const entry = makeEntry({ type: 'characteristic', name: 'T', from: 3, to: 4, xpCost: 25 });
     const char = makeTestCharacter({
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.T = { i: 30, a: 4, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ T: { i: 30, a: 4, b: 0 } }),
       xpCur: 475,
       xpSpent: 25,
       advancementLog: [entry],
@@ -283,12 +263,7 @@ describe('Property 4: Undo decrements characteristic and skill advances', () => 
   it('undo Ag advance 10→11 → Ag.a becomes 10', () => {
     const entry = makeEntry({ type: 'characteristic', name: 'Ag', from: 10, to: 11, xpCost: 40 });
     const char = makeTestCharacter({
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.Ag = { i: 30, a: 11, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ Ag: { i: 30, a: 11, b: 0 } }),
       xpCur: 460,
       xpSpent: 40,
       advancementLog: [entry],
@@ -419,12 +394,7 @@ describe('Property 6: Redo increments characteristic and skill advances', () => 
   it('redo BS entry (5→6) → BS.a becomes 6', () => {
     const entry = makeEntry({ type: 'characteristic', name: 'BS', from: 5, to: 6, xpCost: 30 });
     const char = makeTestCharacter({
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.BS = { i: 30, a: 5, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ BS: { i: 30, a: 5, b: 0 } }),
       xpCur: 500,
     });
 
@@ -514,12 +484,7 @@ describe('Property 8: No mutation of input Character', () => {
   it('undoAdvancement does not mutate the input character', () => {
     const entry = makeEntry({ type: 'characteristic', name: 'WS', from: 0, to: 1, xpCost: 25 });
     const char = makeTestCharacter({
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.WS = { i: 30, a: 1, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ WS: { i: 30, a: 1, b: 0 } }),
       xpCur: 475,
       xpSpent: 25,
       advancementLog: [entry],
@@ -721,12 +686,7 @@ describe('Edge cases', () => {
       careerPath: "Recruit → Wizard's Apprentice",
       xpCur: 375,
       xpSpent: 125,
-      chars: (() => {
-        const c: Record<CharacteristicKey, CharacteristicValue> = {} as any;
-        for (const k of ALL_CHAR_KEYS) c[k] = { i: 30, a: 0, b: 0 };
-        c.WS = { i: 30, a: 1, b: 0 };
-        return c;
-      })(),
+      chars: makeChars({ WS: { i: 30, a: 1, b: 0 } }),
       advancementLog: [prevEntry, switchEntry],
     });
 

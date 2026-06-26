@@ -18,7 +18,6 @@ import { SPELL_LIST } from '../../data/spells';
 import { ADV_SKILL_DB } from '../../data/advanced-skills';
 import { TALENT_DB } from '../../data/talents';
 import { TRAPPING_LIST } from '../../data/trappings';
-
 import { CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme, getCareerSkills } from '../../logic/careers';
 import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, computeAPByLocation } from '../../logic/calculators';

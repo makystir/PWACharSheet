@@ -8,10 +8,29 @@ export default defineConfig({
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+          if (id.includes('src/data/')) {
+            const file = id.split('src/data/')[1]?.split('.')[0];
+            if (['careers', 'talents', 'weapons', 'spells', 'critical-wound-tables', 'diseases'].includes(file)) {
+              return `data-${file}`;
+            }
+          }
+        },
+      },
+    },
   },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+    },
   },
 })

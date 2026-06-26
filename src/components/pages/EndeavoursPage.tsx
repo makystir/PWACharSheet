@@ -423,7 +423,7 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
 
             <div className={styles.entriesList}>
               {period.entries.map((rawEntry) => {
-                const entry = migrateEntryStatus(rawEntry as unknown as Record<string, unknown>);
+                const entry = migrateEntryStatus(rawEntry);
                 return (
                   <div
                     key={entry.id}
@@ -582,3 +582,5 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
     </div>
   );
 }
+
+export default EndeavoursPage;

@@ -262,12 +262,6 @@
   min-width: 80px;
 }
 
-.quirkValue {
-  font-size: 12px;
-  color: var(--text-primary);
-  flex: 1;
-}
-
 /* Text fields (skills, talents, etc.) */
 .textareaField {
   width: 100%;

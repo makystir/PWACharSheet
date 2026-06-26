@@ -72,6 +72,13 @@
   border: 1px solid var(--danger);
 }
 
+.activeIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .infoBtn {
   background: none;
   border: none;

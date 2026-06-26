@@ -844,3 +844,5 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     </div>
   );
 }
+
+export default AdvancementPage;

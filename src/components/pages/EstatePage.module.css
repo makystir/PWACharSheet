@@ -173,14 +173,6 @@
 }
 
 /* Holdings */
-.emptyMessage {
-  color: var(--text-muted);
-  font-size: 12px;
-  font-style: italic;
-  text-align: center;
-  padding: 12px;
-}
-
 .legacyHolding {
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
@@ -294,11 +286,6 @@
 .propFinanceLabelExpense {
   composes: propFinanceLabel;
   color: var(--danger);
-}
-
-.propCurrencyRow {
-  display: flex;
-  gap: 6px;
 }
 
 .propCurrencyDisplay {

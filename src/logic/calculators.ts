@@ -9,6 +9,39 @@ export function getBonus(value: number): number {
 }
 
 /**
+ * Core wound calculation — single source of truth.
+ * Both syncWoundFields and computeWoundMaximum delegate here.
+ *
+ * Formula: (woundsUseSB ? floor(S/10) : 0) + 2×floor(T/10) + floor(WP/10) + Hardy×floor(T/10)
+ *
+ * @param strength - Total strength characteristic value
+ * @param toughness - Total toughness characteristic value
+ * @param willpower - Total willpower characteristic value
+ * @param hardyLevel - Number of Hardy talent levels (0+)
+ * @param woundsUseSB - Whether species uses SB in wound formula
+ * @returns Object with total and individual component values
+ */
+function calculateWoundsCore(
+  strength: number,
+  toughness: number,
+  willpower: number,
+  hardyLevel: number,
+  woundsUseSB: boolean
+): { total: number; sb: number; tb: number; wpb: number; hardy: number } {
+  const sbRaw = Math.floor(strength / 10);
+  const tbRaw = Math.floor(toughness / 10);
+  const wpbRaw = Math.floor(willpower / 10);
+
+  const sb = woundsUseSB ? sbRaw : 0;
+  const tb = 2 * tbRaw;
+  const wpb = wpbRaw;
+  const hardy = hardyLevel * tbRaw;
+  const total = sb + tb + wpb + hardy;
+
+  return { total, sb, tb, wpb, hardy };
+}
+
+/**
  * Calculates total wounds using the WFRP 4e formula:
  * (SB if woundsUseSB) + 2×TB + WPB + Hardy×TB
  * - Humans/Dwarves (woundsUseSB=true): SB + 2×TB + WPB + Hardy×TB
@@ -20,13 +53,11 @@ export function calculateTotalWounds(
   woundsUseSB: boolean,
   hardyLevel: number
 ): number {
-  const SB = getBonus(chars.S.i + chars.S.a + chars.S.b);
-  const TB = getBonus(chars.T.i + chars.T.a + chars.T.b);
-  const WPB = getBonus(chars.WP.i + chars.WP.a + chars.WP.b);
+  const strength = chars.S.i + chars.S.a + chars.S.b;
+  const toughness = chars.T.i + chars.T.a + chars.T.b;
+  const willpower = chars.WP.i + chars.WP.a + chars.WP.b;
 
-  const sbComponent = woundsUseSB ? SB : 0;
-  const total = sbComponent + 2 * TB + WPB + hardyLevel * TB;
-
+  const { total } = calculateWoundsCore(strength, toughness, willpower, hardyLevel, woundsUseSB);
   return Math.max(0, total);
 }
 
@@ -35,15 +66,25 @@ export function calculateTotalWounds(
  * character's current characteristics and Hardy talent level.
  * Returns the same reference if no field changed, avoiding unnecessary re-renders.
  * Never modifies wCur — it is a user-entered value.
+ *
+ * Note: wSB always stores the raw strength bonus regardless of the character's
+ * woundsUseSB setting. The conditional inclusion happens at total computation time.
+ * Delegates to calculateWoundsCore with woundsUseSB=true to obtain raw SB.
  */
 export function syncWoundFields(character: Character, hardyLevel: number): Character {
   const { chars } = character;
 
-  const wSB = getBonus(chars.S.i + chars.S.a + chars.S.b);
-  const TB = getBonus(chars.T.i + chars.T.a + chars.T.b);
-  const wTB2 = 2 * TB;
-  const wWPB = getBonus(chars.WP.i + chars.WP.a + chars.WP.b);
-  const wHardy = hardyLevel * TB;
+  const strength = chars.S.i + chars.S.a + chars.S.b;
+  const toughness = chars.T.i + chars.T.a + chars.T.b;
+  const willpower = chars.WP.i + chars.WP.a + chars.WP.b;
+
+  // Always pass woundsUseSB=true so sb returns the raw strength bonus
+  const core = calculateWoundsCore(strength, toughness, willpower, hardyLevel, true);
+
+  const wSB = core.sb;
+  const wTB2 = core.tb;
+  const wWPB = core.wpb;
+  const wHardy = core.hardy;
 
   if (
     character.wSB === wSB &&
@@ -70,6 +111,8 @@ export interface WoundMaxResult {
 
 /**
  * Computes wound maximum with a full formula breakdown.
+ * Delegates to calculateWoundsCore and returns the WoundMaxResult shape.
+ *
  * Formula: (woundsUseSB ? floor(S/10) : 0) + 2×floor(T/10) + floor(WP/10) + Hardy×floor(T/10)
  *
  * @param strength - Total strength characteristic value
@@ -86,17 +129,7 @@ export function computeWoundMaximum(
   hardyLevel: number,
   woundsUseSB: boolean
 ): WoundMaxResult {
-  const sbRaw = Math.floor(strength / 10);
-  const tbRaw = Math.floor(toughness / 10);
-  const wpbRaw = Math.floor(willpower / 10);
-
-  const sb = woundsUseSB ? sbRaw : 0;
-  const tb = 2 * tbRaw;
-  const wpb = wpbRaw;
-  const hardy = hardyLevel * tbRaw;
-  const total = sb + tb + wpb + hardy;
-
-  return { total, sb, tb, wpb, hardy };
+  return calculateWoundsCore(strength, toughness, willpower, hardyLevel, woundsUseSB);
 }
 
 /** Body location keys used for armour point calculation. */
@@ -135,19 +168,74 @@ function isFlexible(armour: ArmourItem): boolean {
 }
 
 /**
- * Calculates armour points per body location.
- * For each location: AP = highest non-flexible AP + highest flexible AP
- * among all armour covering that location.
- * All AP values are non-negative integers.
+ * Options for the unified armour-point calculation.
  */
-export function calculateArmourPoints(armourList: ArmourItem[]): ArmourPoints {
-  const ap: ArmourPoints = { head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 };
+export interface ArmourPointOptions {
+  /** If true, only include items where worn === true. Default: false (all items). */
+  filterByWorn?: boolean;
+  /** If true, include shield AP in the result. Default: false. */
+  includeShield?: boolean;
+}
+
+/**
+ * Unified armour-point result with human-readable location names.
+ */
+export interface APResult {
+  head: number;
+  leftArm: number;
+  rightArm: number;
+  body: number;
+  leftLeg: number;
+  rightLeg: number;
+  shield: number;
+}
+
+/**
+ * Unified armour-point calculation.
+ * Replaces both calculateArmourPoints and computeAPByLocation.
+ *
+ * Uses the WFRP 4e stacking rule: highest non-flexible AP + highest flexible AP per location.
+ * Includes rune AP bonuses. All AP values are non-negative integers.
+ *
+ * @param armourItems - The list of armour items to calculate AP from
+ * @param options - Optional configuration for filtering and shield inclusion
+ * @returns APResult with AP values per body location and shield
+ */
+export function calculateArmourPointsUnified(
+  armourItems: ArmourItem[],
+  options?: ArmourPointOptions
+): APResult {
+  const filterByWorn = options?.filterByWorn ?? false;
+  const includeShield = options?.includeShield ?? false;
+
+  const items = filterByWorn
+    ? armourItems.filter(item => item.worn === true)
+    : armourItems;
+
+  const result: APResult = {
+    head: 0,
+    leftArm: 0,
+    rightArm: 0,
+    body: 0,
+    leftLeg: 0,
+    rightLeg: 0,
+    shield: 0,
+  };
+
+  const locationMap: Record<BodyLocation, keyof APResult> = {
+    head: 'head',
+    lArm: 'leftArm',
+    rArm: 'rightArm',
+    body: 'body',
+    lLeg: 'leftLeg',
+    rLeg: 'rightLeg',
+  };
 
   for (const loc of BODY_LOCATIONS) {
     let highestNonFlexible = 0;
     let highestFlexible = 0;
 
-    for (const armour of armourList) {
+    for (const armour of items) {
       const coveredLocations = parseLocations(armour.locations);
       if (coveredLocations.includes(loc)) {
         const effectiveAP = armour.ap + getRuneAPBonus(armour.runes ?? []);
@@ -159,10 +247,37 @@ export function calculateArmourPoints(armourList: ArmourItem[]): ArmourPoints {
       }
     }
 
-    ap[loc] = Math.max(0, highestNonFlexible + highestFlexible);
+    result[locationMap[loc]] = Math.max(0, highestNonFlexible + highestFlexible);
   }
 
-  return ap;
+  // Shield AP placeholder — include only when explicitly requested
+  if (!includeShield) {
+    result.shield = 0;
+  }
+
+  return result;
+}
+
+/**
+ * Calculates armour points per body location.
+ * For each location: AP = highest non-flexible AP + highest flexible AP
+ * among all armour covering that location.
+ * All AP values are non-negative integers.
+ *
+ * Legacy wrapper — delegates to calculateArmourPointsUnified.
+ */
+export function calculateArmourPoints(armourList: ArmourItem[]): ArmourPoints {
+  const unified = calculateArmourPointsUnified(armourList, { filterByWorn: false });
+
+  return {
+    head: unified.head,
+    lArm: unified.leftArm,
+    rArm: unified.rightArm,
+    body: unified.body,
+    lLeg: unified.leftLeg,
+    rLeg: unified.rightLeg,
+    shield: unified.shield,
+  };
 }
 
 /**
@@ -180,45 +295,23 @@ export interface APByLocation {
 /**
  * Computes AP per body location from worn armour items only.
  * Uses the WFRP 4e stacking rule: highest non-flexible AP + highest flexible AP per location.
- * Includes rune AP bonuses. Only armour items with worn === true (or worn not explicitly false)
- * that are marked as worn are included.
+ * Includes rune AP bonuses. Only armour items with worn === true are included.
+ *
+ * Legacy wrapper — delegates to calculateArmourPointsUnified.
  */
 export function computeAPByLocation(
   armourItems: ArmourItem[]
 ): APByLocation {
-  const wornItems = armourItems.filter(item => item.worn === true);
+  const unified = calculateArmourPointsUnified(armourItems, { filterByWorn: true });
 
-  const result: APByLocation = { head: 0, leftArm: 0, rightArm: 0, body: 0, leftLeg: 0, rightLeg: 0 };
-
-  const locationMap: Record<BodyLocation, keyof APByLocation> = {
-    head: 'head',
-    lArm: 'leftArm',
-    rArm: 'rightArm',
-    body: 'body',
-    lLeg: 'leftLeg',
-    rLeg: 'rightLeg',
+  return {
+    head: unified.head,
+    leftArm: unified.leftArm,
+    rightArm: unified.rightArm,
+    body: unified.body,
+    leftLeg: unified.leftLeg,
+    rightLeg: unified.rightLeg,
   };
-
-  for (const loc of BODY_LOCATIONS) {
-    let highestNonFlexible = 0;
-    let highestFlexible = 0;
-
-    for (const armour of wornItems) {
-      const coveredLocations = parseLocations(armour.locations);
-      if (coveredLocations.includes(loc)) {
-        const effectiveAP = armour.ap + getRuneAPBonus(armour.runes ?? []);
-        if (isFlexible(armour)) {
-          highestFlexible = Math.max(highestFlexible, effectiveAP);
-        } else {
-          highestNonFlexible = Math.max(highestNonFlexible, effectiveAP);
-        }
-      }
-    }
-
-    result[locationMap[loc]] = Math.max(0, highestNonFlexible + highestFlexible);
-  }
-
-  return result;
 }
 
 /**

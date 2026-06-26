@@ -106,16 +106,6 @@
   font-weight: 700;
 }
 
-.fullWidthButton {
-  width: 100%;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--font-heading);
-}
-
 .centerScreen {
   display: flex;
   align-items: center;

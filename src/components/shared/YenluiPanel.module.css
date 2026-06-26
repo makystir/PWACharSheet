@@ -4,13 +4,6 @@
   margin-bottom: 12px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
 .label {
   display: block;
   font-size: 12px;

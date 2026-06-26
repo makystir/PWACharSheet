@@ -1,0 +1,24 @@
+.container {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.heading {
+  color: var(--danger);
+  font-family: var(--font-heading);
+}
+
+.message {
+  color: var(--text-secondary);
+  margin: 12px 0;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  color: var(--parchment);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}

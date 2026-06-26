@@ -277,3 +277,5 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
     </div>
   );
 }
+
+export default RetinuePage;

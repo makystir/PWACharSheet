@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Character, ArmourPoints } from '../types/character';
+import type { Character, ArmourPoints, WeaponData } from '../types/character';
 import { BLANK_CHARACTER } from '../types/character';
 import { saveCharacter } from '../storage/character-manager';
 import {
@@ -11,7 +11,6 @@ import {
 } from '../logic/calculators';
 import { syncTalentBonuses } from '../logic/talents';
 import { SPECIES_DATA } from '../data/species';
-import { WEAPONS } from '../data/weapons';
 
 export interface UseCharacterResult {
   character: Character;
@@ -27,10 +26,10 @@ export interface UseCharacterResult {
  * Sets a value on an object using dot-notation path.
  * e.g. setNestedValue(obj, "chars.WS.a", 10)
  */
-function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> {
-  const clone = structuredClone(obj) as Record<string, unknown>;
+function setNestedValue<T extends object>(obj: T, path: string, value: unknown): T {
+  const clone = structuredClone(obj);
   const keys = path.split('.');
-  let current: Record<string, unknown> = clone;
+  let current = clone as Record<string, unknown>;
 
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
@@ -47,8 +46,9 @@ function setNestedValue(obj: Record<string, unknown>, path: string, value: unkno
 /**
  * Backfill missing fields on characters loaded from storage.
  * Fixes characters saved before bSkills/aSkills defaults were added.
+ * If weaponsRef is provided, also fixes weapon damage formulas.
  */
-export function backfillCharacter(char: Character): Character {
+export function backfillCharacter(char: Character, weaponsRef?: WeaponData[]): Character {
   let patched = { ...char };
   if (!patched.bSkills || patched.bSkills.length === 0) {
     patched.bSkills = structuredClone(BLANK_CHARACTER.bSkills);
@@ -82,9 +82,9 @@ export function backfillCharacter(char: Character): Character {
 
   // Fix weapon damage formulas from old exports that had incorrect values
   // (e.g. bows stored as "1/2SB+N" instead of RAW "+SB+N", slings as "1/2SB+N" instead of "+N")
-  if (patched.weapons && patched.weapons.length > 0) {
+  if (weaponsRef && patched.weapons && patched.weapons.length > 0) {
     patched.weapons = patched.weapons.map(w => {
-      const canonical = WEAPONS.find(ref => ref.name === w.name && ref.group === w.group);
+      const canonical = weaponsRef.find(ref => ref.name === w.name && ref.group === w.group);
       if (canonical && canonical.damage && w.damage !== canonical.damage) {
         return { ...w, damage: canonical.damage };
       }
@@ -103,6 +103,27 @@ export function backfillCharacter(char: Character): Character {
 export function useCharacter(characterId: string, initialCharacter: Character): UseCharacterResult {
   const [character, setCharacter] = useState<Character>(() => backfillCharacter(initialCharacter));
   const characterIdRef = useRef(characterId);
+
+  // Lazy-load weapons data for damage formula backfill
+  const weaponsLoadedRef = useRef(false);
+  useEffect(() => {
+    if (weaponsLoadedRef.current) return;
+    import('../data/weapons').then(({ WEAPONS }) => {
+      weaponsLoadedRef.current = true;
+      setCharacter(prev => {
+        if (!prev.weapons || prev.weapons.length === 0) return prev;
+        const fixed = prev.weapons.map(w => {
+          const canonical = WEAPONS.find(ref => ref.name === w.name && ref.group === w.group);
+          if (canonical && canonical.damage && w.damage !== canonical.damage) {
+            return { ...w, damage: canonical.damage };
+          }
+          return w;
+        });
+        const changed = fixed.some((w, i) => w !== prev.weapons[i]);
+        return changed ? { ...prev, weapons: fixed } : prev;
+      });
+    }).catch(() => { /* WEAPONS backfill is non-critical; character still usable */ });
+  }, []);
 
   // Track whether a reset is in progress to avoid spurious auto-saves
   const isResettingRef = useRef(false);
@@ -177,12 +198,7 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
 
   const update = useCallback((field: string, value: unknown) => {
     setCharacter((prev) => {
-      const updated = setNestedValue(
-        prev as unknown as Record<string, unknown>,
-        field,
-        value
-      ) as unknown as Character;
-      return updated;
+      return setNestedValue(prev, field, value);
     });
   }, []);
 

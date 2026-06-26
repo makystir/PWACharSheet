@@ -209,31 +209,21 @@ export function resolveOpposedTest(
   const playerResolution = resolveRoll(playerRoll, playerTarget);
   const opponentResolution = resolveRoll(opponentRoll, opponentTarget);
 
-  const netSL = playerResolution.sl - opponentResolution.sl;
-
-  let winner: 'player' | 'opponent' | 'tie';
-  if (netSL > 0) {
-    winner = 'player';
-  } else if (netSL < 0) {
-    winner = 'opponent';
-  } else {
-    // Tie-breaker: higher tested skill/characteristic wins when net SL = 0
-    if (playerTarget > opponentTarget) {
-      winner = 'player';
-    } else if (opponentTarget > playerTarget) {
-      winner = 'opponent';
-    } else {
-      winner = 'tie';
-    }
-  }
+  // Delegate winner determination to calculateOpposedResult
+  const opposed = calculateOpposedResult(
+    playerResolution.sl,
+    opponentResolution.sl,
+    playerTarget,
+    opponentTarget
+  );
 
   return {
     playerRoll: Math.min(100, Math.max(1, playerRoll)),
     playerSL: playerResolution.sl,
     opponentRoll: Math.min(100, Math.max(1, opponentRoll)),
     opponentSL: opponentResolution.sl,
-    netSL,
-    winner,
+    netSL: opposed.netSL,
+    winner: opposed.winner,
   };
 }
 

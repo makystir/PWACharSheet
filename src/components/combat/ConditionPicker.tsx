@@ -3,7 +3,7 @@ import type { Condition } from '../../types/character';
 import { CONDITIONS } from '../../data/conditions';
 import { resolveConditionTooltip } from '../../logic/tooltip-content';
 import { Tooltip } from '../shared/Tooltip';
-import { Info, X } from 'lucide-react';
+import { Check, Info, X } from 'lucide-react';
 import styles from './ConditionPicker.module.css';
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -96,6 +96,13 @@ export function ConditionPicker({ conditions, onApply, onRemove, onClose }: Cond
                 }}
                 data-testid={`condition-${cond.name}`}
               >
+                {/* Active state indicator — non-color visual cue */}
+                {isActive && (
+                  <span className={styles.activeIndicator} aria-hidden="true">
+                    <Check size={14} />
+                  </span>
+                )}
+
                 {/* Info button */}
                 <button
                   type="button"

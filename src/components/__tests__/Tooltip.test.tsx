@@ -28,7 +28,7 @@ afterEach(() => {
 });
 
 const defaultProps = {
-  anchorEl: null as unknown as HTMLElement,
+  anchorEl: document.createElement('div'),
   title: 'Athletics',
   children: <p>A test description</p>,
   onClose: vi.fn(),

@@ -13,7 +13,7 @@ const LEGACY_KEYS = ['wfrp4e-v5', 'wfrp4e-v4', 'wfrp4e-v3'];
  * - Otherwise use source value.
  * Returns a new object (does not mutate target).
  */
-function deepMerge<T extends Record<string, unknown>>(target: T, source: Record<string, unknown>): T {
+function deepMerge<T extends object>(target: T, source: Record<string, unknown>): T {
   const result = { ...target } as Record<string, unknown>;
   for (const key of Object.keys(source)) {
     const tVal = result[key];
@@ -95,10 +95,7 @@ export function runMigration(): void {
     try {
       const legacyData = JSON.parse(legacyV6Raw);
       if (legacyData && (legacyData._v === 6 || legacyData._v === 7)) {
-        const character = deepMerge(
-          structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
-          legacyData as Record<string, unknown>,
-        ) as unknown as Character;
+        const character = deepMerge(structuredClone(BLANK_CHARACTER), legacyData as Record<string, unknown>);
         migrateToMultiChar(character);
         removeItem(LEGACY_V6_KEY);
         return;
@@ -115,11 +112,8 @@ export function runMigration(): void {
       try {
         const oldData = JSON.parse(raw);
         if (oldData && typeof oldData === 'object') {
-          // Deep merge with BLANK_CHARACTER to upgrade to v6
-          const upgraded = deepMerge(
-            structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
-            oldData as Record<string, unknown>,
-          ) as unknown as Character;
+          // Deep merge with BLANK_CHARACTER to upgrade to v7
+          const upgraded = deepMerge(structuredClone(BLANK_CHARACTER), oldData as Record<string, unknown>);
           // Force v7
           upgraded._v = 7;
           migrateToMultiChar(upgraded);

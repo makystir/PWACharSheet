@@ -10,10 +10,9 @@ const ALL_CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'De
 export function computeTalentBonuses(
   talents: Talent[]
 ): Record<CharacteristicKey, number> {
-  const bonuses: Record<CharacteristicKey, number> = {} as any;
-  for (const key of ALL_CHAR_KEYS) {
-    bonuses[key] = 0;
-  }
+  const bonuses: Record<CharacteristicKey, number> = Object.fromEntries(
+    ALL_CHAR_KEYS.map(key => [key, 0])
+  ) as Record<CharacteristicKey, number>;
 
   for (const talent of talents) {
     const entry = TALENT_BONUS_MAP[talent.n];

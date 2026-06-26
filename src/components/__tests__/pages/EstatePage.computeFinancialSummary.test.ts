@@ -1,6 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { computeFinancialSummary } from '../../pages/EstatePage';
-import type { Estate } from '../../../types/character';
+import type { Estate, Holding } from '../../../types/character';
+
+/** Helper: create a Holding with fields intentionally set to undefined to simulate legacy data */
+function makeMalformedHolding(overrides: Record<string, unknown>): Holding {
+  return {
+    name: '', type: '', status: '', location: '', income: '', expenses: '',
+    monthlyIncome: { d: 0, ss: 0, gc: 0 },
+    monthlyExpenses: { d: 0, ss: 0, gc: 0 },
+    condition: 0, staff: 0, notes: '',
+    ...overrides,
+  } as Holding;
+}
 
 /** Helper: build a minimal Estate object with sensible defaults */
 function makeEstate(overrides: Partial<Estate> = {}): Estate {
@@ -67,7 +78,7 @@ describe('computeFinancialSummary', () => {
       monthlyIncome: { gc: 2, ss: 1, d: 0 },
       monthlyExpenses: { gc: 1, ss: 0, d: 0 },
       properties: [
-        { name: 'Ruin', type: 'Other', status: 'Destroyed', location: '', income: '', expenses: '', monthlyIncome: undefined as unknown as { d: number; ss: number; gc: number }, monthlyExpenses: undefined as unknown as { d: number; ss: number; gc: number }, condition: 0, staff: 0, notes: '' },
+        makeMalformedHolding({ name: 'Ruin', type: 'Other', status: 'Destroyed', monthlyIncome: undefined, monthlyExpenses: undefined }),
       ],
     });
     const result = computeFinancialSummary(estate);
@@ -81,8 +92,8 @@ describe('computeFinancialSummary', () => {
     const estate = makeEstate({
       monthlyIncome: { gc: 3, ss: 2, d: 1 },
       monthlyExpenses: { gc: 1, ss: 1, d: 1 },
+      properties: undefined,
     });
-    delete (estate as unknown as Record<string, unknown>).properties;
     const result = computeFinancialSummary(estate);
     expect(result.totalIncome).toEqual({ gc: 3, ss: 2, d: 1 });
     expect(result.totalExpenses).toEqual({ gc: 1, ss: 1, d: 1 });

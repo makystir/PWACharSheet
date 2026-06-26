@@ -1,5 +1,4 @@
 /* WFRP 4e Character Sheet — Global Styles */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
   --bg-primary: #121212;
@@ -141,6 +140,31 @@ input, select, textarea {
   .print-only {
     display: block !important;
   }
+}
+
+/* ===== Skip-to-content link ===== */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+}
+.skip-link:focus {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  color: var(--parchment);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-family: var(--font-body);
 }
 
 /* ===== Interactive element feedback ===== */

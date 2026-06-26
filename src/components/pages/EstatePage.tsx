@@ -377,3 +377,5 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
     </div>
   );
 }
+
+export default EstatePage;

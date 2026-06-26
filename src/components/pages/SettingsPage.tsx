@@ -8,31 +8,13 @@ import { exportToClipboard, exportToFile, importFromJSON } from '../../storage/e
 import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders, Zap, X } from 'lucide-react';
 import type { ThemeMode } from '../../hooks/useTheme';
 import styles from './SettingsPage.module.css';
+import { loadQuickActions, saveQuickActions } from '../../storage/quick-actions';
+import type { QuickActionConfig } from '../../storage/quick-actions';
 
-export interface QuickActionConfig {
-  id: string;
-  skillName: string;
-  icon?: string;
-}
+export { loadQuickActions };
+export type { QuickActionConfig };
 
-const QUICK_ACTIONS_KEY = 'wfrp-quickActions';
 const MAX_QUICK_ACTIONS = 6;
-
-export function loadQuickActions(): QuickActionConfig[] {
-  try {
-    return JSON.parse(localStorage.getItem(QUICK_ACTIONS_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function saveQuickActions(actions: QuickActionConfig[]): void {
-  try {
-    localStorage.setItem(QUICK_ACTIONS_KEY, JSON.stringify(actions));
-  } catch {
-    // silently fail if localStorage is unavailable
-  }
-}
 
 interface SettingsPageProps {
   character: Character;
@@ -387,3 +369,5 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
     </div>
   );
 }
+
+export default SettingsPage;

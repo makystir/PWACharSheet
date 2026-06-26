@@ -54,7 +54,7 @@ interface CombatPageProps {
 
 
 export function CombatPage({ character, characterId, update, updateCharacter, totalWounds, armourPoints, addRoll, rollHistory, clearHistory }: CombatPageProps) {
-  const [showWeaponPicker, setShowWeaponPicker] = useState(false);
+    const [showWeaponPicker, setShowWeaponPicker] = useState(false);
   const [showArmourPicker, setShowArmourPicker] = useState(false);
   const [rollDialogState, setRollDialogState] = useState<{ name: string; baseTarget: number; defaultDifficulty?: DifficultyLevel } | null>(null);
   const undoToast = useUndoToast();
@@ -270,3 +270,5 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
     </div>
   );
 }
+
+export default CombatPage;

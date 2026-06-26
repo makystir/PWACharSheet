@@ -75,17 +75,17 @@ export function importFromJSON(json: string): { success: boolean; character?: Ch
   }
 
   // Deep merge with BLANK_CHARACTER to fill missing fields
-  const character = deepMergeImport(
-    structuredClone(BLANK_CHARACTER) as unknown as Record<string, unknown>,
+  const character = deepMergeImport<Character>(
+    structuredClone(BLANK_CHARACTER),
     data,
-  ) as unknown as Character;
+  );
   character._v = 7;
 
   return { success: true, character };
 }
 
-function deepMergeImport(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
-  const result = { ...target };
+function deepMergeImport<T extends object>(target: T, source: Record<string, unknown>): T {
+  const result = { ...target } as Record<string, unknown>;
   for (const key of Object.keys(source)) {
     const tVal = result[key];
     const sVal = source[key];
@@ -99,5 +99,5 @@ function deepMergeImport(target: Record<string, unknown>, source: Record<string,
       result[key] = sVal;
     }
   }
-  return result;
+  return result as T;
 }

@@ -217,7 +217,8 @@ describe('getLearnedTechniques — backward compatibility', () => {
   it('returns [] when learnedTechniques is undefined', () => {
     const char = makeCharacter({});
     // Override to simulate a legacy character without the field
-    const legacyChar = { ...char, learnedTechniques: undefined } as unknown as Character;
+    const { learnedTechniques: _, ...rest } = char;
+    const legacyChar: Character = { ...rest, learnedTechniques: undefined };
     expect(getLearnedTechniques(legacyChar)).toEqual([]);
   });
 

@@ -1,0 +1,57 @@
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+}
+
+.spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent-gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorContainer {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.errorHeading {
+  color: var(--danger);
+  font-family: var(--font-heading);
+  margin: 0 0 12px;
+}
+
+.errorMessage {
+  color: var(--text-secondary);
+  margin: 0 0 16px;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  color: var(--parchment);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.retryButton:hover {
+  background: var(--bg-secondary);
+}

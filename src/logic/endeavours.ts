@@ -258,17 +258,27 @@ export function cycleStatus(current: EntryStatus): EntryStatus {
  * Converts completed=true to status "completed", completed=false to status "pending".
  * Preserves all other fields (id, type, notes, cost).
  */
-export function migrateEntryStatus(entry: Record<string, unknown>): EndeavourEntry {
+export function migrateEntryStatus(entry: EndeavourEntry | Record<string, unknown>): EndeavourEntry {
+  const record = entry as Record<string, unknown>;
   // If entry already has a valid status field, use it directly
-  if ('status' in entry && (entry.status === 'pending' || entry.status === 'in_progress' || entry.status === 'completed')) {
-    const { completed: _completed, ...rest } = entry;
-    return rest as unknown as EndeavourEntry;
+  if ('status' in record && (record.status === 'pending' || record.status === 'in_progress' || record.status === 'completed')) {
+    // Entry is already in the new format — return it directly (strip legacy completed field if present)
+    if ('completed' in record) {
+      const { completed: _completed, ...rest } = record;
+      return { id: rest.id, type: rest.type, notes: rest.notes, status: rest.status, cost: rest.cost } as EndeavourEntry;
+    }
+    return entry as EndeavourEntry;
   }
 
   // Convert legacy boolean completed to status
-  const status: EntryStatus = entry.completed === true ? 'completed' : 'pending';
-  const { completed: _completed, ...rest } = entry;
-  return { ...rest, status } as unknown as EndeavourEntry;
+  const status: EntryStatus = record.completed === true ? 'completed' : 'pending';
+  return {
+    id: record.id,
+    type: record.type,
+    notes: record.notes,
+    status,
+    cost: record.cost,
+  } as EndeavourEntry;
 }
 
 /**
