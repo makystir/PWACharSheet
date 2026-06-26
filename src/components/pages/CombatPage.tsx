@@ -104,6 +104,8 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
         fortune={character.fortune} fate={character.fate} resolve={character.resolve} resilience={character.resilience}
         inCombat={inCombat}
         useGroupAdvantage={character.houseRules?.useGroupAdvantage ?? false}
+        character={character}
+        updateCharacter={updateCharacter}
         onUpdateWounds={(d) => update('wCur', Math.max(0, Math.min(totalWounds, character.wCur + d)))}
         onUpdateAdvantage={(d) => update('advantage', d < 0 ? decrementAdvantage(character.advantage) : d === -character.advantage ? 0 : incrementAdvantage(character.advantage, character.houseRules.advantageCap))}
         onUpdateRound={(d) => update('combatState.currentRound', Math.max(0, character.combatState.currentRound + d))}
@@ -112,6 +114,20 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
         onSpendFortune={() => updateCharacter((c) => ({ ...c, fortune: Math.max(0, c.fortune - 1) }))}
         onSpendResolve={() => updateCharacter((c) => ({ ...c, resolve: Math.max(0, c.resolve - 1) }))}
         onOpenConditionPicker={() => setShowConditionPicker(true)}
+        onEndTurn={(result) => {
+          updateCharacter((c) => {
+            let newConditions = c.conditions;
+            for (const name of result.removedConditions) {
+              newConditions = removeCondition(newConditions, name);
+            }
+            return {
+              ...c,
+              wCur: result.newWounds,
+              conditions: newConditions,
+              combatState: { ...c.combatState, currentRound: result.roundAdvanced },
+            };
+          });
+        }}
       />
 
       {/* ── Active Combat panels ── */}

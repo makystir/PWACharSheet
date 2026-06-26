@@ -159,6 +159,61 @@ export function calculateOpposedResult(playerSL: number, opponentSL: number): Op
   return { playerSL, opponentSL, netSL, winner };
 }
 
+export interface OpposedTestResult {
+  playerRoll: number;
+  playerSL: number;
+  opponentRoll: number;
+  opponentSL: number;
+  netSL: number;
+  winner: 'player' | 'opponent' | 'tie';
+}
+
+/**
+ * Resolve a full opposed test between player and opponent.
+ * Computes SL for each side using resolveRoll (which handles auto-success/failure
+ * adjustments on doubles ≤ 5 giving at least +1 SL, and doubles > 5 giving at most -1 SL).
+ * Tie resolution: when net SL = 0, the side with the higher roll value wins.
+ * If both rolls are equal and net SL = 0, result is a tie.
+ */
+export function resolveOpposedTest(
+  playerTarget: number,
+  playerRoll: number,
+  opponentTarget: number,
+  opponentRoll: number
+): OpposedTestResult {
+  const playerResolution = resolveRoll(playerRoll, playerTarget);
+  const opponentResolution = resolveRoll(opponentRoll, opponentTarget);
+
+  const netSL = playerResolution.sl - opponentResolution.sl;
+
+  let winner: 'player' | 'opponent' | 'tie';
+  if (netSL > 0) {
+    winner = 'player';
+  } else if (netSL < 0) {
+    winner = 'opponent';
+  } else {
+    // Tie-breaker: higher roll wins when net SL = 0
+    const clampedPlayerRoll = Math.min(100, Math.max(1, playerRoll));
+    const clampedOpponentRoll = Math.min(100, Math.max(1, opponentRoll));
+    if (clampedPlayerRoll > clampedOpponentRoll) {
+      winner = 'player';
+    } else if (clampedOpponentRoll > clampedPlayerRoll) {
+      winner = 'opponent';
+    } else {
+      winner = 'tie';
+    }
+  }
+
+  return {
+    playerRoll: Math.min(100, Math.max(1, playerRoll)),
+    playerSL: playerResolution.sl,
+    opponentRoll: Math.min(100, Math.max(1, opponentRoll)),
+    opponentSL: opponentResolution.sl,
+    netSL,
+    winner,
+  };
+}
+
 /** Full roll pipeline: compute target, apply difficulty, resolve roll */
 export function performRoll(
   baseTarget: number,

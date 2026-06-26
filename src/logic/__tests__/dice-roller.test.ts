@@ -8,6 +8,7 @@ import {
   computeCharacteristicTarget,
   applyDifficulty,
   calculateOpposedResult,
+  resolveOpposedTest,
   performRoll,
   DIFFICULTY_MODIFIERS,
 } from '../dice-roller';
@@ -312,5 +313,97 @@ describe('exports', () => {
     for (const level of levels) {
       expect(typeof DIFFICULTY_MODIFIERS[level]).toBe('number');
     }
+  });
+});
+
+// 1.11 resolveOpposedTest
+describe('resolveOpposedTest', () => {
+  it('player wins when player has higher SL', () => {
+    // Player: target 50, roll 20 → SL = 5 - 2 = 3
+    // Opponent: target 40, roll 60 → SL = 4 - 6 = -2
+    // Net SL = 3 - (-2) = 5 → player wins
+    const result = resolveOpposedTest(50, 20, 40, 60);
+    expect(result.playerSL).toBe(3);
+    expect(result.opponentSL).toBe(-2);
+    expect(result.netSL).toBe(5);
+    expect(result.winner).toBe('player');
+  });
+
+  it('opponent wins when opponent has higher SL', () => {
+    // Player: target 30, roll 70 → SL = 3 - 7 = -4
+    // Opponent: target 60, roll 25 → SL = 6 - 2 = 4
+    // Net SL = -4 - 4 = -8 → opponent wins
+    const result = resolveOpposedTest(30, 70, 60, 25);
+    expect(result.playerSL).toBe(-4);
+    expect(result.opponentSL).toBe(4);
+    expect(result.netSL).toBe(-8);
+    expect(result.winner).toBe('opponent');
+  });
+
+  it('tie-breaker: higher roll wins when net SL is 0', () => {
+    // Player: target 50, roll 45 → SL = 5 - 4 = 1
+    // Opponent: target 40, roll 25 → SL = 4 - 2 = 2... not 0 net
+    // Let's pick values that give same SL:
+    // Player: target 40, roll 30 → SL = 4 - 3 = 1
+    // Opponent: target 50, roll 40 → SL = 5 - 4 = 1
+    // Net SL = 1 - 1 = 0, player roll 30 vs opponent roll 40 → opponent wins (higher roll)
+    const result = resolveOpposedTest(40, 30, 50, 40);
+    expect(result.netSL).toBe(0);
+    expect(result.winner).toBe('opponent');
+  });
+
+  it('tie-breaker: player wins with higher roll when net SL is 0', () => {
+    // Player: target 50, roll 40 → SL = 5 - 4 = 1
+    // Opponent: target 40, roll 30 → SL = 4 - 3 = 1
+    // Net SL = 1 - 1 = 0, player roll 40 vs opponent roll 30 → player wins
+    const result = resolveOpposedTest(50, 40, 40, 30);
+    expect(result.netSL).toBe(0);
+    expect(result.winner).toBe('player');
+  });
+
+  it('result is tie when net SL is 0 and rolls are equal', () => {
+    // Player: target 50, roll 35 → SL = 5 - 3 = 2
+    // Opponent: target 40, roll 25 → SL = 4 - 2 = 2
+    // Net SL = 2 - 2 = 0, rolls 35 vs 25 → not equal
+    // Need same roll same SL:
+    // Player: target 40, roll 35 → SL = 4 - 3 = 1
+    // Opponent: target 40, roll 35 → SL = 4 - 3 = 1
+    // Net SL = 0, rolls equal → tie
+    const result = resolveOpposedTest(40, 35, 40, 35);
+    expect(result.netSL).toBe(0);
+    expect(result.playerRoll).toBe(35);
+    expect(result.opponentRoll).toBe(35);
+    expect(result.winner).toBe('tie');
+  });
+
+  it('returns correct roll values in result', () => {
+    const result = resolveOpposedTest(50, 42, 45, 67);
+    expect(result.playerRoll).toBe(42);
+    expect(result.opponentRoll).toBe(67);
+  });
+
+  it('handles auto-success adjustments for SL calculation', () => {
+    // Player rolls 3 (auto-success): target 10, roll 3 → natural SL = 1 - 0 = 1, auto gives min +1, stays 1
+    // Opponent: target 40, roll 30 → SL = 4 - 3 = 1
+    // Net SL = 1 - 1 = 0 → tie-breaker: roll 3 vs 30 → opponent wins
+    const result = resolveOpposedTest(10, 3, 40, 30);
+    expect(result.playerSL).toBeGreaterThanOrEqual(1);
+    expect(result.netSL).toBe(result.playerSL - result.opponentSL);
+  });
+
+  it('handles auto-failure adjustments for SL calculation', () => {
+    // Player rolls 99 (auto-failure): target 95, roll 99 → natural SL = 9 - 9 = 0, auto-fail gives max -1
+    // Opponent: target 30, roll 50 → SL = 3 - 5 = -2
+    // Net SL = -1 - (-2) = 1 → player wins
+    const result = resolveOpposedTest(95, 99, 30, 50);
+    expect(result.playerSL).toBe(-1);
+    expect(result.opponentSL).toBe(-2);
+    expect(result.netSL).toBe(1);
+    expect(result.winner).toBe('player');
+  });
+
+  it('net SL always equals playerSL - opponentSL', () => {
+    const result = resolveOpposedTest(60, 15, 35, 72);
+    expect(result.netSL).toBe(result.playerSL - result.opponentSL);
   });
 });

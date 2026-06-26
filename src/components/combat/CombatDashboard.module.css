@@ -145,14 +145,90 @@
 
 .woundHigh {
   color: var(--success);
+  transition: color 300ms ease;
 }
 
 .woundMedium {
   color: var(--accent-gold);
+  transition: color 300ms ease;
 }
 
 .woundLow {
   color: var(--danger);
+  transition: color 300ms ease;
+}
+
+/* ── Wound Threshold Visual Escalation (Requirement 13) ── */
+
+.woundsSectionCaution {
+  transition: background 300ms ease, border-color 300ms ease;
+  background: rgba(202, 138, 4, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
+.woundsSectionDanger {
+  transition: background 300ms ease, border-color 300ms ease;
+  background: rgba(220, 38, 38, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
+.woundsSectionCritical {
+  transition: background 300ms ease, border-color 300ms ease;
+  background: rgba(220, 38, 38, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
+/* Danger pulse animation */
+@keyframes woundDangerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.woundDangerPulse {
+  animation: woundDangerPulse 1.5s ease-in-out infinite;
+}
+
+/* Critical state - no pulse, static urgent */
+.woundCritical {
+  text-shadow: 0 0 6px rgba(220, 38, 38, 0.4);
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .woundDangerPulse {
+    animation: none;
+  }
+
+  .woundHigh,
+  .woundMedium,
+  .woundLow {
+    transition: none;
+  }
+
+  .woundsSectionCaution,
+  .woundsSectionDanger,
+  .woundsSectionCritical {
+    transition: none;
+  }
+
+  .numberTransition {
+    transition: none;
+  }
+
+  .numberBump {
+    transform: none;
+  }
+
+  .conditionBadgeEnter {
+    animation: none;
+  }
+
+  .conditionBadgeExit {
+    animation: none;
+  }
 }
 
 /* ── Progress Bar ── */
@@ -354,6 +430,7 @@
 }
 
 .conditionBadge {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -362,9 +439,15 @@
   font-size: 12px;
   min-height: 44px;
   cursor: pointer;
-  background: rgba(200, 80, 80, 0.3);
+  /* Background and text colors applied inline via CONDITION_COLORS map */
   color: #fff;
-  border: 1px solid var(--danger);
+  border: 1px solid transparent;
+}
+
+.conditionBadgeWrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .conditionInfoBtn {
@@ -393,6 +476,55 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ── Condition Effect Text Tooltip (Desktop hover) — Requirement 15.1, 15.3, 15.4 ── */
+
+.conditionEffectTooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+  box-shadow: 0 2px 8px var(--shadow);
+  z-index: 70;
+  pointer-events: none;
+}
+
+/* Show on hover (desktop) — within 100ms via no transition delay */
+.conditionBadge:hover .conditionEffectTooltip {
+  display: block;
+}
+
+/* ── Condition Effect Text Expanded (Mobile tap) — Requirement 15.2, 15.3 ── */
+
+.conditionEffectExpanded {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 2px 4px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+  line-height: 1.3;
+}
+
+/* On mobile, hide the desktop hover tooltip, show only the tap expansion */
+@media (max-width: 767px) {
+  .conditionBadge:hover .conditionEffectTooltip {
+    display: none;
+  }
 }
 
 .addConditionBtn {
@@ -440,6 +572,69 @@
 
 .accentGold {
   color: var(--accent-gold);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   State Change Transitions (Requirement 14)
+   All animations gated behind prefers-reduced-motion: no-preference
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Wound/Advantage number transition class ── */
+.numberTransition {
+  display: inline-block;
+}
+
+/* ── Condition badge animation classes ── */
+.conditionBadgeEnter {
+  /* Base state for entering badges - animation applied via reduced-motion query */
+}
+
+.conditionBadgeExit {
+  /* Base state for exiting badges */
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Animate wound and advantage number changes */
+  .numberTransition {
+    transition: transform 250ms ease-out, color 250ms ease-out;
+  }
+
+  .numberBump {
+    transform: scale(1.15);
+  }
+
+  /* Condition badge enter: fade-in + scale */
+  .conditionBadgeEnter {
+    animation: conditionFadeInScale 250ms ease-out forwards;
+  }
+
+  /* Condition badge exit: fade-out */
+  .conditionBadgeExit {
+    animation: conditionFadeOut 250ms ease-out forwards;
+  }
+}
+
+@keyframes conditionFadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes conditionFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 }
 
 /* ── Mobile Sticky Positioning (Requirement 17.2) ── */
@@ -502,5 +697,95 @@
     min-width: var(--mobile-touch-min, 44px);
     min-height: var(--mobile-touch-min, 44px);
     margin-left: 4px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   End Turn Button & Summary (Requirement 8)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.endTurnSection {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.endTurnBtn {
+  padding: 8px 20px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(202, 138, 4, 0.15);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  transition: background 150ms ease;
+}
+
+.endTurnBtn:hover {
+  background: rgba(202, 138, 4, 0.25);
+}
+
+.endTurnBtn:active {
+  background: rgba(202, 138, 4, 0.35);
+}
+
+.endTurnSummary {
+  flex: 1 1 auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  min-width: 200px;
+}
+
+.endTurnSummaryTitle {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.endTurnSummaryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.endTurnEffectDamage {
+  color: var(--danger);
+}
+
+.endTurnEffectRemove {
+  color: var(--success);
+}
+
+.endTurnNoEffects {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+@media (max-width: 767px) {
+  .endTurnSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .endTurnBtn {
+    min-height: 44px;
+    width: 100%;
   }
 }

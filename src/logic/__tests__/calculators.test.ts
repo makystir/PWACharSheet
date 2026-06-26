@@ -5,6 +5,8 @@ import {
   calculateArmourPoints,
   calculateMaxEncumbrance,
   calculateCoinWeight,
+  computeWoundMaximum,
+  computeAPByLocation,
 } from '../calculators';
 import type { CharacteristicKey, CharacteristicValue, ArmourItem } from '../../types/character';
 
@@ -415,5 +417,174 @@ describe('calculateCoinWeight', () => {
 
   it('returns 0 for zero coins', () => {
     expect(calculateCoinWeight(0, 0, 0)).toBe(0);
+  });
+});
+
+
+// ─── computeWoundMaximum ─────────────────────────────────────────────────────
+// Validates: Requirements 3.1, 3.2, 3.3, 3.4
+
+describe('computeWoundMaximum', () => {
+  it('basic Human (woundsUseSB=true, no Hardy): SB + 2×TB + WPB', () => {
+    // S=40, T=30, WP=20 → SB=4, TB=3, WPB=2
+    // Expected: 4 + 2×3 + 2 + 0 = 12
+    const result = computeWoundMaximum(40, 30, 20, 0, true);
+    expect(result.sb).toBe(4);
+    expect(result.tb).toBe(6);
+    expect(result.wpb).toBe(2);
+    expect(result.hardy).toBe(0);
+    expect(result.total).toBe(12);
+  });
+
+  it('Halfling (woundsUseSB=false, no Hardy): 0 + 2×TB + WPB', () => {
+    // S=20, T=30, WP=40 → SB excluded, TB=3, WPB=4
+    // Expected: 0 + 6 + 4 + 0 = 10
+    const result = computeWoundMaximum(20, 30, 40, 0, false);
+    expect(result.sb).toBe(0);
+    expect(result.tb).toBe(6);
+    expect(result.wpb).toBe(4);
+    expect(result.hardy).toBe(0);
+    expect(result.total).toBe(10);
+  });
+
+  it('with Hardy level 1 (woundsUseSB=true): adds 1×TB', () => {
+    // S=30, T=40, WP=30 → SB=3, TB=4, WPB=3
+    // Expected: 3 + 8 + 3 + 1×4 = 18
+    const result = computeWoundMaximum(30, 40, 30, 1, true);
+    expect(result.sb).toBe(3);
+    expect(result.tb).toBe(8);
+    expect(result.wpb).toBe(3);
+    expect(result.hardy).toBe(4);
+    expect(result.total).toBe(18);
+  });
+
+  it('with Hardy level 3 (woundsUseSB=true): adds 3×TB', () => {
+    // S=30, T=40, WP=30 → SB=3, TB=4, WPB=3
+    // Expected: 3 + 8 + 3 + 3×4 = 26
+    const result = computeWoundMaximum(30, 40, 30, 3, true);
+    expect(result.sb).toBe(3);
+    expect(result.tb).toBe(8);
+    expect(result.wpb).toBe(3);
+    expect(result.hardy).toBe(12);
+    expect(result.total).toBe(26);
+  });
+
+  it('components always sum to total', () => {
+    const result = computeWoundMaximum(55, 45, 35, 2, true);
+    expect(result.sb + result.tb + result.wpb + result.hardy).toBe(result.total);
+  });
+
+  it('zero characteristics produce zero total', () => {
+    const result = computeWoundMaximum(0, 0, 0, 0, true);
+    expect(result.total).toBe(0);
+    expect(result.sb).toBe(0);
+    expect(result.tb).toBe(0);
+    expect(result.wpb).toBe(0);
+    expect(result.hardy).toBe(0);
+  });
+
+  it('single-digit characteristics produce zero bonuses', () => {
+    const result = computeWoundMaximum(9, 5, 7, 0, true);
+    expect(result.total).toBe(0);
+  });
+
+  it('boundary: exactly 10 produces bonus of 1', () => {
+    // S=10, T=10, WP=10 → SB=1, TB=1, WPB=1
+    // Expected: 1 + 2 + 1 + 0 = 4
+    const result = computeWoundMaximum(10, 10, 10, 0, true);
+    expect(result.sb).toBe(1);
+    expect(result.tb).toBe(2);
+    expect(result.wpb).toBe(1);
+    expect(result.total).toBe(4);
+  });
+});
+
+// ─── computeAPByLocation ─────────────────────────────────────────────────────
+// Validates: Requirements 9.1, 9.2
+
+describe('computeAPByLocation', () => {
+  it('returns all zeros for empty armour list', () => {
+    const result = computeAPByLocation([]);
+    expect(result).toEqual({ head: 0, leftArm: 0, rightArm: 0, body: 0, leftLeg: 0, rightLeg: 0 });
+  });
+
+  it('returns all zeros when no armour is worn', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: false },
+      { name: 'Helm', locations: 'Head', enc: '2', ap: 2, qualities: '—' },
+    ];
+    const result = computeAPByLocation(armour);
+    expect(result).toEqual({ head: 0, leftArm: 0, rightArm: 0, body: 0, leftLeg: 0, rightLeg: 0 });
+  });
+
+  it('only counts worn armour items', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: true },
+      { name: 'Plate Breastplate', locations: 'Body', enc: '3', ap: 3, qualities: '—', worn: false },
+    ];
+    const result = computeAPByLocation(armour);
+    expect(result.body).toBe(1);
+  });
+
+  it('sums AP for worn armour covering Arms (expands to leftArm, rightArm)', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Plate Bracers', locations: 'Arms', enc: '3', ap: 2, qualities: 'Impenetrable', worn: true },
+    ];
+    const result = computeAPByLocation(armour);
+    expect(result.leftArm).toBe(2);
+    expect(result.rightArm).toBe(2);
+    expect(result.body).toBe(0);
+  });
+
+  it('sums AP for worn armour covering Legs (expands to leftLeg, rightLeg)', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Leather Leggings', locations: 'Legs', enc: '1', ap: 1, qualities: '—', worn: true },
+    ];
+    const result = computeAPByLocation(armour);
+    expect(result.leftLeg).toBe(1);
+    expect(result.rightLeg).toBe(1);
+  });
+
+  it('applies flexible + non-flexible stacking rule for worn items', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: true },
+      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', worn: true },
+    ];
+    const result = computeAPByLocation(armour);
+    // Non-flexible highest = 1, Flexible highest = 2 → 3
+    expect(result.body).toBe(3);
+  });
+
+  it('overlapping non-flexible worn armour: takes highest AP', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: true },
+      { name: 'Plate Breastplate', locations: 'Body', enc: '3', ap: 3, qualities: '—', worn: true },
+    ];
+    const result = computeAPByLocation(armour);
+    expect(result.body).toBe(3);
+  });
+
+  it('full worn armour set across all locations', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Helm', locations: 'Head', enc: '2', ap: 2, qualities: '—', worn: true },
+      { name: 'Mail Coat', locations: 'Arms, Body', enc: '3', ap: 2, qualities: 'Flexible', worn: true },
+      { name: 'Leather Leggings', locations: 'Legs', enc: '1', ap: 1, qualities: '—', worn: true },
+    ];
+    const result = computeAPByLocation(armour);
+    expect(result.head).toBe(2);
+    expect(result.leftArm).toBe(2);
+    expect(result.rightArm).toBe(2);
+    expect(result.body).toBe(2);
+    expect(result.leftLeg).toBe(1);
+    expect(result.rightLeg).toBe(1);
+  });
+
+  it('includes rune AP bonuses for worn armour', () => {
+    const armour: ArmourItem[] = [
+      { name: 'Runed Helm', locations: 'Head', enc: '2', ap: 2, qualities: '—', worn: true, runes: ['rune-of-stone'] },
+    ];
+    const result = computeAPByLocation(armour);
+    // base 2 + Rune of Stone (+1) = 3
+    expect(result.head).toBe(3);
   });
 });

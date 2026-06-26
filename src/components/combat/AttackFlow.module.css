@@ -321,6 +321,56 @@
   min-height: 44px;
 }
 
+.offHandBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+.offHandBtnActive {
+  composes: offHandBtn;
+  background: rgba(200, 168, 76, 0.2);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.penaltyReminder {
+  font-size: 12px;
+  color: var(--danger);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.dualWielderNote {
+  font-size: 12px;
+  color: var(--success);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.secondAttackBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
+  background: rgba(200, 168, 76, 0.15);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
 .chevron {
   color: var(--text-muted);
   font-size: 14px;
@@ -375,6 +425,16 @@
   /* Full-width new attack button on mobile */
   .newAttackBtn {
     width: 100%;
+    min-height: var(--mobile-touch-min, 44px);
+  }
+
+  .secondAttackBtn {
+    width: 100%;
+    min-height: var(--mobile-touch-min, 44px);
+  }
+
+  .offHandBtn,
+  .offHandBtnActive {
     min-height: var(--mobile-touch-min, 44px);
   }
 }

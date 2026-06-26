@@ -57,6 +57,48 @@ export function syncWoundFields(character: Character, hardyLevel: number): Chara
   return { ...character, wSB, wTB2, wWPB, wHardy };
 }
 
+/**
+ * Result of wound maximum computation with formula breakdown.
+ */
+export interface WoundMaxResult {
+  total: number;
+  sb: number;   // floor(S/10) or 0 if !woundsUseSB
+  tb: number;   // 2 × floor(T/10)
+  wpb: number;  // floor(WP/10)
+  hardy: number; // Hardy × floor(T/10)
+}
+
+/**
+ * Computes wound maximum with a full formula breakdown.
+ * Formula: (woundsUseSB ? floor(S/10) : 0) + 2×floor(T/10) + floor(WP/10) + Hardy×floor(T/10)
+ *
+ * @param strength - Total strength characteristic value
+ * @param toughness - Total toughness characteristic value
+ * @param willpower - Total willpower characteristic value
+ * @param hardyLevel - Number of Hardy talent levels (0+)
+ * @param woundsUseSB - Whether species uses SB in wound formula
+ * @returns WoundMaxResult with total and individual component values
+ */
+export function computeWoundMaximum(
+  strength: number,
+  toughness: number,
+  willpower: number,
+  hardyLevel: number,
+  woundsUseSB: boolean
+): WoundMaxResult {
+  const sbRaw = Math.floor(strength / 10);
+  const tbRaw = Math.floor(toughness / 10);
+  const wpbRaw = Math.floor(willpower / 10);
+
+  const sb = woundsUseSB ? sbRaw : 0;
+  const tb = 2 * tbRaw;
+  const wpb = wpbRaw;
+  const hardy = hardyLevel * tbRaw;
+  const total = sb + tb + wpb + hardy;
+
+  return { total, sb, tb, wpb, hardy };
+}
+
 /** Body location keys used for armour point calculation. */
 type BodyLocation = 'head' | 'lArm' | 'rArm' | 'body' | 'lLeg' | 'rLeg';
 
@@ -121,6 +163,62 @@ export function calculateArmourPoints(armourList: ArmourItem[]): ArmourPoints {
   }
 
   return ap;
+}
+
+/**
+ * AP per body location using human-readable property names.
+ */
+export interface APByLocation {
+  head: number;
+  leftArm: number;
+  rightArm: number;
+  body: number;
+  leftLeg: number;
+  rightLeg: number;
+}
+
+/**
+ * Computes AP per body location from worn armour items only.
+ * Uses the WFRP 4e stacking rule: highest non-flexible AP + highest flexible AP per location.
+ * Includes rune AP bonuses. Only armour items with worn === true (or worn not explicitly false)
+ * that are marked as worn are included.
+ */
+export function computeAPByLocation(
+  armourItems: ArmourItem[]
+): APByLocation {
+  const wornItems = armourItems.filter(item => item.worn === true);
+
+  const result: APByLocation = { head: 0, leftArm: 0, rightArm: 0, body: 0, leftLeg: 0, rightLeg: 0 };
+
+  const locationMap: Record<BodyLocation, keyof APByLocation> = {
+    head: 'head',
+    lArm: 'leftArm',
+    rArm: 'rightArm',
+    body: 'body',
+    lLeg: 'leftLeg',
+    rLeg: 'rightLeg',
+  };
+
+  for (const loc of BODY_LOCATIONS) {
+    let highestNonFlexible = 0;
+    let highestFlexible = 0;
+
+    for (const armour of wornItems) {
+      const coveredLocations = parseLocations(armour.locations);
+      if (coveredLocations.includes(loc)) {
+        const effectiveAP = armour.ap + getRuneAPBonus(armour.runes ?? []);
+        if (isFlexible(armour)) {
+          highestFlexible = Math.max(highestFlexible, effectiveAP);
+        } else {
+          highestNonFlexible = Math.max(highestNonFlexible, effectiveAP);
+        }
+      }
+    }
+
+    result[locationMap[loc]] = Math.max(0, highestNonFlexible + highestFlexible);
+  }
+
+  return result;
 }
 
 /**

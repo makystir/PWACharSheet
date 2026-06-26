@@ -38,13 +38,20 @@ export function RollResultDisplay({ result, onClose }: RollResultDisplayProps) {
 
   const colorClass = result.passed ? styles.passColor : styles.failColor;
 
+  // Fumble takes priority over critical for animation
+  const animClass = result.isFumble
+    ? styles.animFumble ?? ''
+    : result.isCritical
+      ? styles.animCritical ?? ''
+      : '';
+
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-label="Roll Result">
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.title}>{result.skillOrCharName}</div>
 
         {/* d100 roll value — large and prominent */}
-        <div className={`${styles.rollValue} ${colorClass}`}>{result.roll}</div>
+        <div className={`${styles.rollValue} ${colorClass} ${animClass}`.trim()}>{result.roll}</div>
 
         {/* Target number */}
         <div className={styles.target}>Target: {result.targetNumber}</div>

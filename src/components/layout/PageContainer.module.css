@@ -5,6 +5,14 @@
   width: 100%;
   margin: 0 auto;
   overflow-y: auto;
+  position: relative;
+}
+
+.offlineWrapper {
+  position: fixed;
+  top: 8px;
+  right: 16px;
+  z-index: 100;
 }
 
 .scrollBtn {
@@ -32,6 +40,11 @@
     padding-bottom: calc(64px + 8px + env(safe-area-inset-bottom));
     overflow-y: auto;
     overflow-x: hidden;
+  }
+
+  .offlineWrapper {
+    top: 8px;
+    right: 8px;
   }
 
   .scrollBtn {

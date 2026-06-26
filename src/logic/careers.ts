@@ -65,6 +65,24 @@ export function applyCareerSkills(character: Character, careerName: string, leve
 }
 
 /**
+ * Get the skill list for the character's current career level.
+ * Returns an empty array if career/careerLevel is invalid or not found.
+ */
+export function getCareerSkills(career: string, careerLevel: string): string[] {
+  if (!career || !careerLevel) return [];
+  const scheme = CAREER_SCHEMES[career];
+  if (!scheme) return [];
+
+  for (let i = 1; i <= 5; i++) {
+    const level = scheme[`level${i}` as keyof CareerScheme] as CareerLevel | undefined;
+    if (level && level.title === careerLevel) {
+      return level.skills;
+    }
+  }
+  return [];
+}
+
+/**
  * Resolve a career name or level title to the career name and level number.
  * Accepts either a career name (returns level null) or a level title (returns career + level).
  */

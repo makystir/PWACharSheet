@@ -136,6 +136,47 @@
   font-size: 13px;
 }
 
+/* Roll result animations — only when user has no motion preference */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes criticalGlow {
+    0% {
+      text-shadow: 0 0 0px transparent;
+    }
+    50% {
+      text-shadow: 0 0 12px var(--accent-gold), 0 0 24px rgba(255, 215, 0, 0.4);
+    }
+    100% {
+      text-shadow: 0 0 6px rgba(255, 215, 0, 0.2);
+    }
+  }
+
+  @keyframes fumbleShake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-4px);
+    }
+    40% {
+      transform: translateX(4px);
+    }
+    60% {
+      transform: translateX(-3px);
+    }
+    80% {
+      transform: translateX(3px);
+    }
+  }
+
+  .animCritical {
+    animation: criticalGlow 150ms ease-out forwards;
+  }
+
+  .animFumble {
+    animation: fumbleShake 150ms ease-in-out;
+  }
+}
+
 /* Dynamic pass/fail color variants */
 .passColor {
   color: var(--success);

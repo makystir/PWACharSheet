@@ -1,0 +1,299 @@
+/* ConsumablesPanel — co-located CSS Module */
+
+/* ── Panel Container ── */
+.container {
+  margin-bottom: 12px;
+}
+
+/* ── Consumable List ── */
+.consumableList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+/* ── Consumable Item ── */
+.consumableItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--bg-inset, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.consumableItemDepleted {
+  composes: consumableItem;
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+/* ── Item Header (name + dose badge) ── */
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.itemName {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.doseBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(90, 154, 90, 0.15);
+  border: 1px solid var(--success);
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.doseBadgeDepleted {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(200, 80, 80, 0.15);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── Effect Text ── */
+.itemEffect {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* ── Item Actions ── */
+.itemActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.decrementBtn,
+.incrementBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.decrementBtn:hover:not(:disabled),
+.incrementBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--accent-gold);
+}
+
+.decrementBtn:disabled,
+.incrementBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.deleteBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+
+.deleteBtn:hover {
+  background: rgba(200, 80, 80, 0.1);
+  border-color: var(--danger);
+}
+
+/* ── Empty State ── */
+.emptyState {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ── Add Consumable Form ── */
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-top: 12px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.formInput {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  min-height: 44px;
+  font-family: inherit;
+}
+
+.formInput::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+/* ── Form Submit / Cancel Buttons ── */
+.formActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.submitBtn {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: rgba(201, 168, 76, 0.2);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-heading);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: var(--bg-tertiary);
+}
+
+/* ── Add Consumable Toggle Button ── */
+.addToggleBtn {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.addToggleBtn:hover {
+  background: rgba(201, 168, 76, 0.1);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Responsive: <768px — vertical stack, 44px touch targets
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .container {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .consumableItem,
+  .consumableItemDepleted {
+    padding: 10px;
+  }
+
+  .formInput {
+    min-height: 44px;
+    font-size: 16px; /* prevent iOS zoom on focus */
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .submitBtn,
+  .cancelBtn {
+    width: 100%;
+  }
+}

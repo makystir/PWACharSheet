@@ -4,6 +4,7 @@ import type { RollResult, DifficultyLevel } from '../../logic/dice-roller';
 import { performRoll, applyDifficulty, computeSkillTarget, DIFFICULTY_MODIFIERS } from '../../logic/dice-roller';
 import { findSkillForWeapon, calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
 import { getBonus } from '../../logic/calculators';
+import { computeOffHandTarget } from '../../logic/combat';
 import { getHitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -40,8 +41,19 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
   const [collapsed, setCollapsed] = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
   const [collapsedSteps, setCollapsedSteps] = useState<Record<number, boolean>>({});
+  const [offHand, setOffHand] = useState(false);
+  const [isSecondAttack, setIsSecondAttack] = useState(false);
+  const [firstAttackCompleted, setFirstAttackCompleted] = useState(false);
 
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
+
+  // Check if character has the Dual Wielder talent
+  const hasDualWielder = character.talents.some(
+    (t) => t.n.toLowerCase() === 'dual wielder'
+  );
+
+  // Off-hand penalty: −20 without Dual Wielder, −0 with it
+  const offHandPenalty = offHand ? (hasDualWielder ? 0 : -20) : 0;
 
   // ── Derived state for selected weapon ──
   const selectedWeapon = selectedWeaponIndex !== null ? weapons[selectedWeaponIndex] : null;
@@ -64,7 +76,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
     return skill.a;
   })();
 
-  const modifiedTarget = applyDifficulty(baseTarget, difficulty);
+  const modifiedTarget = applyDifficulty(baseTarget, difficulty) + offHandPenalty;
 
   // ── Handlers ──
 
@@ -74,6 +86,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
     setLastRollResult(null);
     setOpponentTB(0);
     setOpponentAP(0);
+    setOffHand(isSecondAttack); // Second attack defaults to off-hand
 
     // Determine default difficulty
     const weapon = weapons[index];
@@ -87,7 +100,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
 
   function handleRollToHit() {
     const rollValue = Math.floor(Math.random() * 100) + 1;
-    const result = performRoll(baseTarget, difficulty, skillName, rollValue);
+    const result = performRoll(baseTarget + offHandPenalty, difficulty, skillName, rollValue);
 
     // Impale Crits on Tens: if enabled, weapon has Impale, roll is a multiple of 10 (not 100), and attack is a success
     if (
@@ -114,6 +127,19 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
     setLastRollResult(null);
     setOpponentTB(0);
     setOpponentAP(0);
+    setOffHand(false);
+    setIsSecondAttack(false);
+    setFirstAttackCompleted(false);
+  }
+
+  function handleSecondAttack() {
+    setCurrentStep(1);
+    setLastRollResult(null);
+    setOpponentTB(0);
+    setOpponentAP(0);
+    setIsSecondAttack(true);
+    setFirstAttackCompleted(true);
+    setOffHand(true);
   }
 
   function toggleStepCollapse(step: number) {
@@ -218,6 +244,25 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
             <span className={styles.statChipLabel}>Target</span>
             <span className={styles.statChipValue}>{modifiedTarget}</span>
           </div>
+        </div>
+
+        {/* Off-Hand toggle for two-weapon fighting */}
+        <div className={styles.infoRow}>
+          <button
+            type="button"
+            className={offHand ? styles.offHandBtnActive : styles.offHandBtn}
+            onClick={() => setOffHand(!offHand)}
+            aria-pressed={offHand}
+            aria-label="Off-Hand attack"
+          >
+            🗡️ Off-Hand
+          </button>
+          {offHand && !hasDualWielder && (
+            <span className={styles.penaltyReminder}>−20 penalty (no Dual Wielder talent)</span>
+          )}
+          {offHand && hasDualWielder && (
+            <span className={styles.dualWielderNote}>No penalty (Dual Wielder)</span>
+          )}
         </div>
 
         {!lastRollResult && (
@@ -375,6 +420,11 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
         </div>
 
         <div className={styles.newAttackMargin}>
+          {!isSecondAttack && !firstAttackCompleted && (
+            <button type="button" className={styles.secondAttackBtn} onClick={handleSecondAttack}>
+              🗡️ Second Attack (Off-Hand)
+            </button>
+          )}
           <button type="button" className={styles.newAttackBtn} onClick={handleNewAttack}>
             🔄 New Attack
           </button>

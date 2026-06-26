@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useRollHistory } from '../../hooks/useRollHistory';
 import type { RollResult } from '../../logic/dice-roller';
+
+beforeEach(() => {
+  localStorage.clear();
+});
 
 /** Build a mock RollResult with sensible defaults, overridable via partial. */
 function mockRollResult(overrides: Partial<RollResult> = {}): RollResult {

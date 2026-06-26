@@ -165,6 +165,67 @@
   gap: 4px;
 }
 
+/* Wound Maximum Formula */
+.woundFormulaSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.woundFormulaValue {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.woundFormulaTotal {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.woundFormulaOverride {
+  font-size: 12px;
+  color: var(--accent-gold);
+  font-style: italic;
+}
+
+.woundFormulaBreakdown {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+}
+
+.woundFormulaCalculated {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.woundFormulaOverrideField {
+  margin-top: 4px;
+}
+
+.woundOverrideLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.woundOverrideInput {
+  width: 60px;
+  padding: 3px 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: center;
+}
+
 /* Skills */
 .hideUntrainedBtn {
   padding: 3px 10px;
@@ -201,6 +262,12 @@
   composes: td from '../shared/styles/shared.module.css';
   font-weight: 600;
   text-align: center;
+}
+
+/* Career skill highlighting */
+.careerSkillRow {
+  border-left: 3px solid var(--accent-gold);
+  background: rgba(200, 168, 76, 0.06);
 }
 
 /* Advanced skill / talent inline layout */
@@ -372,6 +439,93 @@
 .horseEncValue {
   color: var(--accent-gold);
   font-weight: 700;
+}
+
+/* ─── AP Auto-Calculation Display ─── */
+.apSection {
+  margin-top: 8px;
+}
+
+.apGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.apLocationCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.apLocationCellDiscrepancy {
+  composes: apLocationCell;
+  border-color: var(--accent-gold);
+  background: rgba(201, 168, 76, 0.08);
+}
+
+.apLocationLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+
+.apValues {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.apManualValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--parchment);
+  font-family: var(--font-heading);
+}
+
+.apComputedValue {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.apComputedValueDiscrepancy {
+  font-size: 12px;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.apSyncRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.apSyncBtn {
+  padding: 4px 10px;
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.apSyncBtn:hover {
+  background: rgba(201, 168, 76, 0.25);
+}
+
+.apSyncBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 /* Trappings table — horse row highlight */
@@ -744,4 +898,39 @@
     font-size: 18px;
     padding: 0;
   }
+}
+
+/* ─── Spell Effect Expand/Collapse ─── */
+.spellExpandBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+}
+
+.spellExpandBtn:hover {
+  color: var(--text-primary);
+}
+
+.spellEffectRow {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.spellEffectCell {
+  padding: 4px 12px 10px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.spellEffectText {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
 }

@@ -1,0 +1,68 @@
+.filterBar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  min-height: 36px;
+  transition: border-color 0.15s;
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchInput:focus {
+  border-color: var(--accent-gold);
+}
+
+.toggle {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  min-height: 36px;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.toggle:hover {
+  border-color: var(--accent-gold);
+  color: var(--text-primary);
+}
+
+.toggleActive {
+  composes: toggle;
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
+@media (max-width: 767px) {
+  .searchInput {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .toggle,
+  .toggleActive {
+    min-height: 44px;
+    padding: 6px 14px;
+  }
+}

@@ -3,6 +3,32 @@ import type { ActiveDisease } from '../logic/diseases';
 
 export type CharacteristicKey = 'WS' | 'BS' | 'S' | 'T' | 'I' | 'Ag' | 'Dex' | 'Int' | 'WP' | 'Fel';
 
+// Consumables (Requirement 10)
+export interface Consumable {
+  id: string;
+  name: string;
+  currentDoses: number;
+  maxDoses: number;
+  effect: string;
+}
+
+// Psychology traits (Requirement 11)
+export type PsychologyType = 'Animosity' | 'Hatred' | 'Fear' | 'Terror' | 'Frenzy' | 'Prejudice';
+
+export interface PsychologyTrait {
+  id: string;
+  type: PsychologyType;
+  target: string;     // For Animosity, Hatred, Prejudice: text target
+  rating?: number;    // For Fear, Terror: numeric rating
+}
+
+// Initiative tracker (Requirement 19)
+export interface Combatant {
+  id: string;
+  name: string;
+  initiative: number;
+}
+
 export interface CharacteristicValue {
   i: number;  // Initial
   a: number;  // Advance
@@ -538,6 +564,10 @@ export interface Character {
   grudges?: GrudgeEntry[];
   yenluiState?: YenluiState;
   magicalBurnout?: MagicalBurnout;
+  consumables?: Consumable[];
+  psychologyTraits?: PsychologyTrait[];
+  initiativeList?: Combatant[];
+  activeInitiativeIndex?: number;
   log: string[];
 }
 

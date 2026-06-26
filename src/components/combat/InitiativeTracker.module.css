@@ -1,0 +1,247 @@
+/* InitiativeTracker — co-located CSS Module */
+
+/* ── Panel Container ── */
+.container {
+  margin-bottom: 12px;
+}
+
+/* ── Combatant List ── */
+.combatantList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+/* ── Combatant Item ── */
+.combatantItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-inset, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.combatantItemActive {
+  composes: combatantItem;
+  background: rgba(201, 168, 76, 0.15);
+  border-color: var(--accent-gold);
+}
+
+/* ── Initiative Badge ── */
+.initiativeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.combatantItemActive .initiativeBadge {
+  background: rgba(201, 168, 76, 0.2);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ── Combatant Name ── */
+.combatantName {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combatantItemActive .combatantName {
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+/* ── Active Indicator ── */
+.activeIndicator {
+  font-size: 11px;
+  color: var(--accent-gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Remove Button ── */
+.removeBtn {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 8px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.removeBtn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: rgba(200, 80, 80, 0.1);
+}
+
+/* ── Next Turn Button ── */
+.nextTurnBtn {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: rgba(201, 168, 76, 0.2);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  transition: background 0.15s;
+}
+
+.nextTurnBtn:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.3);
+}
+
+.nextTurnBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Empty State ── */
+.emptyState {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ── Add Combatant Form ── */
+.addForm {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-top: 12px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formFieldName {
+  composes: formField;
+  flex: 1;
+}
+
+.formFieldInit {
+  composes: formField;
+  width: 80px;
+}
+
+.formLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.formInput {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  min-height: 44px;
+  font-family: inherit;
+}
+
+.formInput::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.addBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.addBtn:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.1);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.addBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Responsive: <768px — vertical stack, 44px touch targets
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .container {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .addForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formFieldInit {
+    width: 100%;
+  }
+
+  .formInput {
+    min-height: 44px;
+    font-size: 16px; /* prevent iOS zoom on focus */
+  }
+
+  .addBtn {
+    width: 100%;
+  }
+}

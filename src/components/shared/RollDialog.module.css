@@ -80,3 +80,123 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* Opposed Test Toggle Section */
+.opposedToggleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.toggleCheckbox {
+  accent-color: var(--accent-gold);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.toggleText {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.opponentTargetField {
+  margin-top: 4px;
+}
+
+.opponentInput {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Opposed Result Display */
+.opposedResultSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.opposedRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.opposedParty {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 70px;
+}
+
+.opposedSl {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.opposedRollValue {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.opposedSeparator {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.opposedNetRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.opposedNetLabel {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.opposedNetValue {
+  color: var(--accent-gold);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.opposedWinner {
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.winnerPlayer {
+  color: var(--success);
+}
+
+.winnerOpponent {
+  color: var(--danger);
+}
+
+.winnerTie {
+  color: var(--text-secondary);
+}

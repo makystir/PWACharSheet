@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Character, CharacteristicKey, ArmourPoints, Skill, Talent, SpellItem } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -20,12 +20,12 @@ import { TALENT_DB } from '../../data/talents';
 import { TRAPPING_LIST } from '../../data/trappings';
 
 import { CAREER_CLASS_LIST } from '../../data/careers';
-import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { calculateMaxEncumbrance, calculateCoinWeight } from '../../logic/calculators';
+import { getCareersByClass, getCareerScheme, getCareerSkills } from '../../logic/careers';
+import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, computeAPByLocation } from '../../logic/calculators';
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../logic/tooltip-content';
 import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
-import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer, Lock } from 'lucide-react';
+import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer, Lock, Heart, Shield, ChevronDown, ChevronRight } from 'lucide-react';
 import { CorruptionCard } from '../shared/CorruptionCard';
 import { DiseasePanel } from '../shared/DiseasePanel';
 import { EmptyState } from '../shared/EmptyState';
@@ -45,7 +45,12 @@ import { SubTabBar } from '../shared/SubTabBar';
 import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
 import { CurrencyInput } from '../shared/CurrencyInput';
+import { ConsumablesPanel } from '../shared/ConsumablesPanel';
+import { PsychologyPanel } from '../shared/PsychologyPanel';
+import { SessionNotesPanel } from '../shared/SessionNotesPanel';
 import { applyCurrencyDelta } from '../../logic/currency';
+import { filterSkills } from '../../logic/skill-filter';
+import { SkillFilter } from '../shared/SkillFilter';
 import styles from './CharacterPage.module.css';
 
 interface CharacterPageProps {
@@ -91,21 +96,23 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
     onSubTabChange?.(tab);
   };
 
-  const [hideUntrainedSkills, setHideUntrainedSkills] = useState(() => {
+  // Skill filter state (search + trained-only toggle)
+  const [skillSearchText, setSkillSearchText] = useState('');
+  const [skillTrainedOnly, setSkillTrainedOnly] = useState(() => {
     try { return localStorage.getItem('wfrp-hideUntrainedSkills') === 'true'; } catch { return false; }
   });
 
-  // Persist the filter preference to localStorage
-  const toggleHideUntrained = () => {
-    const next = !hideUntrainedSkills;
-    setHideUntrainedSkills(next);
-    try { localStorage.setItem('wfrp-hideUntrainedSkills', String(next)); } catch { /* ignore */ }
+  // Persist trained-only preference to localStorage
+  const handleTrainedOnlyChange = (enabled: boolean) => {
+    setSkillTrainedOnly(enabled);
+    try { localStorage.setItem('wfrp-hideUntrainedSkills', String(enabled)); } catch { /* ignore */ }
   };
   const [showSpellPicker, setShowSpellPicker] = useState(false);
   const [showAdvSkillPicker, setShowAdvSkillPicker] = useState(false);
   const [showTalentPicker, setShowTalentPicker] = useState(false);
   const [showTrappingPicker, setShowTrappingPicker] = useState(false);
 
+  const [expandedSpells, setExpandedSpells] = useState<Set<number>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; index: number } | null>(null);
   const [rollDialogState, setRollDialogState] = useState<{ name: string; baseTarget: number } | null>(null);
   const [rollResultState, setRollResultState] = useState<RollResult | null>(null);
@@ -155,6 +162,9 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
   };
 
   const filteredCareers = character.class ? getCareersByClass(character.class) : [];
+
+  // Career skill highlighting: compute the set of skills for the current career level
+  const careerSkillSet = new Set(getCareerSkills(character.career, character.careerLevel));
 
   // Advanced skill CRUD
   const addAdvancedSkillFromPicker = (skill: typeof ADV_SKILL_DB[number]) => {
@@ -248,6 +258,18 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       spells: c.spells.filter((_, i) => i !== index),
     }));
     setDeleteTarget(null);
+  };
+
+  const toggleSpellExpanded = (index: number) => {
+    setExpandedSpells((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
   };
 
   const handleDelete = () => {
@@ -400,17 +422,75 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
         </Card>
         <FortuneResolvePanel character={character} update={update} updateCharacter={updateCharacter} />
       </div>
+
+      {/* Wound Maximum Formula */}
+      {(() => {
+        const S = character.chars.S.i + character.chars.S.a + character.chars.S.b;
+        const T = character.chars.T.i + character.chars.T.a + character.chars.T.b;
+        const WP = character.chars.WP.i + character.chars.WP.a + character.chars.WP.b;
+        const hardyTalent = character.talents.find(t => t.n === 'Hardy');
+        const hardyLvl = hardyTalent ? hardyTalent.lvl : 0;
+        const woundResult = computeWoundMaximum(S, T, WP, hardyLvl, character.woundsUseSB);
+        const effectiveMax = character.eMaxOverride != null ? character.eMaxOverride : woundResult.total;
+
+        const formulaParts: string[] = [];
+        if (character.woundsUseSB) formulaParts.push(`SB ${woundResult.sb}`);
+        formulaParts.push(`2×TB ${woundResult.tb}`);
+        formulaParts.push(`WPB ${woundResult.wpb}`);
+        if (hardyLvl > 0) formulaParts.push(`Hardy ${woundResult.hardy}`);
+
+        return (
+          <Card>
+            <SectionHeader icon={Heart} title="Wound Maximum" />
+            <div className={styles.woundFormulaSection}>
+              <div className={styles.woundFormulaValue}>
+                <span className={styles.woundFormulaTotal}>{effectiveMax}</span>
+                {character.eMaxOverride != null && (
+                  <span className={styles.woundFormulaOverride}>(override)</span>
+                )}
+              </div>
+              <div className={styles.woundFormulaBreakdown}>
+                {formulaParts.join(' + ')} = {woundResult.total}
+              </div>
+              {character.eMaxOverride != null && (
+                <div className={styles.woundFormulaCalculated}>
+                  Calculated: {woundResult.total}
+                </div>
+              )}
+              <div className={styles.woundFormulaOverrideField}>
+                <label className={styles.woundOverrideLabel}>
+                  Override
+                  <input
+                    type="number"
+                    value={character.eMaxOverride ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? null : Number(e.target.value);
+                      update('eMaxOverride', val);
+                    }}
+                    placeholder="—"
+                    className={styles.woundOverrideInput}
+                  />
+                </label>
+              </div>
+            </div>
+          </Card>
+        );
+      })()}
       </>)}
 
       {/* ═══ ABILITIES TAB ═══ */}
       {activeSubTab === 'abilities' && (<>
+      {/* Skill Filter */}
+      <SkillFilter
+        searchText={skillSearchText}
+        trainedOnly={skillTrainedOnly}
+        onSearchChange={setSkillSearchText}
+        onTrainedOnlyChange={handleTrainedOnlyChange}
+      />
+
       {/* Basic Skills */}
       <Card>
-        <SectionHeader icon={BookOpen} title="Basic Skills" action={
-          <button type="button" onClick={toggleHideUntrained} className={hideUntrainedSkills ? styles.hideUntrainedBtnActive : styles.hideUntrainedBtn}>
-            {hideUntrainedSkills ? 'Show All' : 'Trained Only'}
-          </button>
-        } />
+        <SectionHeader icon={BookOpen} title="Basic Skills" />
         <table className={styles.tableBase}>
           <thead>
             <tr>
@@ -422,12 +502,16 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
             </tr>
           </thead>
           <tbody>
-            {character.bSkills.map((skill, i) => {
-              if (hideUntrainedSkills && skill.a === 0) return null;
+            {filterSkills(character.bSkills, { searchText: skillSearchText, trainedOnly: skillTrainedOnly }).map((skill) => {
+              const i = character.bSkills.indexOf(skill);
               const charVal = character.chars[skill.c as CharacteristicKey];
               const total = charVal ? (charVal.i + charVal.a + charVal.b + skill.a) : skill.a;
+              const isCareerSkill = careerSkillSet.has(skill.n);
+              const rowClass = isCareerSkill
+                ? `${i % 2 === 0 ? styles.rowEven : styles.rowOdd} ${styles.careerSkillRow}`
+                : (i % 2 === 0 ? styles.rowEven : styles.rowOdd);
               return (
-                <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                <tr key={i} className={rowClass}>
                   <td className={styles.td}>
                     <button
                       type="button"
@@ -482,11 +566,16 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
             </tr>
           </thead>
           <tbody>
-            {character.aSkills.map((skill, i) => {
+            {filterSkills(character.aSkills, { searchText: skillSearchText, trainedOnly: skillTrainedOnly }).map((skill) => {
+              const i = character.aSkills.indexOf(skill);
               const charVal = character.chars[skill.c as CharacteristicKey];
               const total = charVal ? (charVal.i + charVal.a + charVal.b + skill.a) : skill.a;
+              const isCareerSkill = careerSkillSet.has(skill.n);
+              const rowClass = isCareerSkill
+                ? `${i % 2 === 0 ? styles.rowEven : styles.rowOdd} ${styles.careerSkillRow}`
+                : (i % 2 === 0 ? styles.rowEven : styles.rowOdd);
               return (
-                <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                <tr key={i} className={rowClass}>
                   <td className={styles.td}>
                     <div className={styles.inlineRow}>
                       <button
@@ -605,6 +694,7 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
         <table className={styles.tableBase}>
           <thead>
             <tr>
+              <th className={styles.th}></th>
               <th className={styles.th}>Name</th>
               <th className={styles.th}>CN</th>
               <th className={styles.th}>Range</th>
@@ -613,19 +703,46 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
             </tr>
           </thead>
           <tbody>
-            {character.spells.map((s, i) => (
-              <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                <td className={styles.td}>
-                  <EditableField label="" value={s.name} onSave={(v) => updateSpell(i, 'name', String(v))} />
-                </td>
-                <td className={styles.td}>{s.cn}</td>
-                <td className={styles.td}>{s.range}</td>
-                <td className={styles.td}>{s.duration}</td>
-                <td className={styles.td}>
-                  <button type="button" onClick={() => setDeleteTarget({ type: 'spell', index: i })} className={styles.deleteBtn}>✕</button>
-                </td>
-              </tr>
-            ))}
+            {character.spells.map((s, i) => {
+              const isExpanded = expandedSpells.has(i);
+              return (
+                <React.Fragment key={i}>
+                  <tr className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                    <td className={styles.td}>
+                      <button
+                        type="button"
+                        className={styles.spellExpandBtn}
+                        onClick={() => toggleSpellExpanded(i)}
+                        aria-expanded={isExpanded}
+                        aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${s.name || 'spell'} effect`}
+                      >
+                        {isExpanded ? (
+                          <ChevronDown size={14} aria-hidden="true" />
+                        ) : (
+                          <ChevronRight size={14} aria-hidden="true" />
+                        )}
+                      </button>
+                    </td>
+                    <td className={styles.td}>
+                      <EditableField label="" value={s.name} onSave={(v) => updateSpell(i, 'name', String(v))} />
+                    </td>
+                    <td className={styles.td}>{s.cn}</td>
+                    <td className={styles.td}>{s.range}</td>
+                    <td className={styles.td}>{s.duration}</td>
+                    <td className={styles.td}>
+                      <button type="button" onClick={() => setDeleteTarget({ type: 'spell', index: i })} className={styles.deleteBtn}>✕</button>
+                    </td>
+                  </tr>
+                  {isExpanded && s.effect && (
+                    <tr className={styles.spellEffectRow}>
+                      <td colSpan={6} className={styles.spellEffectCell}>
+                        <div className={styles.spellEffectText}>{s.effect}</div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </Card>
@@ -834,6 +951,83 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
         )}
       </Card>
 
+      {/* AP Auto-Calculation */}
+      {(() => {
+        const computedAP = computeAPByLocation(character.armour);
+        const manualAP = character.ap;
+        const locations: { key: 'head' | 'lArm' | 'rArm' | 'body' | 'lLeg' | 'rLeg'; computedKey: keyof typeof computedAP; label: string }[] = [
+          { key: 'head', computedKey: 'head', label: 'Head' },
+          { key: 'lArm', computedKey: 'leftArm', label: 'L Arm' },
+          { key: 'rArm', computedKey: 'rightArm', label: 'R Arm' },
+          { key: 'body', computedKey: 'body', label: 'Body' },
+          { key: 'lLeg', computedKey: 'leftLeg', label: 'L Leg' },
+          { key: 'rLeg', computedKey: 'rightLeg', label: 'R Leg' },
+        ];
+        const hasAnyDiscrepancy = locations.some(loc => manualAP[loc.key] !== computedAP[loc.computedKey]);
+
+        return (
+          <Card>
+            <SectionHeader icon={Shield} title="Armour Points" action={
+              <button
+                type="button"
+                className={styles.apSyncBtn}
+                disabled={!hasAnyDiscrepancy}
+                onClick={() => {
+                  updateCharacter((c) => ({
+                    ...c,
+                    ap: {
+                      ...c.ap,
+                      head: computedAP.head,
+                      lArm: computedAP.leftArm,
+                      rArm: computedAP.rightArm,
+                      body: computedAP.body,
+                      lLeg: computedAP.leftLeg,
+                      rLeg: computedAP.rightLeg,
+                    },
+                  }));
+                }}
+                title="Set manual AP values to match computed values from worn armour"
+                aria-label="Sync AP to computed values"
+              >
+                Sync
+              </button>
+            } />
+            <div className={styles.apGrid}>
+              {locations.map(loc => {
+                const manual = manualAP[loc.key];
+                const computed = computedAP[loc.computedKey];
+                const hasDiscrepancy = manual !== computed;
+                return (
+                  <div
+                    key={loc.key}
+                    className={hasDiscrepancy ? styles.apLocationCellDiscrepancy : styles.apLocationCell}
+                    data-testid={`ap-location-${loc.key}`}
+                  >
+                    <span className={styles.apLocationLabel}>{loc.label}</span>
+                    <div className={styles.apValues}>
+                      <input
+                        type="number"
+                        value={manual}
+                        onChange={(e) => update(`ap.${loc.key}`, Math.max(0, Number(e.target.value) || 0))}
+                        className={styles.numInput}
+                        aria-label={`${loc.label} AP`}
+                        min={0}
+                      />
+                      <span className={hasDiscrepancy ? styles.apComputedValueDiscrepancy : styles.apComputedValue} title="Computed from worn armour">
+                        ({computed})
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        );
+      })()}
+
+      {/* Consumables */}
+      <ConsumablesPanel character={character} updateCharacter={updateCharacter} />
+
       {/* Wealth & Encumbrance */}
       <Card>
         <div className={styles.wealthEncGrid}>
@@ -903,11 +1097,17 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
         <textarea value={character.psych} onChange={(e) => update('psych', e.target.value)} placeholder="Phobias, animosities..." className={styles.textarea} />
       </Card>
 
+      {/* Psychology Traits */}
+      <PsychologyPanel character={character} updateCharacter={updateCharacter} />
+
       {/* Corruption & Mutation */}
       <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} />
 
       {/* Diseases */}
       <DiseasePanel character={character} updateCharacter={updateCharacter} />
+
+      {/* Session Notes */}
+      <SessionNotesPanel character={character} updateCharacter={updateCharacter} />
 
       {/* Ambitions & Party */}
       <Card>

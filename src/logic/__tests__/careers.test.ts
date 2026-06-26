@@ -6,6 +6,7 @@ import {
   getStatusForCareerLevel,
   applyCareerSkills,
   resolveCareerName,
+  getCareerSkills,
 } from '../careers';
 
 // ─── Property 11: Career class filtering returns correct careers ─────────────
@@ -151,5 +152,37 @@ describe('applyCareerSkills', () => {
     expect(result.careerLevel).toBe('Soldier');
     expect(result.class).toBe('Warriors');
     expect(result.status).toBe('Silver 3');
+  });
+});
+
+describe('getCareerSkills', () => {
+  it('returns skills for a valid career and career level title', () => {
+    const skills = getCareerSkills('Soldier', 'Recruit');
+    expect(skills).toContain('Athletics');
+    expect(skills).toContain('Dodge');
+    expect(skills).toContain('Endurance');
+    expect(skills.length).toBeGreaterThan(0);
+  });
+
+  it('returns skills for a higher career level', () => {
+    const skills = getCareerSkills('Soldier', 'Soldier');
+    expect(skills).toContain('Melee (Basic)');
+    expect(skills.length).toBeGreaterThan(0);
+  });
+
+  it('returns empty array for unknown career', () => {
+    expect(getCareerSkills('UnknownCareer', 'Level1')).toEqual([]);
+  });
+
+  it('returns empty array for empty career', () => {
+    expect(getCareerSkills('', '')).toEqual([]);
+  });
+
+  it('returns empty array when career level title does not match any level', () => {
+    expect(getCareerSkills('Soldier', 'NonexistentLevel')).toEqual([]);
+  });
+
+  it('returns empty array when career is valid but careerLevel is empty', () => {
+    expect(getCareerSkills('Soldier', '')).toEqual([]);
   });
 });

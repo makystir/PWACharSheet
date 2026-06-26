@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { CharacterNameHeader } from '../shared/CharacterNameHeader';
+import { OfflineIndicator } from '../shared/OfflineIndicator';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import styles from './PageContainer.module.css';
 
@@ -36,6 +37,9 @@ export function PageContainer({ children, characterName, onOpenCharacterSheet, h
 
   return (
     <main ref={ref} className={styles.container}>
+      <div className={styles.offlineWrapper}>
+        <OfflineIndicator />
+      </div>
       {isMobile && characterName && onOpenCharacterSheet && (
         <CharacterNameHeader
           characterName={characterName}

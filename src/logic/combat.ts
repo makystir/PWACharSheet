@@ -83,6 +83,17 @@ export function processEndOfRoundConditions(conditions: Condition[]): Condition[
 }
 
 /**
+ * Compute the modified target number for an off-hand attack.
+ * Without the Dual Wielder talent: modified target = baseTarget - 20.
+ * With the Dual Wielder talent: modified target = baseTarget (no penalty).
+ * When offHand is false, returns baseTarget unchanged.
+ */
+export function computeOffHandTarget(baseTarget: number, offHand: boolean, hasDualWielder: boolean): number {
+  if (!offHand) return baseTarget;
+  return hasDualWielder ? baseTarget : baseTarget - 20;
+}
+
+/**
  * Increment advantage by 1.
  * If cap is undefined or 0, advantage is uncapped.
  * If cap is a positive number, advantage is capped at that value.

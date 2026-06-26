@@ -8,6 +8,9 @@ import { Home, Coins, ScrollText, Building } from 'lucide-react';
 import { computeHirelingUpkeep } from '../../logic/hirelings';
 import { SubTabBar } from '../shared/SubTabBar';
 import { EmptyState } from '../shared/EmptyState';
+import { CurrencyInput } from '../shared/CurrencyInput';
+import { LedgerPanel } from '../shared/LedgerPanel';
+import { validateTreasuryDelta, applyCurrencyDelta, type CurrencyDelta } from '../../logic/currency';
 import styles from './EstatePage.module.css';
 
 interface CurrencyAmount {
@@ -72,6 +75,7 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
   };
 
   const [noteInput, setNoteInput] = useState('');
+  const [treasuryError, setTreasuryError] = useState<string | null>(null);
 
   const est = character.estate;
 
@@ -97,6 +101,30 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
     const newNotes = [...(est.notes || []), noteInput.trim()];
     update('estate.notes', newNotes);
     setNoteInput('');
+  };
+
+  // Apply currency delta to treasury with validation
+  const handleTreasuryDelta = (delta: CurrencyDelta) => {
+    const current: CurrencyDelta = {
+      gc: est.treasury.gc || 0,
+      ss: est.treasury.ss || 0,
+      d: est.treasury.d || 0,
+    };
+
+    if (!validateTreasuryDelta(current, delta)) {
+      setTreasuryError('Insufficient funds — this would produce a negative balance');
+      return;
+    }
+
+    setTreasuryError(null);
+    const newTreasury = applyCurrencyDelta(current, delta);
+    updateCharacter((c) => ({
+      ...c,
+      estate: {
+        ...c.estate,
+        treasury: newTreasury,
+      },
+    }));
   };
 
   return (
@@ -200,17 +228,23 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
         <div>
           <div className={styles.treasuryPanel}>
             <div className={styles.treasuryTitle}>Treasury</div>
-            <div className={styles.currencyRow}>
-              <EditableField label="GC" value={est.treasury.gc} type="number" onSave={(v) => update('estate.treasury.gc', v)} />
-              <EditableField label="SS" value={est.treasury.ss} type="number" onSave={(v) => update('estate.treasury.ss', v)} />
-              <EditableField label="D" value={est.treasury.d} type="number" onSave={(v) => update('estate.treasury.d', v)} />
+            <div className={styles.treasuryBalance}>
+              {est.treasury.gc || 0} GC &bull; {est.treasury.ss || 0} SS &bull; {est.treasury.d || 0} D
             </div>
+            <CurrencyInput onSubmit={handleTreasuryDelta} />
+            {treasuryError && (
+              <p className={styles.treasuryError} role="alert">{treasuryError}</p>
+            )}
           </div>
         </div>
         <button type="button" onClick={collectMonth} className={styles.collectBtn}>
           Collect Monthly Income &amp; Pay Expenses
         </button>
       </Card>
+
+      {/* Ledger Transaction History */}
+      <SectionHeader icon={ScrollText} title="Transaction History" />
+      <LedgerPanel character={character} updateCharacter={updateCharacter} />
       </>
       )}
 
@@ -270,19 +304,25 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
                 <div className={styles.propFinanceGrid}>
                   <div className={styles.propIncomePanel}>
                     <span className={styles.propFinanceLabelIncome}>Monthly Income</span>
-                    <div className={styles.propCurrencyRow}>
-                      <EditableField label="GC" value={prop.monthlyIncome?.gc ?? 0} type="number" onSave={(v) => { const mi = { ...(prop.monthlyIncome || { d: 0, ss: 0, gc: 0 }), gc: Number(v) }; up2('monthlyIncome', mi); }} />
-                      <EditableField label="SS" value={prop.monthlyIncome?.ss ?? 0} type="number" onSave={(v) => { const mi = { ...(prop.monthlyIncome || { d: 0, ss: 0, gc: 0 }), ss: Number(v) }; up2('monthlyIncome', mi); }} />
-                      <EditableField label="D" value={prop.monthlyIncome?.d ?? 0} type="number" onSave={(v) => { const mi = { ...(prop.monthlyIncome || { d: 0, ss: 0, gc: 0 }), d: Number(v) }; up2('monthlyIncome', mi); }} />
+                    <div className={styles.propCurrencyDisplay}>
+                      {prop.monthlyIncome?.gc ?? 0} GC &bull; {prop.monthlyIncome?.ss ?? 0} SS &bull; {prop.monthlyIncome?.d ?? 0} D
                     </div>
+                    <CurrencyInput onSubmit={(delta) => {
+                      const current = prop.monthlyIncome || { d: 0, ss: 0, gc: 0 };
+                      const updated = applyCurrencyDelta(current, delta);
+                      up2('monthlyIncome', updated);
+                    }} />
                   </div>
                   <div className={styles.propExpensePanel}>
                     <span className={styles.propFinanceLabelExpense}>Monthly Expenses</span>
-                    <div className={styles.propCurrencyRow}>
-                      <EditableField label="GC" value={prop.monthlyExpenses?.gc ?? 0} type="number" onSave={(v) => { const me = { ...(prop.monthlyExpenses || { d: 0, ss: 0, gc: 0 }), gc: Number(v) }; up2('monthlyExpenses', me); }} />
-                      <EditableField label="SS" value={prop.monthlyExpenses?.ss ?? 0} type="number" onSave={(v) => { const me = { ...(prop.monthlyExpenses || { d: 0, ss: 0, gc: 0 }), ss: Number(v) }; up2('monthlyExpenses', me); }} />
-                      <EditableField label="D" value={prop.monthlyExpenses?.d ?? 0} type="number" onSave={(v) => { const me = { ...(prop.monthlyExpenses || { d: 0, ss: 0, gc: 0 }), d: Number(v) }; up2('monthlyExpenses', me); }} />
+                    <div className={styles.propCurrencyDisplay}>
+                      {prop.monthlyExpenses?.gc ?? 0} GC &bull; {prop.monthlyExpenses?.ss ?? 0} SS &bull; {prop.monthlyExpenses?.d ?? 0} D
                     </div>
+                    <CurrencyInput onSubmit={(delta) => {
+                      const current = prop.monthlyExpenses || { d: 0, ss: 0, gc: 0 };
+                      const updated = applyCurrencyDelta(current, delta);
+                      up2('monthlyExpenses', updated);
+                    }} />
                   </div>
                 </div>
                 <div className={styles.conditionGrid}>

@@ -1,0 +1,176 @@
+/* SessionNotesPanel — co-located CSS Module */
+
+/* ── Panel Container ── */
+.container {
+  margin-bottom: 12px;
+}
+
+/* ── Notes List ── */
+.noteList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+/* ── Note Item ── */
+.noteItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--bg-inset, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+/* ── Note Timestamp ── */
+.noteTimestamp {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* ── Note Text ── */
+.noteText {
+  color: var(--text-primary);
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Note Actions ── */
+.noteActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.deleteBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.deleteBtn:hover {
+  background: rgba(200, 80, 80, 0.1);
+  border-color: var(--danger);
+}
+
+/* ── Empty State ── */
+.emptyState {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ── Add Note Form ── */
+.addForm {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.noteInput {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  min-height: 44px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.noteInput::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.noteInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.submitBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: rgba(201, 168, 76, 0.2);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  white-space: nowrap;
+}
+
+.submitBtn:hover {
+  background: rgba(201, 168, 76, 0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Responsive: <768px — vertical stack, 44px touch targets
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .container {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .noteItem {
+    padding: 10px;
+  }
+
+  .addForm {
+    flex-direction: column;
+  }
+
+  .noteInput {
+    width: 100%;
+    font-size: 16px; /* prevent iOS zoom on focus */
+  }
+
+  .submitBtn {
+    width: 100%;
+  }
+
+  /* Ensure all interactive elements meet 44×44 touch targets */
+  .deleteBtn,
+  .submitBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .noteActions {
+    width: 100%;
+  }
+
+  .deleteBtn {
+    flex: 1;
+  }
+}
