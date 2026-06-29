@@ -1,6 +1,21 @@
 # WFRP 4e Character Sheet — Player Guide
 
-A digital character sheet for Warhammer Fantasy Roleplay 4th Edition. Works in your browser, saves locally, and functions offline once installed.
+A digital character sheet for Warhammer Fantasy Roleplay 4th Edition. Runs in your browser, saves locally, and works offline as an installable PWA.
+
+---
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Navigation](#navigation)
+- [Character Page](#character-page)
+- [Combat Page](#combat-page)
+- [Advancement Page](#advancement-page)
+- [Retinue Page](#retinue-page)
+- [Estate Page](#estate-page)
+- [Endeavours Page](#endeavours-page)
+- [Settings Page](#settings-page)
+- [Tips & Tricks](#tips--tricks)
 
 ---
 
@@ -8,136 +23,147 @@ A digital character sheet for Warhammer Fantasy Roleplay 4th Edition. Works in y
 
 ### First Launch
 
-When you first open the app, you'll see three options:
+On your first visit you'll see three options:
 
-- **Character Wizard** — Guided 6-step creation that walks you through species, career, characteristics, skills, talents, and personal details. Follows the WFRP 4e creation rules with optional random rolls for bonus XP.
-- **Quick Start** — Enter a character name and get a blank sheet to fill in manually.
+- **Character Wizard** — A guided 6-step flow covering species, career, characteristics, skills, talents, and personal details. Follows the WFRP 4e creation rules with optional random rolls for bonus XP.
+- **Quick Start** — Enter a name and get a blank sheet to fill in at your own pace.
 - **Import from File** — Load a previously exported character JSON file.
 
 ### Managing Multiple Characters
 
-The sidebar (accessible via the menu icon) lets you:
-- Create additional characters
-- Switch between saved characters
-- Rename, duplicate, or delete characters
+Tap the character name in the header (or the hamburger menu on mobile) to open the character management sheet. From there you can:
 
-All data saves automatically to your browser's local storage.
+- **Create** a new character (wizard or blank)
+- **Switch** between saved characters
+- **Rename**, **Duplicate**, or **Delete** characters
+
+All data is stored in your browser's local storage — nothing leaves your device.
+
+### Installing as an App
+
+Use your browser's "Install" or "Add to Home Screen" option to get a native app experience. Once installed, the app loads instantly and works fully offline.
 
 ---
 
 ## Navigation
 
-The app has six main pages accessible from the bottom navigation bar:
+Seven pages accessible from the bottom navigation bar:
 
-| Icon | Page | Purpose |
-|------|------|---------|
-| 👤 | Character | Identity, abilities, gear, and notes |
-| ⚔️ | Combat | Weapons, armour, attack rolls, damage tracking |
-| 📈 | Advancement | Career progression and XP spending |
-| 🏠 | Estate | Wealth, properties, and holdings |
-| 📅 | Endeavours | Between-adventure downtime activities |
-| ⚙️ | Settings | Theme, house rules, export/import |
+| Icon | Page | What it's for |
+|------|------|---------------|
+| 👤 | **Character** | Identity, abilities, gear, wealth, and notes |
+| ⚔️ | **Combat** | Weapons, armour, attack rolls, damage, conditions |
+| 📈 | **Advancement** | Career progression and XP spending |
+| 👥 | **Retinue** | Hirelings and animal companions |
+| 🏠 | **Estate** | Wealth, properties, and holdings |
+| 📅 | **Endeavours** | Between-adventure downtime activities |
+| ⚙️ | **Settings** | Theme, house rules, export/import |
+
+Pages load on demand — only the Character page is bundled upfront, keeping initial load times fast.
 
 ---
 
 ## Character Page
 
-Four sub-tabs across the top:
+Four sub-tabs across the top: **Identity**, **Abilities**, **Gear & Wealth**, and **Notes**.
 
 ### Identity
 
-- **Portrait**: Tap to upload an image for your character.
-- **Personal Info**: Edit name, species, class, career, career level, status, age, height, hair, and eyes by tapping any field.
-- **Characteristics**: Shows all 10 stats (WS, BS, S, T, I, Ag, Dex, Int, WP, Fel) with initial value, advances, talent bonuses, and current total. Tap the 🎲 button to roll against any characteristic.
-- **Movement**: Displays Move, Walk, and Run speeds.
-- **Fortune & Resolve**: Spend or recover Fortune/Resolve points with the +/- buttons.
+| Section | What you can do |
+|---------|-----------------|
+| Portrait | Tap to upload an image |
+| Personal Info | Edit name, species, class, career, career level, status, age, height, hair, eyes |
+| Characteristics | View all 10 stats with initial / advances / bonus / total. Tap 🎲 to roll against any stat |
+| Movement | Displays Move, Walk, and Run speeds |
+| Fortune & Resolve | Spend or recover points with +/− buttons |
 
 ### Abilities
 
-- **Basic Skills**: All 18 WFRP 4e basic skills with linked characteristic, advances, and total. Tap a skill name for a tooltip description. Tap 🎲 to roll. Use the **Trained Only** button to hide skills with 0 advances.
-- **Advanced Skills**: Add from the rulebook database or create custom skills. Edit advances inline. Delete with the ✕ button.
-- **Talents**: Add from the rulebook or create custom. Shows level and description. Tap name for tooltip.
-- **Spells & Prayers**: Appears if your character has spellcasting abilities. Add spells from the database showing CN, Range, Target, Duration, and Effect.
-- **Known Runes**: Appears for Runesmith characters. Shows learned runes with category badges.
+| Section | What you can do |
+|---------|-----------------|
+| Basic Skills | All 18 core skills with linked characteristic and total. Tap name for tooltip. Tap 🎲 to roll. Toggle "Trained Only" to hide untrained skills |
+| Advanced Skills | Add from the rulebook database or create custom. Edit advances inline. Delete with ✕ |
+| Talents | Add from rulebook or create custom. Shows level and description |
+| Spells & Prayers | Add spells showing CN, Range, Target, Duration, Effect (appears for spellcasters) |
+| Known Runes | Rune list with category badges (appears for Runesmiths) |
 
 ### Gear & Wealth
 
-- **Trappings**: Add equipment from the rulebook or create custom items. Track name, encumbrance, and quantity. Tick "On Horse" to exclude items from personal encumbrance.
-- **Weapons & Armour**: Managed primarily from the Combat page but visible here too.
-- **Wealth**: Edit Gold Crowns (GC), Silver Shillings (SS), and Brass Pennies (D).
-- **Encumbrance**: Shows current carry weight vs. maximum, broken down by category.
-- **Animals & Companions**: Add trained animals and track their wounds.
+| Section | What you can do |
+|---------|-----------------|
+| Trappings | Add items from the rulebook or custom. Track enc and quantity. Tick "On Horse" to exclude from personal carry |
+| Weapons & Armour | Visible here, managed primarily on the Combat page |
+| Wealth | Edit GC / SS / D directly |
+| Encumbrance | Current vs. max carry, broken down by category |
+| Animals & Companions | Add trained animals and track their wounds |
 
 ### Notes
 
-Free-form text area for background, story notes, session logs, or anything else.
+Free-form text for background, story notes, session logs, or anything else.
 
 ---
 
 ## Combat Page
 
-### Starting Combat
+### Starting & Ending Combat
 
-Tap **START COMBAT** at the bottom of the page. This activates the combat dashboard and reveals combat-only panels. Tap **END COMBAT** when finished (resets advantage to 0).
+Tap **START COMBAT** to activate the combat dashboard and reveal combat-only panels (Attack Flow, Take Damage, Ammo, Critical Wounds, Quick Roll Bar). Tap **END COMBAT** when finished — this resets advantage to 0.
 
-### Combat Dashboard (Always Visible)
+### Combat Dashboard (always visible)
 
-- **Wounds**: Current/total with color-coded bar (green → yellow → red as wounds decrease).
-- **Advantage**: +/- buttons. Respects your Advantage Cap house rule.
-- **Round Counter**: Track the current combat round.
-- **Engaged**: Toggle whether you're in melee engagement (affects ranged difficulty).
-- **Conditions**: View active conditions. Tap ✕ to remove one, or open the condition picker to add new ones.
-- **Fortune/Resolve**: Spend points directly from the dashboard.
+| Element | Description |
+|---------|-------------|
+| **Wounds** | Current / total with color-coded bar (green → yellow → red) |
+| **Advantage** | +/− buttons, respects your Advantage Cap house rule |
+| **Round Counter** | Track the current round |
+| **Engaged** | Toggle melee engagement (affects ranged difficulty) |
+| **Conditions** | View active conditions with level. Tap ✕ to remove, or open the Condition Picker to add |
+| **Fortune / Resolve** | Spend directly from the dashboard |
 
-### Attack Flow (Combat Only)
-
-A guided 4-step attack sequence:
+### Attack Flow (4 steps)
 
 1. **Select Weapon** — Pick from your equipped weapons.
-2. **Roll to Hit** — Shows your skill, target number, and difficulty. Tap 🎲 ROLL TO HIT. Results show hit/miss/critical/fumble with SL.
-3. **Hit Location** — Automatically reversed from the roll. Shows your AP at that location.
-4. **Damage Calculation** — Weapon damage + SL = total. Enter opponent's TB and AP to see net wounds dealt.
+2. **Roll to Hit** — See your target number and difficulty. Tap 🎲 ROLL TO HIT. Results show hit/miss/critical/fumble with SL.
+3. **Hit Location** — Auto-reversed from the roll. Shows your AP at that location.
+4. **Damage** — Weapon damage + SL = total. Enter opponent TB and AP to see net wounds dealt.
 
-### Take Damage Panel (Combat Only)
+### Take Damage
 
-For when your character takes hits:
 1. Enter incoming damage.
-2. Select hit location (auto-fills your AP at that location).
-3. See net wounds after TB and AP reduction.
-4. Tap **Apply Wounds** to subtract from your current wounds.
-5. Alert appears if your character goes down (0 wounds).
+2. Select hit location (auto-fills your AP).
+3. See net wounds after TB + AP reduction.
+4. Tap **Apply Wounds** to subtract from your total.
+5. Alert if you reach 0 wounds.
 
 ### Weapons
 
-Weapon cards show name, group, calculated damage (including SB and talent bonuses), range/reach, and qualities. Actions:
-- **🎲** — Quick roll to hit with that weapon.
-- **⚒ Runes** — Manage runes on the weapon (up to 3).
-- **✕** — Delete the weapon.
-- **Add from Rulebook** / **Add Custom** — Add new weapons.
+Weapon cards show name, group, calculated damage (including SB and talent bonuses), range/reach, and qualities.
+
+Actions per weapon: 🎲 quick roll | ⚒ manage runes (up to 3) | ✕ delete
+
+Add weapons from the rulebook database or create custom.
 
 ### Armour
 
-Visual armour map showing AP at each location (Head, Arms, Body, Legs). Armour list shows individual pieces with locations, AP, and qualities. Same add/delete/rune workflow as weapons.
+Visual armour map showing AP at each body location (Head, Left Arm, Right Arm, Body, Left Leg, Right Leg). Uses WFRP 4e stacking rules: highest non-flexible + highest flexible AP per location.
 
-### Ammo Tracker (Combat Only)
+Add armour from the rulebook or custom. Manage runes. Toggle worn/unworn.
 
-Track ammunition: name, current quantity, maximum, and encumbrance. Adjust quantities as you fire.
+### Ammo Tracker
 
-### Critical Wounds (Combat Only)
+Track ammunition by name, current qty, max, and encumbrance. Adjust as you fire.
+
+### Critical Wounds
 
 Log critical wounds with location, description, effects, duration, and severity. Mark as healed when recovered.
 
-### Quick Roll Bar (Combat Only)
+### Roll Critical Flow
 
-Fast access to characteristic and skill rolls without going through the full attack flow.
+Roll on the critical wound tables by selecting location and severity. Results come from the official WFRP 4e tables.
 
-### Roll History (Combat Only)
+### Quick Roll Bar
 
-Shows all rolls made during this combat session. Clear when done.
-
-### Spell Casting
-
-Available if your character has spellcasting talents or spells. Select a spell, allocate overcasting, and cast.
+Fast access to characteristic and skill rolls without the full attack flow.
 
 ---
 
@@ -145,13 +171,13 @@ Available if your character has spellcasting talents or spells. Select a spell, 
 
 ### Career Management
 
-- **Class / Career / Level**: Tap to change via picker. The app includes all WFRP 4e careers.
-- **Career Progress**: Visual checklist showing what's needed to complete your current career level:
+- View your current Class / Career / Level.
+- **Career Progress** checklist shows what's needed to complete your level:
   - Characteristics at threshold (5/10/15/20 depending on level)
   - 8 career skills at threshold
   - At least 1 career talent acquired
-- **Advance Career Level**: Costs 100 XP if requirements are met, 200 if not.
-- **Switch Career**: Same-class costs 100 XP base, different-class costs 200 XP base.
+- **Advance Career Level**: 100 XP if requirements met, 200 XP if not.
+- **Switch Career**: Same-class = 100 XP, different-class = 200 XP.
 
 ### Experience Points
 
@@ -159,127 +185,157 @@ Edit Current XP, Spent XP, and Total XP directly. The app tracks spending automa
 
 ### Advancing Characteristics
 
-Cards for each of the 10 characteristics showing:
+Cards for each stat showing:
 - Current value and advances
-- Next advancement cost (in-career uses the tiered table; out-of-career is double)
-- **+1** button for single advance
-- **+X** bulk button when you can afford multiple
-- Color-coded in-career (gold) vs. out-of-career (grey)
-- "In-career at CL#" warning for skills that become in-career at a future level
+- Next advance cost (in-career tier pricing; out-of-career is double)
+- **+1** single advance and **+X** bulk advance buttons
+- Gold highlight = in-career, grey = out-of-career
 
 ### Advancing Skills
 
-Skills table sorted by career status:
-- **Career Skills** appear first with gold highlighting
-- **Other Skills** appear below (use the **Career Only** button to hide untrained out-of-career skills)
-- Each row shows: skill name, characteristic, advances, total, cost, and status
-- **+1** and **+5** bulk advance buttons
-- Tap skill names for tooltip descriptions
+Table sorted by career status:
+- Career skills first (gold), other skills below
+- Toggle **Career Only** to focus on relevant skills
+- Each row: name, characteristic, advances, total, cost, status
+- **+1** and **+5** advance buttons
 
 ### Acquiring Talents
 
-- **In-Career Talents**: Shows all talents from your current career level. Cost = 100 × (times taken + 1).
-- **Out-of-Career Talents**: Shows talents you already own that aren't in your current career. Double cost.
-- Tap talent names for descriptions.
+- **In-Career Talents**: All talents from your current career level. Cost = 100 × (times taken + 1).
+- **Out-of-Career Talents**: Talents you already own that aren't in your career. Double cost.
 
 ### Undo / Redo
 
-Undo and redo buttons at the top of the page let you reverse accidental advances.
+Buttons at the top of the page let you reverse accidental advances.
 
 ### Advancement Archive
 
-Old advancement entries are automatically archived when you advance career levels. View and restore from the archive.
+Archived entries from previous career levels. View and restore if needed.
+
+---
+
+## Retinue Page
+
+Two sub-tabs: **Hirelings** and **Companions**.
+
+### Hirelings
+
+Recruit and manage NPCs who serve your character:
+
+- **Create a Hireling** — Guided creation flow: name, role, key skills, quirks, and pay rate.
+- **Hireling Cards** — Each card shows the hireling's name, role, skills, loyalty, and pay. Track wounds and morale.
+- **Combat Panel** — Manage hireling wounds and conditions during combat.
+- **Delete** — Remove hirelings you no longer employ.
+
+### Companions (Animals)
+
+Add trained animals from templates (war horse, hunting dog, carrier pigeon, etc.) or create custom:
+
+- Track species, trained skills, wounds, and notes.
+- Adjust wound current/max during play.
 
 ---
 
 ## Estate Page
 
-Three sub-tabs for managing wealth and property:
+Three sub-tabs: **Wealth & Finances**, **Estate**, and **Holdings & Properties**.
 
 ### Wealth & Finances
 
-- **Financial Summary**: Total monthly income, expenses, and profit across your estate and all properties.
-- **Treasury**: Your estate's cash reserves (GC/SS/D). Editable.
-- **Collect Monthly**: One-tap button that adds your net monthly profit to the treasury.
+| Section | Description |
+|---------|-------------|
+| Financial Summary | Total monthly income, expenses, and profit across everything |
+| Treasury | Your estate's cash reserves (GC/SS/D), editable |
+| Collect Monthly | One-tap button adds net monthly profit to treasury |
 
 ### Estate
 
-- Name, location, and description for your estate.
-- Estate-level monthly income and expenses (GC/SS/D).
+Name, location, and description for your estate. Monthly income and expenses at the estate level.
 
 ### Holdings & Properties
 
-Add and manage individual properties:
-- **Type**: Inn, Tavern, Farm, Mill, Workshop, Shop, Warehouse, Manor, Mine, Smithy, Stable, Dock, or Other.
-- **Status**: Active, Under Construction, Damaged, Destroyed, or Abandoned.
-- **Income & Expenses**: Per-property monthly financials.
-- **Condition**: Percentage track with visual bar.
-- **Staff**: Number of employees.
-- **Notes**: Free text for business details.
+Add and manage properties:
+
+- **Type**: Inn, Tavern, Farm, Mill, Workshop, Shop, Warehouse, Manor, Mine, Smithy, Stable, Dock, or Other
+- **Status**: Active, Under Construction, Damaged, Destroyed, or Abandoned
+- **Financials**: Per-property monthly income and expenses
+- **Condition**: Percentage bar
+- **Staff**: Employee count
+- **Notes**: Free text for details
 
 ---
 
 ## Endeavours Page
 
-Track between-adventure downtime activities:
+Track between-adventure downtime activities.
 
 ### Downtime Periods
 
-- Tap **New Downtime Period** to create one.
-- Each period has a label, slot count (how many endeavours you can fit), and a list of endeavour entries.
-- Slots are determined by your Status tier.
+Tap **New Downtime Period** to create one. Each period has:
+- A label (e.g. "After Bögenhafen")
+- A slot count (determined by your Status tier)
+- A list of endeavour entries
 
 ### Adding Endeavours
 
-Tap the + button on a period to choose from:
-- **General Endeavours**: Recover, Earn, Recruit, Research, Train, etc.
-- **Class Endeavours**: Options specific to your character class.
-- **Custom**: Free-text entry for anything else.
+Tap **+** on a period to choose from:
+- **General Endeavours** — Recover, Earn, Recruit, Research, Train, etc.
+- **Class Endeavours** — Options specific to your character class
+- **Custom** — Free-text for anything else
 
-Mark endeavours as complete with the checkbox. Remove with ✕.
+Mark endeavours complete with the checkbox. Remove with ✕.
 
 ---
 
 ## Settings Page
 
-### Appearance
+### Appearance (Themes)
 
-Four themes:
-- 🌙 **Dark** — Default dark fantasy theme
-- ☀️ **Light** — Light parchment theme
-- ◐ **High Contrast** — Maximum readability
-- 🔍 **Old Guy Mode** — Larger text, easier on the eyes
+| Theme | Description |
+|-------|-------------|
+| 🌙 Dark | Default dark fantasy theme |
+| ☀️ Light | Light parchment theme |
+| ◐ High Contrast | Maximum readability |
+| 🔍 Old Guy Mode | Larger text, easier on the eyes |
 
 ### House Rules
 
-Per-character rule variants that affect combat calculations:
+Per-character rule variants affecting combat calculations:
 
-- **Ranged Damage SB**: Controls SB contribution to ranged weapon damage.
-  - *None (RAW)*: Uses each weapon's formula as written.
-  - *Half SB*: All ranged weapons use ½SB.
-  - *Full SB*: All ranged weapons use full SB.
-- **Impale Crits on 10s**: Impale-quality weapons score critical hits on multiples of 10 (in addition to standard doubles).
-- **Minimum 1 Wound (RAW)**: Hits that overcome TB+AP always deal at least 1 wound. Turn OFF to allow 0-wound hits.
-- **Advantage Cap**: Maximum advantage your character can accumulate. Set to 0 for uncapped. RAW default is Initiative Bonus.
+| Rule | Options |
+|------|---------|
+| **Ranged Damage SB** | None (RAW) · Half SB · Full SB |
+| **Impale Crits on 10s** | Toggle — Impale weapons crit on multiples of 10 |
+| **Minimum 1 Wound (RAW)** | Toggle — Hits overcoming TB+AP always deal at least 1 wound |
+| **Advantage Cap** | Set max advantage (0 = uncapped, RAW = Initiative Bonus) |
 
 ### Export / Import
 
-- **Copy to Clipboard**: Copies your character as JSON text.
-- **Download File**: Saves a .json file to your device.
-- **Import from File**: Load a character from a .json file. Merges missing fields with defaults.
+- **Copy to Clipboard** — Character as JSON text
+- **Download File** — Save a .json file
+- **Import from File** — Load from .json, merges missing fields with defaults
 
 ### Utilities
 
-- **Clear Sheet**: Resets all character data to defaults (keeps the name).
-- **Print**: Opens your browser's print dialog with a print-optimized layout.
+- **Clear Sheet** — Reset all data to defaults (keeps name)
+- **Print** — Opens print dialog with an optimized print layout
+
+### Quick Actions
+
+Configure skill shortcuts that appear as a floating bar on mobile. Tap to roll instantly without navigating.
 
 ---
 
-## Tips
+## Tips & Tricks
 
-- **Auto-save**: All changes save automatically. No save button needed.
-- **Offline**: Once you've loaded the app, it works without internet.
-- **Install as App**: Use your browser's "Install" or "Add to Home Screen" option for a native app experience.
-- **Keyboard navigation**: All interactive elements are keyboard-accessible.
-- **Tooltips**: Tap/click skill and talent names for WFRP 4e descriptions and rules references.
-- **Rolls**: The 🎲 buttons throughout the app use the WFRP 4e d100 system with SL calculation, critical detection, and difficulty modifiers.
+| Tip | Details |
+|-----|---------|
+| **Auto-save** | Every change saves instantly. No save button needed. |
+| **Offline mode** | Works without internet after first load. A cached offline page appears if you navigate to uncached content. |
+| **Install as app** | Use your browser's Install / Add to Home Screen for a native experience. |
+| **Keyboard navigation** | All elements are keyboard-accessible with a skip-to-content link. |
+| **Tooltips** | Tap skill and talent names for official WFRP 4e descriptions. |
+| **Dice rolls** | 🎲 buttons use the WFRP 4e d100 system with SL calculation, criticals, fumbles, and difficulty modifiers. |
+| **Print layout** | Ctrl+P (or Cmd+P) gives you a clean one-page character sheet. |
+| **Multiple devices** | Export on one device, import on another. Data doesn't sync automatically. |
+| **Service Worker** | Fonts, images, and the app shell are cached for instant repeat loads. JS/CSS uses stale-while-revalidate for seamless updates. |
