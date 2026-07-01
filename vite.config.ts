@@ -1,11 +1,20 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { swPrecachePlugin } from './src/build/vite-plugin-sw-precache'
 
 // https://vite.dev/config/
 export default defineConfig({
   base: '/PWACharSheet/',
-  plugins: [react()],
+  plugins: [
+    react(),
+    swPrecachePlugin({
+      swSrc: 'src/sw.ts',
+      swDest: 'sw.js',
+      include: [/\.html$/, /\.css$/, /\.js$/, /\.woff2?$/],
+      exclude: [/\.map$/, /sw\.js$/],
+    }),
+  ],
   build: {
     chunkSizeWarningLimit: 600,
     rollupOptions: {

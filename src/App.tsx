@@ -33,6 +33,8 @@ import { saveCharacter } from './storage/character-manager';
 import { WelcomeScreen } from './components/shared/WelcomeScreen';
 import type { PageSection } from './components/layout/Navigation';
 import errorStyles from './ErrorBoundary.module.css';
+import { SWUpdateProvider } from './hooks/useSWUpdate';
+import { UpdateBanner } from './components/shared/UpdateBanner';
 
 // Simple error boundary
 interface ErrorBoundaryProps {
@@ -280,8 +282,11 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary>
-      <AppContent />
-    </ErrorBoundary>
+    <SWUpdateProvider>
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
+      <UpdateBanner />
+    </SWUpdateProvider>
   );
 }
