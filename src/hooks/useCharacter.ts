@@ -97,6 +97,12 @@ export function backfillCharacter(char: Character, weaponsRef?: WeaponData[]): C
   const hardyLevel = hardy ? hardy.lvl : 0;
   patched = syncWoundFields(patched, hardyLevel);
 
+  // Auto-initialize wCur for new characters (wCur=0 means "never initialized" when wound max > 0)
+  const totalWounds = calculateTotalWounds(patched.chars, patched.woundsUseSB, hardyLevel);
+  if (patched.wCur === 0 && totalWounds > 0) {
+    patched.wCur = totalWounds;
+  }
+
   return patched;
 }
 
@@ -227,7 +233,14 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
 
   useEffect(() => {
     setCharacter(prev => {
-      const synced = syncWoundFields(prev, hardyLevel);
+      let synced = syncWoundFields(prev, hardyLevel);
+
+      // Auto-initialize wCur when characteristics first become non-zero
+      const totalWounds = calculateTotalWounds(synced.chars, synced.woundsUseSB, hardyLevel);
+      if (synced.wCur === 0 && totalWounds > 0) {
+        synced = synced === prev ? { ...prev, wCur: totalWounds } : { ...synced, wCur: totalWounds };
+      }
+
       return synced === prev ? prev : synced;
     });
   }, [character.chars, character.woundsUseSB, hardyLevel]);
