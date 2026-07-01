@@ -136,6 +136,19 @@
   width: 50px;
 }
 
+.thCB {
+  composes: th from '../shared/styles/shared.module.css';
+  text-align: center;
+}
+
+.charCB {
+  composes: td from '../shared/styles/shared.module.css';
+  color: var(--accent-gold);
+  font-weight: 700;
+  text-align: center;
+  width: 50px;
+}
+
 .charBonusActive {
   composes: td from '../shared/styles/shared.module.css';
   color: var(--success);
@@ -559,10 +572,12 @@
   }
 }
 
-/* Req 6.3: Hide Bonus column below 360px */
+/* Req 6.3: Hide Bonus and CB columns below 360px */
 @media (max-width: 359px) {
   .charBonusActive,
-  .charBonusInactive {
+  .charBonusInactive,
+  .charCB,
+  .thCB {
     display: none;
   }
 }
@@ -621,6 +636,7 @@
   .tdCenter,
   .charKey,
   .charCurrent,
+  .charCB,
   .charBonusActive,
   .charBonusInactive,
   .skillCharCol,

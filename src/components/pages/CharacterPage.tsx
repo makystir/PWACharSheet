@@ -20,7 +20,7 @@ import { TALENT_DB } from '../../data/talents';
 import { TRAPPING_LIST } from '../../data/trappings';
 import { CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme, getCareerSkills } from '../../logic/careers';
-import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, computeAPByLocation } from '../../logic/calculators';
+import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, computeAPByLocation, getBonus } from '../../logic/calculators';
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../logic/tooltip-content';
 import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
@@ -379,7 +379,8 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                 <th className={styles.thCenter}>Initial</th>
                 <th className={styles.thCenter} title="Advances">Advance</th>
                 <th className={styles.thCenter}>Current</th>
-                <th className={styles.thCenter} title="Talent Bonus">Bonus</th>
+                <th className={styles.thCB} title="Characteristic Bonus">CB</th>
+                <th className={styles.thCenter} title="Talent Bonus">T. Bonus</th>
                 <th className={styles.th}></th>
               </tr>
             </thead>
@@ -397,6 +398,7 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
                       <input type="number" value={c.a} onChange={(e) => update(`chars.${key}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
                     </td>
                     <td className={styles.charCurrent}>{current}</td>
+                    <td className={styles.charCB}>{getBonus(current)}</td>
                     <td className={c.b > 0 ? styles.charBonusActive : styles.charBonusInactive}>{c.b || '—'}</td>
                     <td className={styles.tdCenter}>
                       <button type="button" className={styles.diceBtn} onClick={() => openCharacteristicRoll(key)} title={`Roll ${CHAR_FULL_NAMES[key]}`} aria-label={`Roll ${CHAR_FULL_NAMES[key]}`}>🎲</button>
