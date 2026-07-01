@@ -30,6 +30,7 @@ interface SettingsPageProps {
 
 export function SettingsPage({ character, update, updateCharacter, currentTheme, onThemeChange }: SettingsPageProps) {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [pendingImport, setPendingImport] = useState<Character | null>(null);
   const [importError, setImportError] = useState('');
   const [importSuccess, setImportSuccess] = useState('');
   const [quickActions, setQuickActions] = useState<QuickActionConfig[]>(loadQuickActions);
@@ -70,14 +71,25 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
       const text = ev.target?.result as string;
       const result = importFromJSON(text);
       if (result.success && result.character) {
-        updateCharacter(() => result.character!);
-        setImportSuccess(`Imported "${result.character.name}" successfully.`);
+        setPendingImport(result.character);
       } else {
         setImportError(result.error || 'Import failed.');
       }
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const handleImportConfirm = () => {
+    if (pendingImport) {
+      updateCharacter(() => pendingImport);
+      setImportSuccess(`Imported "${pendingImport.name}" successfully.`);
+      setPendingImport(null);
+    }
+  };
+
+  const handleImportCancel = () => {
+    setPendingImport(null);
   };
 
   const handleClear = () => {
@@ -364,6 +376,14 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
           onConfirm={handleClear}
           onCancel={() => setShowClearConfirm(false)}
           confirmLabel="Clear"
+        />
+      )}
+      {pendingImport && (
+        <ConfirmDialog
+          message={`Import "${pendingImport.name}"? This will overwrite your current character data.`}
+          onConfirm={handleImportConfirm}
+          onCancel={handleImportCancel}
+          confirmLabel="Import"
         />
       )}
     </div>
