@@ -99,7 +99,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   };
 
   // ─── Portrait state (stored in IndexedDB, NOT localStorage) ─────────────────
-  const [portraitURL, setPortraitURL] = useState<string>(character.portrait || '');
+  const [portraitURL, setPortraitURL] = useState<string>('');
   const [portraitError, setPortraitError] = useState<string | null>(null);
   const portraitURLRef = useRef<string>(portraitURL);
 
@@ -108,9 +108,19 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     portraitURLRef.current = portraitURL;
   }, [portraitURL]);
 
-  // Sync portrait URL from character prop when characterId changes (initial load)
+  // Load portrait URL from IndexedDB when characterId changes or component mounts
   useEffect(() => {
-    setPortraitURL(character.portrait || '');
+    let cancelled = false;
+    const store = getPortraitStore();
+    store.getPortraitURL(characterId).then((result) => {
+      if (cancelled) return;
+      if (result.ok && result.value) {
+        setPortraitURL(result.value);
+      } else {
+        setPortraitURL('');
+      }
+    });
+    return () => { cancelled = true; };
   }, [characterId]);
 
   // Object URL cleanup on unmount or when portrait changes
