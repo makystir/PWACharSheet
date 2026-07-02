@@ -206,7 +206,9 @@ describe('handleFetch', () => {
       const request = createRequest('https://example.com/PWACharSheet/icons/hero.png');
       const result = await handleFetch(request, defaultConfig);
 
-      expect(result).toBe(cachedImage);
+      // Result is a clone of the cached response (not the same reference)
+      expect(result!.status).toBe(cachedImage.status);
+      expect(await result!.text()).toBe('image-data');
       expect(globalThis.fetch).not.toHaveBeenCalled();
     });
 
@@ -267,7 +269,9 @@ describe('handleFetch', () => {
       const request = createRequest('https://example.com/PWACharSheet/assets/font.woff2');
       const result = await handleFetch(request, defaultConfig);
 
-      expect(result).toBe(cachedFont);
+      // Result is a clone of the cached response (not the same reference)
+      expect(result!.status).toBe(cachedFont.status);
+      expect(await result!.text()).toBe('font-data');
       expect(globalThis.fetch).not.toHaveBeenCalled();
     });
   });

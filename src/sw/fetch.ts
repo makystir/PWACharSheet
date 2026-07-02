@@ -64,9 +64,11 @@ async function runtimeCacheFirst(
   const cached = await cache.match(request);
 
   if (cached) {
-    // Move to end (most-recently-used) by re-inserting
-    cache.delete(request).then(() => cache.put(request, cached.clone()));
-    return cached;
+    // Clone before returning — once the response is returned, its body is consumed
+    const toReturn = cached.clone();
+    // Move to end (most-recently-used) by re-inserting the original
+    cache.delete(request).then(() => cache.put(request, cached));
+    return toReturn;
   }
 
   try {
