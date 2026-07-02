@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { Upload, Trash2, ImageOff } from 'lucide-react';
-import { validatePortraitFile, readFileAsDataURL } from '../../logic/portrait';
+import { validatePortraitFile } from '../../logic/portrait';
 import styles from './CharacterPortrait.module.css';
 
 interface CharacterPortraitProps {
   portrait: string;
   characterName: string;
-  onUpload: (dataUrl: string) => void;
+  onUpload: (file: File) => void;
   onRemove: () => void;
 }
 
@@ -33,12 +33,7 @@ export function CharacterPortrait({ portrait, characterName, onUpload, onRemove 
       return;
     }
 
-    try {
-      const dataUrl = await readFileAsDataURL(file);
-      onUpload(dataUrl);
-    } catch {
-      setError('Failed to read file.');
-    }
+    onUpload(file);
   };
 
   return (

@@ -6,6 +6,7 @@ import { migrateCorruptionData } from '../logic/corruption';
 import { ensureCareerSkillsExist } from '../logic/advancement';
 import { CAREER_SCHEMES } from '../data/careers';
 import type { CareerLevel, CareerScheme } from '../types/character';
+import { getPortraitStore } from './portrait-store';
 
 const INDEX_KEY = 'wfrp4e-characters';
 const CHAR_KEY_PREFIX = 'wfrp4e-char-';
@@ -188,4 +189,64 @@ export function setActiveCharacter(id: string): StorageWriteResult {
   const index = getCharacterIndex();
   index.activeId = id;
   return saveCharacterIndex(index);
+}
+
+/**
+ * Load a character with portrait merged from IndexedDB.
+ *
+ * Retrieves the character JSON from localStorage via the existing `loadCharacter`,
+ * then fetches the portrait URL from the Portrait Store. If the store is unavailable
+ * or the retrieval fails, the portrait field is set to an empty string.
+ */
+export async function loadCharacterWithPortrait(id: string): Promise<Character | null> {
+  const character = loadCharacter(id);
+  if (!character) return null;
+
+  const store = getPortraitStore();
+  const result = await store.getPortraitURL(id);
+  if (result.ok && result.value) {
+    character.portrait = result.value;
+  } else {
+    character.portrait = '';
+  }
+
+  return character;
+}
+
+/**
+ * Save a character, routing the portrait to IndexedDB if provided.
+ *
+ * Strips the portrait field from the character before persisting to localStorage.
+ * If a portraitBlob is provided, it is saved to the Portrait Store separately.
+ */
+export async function saveCharacterWithPortrait(
+  id: string,
+  character: Character,
+  portraitBlob?: Blob
+): Promise<StorageWriteResult> {
+  // Create a copy without the portrait field for localStorage
+  const { portrait, ...rest } = character;
+  const charWithoutPortrait = { ...rest, portrait: '' } as Character;
+
+  const result = saveCharacter(id, charWithoutPortrait);
+  if (!result.ok) return result;
+
+  if (portraitBlob) {
+    const store = getPortraitStore();
+    await store.savePortrait(id, portraitBlob);
+  }
+
+  return result;
+}
+
+/**
+ * Delete a character and its portrait from both localStorage and IndexedDB.
+ */
+export async function deleteCharacterFull(id: string): Promise<boolean> {
+  deleteCharacter(id);
+
+  const store = getPortraitStore();
+  await store.deletePortrait(id);
+
+  return true;
 }

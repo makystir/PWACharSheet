@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Character, CharacteristicKey, ArmourPoints, Skill, Talent, SpellItem } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -11,7 +11,9 @@ import { RollResultDisplay } from '../shared/RollResultDisplay';
 import { RollHistoryPanel } from '../shared/RollHistoryPanel';
 import { FortuneResolvePanel } from '../shared/FortuneResolvePanel';
 import { CharacterPortrait } from '../shared/CharacterPortrait';
+import { Toast } from '../shared/Toast';
 import { Tooltip } from '../shared/Tooltip';
+import { getPortraitStore } from '../../storage/portrait-store';
 import { applySpeciesData } from '../../logic/species';
 import { SPECIES_OPTIONS } from '../../data/species';
 import { SPELL_LIST } from '../../data/spells';
@@ -54,6 +56,7 @@ import styles from './CharacterPage.module.css';
 
 interface CharacterPageProps {
   character: Character;
+  characterId: string;
   update: (field: string, value: unknown) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   totalWounds: number;
@@ -77,7 +80,7 @@ const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
 
 type CharSubTab = 'identity' | 'abilities' | 'gear' | 'notes';
 
-export function CharacterPage({ character, update, updateCharacter, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
+export function CharacterPage({ character, characterId, update, updateCharacter, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
   const VALID_SUBTABS: CharSubTab[] = ['identity', 'abilities', 'gear', 'notes'];
   const initialTab = (subTab && VALID_SUBTABS.includes(subTab as CharSubTab)) ? subTab as CharSubTab : 'identity';
   const [activeSubTab, setActiveSubTabInternal] = useState<CharSubTab>(initialTab);
@@ -94,6 +97,64 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
     setActiveSubTabInternal(tab);
     onSubTabChange?.(tab);
   };
+
+  // ─── Portrait state (stored in IndexedDB, NOT localStorage) ─────────────────
+  const [portraitURL, setPortraitURL] = useState<string>(character.portrait || '');
+  const [portraitError, setPortraitError] = useState<string | null>(null);
+  const portraitURLRef = useRef<string>(portraitURL);
+
+  // Keep ref in sync with state for cleanup
+  useEffect(() => {
+    portraitURLRef.current = portraitURL;
+  }, [portraitURL]);
+
+  // Sync portrait URL from character prop when characterId changes (initial load)
+  useEffect(() => {
+    setPortraitURL(character.portrait || '');
+  }, [characterId]);
+
+  // Object URL cleanup on unmount or when portrait changes
+  useEffect(() => {
+    return () => {
+      if (portraitURLRef.current && portraitURLRef.current.startsWith('blob:')) {
+        getPortraitStore().revokeURL(portraitURLRef.current);
+      }
+    };
+  }, [portraitURL]);
+
+  const handlePortraitUpload = useCallback(async (file: File) => {
+    setPortraitError(null);
+    const store = getPortraitStore();
+    const result = await store.savePortrait(characterId, file);
+    if (!result.ok) {
+      setPortraitError('Portrait could not be saved.');
+      return;
+    }
+    // Revoke old object URL if it was a blob URL
+    if (portraitURLRef.current && portraitURLRef.current.startsWith('blob:')) {
+      store.revokeURL(portraitURLRef.current);
+    }
+    // Get new object URL
+    const urlResult = await store.getPortraitURL(characterId);
+    if (urlResult.ok && urlResult.value) {
+      setPortraitURL(urlResult.value);
+    }
+  }, [characterId]);
+
+  const handlePortraitRemove = useCallback(async () => {
+    setPortraitError(null);
+    const store = getPortraitStore();
+    const result = await store.deletePortrait(characterId);
+    if (!result.ok) {
+      setPortraitError('Portrait could not be removed.');
+      return;
+    }
+    // Revoke old object URL if it was a blob URL
+    if (portraitURLRef.current && portraitURLRef.current.startsWith('blob:')) {
+      store.revokeURL(portraitURLRef.current);
+    }
+    setPortraitURL('');
+  }, [characterId]);
 
   // Skill filter state (search + trained-only toggle)
   const [skillSearchText, setSkillSearchText] = useState('');
@@ -301,10 +362,10 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
       {/* Portrait + Personal Details row */}
       <div className={styles.identityRow}>
         <CharacterPortrait
-          portrait={character.portrait || ''}
+          portrait={portraitURL}
           characterName={character.name}
-          onUpload={(dataUrl) => update('portrait', dataUrl)}
-          onRemove={() => update('portrait', '')}
+          onUpload={handlePortraitUpload}
+          onRemove={handlePortraitRemove}
         />
         <Card style={{ flex: 1 }}>
           <SectionHeader icon={User} title="Personal Details" />
@@ -1210,6 +1271,9 @@ export function CharacterPage({ character, update, updateCharacter, rollHistory 
           </Tooltip>
         );
       })()}
+
+      {/* Portrait error toast */}
+      <Toast message={portraitError} duration={5000} />
     </div>
   );
 }

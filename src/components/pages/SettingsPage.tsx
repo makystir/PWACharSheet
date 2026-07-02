@@ -4,7 +4,9 @@ import { BLANK_CHARACTER } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
-import { exportToClipboard, exportToFile, importFromJSON } from '../../storage/export-import';
+import { exportToFile, importFromJSON, exportToJSONWithPortrait } from '../../storage/export-import';
+import { getPortraitStore } from '../../storage/portrait-store';
+import { base64ToBlob, isValidPortraitDataUrl } from '../../storage/portrait-codec';
 import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders, Zap, X } from 'lucide-react';
 import type { ThemeMode } from '../../hooks/useTheme';
 import styles from './SettingsPage.module.css';
@@ -18,6 +20,7 @@ const MAX_QUICK_ACTIONS = 6;
 
 interface SettingsPageProps {
   character: Character;
+  characterId: string;
   update: (field: string, value: unknown) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   totalWounds: number;
@@ -28,7 +31,7 @@ interface SettingsPageProps {
   onThemeChange?: (theme: ThemeMode) => void;
 }
 
-export function SettingsPage({ character, update, updateCharacter, currentTheme, onThemeChange }: SettingsPageProps) {
+export function SettingsPage({ character, characterId, update, updateCharacter, currentTheme, onThemeChange }: SettingsPageProps) {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [pendingImport, setPendingImport] = useState<Character | null>(null);
   const [importError, setImportError] = useState('');
@@ -80,9 +83,30 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
     e.target.value = '';
   };
 
-  const handleImportConfirm = () => {
+  const handleImportConfirm = async () => {
     if (pendingImport) {
-      updateCharacter(() => pendingImport);
+      const portraitValue = pendingImport.portrait || '';
+      const store = getPortraitStore();
+
+      if (portraitValue && isValidPortraitDataUrl(portraitValue)) {
+        if (!store.isDegraded()) {
+          // Store portrait in IndexedDB, strip from character
+          const blob = base64ToBlob(portraitValue);
+          if (blob) {
+            await store.savePortrait(characterId, blob);
+          }
+          const charWithoutPortrait = { ...pendingImport, portrait: '' };
+          updateCharacter(() => charWithoutPortrait);
+        } else {
+          // IndexedDB unavailable: keep portrait in character data (localStorage fallback)
+          updateCharacter(() => pendingImport);
+        }
+      } else {
+        // No portrait or invalid portrait: just update the character
+        const charWithoutPortrait = { ...pendingImport, portrait: '' };
+        updateCharacter(() => charWithoutPortrait);
+      }
+
       setImportSuccess(`Imported "${pendingImport.name}" successfully.`);
       setPendingImport(null);
     }
@@ -102,14 +126,32 @@ export function SettingsPage({ character, update, updateCharacter, currentTheme,
 
   const handleExportClipboard = async () => {
     try {
-      await exportToClipboard(character);
+      const json = await exportToJSONWithPortrait(character, characterId);
+      await navigator.clipboard.writeText(json);
     } catch {
       // clipboard may not be available
     }
   };
 
-  const handleExportFile = () => {
-    exportToFile(character);
+  const handleExportFile = async () => {
+    try {
+      const json = await exportToJSONWithPortrait(character, characterId);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safeName = (character.name || 'character').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const date = new Date();
+      const timestamp = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}`;
+      a.download = `${safeName}_${timestamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // export failure: fall back to exporting without portrait
+      exportToFile(character);
+    }
   };
 
   return (

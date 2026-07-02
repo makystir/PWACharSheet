@@ -3,14 +3,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { WelcomeScreen } from '../shared/WelcomeScreen';
-import { importFromJSON } from '../../storage/export-import';
+import { importFromJSONWithPortrait } from '../../storage/export-import';
 import type { Character } from '../../types/character';
 
 vi.mock('../../storage/export-import', () => ({
-  importFromJSON: vi.fn(),
+  importFromJSONWithPortrait: vi.fn(),
 }));
 
-const mockedImportFromJSON = vi.mocked(importFromJSON);
+const mockedImportFromJSONWithPortrait = vi.mocked(importFromJSONWithPortrait);
 
 // Mock CharacterWizard to avoid rendering the full wizard in tests
 vi.mock('../shared/CharacterWizard', () => ({
@@ -213,7 +213,7 @@ describe('Import from File', () => {
   // 3.3 successful file import calls onImportCharacter with parsed character
   it('successful file import calls onImportCharacter with parsed character', async () => {
     const mockCharacter = { name: 'Imported Hero', species: 'Human', _v: 6, chars: {} };
-    mockedImportFromJSON.mockReturnValue({ success: true, character: mockCharacter as Character });
+    mockedImportFromJSONWithPortrait.mockResolvedValue({ success: true, character: mockCharacter as Character });
 
     const onImportCharacter = vi.fn();
     renderWelcome({ onImportCharacter });
@@ -226,12 +226,12 @@ describe('Import from File', () => {
     await waitFor(() => {
       expect(onImportCharacter).toHaveBeenCalledWith(mockCharacter);
     });
-    expect(mockedImportFromJSON).toHaveBeenCalled();
+    expect(mockedImportFromJSONWithPortrait).toHaveBeenCalled();
   });
 
   // 3.4 failed file import displays error message with role="alert"
   it('failed file import displays error message with role="alert"', async () => {
-    mockedImportFromJSON.mockReturnValue({ success: false, error: 'Missing required field: "name".' });
+    mockedImportFromJSONWithPortrait.mockResolvedValue({ success: false, error: 'Missing required field: "name".' });
 
     renderWelcome();
 
@@ -250,7 +250,7 @@ describe('Import from File', () => {
   // 3.5 error clears when import is retried
   it('error clears when import is retried', async () => {
     // First import fails
-    mockedImportFromJSON.mockReturnValue({ success: false, error: 'Invalid JSON: failed to parse.' });
+    mockedImportFromJSONWithPortrait.mockResolvedValue({ success: false, error: 'Invalid JSON: failed to parse.' });
     renderWelcome();
 
     const fileInput = getHiddenFileInput();
@@ -262,7 +262,7 @@ describe('Import from File', () => {
 
     // Second import succeeds — error should clear
     const mockCharacter = { name: 'Retry Hero', species: 'Dwarf', _v: 6, chars: {} };
-    mockedImportFromJSON.mockReturnValue({ success: true, character: mockCharacter as Character });
+    mockedImportFromJSONWithPortrait.mockResolvedValue({ success: true, character: mockCharacter as Character });
 
     fireEvent.change(fileInput, { target: { files: [createFile(JSON.stringify(mockCharacter))] } });
 
@@ -273,7 +273,7 @@ describe('Import from File', () => {
 
   // 3.6 all three buttons remain visible after an import error
   it('all three buttons remain visible after an import error', async () => {
-    mockedImportFromJSON.mockReturnValue({ success: false, error: 'Invalid data: expected a JSON object.' });
+    mockedImportFromJSONWithPortrait.mockResolvedValue({ success: false, error: 'Invalid data: expected a JSON object.' });
 
     renderWelcome();
 

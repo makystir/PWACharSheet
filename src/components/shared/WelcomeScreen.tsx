@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Character } from '../../types/character';
 import { CharacterWizard } from './CharacterWizard';
-import { importFromJSON } from '../../storage/export-import';
+import { importFromJSONWithPortrait } from '../../storage/export-import';
 import styles from './WelcomeScreen.module.css';
 
 export interface WelcomeScreenProps {
@@ -20,14 +20,14 @@ export function WelcomeScreen({ onCreateCharacter, onWizardComplete, onImportCha
   const nameInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setImportError('');
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const text = ev.target?.result as string;
-      const result = importFromJSON(text);
+      const result = await importFromJSONWithPortrait(text);
       if (result.success && result.character) {
         onImportCharacter(result.character);
       } else {

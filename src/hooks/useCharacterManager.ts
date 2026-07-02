@@ -10,6 +10,7 @@ import {
   renameCharacter as cmRename,
   duplicateCharacter as cmDuplicate,
   deleteCharacter as cmDelete,
+  deleteCharacterFull as cmDeleteFull,
 } from '../storage/character-manager';
 
 export interface UseCharacterManagerResult {
@@ -79,17 +80,16 @@ export function useCharacterManager(): UseCharacterManagerResult {
   }, []);
 
   const deleteCharacter = useCallback((id: string): boolean => {
-    const result = cmDelete(id);
-    if (result) {
-      setCharacters(listCharacters());
-      const newActiveId = getActiveCharacterId();
-      setActiveId(newActiveId);
-      if (id === activeId || !newActiveId) {
-        const loaded = newActiveId ? loadCharacter(newActiveId) : null;
-        setActiveCharacter_(loaded);
-      }
+    // Use deleteCharacterFull to also remove portrait from IndexedDB
+    cmDeleteFull(id);
+    setCharacters(listCharacters());
+    const newActiveId = getActiveCharacterId();
+    setActiveId(newActiveId);
+    if (id === activeId || !newActiveId) {
+      const loaded = newActiveId ? loadCharacter(newActiveId) : null;
+      setActiveCharacter_(loaded);
     }
-    return result;
+    return true;
   }, [activeId]);
 
   return {

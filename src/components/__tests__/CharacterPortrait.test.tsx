@@ -6,7 +6,7 @@ import { CharacterPortrait } from '../shared/CharacterPortrait';
 const defaultProps = {
   portrait: '',
   characterName: 'Brunhilde',
-  onUpload: vi.fn(),
+  onUpload: vi.fn() as ReturnType<typeof vi.fn<(file: File) => void>>,
   onRemove: vi.fn(),
 };
 
@@ -151,6 +151,23 @@ describe('Validation error — oversized file', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/2 MB/i)).toBeInTheDocument();
+    });
+  });
+});
+
+// ─── Req 7.1: Valid file upload calls onUpload with the File object ──────────
+
+describe('Successful upload', () => {
+  it('calls onUpload with the raw File when a valid file is selected', async () => {
+    const { props } = renderPortrait();
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const validFile = new File(['png-content'], 'portrait.png', { type: 'image/png' });
+
+    fireEvent.change(fileInput, { target: { files: [validFile] } });
+
+    await waitFor(() => {
+      expect(props.onUpload).toHaveBeenCalledTimes(1);
+      expect(props.onUpload).toHaveBeenCalledWith(validFile);
     });
   });
 });

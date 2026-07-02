@@ -32,6 +32,8 @@ import { useHashRoute } from './hooks/useHashRoute';
 import { useStorageErrorToast } from './hooks/useStorageErrorToast';
 import { runMigration } from './storage/migration';
 import { saveCharacter } from './storage/character-manager';
+import { getPortraitStore } from './storage/portrait-store';
+import { runPortraitMigration } from './storage/portrait-migration';
 import { WelcomeScreen } from './components/shared/WelcomeScreen';
 import type { PageSection } from './components/layout/Navigation';
 import errorStyles from './ErrorBoundary.module.css';
@@ -99,9 +101,7 @@ function AppContent() {
             saveCharacter(manager.createCharacter(character.name), character);
             manager.refresh();
           }}
-          onImportCharacter={(character) => {
-            const id = manager.createCharacter(character.name);
-            saveCharacter(id, character);
+          onImportCharacter={(_character) => {
             manager.refresh();
           }}
         />
@@ -193,7 +193,7 @@ function AppWithCharacter({
   const renderPage = () => {
     switch (page) {
       case 'character':
-        return <CharacterPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} subTab={subTab} onSubTabChange={(tab) => navigate('character', tab)} />;
+        return <CharacterPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} subTab={subTab} onSubTabChange={(tab) => navigate('character', tab)} />;
       case 'combat':
         return <PageLoader><CombatPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} /></PageLoader>;
       case 'retinue':
@@ -205,9 +205,9 @@ function AppWithCharacter({
       case 'advancement':
         return <PageLoader><AdvancementPage {...pageProps} /></PageLoader>;
       case 'settings':
-        return <PageLoader><SettingsPage {...pageProps} currentTheme={currentTheme} onThemeChange={setTheme} /></PageLoader>;
+        return <PageLoader><SettingsPage {...pageProps} characterId={manager.activeId} currentTheme={currentTheme} onThemeChange={setTheme} /></PageLoader>;
       default:
-        return <CharacterPage {...pageProps} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} subTab={subTab} onSubTabChange={(tab) => navigate('character', tab)} />;
+        return <CharacterPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} subTab={subTab} onSubTabChange={(tab) => navigate('character', tab)} />;
     }
   };
 
@@ -282,8 +282,14 @@ export default function App() {
   const [migrated, setMigrated] = useState(false);
 
   useEffect(() => {
-    runMigration();
-    setMigrated(true);
+    async function initApp() {
+      runMigration();
+      const store = getPortraitStore();
+      await store.init();
+      await runPortraitMigration(store);
+      setMigrated(true);
+    }
+    initApp();
   }, []);
 
   if (!migrated) {

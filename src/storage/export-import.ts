@@ -1,5 +1,8 @@
 import type { Character } from '../types/character';
 import { BLANK_CHARACTER } from '../types/character';
+import { getPortraitStore } from './portrait-store';
+import { blobToBase64, base64ToBlob, isValidPortraitDataUrl } from './portrait-codec';
+import { createCharacter, saveCharacter } from './character-manager';
 
 const CURRENT_VERSION = 7;
 
@@ -100,4 +103,84 @@ function deepMergeImport<T extends object>(target: T, source: Record<string, unk
     }
   }
   return result as T;
+}
+
+
+/**
+ * Export a character to JSON with portrait data included from IndexedDB.
+ *
+ * Retrieves the portrait Blob from the Portrait Store, converts to base64,
+ * and includes it in the exported JSON. If retrieval fails, portrait is set
+ * to an empty string.
+ */
+export async function exportToJSONWithPortrait(character: Character, characterId: string): Promise<string> {
+  const store = getPortraitStore();
+  let portraitBase64 = '';
+
+  try {
+    const result = await store.getPortraitBlob(characterId);
+    if (result.ok && result.value) {
+      portraitBase64 = await blobToBase64(result.value);
+    }
+  } catch {
+    // If portrait retrieval fails, continue export with empty portrait
+    portraitBase64 = '';
+  }
+
+  const exportData = { ...character, portrait: portraitBase64 };
+  return JSON.stringify(exportData, null, 2);
+}
+
+/**
+ * Import a character from JSON, routing portrait data to IndexedDB.
+ *
+ * Parses and validates the JSON using the existing importFromJSON logic,
+ * then handles the portrait separately:
+ * - If valid portrait and IndexedDB available: stores in PortraitStore, removes from character JSON
+ * - If IndexedDB unavailable: retains portrait in character JSON (localStorage fallback)
+ * - If invalid base64: discards portrait, continues import without it
+ */
+export async function importFromJSONWithPortrait(json: string): Promise<{ success: boolean; character?: Character; error?: string }> {
+  // Use existing validation and merge logic
+  const parseResult = importFromJSON(json);
+  if (!parseResult.success || !parseResult.character) {
+    return parseResult;
+  }
+
+  const character = parseResult.character;
+  const portraitValue = character.portrait || '';
+
+  const store = getPortraitStore();
+
+  // Create character entry in localStorage (generates ID and index entry)
+  const characterId = createCharacter(character.name);
+
+  // Determine portrait routing
+  if (portraitValue && isValidPortraitDataUrl(portraitValue)) {
+    // Valid portrait data-URL
+    if (!store.isDegraded()) {
+      // IndexedDB available: store portrait in PortraitStore, save character without portrait
+      const blob = base64ToBlob(portraitValue);
+      if (blob) {
+        await store.savePortrait(characterId, blob);
+      }
+      // Remove portrait from character before saving to localStorage
+      const charWithoutPortrait = { ...character, portrait: '' };
+      saveCharacter(characterId, charWithoutPortrait);
+      return { success: true, character: charWithoutPortrait };
+    } else {
+      // IndexedDB unavailable: retain portrait in character JSON (localStorage fallback)
+      saveCharacter(characterId, character);
+      return { success: true, character };
+    }
+  } else if (portraitValue && !isValidPortraitDataUrl(portraitValue)) {
+    // Invalid base64: discard portrait, continue import without it
+    const charWithoutPortrait = { ...character, portrait: '' };
+    saveCharacter(characterId, charWithoutPortrait);
+    return { success: true, character: charWithoutPortrait };
+  } else {
+    // No portrait or empty portrait
+    saveCharacter(characterId, character);
+    return { success: true, character };
+  }
 }
