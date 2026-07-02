@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { Character, ArmourPoints, RangedDamageSBMode } from '../../types/character';
 import { BLANK_CHARACTER } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { RestoreConfirmDialog } from '../shared/RestoreConfirmDialog';
 import { exportToFile, importFromJSON, exportToJSONWithPortrait } from '../../storage/export-import';
 import { getPortraitStore } from '../../storage/portrait-store';
 import { base64ToBlob, isValidPortraitDataUrl } from '../../storage/portrait-codec';
+import { assembleBackup, downloadBackup } from '../../storage/backup-service';
+import { validateBackupFile, detectDuplicates, restoreCharacters } from '../../storage/restore-service';
+import type { BackupCharacterEntry } from '../../storage/backup-types';
 import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders, Zap, X } from 'lucide-react';
 import type { ThemeMode } from '../../hooks/useTheme';
 import styles from './SettingsPage.module.css';
@@ -38,6 +42,25 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
   const [importSuccess, setImportSuccess] = useState('');
   const [quickActions, setQuickActions] = useState<QuickActionConfig[]>(loadQuickActions);
   const [selectedSkill, setSelectedSkill] = useState('');
+
+  // Bulk backup state
+  const [backupInProgress, setBackupInProgress] = useState(false);
+  const [backupProgress, setBackupProgress] = useState('');
+  const [backupError, setBackupError] = useState('');
+  const [backupSuccess, setBackupSuccess] = useState('');
+
+  // Bulk restore state
+  const [restoreInProgress, setRestoreInProgress] = useState(false);
+  const [restoreProgress, setRestoreProgress] = useState('');
+  const [restoreError, setRestoreError] = useState('');
+  const [restoreSuccess, setRestoreSuccess] = useState('');
+  const [restoreConfirmData, setRestoreConfirmData] = useState<{
+    characterCount: number;
+    characterNames: string[];
+    duplicateNames: string[];
+    characters: BackupCharacterEntry[];
+  } | null>(null);
+  const restoreInputRef = useRef<HTMLInputElement>(null);
 
   // Get all available skills from the character
   const allSkills = [...character.bSkills, ...character.aSkills]
@@ -152,6 +175,103 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
       // export failure: fall back to exporting without portrait
       exportToFile(character);
     }
+  };
+
+  const handleBackupAll = async () => {
+    setBackupError('');
+    setBackupSuccess('');
+    setBackupInProgress(true);
+    setBackupProgress('Preparing backup...');
+
+    try {
+      const result = await assembleBackup((current, total) => {
+        setBackupProgress(`Backing up... ${current}/${total} characters`);
+      });
+
+      if (!result.ok) {
+        setBackupError(result.error);
+        return;
+      }
+
+      const dlResult = downloadBackup(result.payload);
+      if (!dlResult.ok) {
+        setBackupError(dlResult.error);
+        return;
+      }
+
+      setBackupSuccess(`Backup downloaded — ${result.payload.characterCount} character${result.payload.characterCount !== 1 ? 's' : ''} saved.`);
+    } catch (err) {
+      setBackupError(err instanceof Error ? err.message : 'Backup failed unexpectedly.');
+    } finally {
+      setBackupInProgress(false);
+      setBackupProgress('');
+    }
+  };
+
+  const handleRestoreFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRestoreError('');
+    setRestoreSuccess('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const result = validateBackupFile(text);
+
+      if (!result.ok) {
+        setRestoreError(result.error);
+        return;
+      }
+
+      const duplicates = detectDuplicates(result.characters);
+      const names = result.characters
+        .map((c) => (c.character.name as string) || `Unnamed`)
+        .filter((n) => n.length > 0);
+
+      setRestoreConfirmData({
+        characterCount: result.metadata.characterCount,
+        characterNames: names,
+        duplicateNames: duplicates,
+        characters: result.characters,
+      });
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleRestoreConfirm = async () => {
+    if (!restoreConfirmData) return;
+
+    setRestoreConfirmData(null);
+    setRestoreInProgress(true);
+    setRestoreProgress('Restoring...');
+    setRestoreError('');
+    setRestoreSuccess('');
+
+    try {
+      const summary = await restoreCharacters(restoreConfirmData.characters, (current, total) => {
+        setRestoreProgress(`Restoring... ${current}/${total} characters`);
+      });
+
+      let msg = `Restored ${summary.imported} character${summary.imported !== 1 ? 's' : ''} successfully.`;
+      if (summary.skipped > 0) {
+        msg += ` ${summary.skipped} skipped.`;
+      }
+      if (summary.stoppedByQuota) {
+        msg += ' Storage quota reached — some characters could not be imported.';
+      }
+      setRestoreSuccess(msg);
+    } catch (err) {
+      setRestoreError(err instanceof Error ? err.message : 'Restore failed unexpectedly.');
+    } finally {
+      setRestoreInProgress(false);
+      setRestoreProgress('');
+    }
+  };
+
+  const handleRestoreCancel = () => {
+    setRestoreConfirmData(null);
   };
 
   return (
@@ -394,6 +514,47 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
           {importError && <div className={styles.errorMsg}>{importError}</div>}
           {importSuccess && <div className={styles.successMsg}>{importSuccess}</div>}
         </div>
+
+        {/* Bulk Backup & Restore */}
+        <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '12px 0' }} />
+        <div className={styles.importSection}>
+          <div className={styles.importRow}>
+            <button
+              type="button"
+              onClick={handleBackupAll}
+              disabled={backupInProgress}
+              className={styles.smallBtn}
+            >
+              <Download size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+              {backupInProgress ? 'Backing up...' : 'Back Up All Characters'}
+            </button>
+          </div>
+          {backupInProgress && backupProgress && (
+            <div className={styles.successMsg}>{backupProgress}</div>
+          )}
+          {backupError && <div className={styles.errorMsg}>{backupError}</div>}
+          {backupSuccess && <div className={styles.successMsg}>{backupSuccess}</div>}
+
+          <div className={styles.importRow}>
+            <label className={restoreInProgress ? styles.smallBtn : styles.importLabel} style={restoreInProgress ? { opacity: 0.6, pointerEvents: 'none' } : undefined}>
+              <Upload size={14} style={{ marginRight: '4px' }} />
+              {restoreInProgress ? 'Restoring...' : 'Restore from Backup'}
+              <input
+                ref={restoreInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleRestoreFileSelect}
+                disabled={restoreInProgress}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
+          {restoreInProgress && restoreProgress && (
+            <div className={styles.successMsg}>{restoreProgress}</div>
+          )}
+          {restoreError && <div className={styles.errorMsg}>{restoreError}</div>}
+          {restoreSuccess && <div className={styles.successMsg}>{restoreSuccess}</div>}
+        </div>
       </Card>
 
       {/* Utilities */}
@@ -426,6 +587,15 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
           onConfirm={handleImportConfirm}
           onCancel={handleImportCancel}
           confirmLabel="Import"
+        />
+      )}
+      {restoreConfirmData && (
+        <RestoreConfirmDialog
+          characterCount={restoreConfirmData.characterCount}
+          characterNames={restoreConfirmData.characterNames}
+          duplicateNames={restoreConfirmData.duplicateNames}
+          onConfirm={handleRestoreConfirm}
+          onCancel={handleRestoreCancel}
         />
       )}
     </div>
