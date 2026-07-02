@@ -1,6 +1,7 @@
 import type { Character, CharacterIndex, CharacterSummary } from '../types/character';
 import { BLANK_CHARACTER } from '../types/character';
 import { getItem, setItem, removeItem } from './local-storage';
+import type { StorageWriteResult } from './local-storage';
 import { migrateCorruptionData } from '../logic/corruption';
 import { ensureCareerSkillsExist } from '../logic/advancement';
 import { CAREER_SCHEMES } from '../data/careers';
@@ -36,8 +37,8 @@ export function getCharacterIndex(): CharacterIndex {
   }
 }
 
-export function saveCharacterIndex(index: CharacterIndex): void {
-  setItem(INDEX_KEY, JSON.stringify(index));
+export function saveCharacterIndex(index: CharacterIndex): StorageWriteResult {
+  return setItem(INDEX_KEY, JSON.stringify(index));
 }
 
 export function createCharacter(name: string): string {
@@ -49,7 +50,8 @@ export function createCharacter(name: string): string {
     name,
   };
 
-  setItem(charKey(id), JSON.stringify(character));
+  const charResult = setItem(charKey(id), JSON.stringify(character));
+  if (!charResult.ok) return id;
 
   const index = getCharacterIndex();
   const summary: CharacterSummary = {
@@ -95,8 +97,9 @@ export function loadCharacter(id: string): Character | null {
   }
 }
 
-export function saveCharacter(id: string, character: Character): void {
-  setItem(charKey(id), JSON.stringify(character));
+export function saveCharacter(id: string, character: Character): StorageWriteResult {
+  const result = setItem(charKey(id), JSON.stringify(character));
+  if (!result.ok) return result;
 
   const index = getCharacterIndex();
   const entry = index.characters.find((c) => c.id === id);
@@ -106,16 +109,18 @@ export function saveCharacter(id: string, character: Character): void {
     entry.species = character.species;
     entry.career = character.career;
     entry.careerLevel = character.careerLevel;
-    saveCharacterIndex(index);
+    return saveCharacterIndex(index);
   }
+  return result;
 }
 
-export function renameCharacter(id: string, newName: string): void {
+export function renameCharacter(id: string, newName: string): StorageWriteResult {
   // Update stored character
   const character = loadCharacter(id);
   if (character) {
     character.name = newName;
-    setItem(charKey(id), JSON.stringify(character));
+    const result = setItem(charKey(id), JSON.stringify(character));
+    if (!result.ok) return result;
   }
 
   // Update index
@@ -123,8 +128,9 @@ export function renameCharacter(id: string, newName: string): void {
   const entry = index.characters.find((c) => c.id === id);
   if (entry) {
     entry.name = newName;
-    saveCharacterIndex(index);
+    return saveCharacterIndex(index);
   }
+  return { ok: true };
 }
 
 export function duplicateCharacter(id: string): string {
@@ -138,7 +144,8 @@ export function duplicateCharacter(id: string): string {
   const copy: Character = structuredClone(original);
   copy.name = `${original.name} (Copy)`;
 
-  setItem(charKey(newId), JSON.stringify(copy));
+  const charResult = setItem(charKey(newId), JSON.stringify(copy));
+  if (!charResult.ok) return newId;
 
   const index = getCharacterIndex();
   const summary: CharacterSummary = {
@@ -177,8 +184,8 @@ export function getActiveCharacterId(): string {
   return getCharacterIndex().activeId;
 }
 
-export function setActiveCharacter(id: string): void {
+export function setActiveCharacter(id: string): StorageWriteResult {
   const index = getCharacterIndex();
   index.activeId = id;
-  saveCharacterIndex(index);
+  return saveCharacterIndex(index);
 }

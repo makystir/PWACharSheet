@@ -22,12 +22,14 @@ import { QuickActionBar } from './components/shared/QuickActionBar';
 import type { QuickAction } from './components/shared/QuickActionBar';
 import { RollDialog } from './components/shared/RollDialog';
 import { RollResultDisplay } from './components/shared/RollResultDisplay';
+import { Toast } from './components/shared/Toast';
 import { computeSkillTarget } from './logic/dice-roller';
 import type { RollResult } from './logic/dice-roller';
 import { useCharacterManager } from './hooks/useCharacterManager';
 import { useCharacter } from './hooks/useCharacter';
 import { useRollHistory } from './hooks/useRollHistory';
 import { useHashRoute } from './hooks/useHashRoute';
+import { useStorageErrorToast } from './hooks/useStorageErrorToast';
 import { runMigration } from './storage/migration';
 import { saveCharacter } from './storage/character-manager';
 import { WelcomeScreen } from './components/shared/WelcomeScreen';
@@ -82,35 +84,42 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 function AppContent() {
   const manager = useCharacterManager();
   const { page, subTab, navigate } = useHashRoute();
+  const { message: storageErrorMessage } = useStorageErrorToast();
 
   // If no characters exist, show welcome screen
   if (manager.characters.length === 0 || !manager.activeCharacter) {
     return (
-      <WelcomeScreen
-        onCreateCharacter={(name) => {
-          manager.createCharacter(name);
-          manager.refresh();
-        }}
-        onWizardComplete={(character) => {
-          saveCharacter(manager.createCharacter(character.name), character);
-          manager.refresh();
-        }}
-        onImportCharacter={(character) => {
-          const id = manager.createCharacter(character.name);
-          saveCharacter(id, character);
-          manager.refresh();
-        }}
-      />
+      <>
+        <WelcomeScreen
+          onCreateCharacter={(name) => {
+            manager.createCharacter(name);
+            manager.refresh();
+          }}
+          onWizardComplete={(character) => {
+            saveCharacter(manager.createCharacter(character.name), character);
+            manager.refresh();
+          }}
+          onImportCharacter={(character) => {
+            const id = manager.createCharacter(character.name);
+            saveCharacter(id, character);
+            manager.refresh();
+          }}
+        />
+        <Toast message={storageErrorMessage} duration={5000} />
+      </>
     );
   }
 
   return (
-    <AppWithCharacter
-      manager={manager}
-      page={page}
-      subTab={subTab}
-      navigate={navigate}
-    />
+    <>
+      <AppWithCharacter
+        manager={manager}
+        page={page}
+        subTab={subTab}
+        navigate={navigate}
+      />
+      <Toast message={storageErrorMessage} duration={5000} />
+    </>
   );
 }
 
