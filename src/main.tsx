@@ -16,12 +16,7 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Register service worker for PWA support
-// Only register in production or on localhost (secure contexts required by browsers)
-if ('serviceWorker' in navigator && (import.meta.env.PROD || location.hostname === 'localhost')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {
-      // Service worker registration failed — app works fine without it
-    });
-  });
-}
+// Service worker registration is handled by SWUpdateProvider in useSWUpdate.ts
+// (which calls registerServiceWorker from sw-register.ts).
+// Do NOT register separately here — a duplicate registration races with the
+// SWUpdateProvider and can cause update notifications to be missed.
