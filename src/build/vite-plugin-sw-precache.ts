@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
-import { readFile, writeFile, stat } from 'node:fs/promises';
-import { join, relative, posix } from 'node:path';
+import { readFile, writeFile, stat, unlink } from 'node:fs/promises';
+import { join, relative, posix, resolve } from 'node:path';
 import { readdir } from 'node:fs/promises';
+import { build as viteBuild } from 'vite';
 import type { Plugin, ResolvedConfig } from 'vite';
 import type { SWPrecachePluginOptions } from './types';
 import type { PrecacheEntry } from '../sw/types';
@@ -61,6 +62,35 @@ export function computeMD5(content: Buffer): string {
 }
 
 /**
+ * Bundles a TypeScript service worker entry point into a single JS file
+ * using Vite's build API (which uses Rolldown under the hood).
+ */
+async function bundleSW(entryPath: string, outPath: string): Promise<void> {
+  const outDir = join(outPath, '..');
+  const outFile = outPath.split(/[\\/]/).pop()!;
+
+  await viteBuild({
+    configFile: false,
+    logLevel: 'warn',
+    plugins: [],
+    build: {
+      outDir,
+      emptyOutDir: false,
+      minify: false,
+      sourcemap: false,
+      copyPublicDir: false,
+      rollupOptions: {
+        input: resolve(entryPath),
+        output: {
+          entryFileNames: outFile,
+          format: 'es',
+        },
+      },
+    },
+  });
+}
+
+/**
  * Creates the Vite plugin that generates a precache manifest and injects it
  * into the service worker source template.
  */
@@ -91,6 +121,10 @@ export function swPrecachePlugin(options: SWPrecachePluginOptions): Plugin {
         );
       }
 
+      // Determine temp file location (same directory as swSrc so relative imports resolve)
+      const swSrcDir = resolve(swSrc, '..');
+      const tempSrc = join(swSrcDir, '__sw_precache_temp.ts');
+
       // Check output directory exists
       let outDirExists = false;
       try {
@@ -103,8 +137,9 @@ export function swPrecachePlugin(options: SWPrecachePluginOptions): Plugin {
       if (!outDirExists) {
         console.warn(`[sw-precache] Output directory not found or empty: ${outDir}. Generating empty manifest.`);
         const manifestJson = JSON.stringify([] as PrecacheEntry[]);
-        const swOutput = swTemplate.replace('self.__PRECACHE_MANIFEST__', manifestJson);
-        await writeFile(join(outDir, swDest), swOutput, 'utf-8');
+        const swSource = swTemplate.replace('self.__PRECACHE_MANIFEST__', manifestJson);
+        await writeFile(tempSrc, swSource, 'utf-8');
+        try { await bundleSW(tempSrc, join(outDir, swDest)); } finally { await unlink(tempSrc).catch(() => {}); }
         return;
       }
 
@@ -114,8 +149,9 @@ export function swPrecachePlugin(options: SWPrecachePluginOptions): Plugin {
       if (allFiles.length === 0) {
         console.warn(`[sw-precache] Output directory is empty: ${outDir}. Generating empty manifest.`);
         const manifestJson = JSON.stringify([] as PrecacheEntry[]);
-        const swOutput = swTemplate.replace('self.__PRECACHE_MANIFEST__', manifestJson);
-        await writeFile(join(outDir, swDest), swOutput, 'utf-8');
+        const swSource = swTemplate.replace('self.__PRECACHE_MANIFEST__', manifestJson);
+        await writeFile(tempSrc, swSource, 'utf-8');
+        try { await bundleSW(tempSrc, join(outDir, swDest)); } finally { await unlink(tempSrc).catch(() => {}); }
         return;
       }
 
@@ -166,12 +202,19 @@ export function swPrecachePlugin(options: SWPrecachePluginOptions): Plugin {
       // Sort manifest for deterministic output
       manifest.sort((a, b) => a.url.localeCompare(b.url));
 
-      // Inject manifest into SW template
+      // Inject manifest into SW source and bundle with Vite/Rolldown
       const manifestJson = JSON.stringify(manifest);
-      const swOutput = swTemplate.replace('self.__PRECACHE_MANIFEST__', manifestJson);
+      const swSource = swTemplate.replace('self.__PRECACHE_MANIFEST__', manifestJson);
 
-      // Write final sw.js to output directory
-      await writeFile(join(outDir, swDest), swOutput, 'utf-8');
+      // Write intermediate source with injected manifest for bundling
+      // (placed in same directory as swSrc so relative imports resolve)
+      await writeFile(tempSrc, swSource, 'utf-8');
+
+      try {
+        await bundleSW(tempSrc, join(outDir, swDest));
+      } finally {
+        await unlink(tempSrc).catch(() => {});
+      }
     },
   };
 }

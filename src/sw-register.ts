@@ -111,6 +111,11 @@ export function registerServiceWorker(baseUrl: string): {
             trackInstallingWorker(installingWorker);
           }
         });
+
+        // Periodically check for updates (every 60 minutes)
+        setInterval(() => {
+          reg.update().catch(() => {});
+        }, 60 * 60 * 1000);
       })
       .catch((err) => {
         // Registration failed — log and continue without caching

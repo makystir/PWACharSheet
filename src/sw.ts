@@ -9,7 +9,7 @@ import { handleMessage } from './sw/message';
 
 declare const self: ServiceWorkerGlobalScope;
 
-// Build plugin replaces `self.__PRECACHE_MANIFEST__` with the manifest JSON
+// Build plugin injects the precache manifest array below at build time
 const PRECACHE_MANIFEST: PrecacheEntry[] = self.__PRECACHE_MANIFEST__ || [];
 
 const CACHE_VERSION = 'v2';
