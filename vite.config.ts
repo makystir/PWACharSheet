@@ -11,7 +11,7 @@ export default defineConfig({
     swPrecachePlugin({
       swSrc: 'src/sw.ts',
       swDest: 'sw.js',
-      include: [/\.html$/, /\.css$/, /\.js$/, /\.woff2?$/],
+      include: [/\.html$/, /\.css$/, /\.js$/, /\.woff2?$/, /\.json$/, /\.svg$/, /\.png$/],
       exclude: [/\.map$/, /sw\.js$/],
     }),
   ],
