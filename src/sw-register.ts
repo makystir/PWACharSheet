@@ -30,6 +30,11 @@ export function registerServiceWorker(baseUrl: string): {
   }
 
   function trackInstallingWorker(worker: ServiceWorker): void {
+    // If the worker has already installed by the time we start tracking, check immediately
+    if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+      setState({ updateAvailable: true });
+      return;
+    }
     worker.addEventListener('statechange', () => {
       if (worker.state === 'installed' && navigator.serviceWorker.controller) {
         // A new worker installed while an existing one controls the page = update available
@@ -112,10 +117,17 @@ export function registerServiceWorker(baseUrl: string): {
           }
         });
 
-        // Periodically check for updates (every 60 minutes)
+        // Periodically check for updates (every 10 minutes)
         setInterval(() => {
           reg.update().catch(() => {});
-        }, 60 * 60 * 1000);
+        }, 10 * 60 * 1000);
+
+        // Also check for updates when the page becomes visible again (e.g. user switches tabs back)
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            reg.update().catch(() => {});
+          }
+        });
       })
       .catch((err) => {
         // Registration failed — log and continue without caching
