@@ -961,7 +961,7 @@ export const CAREER_SCHEMES: Record<string, CareerScheme> = {
   },
 
   "Artillerist": {
-    class: "Warriors",
+    class: "Academics",
     level1: { title: "Apprentice Artillerist", status: "Silver 1", characteristics: ["BS", "I", "Int"], skills: ["Animal Care", "Cool", "Drive", "Endurance", "Evaluate", "Language (Battle)", "Melee (Basic)", "Navigation", "Perception", "Ranged (Any)"], talents: ["Marksman", "Rapid Reload", "Strong Back", "Warrior Born"] },
     level2: { title: "Artillerist", status: "Silver 3", characteristics: ["BS", "S", "I", "Int"], skills: ["Animal Care", "Consume Alcohol", "Cool", "Drive", "Endurance", "Evaluate", "Gamble", "Gossip", "Language (Battle)", "Melee (Basic)", "Navigation", "Outdoor Survival", "Perception", "Ranged (Any)", "Trade (Carpenter)", "Trade (Gunsmith)"], talents: ["Crew Commander", "Etiquette (Soldiers)", "Marksman", "Orientation", "Rapid Reload", "Sniper", "Strong Back", "Warrior Born"] },
     level3: { title: "Artillerist Captain", status: "Silver 5", characteristics: ["BS", "S", "T", "I", "Int"], skills: ["Animal Care", "Consume Alcohol", "Cool", "Drive", "Endurance", "Evaluate", "Gamble", "Gossip", "Intuition", "Language (Battle)", "Leadership", "Lore (Artillery)", "Melee (Basic)", "Navigation", "Outdoor Survival", "Perception", "Ranged (Any)", "Ride (Horse)", "Trade (Carpenter)", "Trade (Gunsmith)"], talents: ["Combat Aware", "Crew Commander", "Etiquette (Soldiers)", "Marksman", "Orientation", "Rapid Reload", "Read/Write", "Sniper", "Strong Back", "Tinker", "Unshakeable", "Warrior Born"] },

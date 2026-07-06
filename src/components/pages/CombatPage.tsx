@@ -171,11 +171,19 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
       {/* ── Armour ── */}
       <CollapsibleSection title="Armour" storageKey={`combat-armour-${characterId}`} defaultExpanded={true}>
         <ArmourMap armourPoints={armourPoints} armourList={character.armour}
+          weapons={character.weapons}
           onDeleteArmour={(i) => {
             const armourPiece = character.armour[i];
             updateCharacter((c) => ({ ...c, armour: removeAtIndex(c.armour, i) }));
             undoToast.show('Armour removed', armourPiece, i, (item, index) => {
               updateCharacter((c) => ({ ...c, armour: restoreAtIndex(c.armour, item as typeof armourPiece, index) }));
+            });
+          }}
+          onUpdateArmour={(i, field, value) => {
+            updateCharacter((c) => {
+              const armour = [...c.armour];
+              armour[i] = { ...armour[i], [field]: value };
+              return { ...c, armour };
             });
           }}
           onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'armour', index: i })}

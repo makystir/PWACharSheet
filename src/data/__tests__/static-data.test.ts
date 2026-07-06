@@ -1387,7 +1387,7 @@ describe('Up in Arms — Content Presence', () => {
     { name: 'Greatsword', cls: 'Warriors' },
     { name: 'Halberdier', cls: 'Warriors' },
     { name: 'Handgunner', cls: 'Warriors' },
-    { name: 'Artillerist', cls: 'Warriors' },
+    { name: 'Artillerist', cls: 'Academics' },
     { name: 'Camp Follower', cls: 'Rangers' },
     { name: 'Cartographer', cls: 'Academics' },
     { name: 'Freelance', cls: 'Warriors' },

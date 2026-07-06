@@ -194,3 +194,99 @@
     margin-right: auto;
   }
 }
+
+/* Shield rating display */
+.shieldRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(200, 168, 76, 0.1);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+/* Edit button */
+.editBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: rgba(200, 168, 76, 0.15);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--accent-gold);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.editBtn:hover {
+  background: rgba(200, 168, 76, 0.3);
+}
+
+/* Inline edit form */
+.editForm {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editRow {
+  display: flex;
+  gap: 6px;
+}
+
+.editInput {
+  flex: 1;
+  padding: 4px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--parchment);
+  min-width: 0;
+}
+
+.editInput::placeholder {
+  color: var(--text-muted);
+}
+
+.editInputSmall {
+  width: 56px;
+  padding: 4px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--parchment);
+  text-align: center;
+}
+
+.editInputSmall::placeholder {
+  color: var(--text-muted);
+}
+
+.editDoneBtn {
+  align-self: flex-end;
+  padding: 4px 12px;
+  background: rgba(200, 168, 76, 0.2);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.editDoneBtn:hover {
+  background: rgba(200, 168, 76, 0.35);
+}

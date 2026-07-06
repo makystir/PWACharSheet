@@ -750,12 +750,15 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         </table>
       </Card>
 
-      {/* Spells — only show if character has magic talents/skills or already has spells */}
+      {/* Spells — only show if character has magic talents/skills, relevant career skills, or already has spells */}
       {(character.spells.length > 0 || character.talents.some(t =>
-        t.n.includes('Magic') || t.n.includes('Pray') || t.n.includes('Invoke')
+        t.n.includes('Magic') || t.n.includes('Pray') || t.n.includes('Invoke') || t.n.includes('Bless')
       ) || character.aSkills.some(s =>
-        s.n.startsWith('Channelling') || s.n.startsWith('Language (Magick)')
-      )) && (
+        s.n.startsWith('Channelling') || s.n.startsWith('Language (Magick)') || s.n === 'Pray'
+      ) || (() => {
+        const careerSkills = getCareerSkills(character.career, character.careerLevel);
+        return careerSkills.includes('Pray') || careerSkills.some(s => s.startsWith('Channelling'));
+      })()) && (
       <Card>
         <SectionHeader icon={Wand2} title="Spells & Prayers" action={
           <div className={styles.actionRow}>

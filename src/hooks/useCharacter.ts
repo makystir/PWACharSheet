@@ -8,6 +8,7 @@ import {
   calculateMaxEncumbrance,
   calculateCoinWeight,
   syncWoundFields,
+  computeAPByLocation,
 } from '../logic/calculators';
 import { syncTalentBonuses } from '../logic/talents';
 import { SPECIES_DATA } from '../data/species';
@@ -255,6 +256,36 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     const st = character.talents.find(t => t.n === 'Sturdy');
     return st ? st.lvl : 0;
   }, [character.talents]);
+
+  // Auto-sync character.ap whenever armour list changes
+  useEffect(() => {
+    setCharacter(prev => {
+      const computed = computeAPByLocation(prev.armour);
+      const ap = prev.ap;
+      if (
+        ap.head === computed.head &&
+        ap.lArm === computed.leftArm &&
+        ap.rArm === computed.rightArm &&
+        ap.body === computed.body &&
+        ap.lLeg === computed.leftLeg &&
+        ap.rLeg === computed.rightLeg
+      ) {
+        return prev;
+      }
+      return {
+        ...prev,
+        ap: {
+          ...prev.ap,
+          head: computed.head,
+          lArm: computed.leftArm,
+          rArm: computed.rightArm,
+          body: computed.body,
+          lLeg: computed.leftLeg,
+          rLeg: computed.rightLeg,
+        },
+      };
+    });
+  }, [character.armour]);
 
   const totalWounds = useMemo(
     () => calculateTotalWounds(character.chars, character.woundsUseSB, hardyLevel),
