@@ -875,7 +875,7 @@ export const CAREER_SCHEMES: Record<string, CareerScheme> = {
   },
 
   "Merchant Adventurer": {
-    class: "Rogues",
+    class: "Burghers",
     level1: { title: "Sea Messenger", status: "Brass 4", characteristics: ["WS", "I", "Fel"], skills: ["Athletics", "Charm Animal", "Climb", "Drive", "Gossip", "Melee (Basic)", "Navigation", "Ranged (Bow)", "Sail (Any)", "Swim"], talents: ["Fisherman", "Luck", "Orientation", "Strong Swimmer"] },
     level2: { title: "Merchant Adventurer", status: "Silver 3", characteristics: ["WS", "I", "Fel", "Ag"], skills: ["Athletics", "Charm", "Charm Animal", "Climb", "Consume Alcohol", "Drive", "Evaluate", "Gossip", "Haggle", "Language (Any)", "Melee (Basic)", "Melee (Brawling)", "Navigation", "Ranged (Bow)", "Sail (Any)", "Swim"], talents: ["Dirty Fighting", "Fisherman", "Luck", "Old Salt", "Orientation", "Pilot", "Seasoned Traveller", "Strong Swimmer"] },
     level3: { title: "Sea Explorer", status: "Gold 1", characteristics: ["WS", "I", "Fel", "Ag", "Int"], skills: ["Athletics", "Bribery", "Charm", "Charm Animal", "Climb", "Consume Alcohol", "Cool", "Drive", "Endurance", "Evaluate", "Gossip", "Haggle", "Language (Any)", "Melee (Basic)", "Melee (Brawling)", "Navigation", "Ranged (Bow)", "Sail (Any)", "Swim"], talents: ["Coolheaded", "Detect Artifact", "Dirty Fighting", "Fisherman", "Iron Jaw", "Luck", "Old Salt", "Orientation", "Pilot", "Seasoned Traveller", "Strong Swimmer", "Sturdy"] },
