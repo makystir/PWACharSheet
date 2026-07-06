@@ -296,8 +296,8 @@ describe('registerServiceWorker', () => {
     expect(window.location.reload).toHaveBeenCalled();
   });
 
-  // --- Test 7: applyUpdate() sets error state on 5s timeout ---
-  it('applyUpdate() sets error state on 5s timeout (Req 4.6)', async () => {
+  // --- Test 7: applyUpdate() reloads on timeout (Req 4.6) ---
+  it('applyUpdate() reloads on timeout when controllerchange does not fire (Req 4.6)', async () => {
     vi.useFakeTimers();
     setupServiceWorkerAvailable();
     const waitingWorker = createMockWorker('installed');
@@ -318,18 +318,13 @@ describe('registerServiceWorker', () => {
     // Start applyUpdate
     const updatePromise = api.applyUpdate();
 
-    // Advance time by 5 seconds without firing controllerchange
-    vi.advanceTimersByTime(5000);
+    // Advance time by 10 seconds without firing controllerchange
+    vi.advanceTimersByTime(10000);
 
     await updatePromise;
 
-    // Should have notified with error
-    expect(listener).toHaveBeenCalledWith(
-      expect.objectContaining({
-        applying: false,
-        error: expect.stringContaining('timed out'),
-      }),
-    );
+    // Should have called reload (fallback behavior on timeout)
+    expect(window.location.reload).toHaveBeenCalled();
   });
 
   // --- Test 8: dismiss() sets updateAvailable to false ---

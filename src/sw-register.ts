@@ -55,7 +55,10 @@ export function registerServiceWorker(baseUrl: string): {
   async function applyUpdate(): Promise<void> {
     const waitingWorker = registration?.waiting;
     if (!waitingWorker) {
-      setState({ error: 'No waiting worker available' });
+      // The waiting worker might have been garbage collected or already activated.
+      // Fall back to a hard reload.
+      setState({ applying: true, error: null });
+      window.location.reload();
       return;
     }
 
@@ -64,9 +67,9 @@ export function registerServiceWorker(baseUrl: string): {
     const message: SkipWaitingMessage = { type: 'SKIP_WAITING' };
     waitingWorker.postMessage(message);
 
-    // Set up a 5-second timeout for controller change
+    // Set up a 10-second timeout for controller change
     const timeout = new Promise<'timeout'>((resolve) =>
-      setTimeout(() => resolve('timeout'), 5000),
+      setTimeout(() => resolve('timeout'), 10000),
     );
 
     const controllerChanged = new Promise<'changed'>((resolve) => {
@@ -78,10 +81,8 @@ export function registerServiceWorker(baseUrl: string): {
     const result = await Promise.race([timeout, controllerChanged]);
 
     if (result === 'timeout') {
-      setState({
-        applying: false,
-        error: 'Update timed out. Please reload the page manually.',
-      });
+      // Even if the SW didn't signal controller change, a reload will pick up the new version
+      window.location.reload();
     } else {
       // controllerchange fired — reload the page
       window.location.reload();
