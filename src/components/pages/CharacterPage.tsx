@@ -22,7 +22,7 @@ import { TALENT_DB } from '../../data/talents';
 import { TRAPPING_LIST } from '../../data/trappings';
 import { CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme, getCareerSkills } from '../../logic/careers';
-import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, computeAPByLocation, getBonus } from '../../logic/calculators';
+import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, calculateArmourPoints, getBonus } from '../../logic/calculators';
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../logic/tooltip-content';
 import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
@@ -1028,15 +1028,15 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
       {/* AP Auto-Calculation */}
       {(() => {
-        const computedAP = computeAPByLocation(character.armour);
+        const computedAP = calculateArmourPoints(character.armour);
         const manualAP = character.ap;
         const locations: { key: 'head' | 'lArm' | 'rArm' | 'body' | 'lLeg' | 'rLeg'; computedKey: keyof typeof computedAP; label: string }[] = [
           { key: 'head', computedKey: 'head', label: 'Head' },
-          { key: 'lArm', computedKey: 'leftArm', label: 'L Arm' },
-          { key: 'rArm', computedKey: 'rightArm', label: 'R Arm' },
+          { key: 'lArm', computedKey: 'lArm', label: 'L Arm' },
+          { key: 'rArm', computedKey: 'rArm', label: 'R Arm' },
           { key: 'body', computedKey: 'body', label: 'Body' },
-          { key: 'lLeg', computedKey: 'leftLeg', label: 'L Leg' },
-          { key: 'rLeg', computedKey: 'rightLeg', label: 'R Leg' },
+          { key: 'lLeg', computedKey: 'lLeg', label: 'L Leg' },
+          { key: 'rLeg', computedKey: 'rLeg', label: 'R Leg' },
         ];
         const hasAnyDiscrepancy = locations.some(loc => manualAP[loc.key] !== computedAP[loc.computedKey]);
 
@@ -1053,15 +1053,15 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                     ap: {
                       ...c.ap,
                       head: computedAP.head,
-                      lArm: computedAP.leftArm,
-                      rArm: computedAP.rightArm,
+                      lArm: computedAP.lArm,
+                      rArm: computedAP.rArm,
                       body: computedAP.body,
-                      lLeg: computedAP.leftLeg,
-                      rLeg: computedAP.rightLeg,
+                      lLeg: computedAP.lLeg,
+                      rLeg: computedAP.rLeg,
                     },
                   }));
                 }}
-                title="Set manual AP values to match computed values from worn armour"
+                title="Set manual AP values to match computed values from armour"
                 aria-label="Sync AP to computed values"
               >
                 Sync

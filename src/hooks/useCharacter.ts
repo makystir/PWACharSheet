@@ -8,7 +8,6 @@ import {
   calculateMaxEncumbrance,
   calculateCoinWeight,
   syncWoundFields,
-  computeAPByLocation,
 } from '../logic/calculators';
 import { syncTalentBonuses } from '../logic/talents';
 import { SPECIES_DATA } from '../data/species';
@@ -260,15 +259,15 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
   // Auto-sync character.ap whenever armour list changes
   useEffect(() => {
     setCharacter(prev => {
-      const computed = computeAPByLocation(prev.armour);
+      const computed = calculateArmourPoints(prev.armour);
       const ap = prev.ap;
       if (
         ap.head === computed.head &&
-        ap.lArm === computed.leftArm &&
-        ap.rArm === computed.rightArm &&
+        ap.lArm === computed.lArm &&
+        ap.rArm === computed.rArm &&
         ap.body === computed.body &&
-        ap.lLeg === computed.leftLeg &&
-        ap.rLeg === computed.rightLeg
+        ap.lLeg === computed.lLeg &&
+        ap.rLeg === computed.rLeg
       ) {
         return prev;
       }
@@ -277,11 +276,11 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
         ap: {
           ...prev.ap,
           head: computed.head,
-          lArm: computed.leftArm,
-          rArm: computed.rightArm,
+          lArm: computed.lArm,
+          rArm: computed.rArm,
           body: computed.body,
-          lLeg: computed.leftLeg,
-          rLeg: computed.rightLeg,
+          lLeg: computed.lLeg,
+          rLeg: computed.rLeg,
         },
       };
     });
