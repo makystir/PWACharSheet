@@ -235,7 +235,7 @@ function AppWithCharacter({
           characters={manager.characters}
           activeId={manager.activeId}
           onSwitchCharacter={(id) => { manager.switchCharacter(id, character); }}
-          onCreateCharacter={() => setShowWizard(true)}
+          onCreateCharacter={handleCreateFromSheet}
           onRenameCharacter={(id, name) => { manager.renameCharacter(id, name); manager.refresh(); }}
           onDuplicateCharacter={(id) => { manager.duplicateCharacter(id); manager.refresh(); }}
           onDeleteCharacter={(id) => { manager.deleteCharacter(id); manager.refresh(); }}
