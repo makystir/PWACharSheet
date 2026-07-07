@@ -17,6 +17,7 @@ const RetinuePage = lazy(() => import('./components/pages/RetinuePage'));
 const AdvancementPage = lazy(() => import('./components/pages/AdvancementPage'));
 const SettingsPage = lazy(() => import('./components/pages/SettingsPage'));
 import { CharacterWizard } from './components/shared/CharacterWizard';
+import { NewCharacterChoice } from './components/shared/NewCharacterChoice';
 import { CharacterManagementSheet } from './components/shared/CharacterManagementSheet';
 import { QuickActionBar } from './components/shared/QuickActionBar';
 import type { QuickAction } from './components/shared/QuickActionBar';
@@ -138,6 +139,7 @@ function AppWithCharacter({
   const { history: rollHistory, addRoll, clearHistory } = useRollHistory();
   const { theme: currentTheme, setTheme } = useTheme();
   const [showWizard, setShowWizard] = useState(false);
+  const [showNewCharChoice, setShowNewCharChoice] = useState(false);
   const [showCharSheet, setShowCharSheet] = useState(false);
   const charHeaderRef = useRef<HTMLButtonElement>(null);
 
@@ -180,6 +182,18 @@ function AppWithCharacter({
 
   const handleCreateFromSheet = () => {
     setShowCharSheet(false);
+    setShowNewCharChoice(true);
+  };
+
+  const handleNewCharQuickStart = (name: string) => {
+    manager.createCharacter(name);
+    manager.refresh();
+    setShowNewCharChoice(false);
+    navigate('character');
+  };
+
+  const handleNewCharWizard = () => {
+    setShowNewCharChoice(false);
     setShowWizard(true);
   };
 
@@ -266,6 +280,13 @@ function AppWithCharacter({
         <RollResultDisplay
           result={rollResultState}
           onClose={() => setRollResultState(null)}
+        />
+      )}
+      {showNewCharChoice && (
+        <NewCharacterChoice
+          onQuickStart={handleNewCharQuickStart}
+          onWizard={handleNewCharWizard}
+          onCancel={() => { setShowNewCharChoice(false); setShowCharSheet(true); }}
         />
       )}
       {showWizard && (
