@@ -172,6 +172,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
       <CollapsibleSection title="Armour" storageKey={`combat-armour-${characterId}`} defaultExpanded={true}>
         <ArmourMap armourPoints={armourPoints} armourList={character.armour}
           weapons={character.weapons}
+          toughnessBonus={TB}
           onDeleteArmour={(i) => {
             const armourPiece = character.armour[i];
             updateCharacter((c) => ({ ...c, armour: removeAtIndex(c.armour, i) }));

@@ -195,7 +195,42 @@
   }
 }
 
-/* Shield rating display */
+/* Shield and TB damage reduction summary */
+.damageReductionRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 12px;
+  background: rgba(200, 168, 76, 0.08);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.damageReductionItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-gold);
+}
+
+.damageReductionLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.damageReductionValue {
+  font-size: 18px;
+  font-weight: 900;
+  font-family: var(--font-heading);
+  color: var(--accent-gold);
+}
+
+/* Shield rating display (legacy, kept for compatibility) */
 .shieldRow {
   display: flex;
   align-items: center;

@@ -11,6 +11,7 @@ export interface ArmourMapProps {
   armourPoints: ArmourPoints;
   armourList: ArmourItem[];
   weapons?: WeaponData[];
+  toughnessBonus?: number;
   onDeleteArmour?: (armourIndex: number) => void;
   onUpdateArmour?: (armourIndex: number, field: keyof ArmourItem, value: string | number) => void;
   onOpenRuneManager?: (armourIndex: number) => void;
@@ -79,6 +80,7 @@ export function ArmourMap({
   armourPoints,
   armourList,
   weapons = [],
+  toughnessBonus,
   onDeleteArmour,
   onUpdateArmour,
   onOpenRuneManager,
@@ -140,11 +142,22 @@ export function ArmourMap({
         })}
       </div>
 
-      {/* Shield rating display */}
-      {shieldRating > 0 && (
-        <div className={styles.shieldRow} data-testid="shield-rating">
-          <Shield size={16} />
-          <span>Shield: +{shieldRating} AP when opposing attacks</span>
+      {/* Damage reduction summary: TB and Shield */}
+      {(toughnessBonus !== undefined || shieldRating > 0) && (
+        <div className={styles.damageReductionRow} data-testid="damage-reduction-summary">
+          {toughnessBonus !== undefined && (
+            <div className={styles.damageReductionItem}>
+              <span className={styles.damageReductionLabel}>TB</span>
+              <span className={styles.damageReductionValue}>{toughnessBonus}</span>
+            </div>
+          )}
+          {shieldRating > 0 && (
+            <div className={styles.damageReductionItem}>
+              <Shield size={14} />
+              <span className={styles.damageReductionLabel}>Shield</span>
+              <span className={styles.damageReductionValue}>+{shieldRating}</span>
+            </div>
+          )}
         </div>
       )}
 
