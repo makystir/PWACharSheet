@@ -710,22 +710,49 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         const intBonus = getBonus(character.chars.Int.i + character.chars.Int.a + character.chars.Int.b);
         const wpBonus = getBonus(character.chars.WP.i + character.chars.WP.a + character.chars.WP.b);
 
+        // Generate a cost schedule showing current position
+        const buildCostSchedule = (type: 'petty' | 'arcane' | 'miracle' | 'chaos', bonus: number, count: number) => {
+          const schedule: { from: number; to: number; cost: number; current: boolean }[] = [];
+          const maxShow = Math.max(count + 3, 6); // Show a few beyond current
+          for (let i = 0; i < maxShow; i++) {
+            const cost = getSpellLearningCost(type, i, bonus);
+            const tier = type === 'miracle' ? i : Math.floor(i / Math.max(bonus, 1));
+            const tierStart = type === 'miracle' ? i : tier * Math.max(bonus, 1);
+            const tierEnd = type === 'miracle' ? i + 1 : (tier + 1) * Math.max(bonus, 1);
+            // Only add new tier entries
+            if (schedule.length === 0 || schedule[schedule.length - 1].cost !== cost) {
+              schedule.push({ from: tierStart, to: tierEnd, cost, current: i === count });
+            } else if (i === count) {
+              schedule[schedule.length - 1].current = true;
+            }
+          }
+          return schedule;
+        };
+
         return (
           <Card>
             <SectionHeader icon={BookOpen} title="Learn Spells & Prayers" />
-            <div className={styles.talentHelpText}>
-              Spells and miracles cost XP to memorise. Cost increases as you learn more.
-            </div>
             <div className={styles.talentGrid}>
               {spellTypes.includes('petty') && (() => {
                 const currentCount = counts.petty;
                 const cost = getSpellLearningCost('petty', currentCount, wpBonus);
                 const canAfford = character.xpCur >= cost;
+                const schedule = buildCostSchedule('petty', wpBonus, currentCount);
                 return (
                   <div className={styles.talentCardInCareer}>
                     <div className={styles.talentName}>Petty Spells</div>
                     <div className={styles.talentMeta}>
-                      Known: {currentCount} (WP Bonus: {wpBonus}) | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                      Memorised: {currentCount} | WP Bonus: {wpBonus}
+                    </div>
+                    <div className={styles.talentMeta}>
+                      {schedule.map((s, i) => (
+                        <span key={i} style={s.current ? { fontWeight: 'bold', textDecoration: 'underline' } : undefined}>
+                          {i > 0 && ' → '}{s.cost} XP{s.from !== s.to - 1 ? ` (spells ${s.from + 1}–${s.to})` : ` (spell ${s.from + 1})`}
+                        </span>
+                      ))}
+                    </div>
+                    <div className={styles.talentMeta}>
+                      Next spell costs: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
                     </div>
                     <button type="button" disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}
                       onClick={() => { setSpellLearningType('petty'); setShowSpellLearningPicker(true); }}>
@@ -739,11 +766,22 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                 const cost = getSpellLearningCost('arcane', currentCount, intBonus);
                 const canAfford = character.xpCur >= cost;
                 const loreName = character.talents.find(t => t.n.startsWith('Arcane Magic'))?.n ?? 'Arcane Magic';
+                const schedule = buildCostSchedule('arcane', intBonus, currentCount);
                 return (
                   <div className={styles.talentCardInCareer}>
                     <div className={styles.talentName}>{loreName} Spells</div>
                     <div className={styles.talentMeta}>
-                      Known: {currentCount} (Int Bonus: {intBonus}) | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                      Memorised: {currentCount} | Int Bonus: {intBonus}
+                    </div>
+                    <div className={styles.talentMeta}>
+                      {schedule.map((s, i) => (
+                        <span key={i} style={s.current ? { fontWeight: 'bold', textDecoration: 'underline' } : undefined}>
+                          {i > 0 && ' → '}{s.cost} XP{s.from !== s.to - 1 ? ` (spells ${s.from + 1}–${s.to})` : ` (spell ${s.from + 1})`}
+                        </span>
+                      ))}
+                    </div>
+                    <div className={styles.talentMeta}>
+                      Next spell costs: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
                     </div>
                     <button type="button" disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}
                       onClick={() => { setSpellLearningType('arcane'); setShowSpellLearningPicker(true); }}>
@@ -761,7 +799,12 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                   <div className={styles.talentCardInCareer}>
                     <div className={styles.talentName}>{loreName} — Miracles</div>
                     <div className={styles.talentMeta}>
-                      Known: {currentCount} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                      Memorised: {currentCount} | Cost: 100 XP × miracles known
+                    </div>
+                    <div className={styles.talentMeta}>
+                      {currentCount === 0 ? 'First miracle: ' : `Next miracle (#${currentCount + 1}): `}
+                      <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                      {currentCount > 0 && ` (100 × ${currentCount})`}
                     </div>
                     <button type="button" disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}
                       onClick={() => { setSpellLearningType('miracle'); setShowSpellLearningPicker(true); }}>
@@ -771,7 +814,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                 );
               })()}
               {spellTypes.includes('chaos') && (() => {
-                const currentCount = counts.arcane + counts.petty; // chaos spells count with arcane
+                const currentCount = counts.arcane + counts.petty;
                 const cost = getSpellLearningCost('chaos', currentCount, 0);
                 const canAfford = character.xpCur >= cost;
                 const loreName = character.talents.find(t => t.n.startsWith('Chaos Magic'))?.n ?? 'Chaos Magic';
@@ -779,7 +822,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                   <div className={styles.talentCardInCareer}>
                     <div className={styles.talentName}>{loreName} Spells</div>
                     <div className={styles.talentMeta}>
-                      Known: {currentCount} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                      Always 100 XP per spell (plus 1 Corruption point)
+                    </div>
+                    <div className={styles.talentMeta}>
+                      Next spell: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
                     </div>
                     <button type="button" disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}
                       onClick={() => { setSpellLearningType('chaos'); setShowSpellLearningPicker(true); }}>
