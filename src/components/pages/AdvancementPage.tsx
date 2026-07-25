@@ -7,9 +7,10 @@ import { Picker } from '../shared/Picker';
 import { Tooltip } from '../shared/Tooltip';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell } from '../../logic/advancement';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
+import { SPELL_LIST } from '../../data/spells';
 import { resolveTalentTooltip, resolveSkillTooltip } from '../../logic/tooltip-content';
 import type { TooltipContent } from '../../logic/tooltip-content';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
@@ -66,6 +67,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   };
   const [showArchive, setShowArchive] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showSpellLearningPicker, setShowSpellLearningPicker] = useState(false);
+  const [spellLearningType, setSpellLearningType] = useState<'petty' | 'arcane' | 'miracle' | 'chaos'>('petty');
 
   const handleTalentTooltip = (talentName: string, characterDesc: string, event: React.MouseEvent) => {
     const content = resolveTalentTooltip(talentName, characterDesc);
@@ -298,6 +301,20 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       });
     });
     setRedoStack([]);
+  };
+
+  // Learn spell from picker
+  const handleLearnSpell = (spellData: typeof SPELL_LIST[number]) => {
+    const counts = countMemorizedByType(character);
+    const intBonus = getBonus(character.chars.Int.i + character.chars.Int.a + character.chars.Int.b);
+    const wpBonus = getBonus(character.chars.WP.i + character.chars.WP.a + character.chars.WP.b);
+    const charBonus = spellLearningType === 'petty' ? wpBonus : intBonus;
+    const currentCount = counts[spellLearningType];
+    const cost = getSpellLearningCost(spellLearningType, currentCount, charBonus);
+
+    updateCharacter((c) => archiveOldEntries(learnSpell(c, spellData, spellLearningType, cost)));
+    setRedoStack([]);
+    setShowSpellLearningPicker(false);
   };
 
   const careerNames = character.class ? getCareersByClass(character.class) : Object.keys(CAREER_SCHEMES);
@@ -685,6 +702,97 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
 
       <SwordDancingPanel character={character} updateCharacter={updateCharacter} />
 
+      {/* Spell & Miracle Learning */}
+      {hasSpellcastingTalent(character) && (() => {
+        const spellTypes = getSpellcastingTypes(character);
+        if (spellTypes.length === 0) return null;
+        const counts = countMemorizedByType(character);
+        const intBonus = getBonus(character.chars.Int.i + character.chars.Int.a + character.chars.Int.b);
+        const wpBonus = getBonus(character.chars.WP.i + character.chars.WP.a + character.chars.WP.b);
+
+        return (
+          <Card>
+            <SectionHeader icon={BookOpen} title="Learn Spells & Prayers" />
+            <div className={styles.talentHelpText}>
+              Spells and miracles cost XP to memorise. Cost increases as you learn more.
+            </div>
+            <div className={styles.talentGrid}>
+              {spellTypes.includes('petty') && (() => {
+                const currentCount = counts.petty;
+                const cost = getSpellLearningCost('petty', currentCount, wpBonus);
+                const canAfford = character.xpCur >= cost;
+                return (
+                  <div className={styles.talentCardInCareer}>
+                    <div className={styles.talentName}>Petty Spells</div>
+                    <div className={styles.talentMeta}>
+                      Known: {currentCount} (WP Bonus: {wpBonus}) | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                    </div>
+                    <button type="button" disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}
+                      onClick={() => { setSpellLearningType('petty'); setShowSpellLearningPicker(true); }}>
+                      Learn Petty Spell ({cost} XP)
+                    </button>
+                  </div>
+                );
+              })()}
+              {spellTypes.includes('arcane') && (() => {
+                const currentCount = counts.arcane;
+                const cost = getSpellLearningCost('arcane', currentCount, intBonus);
+                const canAfford = character.xpCur >= cost;
+                const loreName = character.talents.find(t => t.n.startsWith('Arcane Magic'))?.n ?? 'Arcane Magic';
+                return (
+                  <div className={styles.talentCardInCareer}>
+                    <div className={styles.talentName}>{loreName} Spells</div>
+                    <div className={styles.talentMeta}>
+                      Known: {currentCount} (Int Bonus: {intBonus}) | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                    </div>
+                    <button type="button" disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}
+                      onClick={() => { setSpellLearningType('arcane'); setShowSpellLearningPicker(true); }}>
+                      Learn Arcane Spell ({cost} XP)
+                    </button>
+                  </div>
+                );
+              })()}
+              {spellTypes.includes('miracle') && (() => {
+                const currentCount = counts.miracle;
+                const cost = getSpellLearningCost('miracle', currentCount, 0);
+                const canAfford = character.xpCur >= cost;
+                const loreName = character.talents.find(t => t.n.startsWith('Invoke'))?.n ?? 'Invoke';
+                return (
+                  <div className={styles.talentCardInCareer}>
+                    <div className={styles.talentName}>{loreName} — Miracles</div>
+                    <div className={styles.talentMeta}>
+                      Known: {currentCount} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                    </div>
+                    <button type="button" disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}
+                      onClick={() => { setSpellLearningType('miracle'); setShowSpellLearningPicker(true); }}>
+                      Learn Miracle ({cost} XP)
+                    </button>
+                  </div>
+                );
+              })()}
+              {spellTypes.includes('chaos') && (() => {
+                const currentCount = counts.arcane + counts.petty; // chaos spells count with arcane
+                const cost = getSpellLearningCost('chaos', currentCount, 0);
+                const canAfford = character.xpCur >= cost;
+                const loreName = character.talents.find(t => t.n.startsWith('Chaos Magic'))?.n ?? 'Chaos Magic';
+                return (
+                  <div className={styles.talentCardInCareer}>
+                    <div className={styles.talentName}>{loreName} Spells</div>
+                    <div className={styles.talentMeta}>
+                      Known: {currentCount} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                    </div>
+                    <button type="button" disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}
+                      onClick={() => { setSpellLearningType('chaos'); setShowSpellLearningPicker(true); }}>
+                      Learn Chaos Spell ({cost} XP)
+                    </button>
+                  </div>
+                );
+              })()}
+            </div>
+          </Card>
+        );
+      })()}
+
       {/* Career Scheme Display */}
       {scheme && (
         <Card>
@@ -824,6 +932,22 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       )}
       {showSwitchCareerPicker && (
         <Picker items={Object.keys(CAREER_SCHEMES).filter(c => c !== character.career)} getLabel={(c) => c} getGroup={(c) => { const s = getCareerScheme(c); return s ? s.class : 'Other'; }} onSelect={handleSwitchCareer} onClose={() => setShowSwitchCareerPicker(false)} title="Switch to Career" />
+      )}
+      {showSpellLearningPicker && (
+        <Picker
+          items={SPELL_LIST.filter(s => {
+            // Filter spells not already known
+            const alreadyKnown = character.spells.some(cs => cs.name === s.name);
+            if (alreadyKnown) return false;
+            // Filter by type
+            if (spellLearningType === 'petty') return s.cn === '0';
+            return s.cn !== '0'; // arcane, miracle, and chaos all have CN > 0
+          })}
+          getLabel={(s) => `${s.name} (CN ${s.cn})`}
+          onSelect={handleLearnSpell}
+          onClose={() => setShowSpellLearningPicker(false)}
+          title={`Learn ${spellLearningType === 'petty' ? 'Petty Spell' : spellLearningType === 'arcane' ? 'Arcane Spell' : spellLearningType === 'miracle' ? 'Miracle' : 'Chaos Spell'}`}
+        />
       )}
 
       {activeTooltip && (

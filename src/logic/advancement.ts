@@ -279,6 +279,126 @@ export function hasRuneMagicTalent(character: Character): boolean {
 }
 
 /**
+ * WFRP 4e spell/miracle XP cost calculation.
+ *
+ * Petty Spells: 50 XP per spell up to WP Bonus×1, 100 XP up to WP Bonus×2, etc.
+ * Arcane Lore Spells: 100 XP per spell up to Int Bonus×1, 200 XP up to Int Bonus×2, etc.
+ * Miracles (Invoke): 100 XP × number of miracles currently known.
+ * Blessings: Free (all 6 granted with the Bless talent).
+ * Chaos Magic: Always 100 XP per spell.
+ */
+export function getSpellLearningCost(
+  spellType: 'petty' | 'arcane' | 'miracle' | 'chaos',
+  spellsCurrentlyKnown: number,
+  characteristicBonus: number
+): number {
+  switch (spellType) {
+    case 'petty': {
+      // 50 XP per tier (WP Bonus spells per tier)
+      const tier = Math.floor(spellsCurrentlyKnown / Math.max(characteristicBonus, 1)) + 1;
+      return tier * 50;
+    }
+    case 'arcane': {
+      // 100 XP per tier (Int Bonus spells per tier)
+      const tier = Math.floor(spellsCurrentlyKnown / Math.max(characteristicBonus, 1)) + 1;
+      return tier * 100;
+    }
+    case 'miracle': {
+      // 100 XP × miracles currently known
+      return 100 * Math.max(spellsCurrentlyKnown, 1);
+    }
+    case 'chaos': {
+      // Always 100 XP
+      return 100;
+    }
+  }
+}
+
+/**
+ * Determine what kind of spellcasting the character has based on their talents.
+ * Returns an array of spell types available to the character.
+ */
+export function getSpellcastingTypes(character: Character): Array<'petty' | 'arcane' | 'miracle' | 'chaos'> {
+  const types: Array<'petty' | 'arcane' | 'miracle' | 'chaos'> = [];
+  for (const t of character.talents) {
+    if (t.n === 'Petty Magic' && !types.includes('petty')) types.push('petty');
+    if (t.n.startsWith('Arcane Magic') && !types.includes('arcane')) types.push('arcane');
+    if (t.n.startsWith('Invoke') && !types.includes('miracle')) types.push('miracle');
+    if (t.n.startsWith('Chaos Magic') && !types.includes('chaos')) types.push('chaos');
+  }
+  return types;
+}
+
+/**
+ * Count how many spells/miracles of each type the character currently knows (memorized).
+ */
+export function countMemorizedByType(character: Character): { petty: number; arcane: number; miracle: number; chaos: number } {
+  // Count based on CN: petty spells have CN 0, arcane/chaos have CN > 0, miracles are identified by Invoke talent presence
+  // We need a heuristic since SpellItem doesn't track type directly.
+  // Convention: CN "0" or "-" = petty spell; otherwise arcane/miracle/chaos
+  // To distinguish miracles from arcane, we check if character has Invoke vs Arcane Magic talent.
+  const hasMiracles = character.talents.some(t => t.n.startsWith('Invoke'));
+  const hasArcane = character.talents.some(t => t.n.startsWith('Arcane Magic'));
+  const hasChaos = character.talents.some(t => t.n.startsWith('Chaos Magic'));
+
+  let petty = 0;
+  let arcane = 0;
+  let miracle = 0;
+  let chaos = 0;
+
+  for (const spell of character.spells) {
+    if (!spell.memorized) continue;
+    const cn = parseInt(spell.cn, 10);
+    if (isNaN(cn) || cn === 0) {
+      petty++;
+    } else if (hasMiracles && !hasArcane && !hasChaos) {
+      miracle++;
+    } else if (hasChaos && !hasArcane) {
+      chaos++;
+    } else {
+      // Default to arcane if character has arcane talent, or is ambiguous
+      arcane++;
+    }
+  }
+
+  return { petty, arcane, miracle, chaos };
+}
+
+/**
+ * Learn a spell: add it to the character's spell list as memorized, deduct XP, and log.
+ */
+export function learnSpell(
+  character: Character,
+  spell: { name: string; cn: string; range: string; target: string; duration: string; effect: string },
+  spellType: 'petty' | 'arcane' | 'miracle' | 'chaos',
+  cost: number
+): Character {
+  if (character.xpCur < cost) return { ...character };
+
+  const counts = countMemorizedByType(character);
+  const currentCount = counts[spellType];
+
+  const entry: AdvancementEntry = {
+    timestamp: Date.now(),
+    type: 'spell',
+    name: spell.name,
+    from: currentCount,
+    to: currentCount + 1,
+    xpCost: cost,
+    careerLevel: character.careerLevel,
+    inCareer: true,
+  };
+
+  return {
+    ...character,
+    spells: [...character.spells, { ...spell, memorized: true }],
+    xpCur: character.xpCur - cost,
+    xpSpent: character.xpSpent + cost,
+    advancementLog: [...character.advancementLog, entry],
+  };
+}
+
+/**
  * Apply a single characteristic advance, deduct XP, and log the entry.
  */
 export function advanceCharacteristic(
@@ -630,14 +750,19 @@ export function undoAdvancement(character: Character): UndoResult | null {
       };
     }
 
+    case 'spell': {
+      // Remove the last memorized spell with this name
+      const spellIdx = base.spells.findLastIndex(s => s.name === entry.name && s.memorized);
+      if (spellIdx >= 0) {
+        const newSpells = base.spells.filter((_, i) => i !== spellIdx);
+        return { character: { ...base, spells: newSpells }, undoneEntry: entry };
+      }
+      return { character: base, undoneEntry: entry };
+    }
+
     default:
       return { character: base, undoneEntry: entry };
   }
-}
-
-/** Result of a redo operation */
-export interface RedoResult {
-  character: Character;
 }
 
 /**
@@ -736,6 +861,12 @@ export function redoAdvancement(character: Character, entry: AdvancementEntry): 
           careerPath: newPath,
         },
       };
+    }
+
+    case 'spell': {
+      // Re-add the spell as memorized
+      const newSpells = [...base.spells, { name: entry.name, cn: '', range: '', target: '', duration: '', effect: '', memorized: true }];
+      return { character: { ...base, spells: newSpells } };
     }
 
     default:
