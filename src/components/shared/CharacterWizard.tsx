@@ -94,11 +94,11 @@ function rollD100(): number {
 // ─── Species-restricted careers ──────────────────────────────────────────────
 // Slayer is Dwarf-only, Badger Rider is Halfling-only, Warrior of Tzeentch is excluded from normal creation
 const SPECIES_CAREER_EXCLUSIONS: Record<string, string[]> = {
-  'Human / Reiklander': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch'],
+  'Human / Reiklander': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
   'Dwarf': ['Badger Rider', 'Warrior of Tzeentch'],
-  'Halfling': ['Slayer', 'Ironbreaker', 'Warrior of Tzeentch'],
-  'High Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch'],
-  'Wood Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch'],
+  'Halfling': ['Slayer', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
+  'High Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
+  'Wood Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
 };
 
 function getExclusionsForSpecies(species: string): string[] {

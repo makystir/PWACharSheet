@@ -612,6 +612,7 @@ describe('Dwarf Players Guide — Alternate Careers', () => {
     { name: 'Soldier (Axefighter)', cls: 'Warriors' },
     { name: 'Soldier (Quarreller)', cls: 'Warriors' },
     { name: 'Soldier (Thunderer)', cls: 'Warriors' },
+    { name: 'Handgunner (Thunderer)', cls: 'Warriors' },
   ];
 
   it('all alternate career entries exist with correct class', () => {
@@ -1113,6 +1114,7 @@ describe('Up in Arms — Career Properties', () => {
       'Messenger (Runebearer)',
       'Slayer (Brother of Grimnir)', 'Slayer (Doomseeker)', 'Slayer (War-mourner)',
       'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)',
+      'Handgunner (Thunderer)',
     ]);
 
     for (const [name, scheme] of Object.entries(CAREER_SCHEMES)) {
