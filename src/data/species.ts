@@ -20,7 +20,7 @@ export const SPECIES_DATA: Record<string, SpeciesData> = {
     extraPoints: 2,
     woundsUseSB: true,
     skills: ["Consume Alcohol", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Intimidate", "Language (Khazalid)", "Lore (Dwarfs)", "Lore (Geology)", "Lore (Metallurgy)", "Melee (Basic)", "Trade (Any)"],
-    talents: ["Magic Resistance", "Night Vision", "Read/Write", "Resolute or Strong-minded"],
+    talents: ["Magic Resistance", "Night Vision", "Read/Write or Relentless", "Resolute or Strong-minded", "Sturdy"],
   },
   "Dwarfs (Karaz-a-Karak)": {
     chars: { WS: 30, BS: 20, S: 20, T: 30, I: 20, Ag: 10, Dex: 30, Int: 20, WP: 40, Fel: 10 } as Record<CharacteristicKey, number>,
@@ -161,7 +161,7 @@ export const SPECIES_DATA: Record<string, SpeciesData> = {
     extraPoints: 2,
     woundsUseSB: true,
     skills: ["Athletics", "Climb", "Endurance", "Entertain (Sing)", "Intimidate", "Language (Eltharin)", "Melee (Basic)", "Outdoor Survival", "Perception", "Ranged (Bow)", "Stealth (Rural)", "Track"],
-    talents: ["Acute Sense (Sight)", "Hardy or Second Sight", "Night Vision", "Read/Write", "Rover or Strider (Woodlands)"],
+    talents: ["Acute Sense (Sight)", "Hardy or Second Sight", "Night Vision", "Read/Write or Very Resilient", "Rover"],
   },
   "High Elves (Caledor)": {
     chars: { WS: 30, BS: 30, S: 20, T: 20, I: 40, Ag: 30, Dex: 30, Int: 30, WP: 30, Fel: 20 } as Record<CharacteristicKey, number>,
