@@ -28,4 +28,16 @@ export const TRAPPING_LIST: TrappingData[] = [
   {name:"Bow String",enc:"0"},{name:"Whetstone",enc:"0"},
   {name:"Sealskin",enc:"1"},{name:"Silk Underwear",enc:"0"},
   {name:"Captain Braun's Multi-Stove",enc:"3"},{name:"Captain Braun's Insta-Boiler",enc:"2"},
+  // WINDS OF MAGIC - Magical Equipment
+  {name:"Practical Robes",enc:"1"},{name:"Standard Robes",enc:"2"},{name:"Elaborate Robes",enc:"4"},
+  {name:"Enchanted Staff",enc:"2"},
+  {name:"Power Stone (True Sapphires, Hysh)",enc:"0"},
+  {name:"Power Stone (Endstones, Shyish)",enc:"0"},
+  {name:"Power Stone (Ghost Amber, Ghur)",enc:"0"},
+  {name:"Power Stone (Lumen Stones, Azyr)",enc:"0"},
+  {name:"Power Stone (Fire Rubies, Aqshy)",enc:"0"},
+  {name:"Power Stone (Goldstone, Chamon)",enc:"0"},
+  {name:"Power Stone (Crystal Mist, Ulgu)",enc:"0"},
+  {name:"Power Stone (Vitaellum, Ghyran)",enc:"0"},
+  {name:"Scroll",enc:"0"},
 ];

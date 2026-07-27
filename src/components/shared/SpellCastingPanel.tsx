@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Character, SpellItem } from '../../types/character';
+import type { Character, SpellItem, MagicSaturation } from '../../types/character';
 import type { RollResult } from '../../logic/dice-roller';
 import {
   computeCastingTarget,
@@ -7,6 +7,7 @@ import {
   resolveCastingResult,
   resolveChannellingResult,
   lookupMiscast,
+  getArmourCastingPenalty,
   type CastingResult,
   type MiscastResult,
 } from '../../logic/spell-casting';
@@ -17,6 +18,22 @@ import { RollDialog } from '../shared/RollDialog';
 import { CastResultDisplay } from './CastResultDisplay';
 import { Sparkles } from 'lucide-react';
 import styles from './SpellCastingPanel.module.css';
+
+const SATURATION_LABELS: Record<MagicSaturation, string> = {
+  low: 'Low',
+  normal: 'Normal',
+  heavy: 'Heavy',
+  extreme: 'Extreme',
+  corrupted: 'Corrupted',
+};
+
+const SATURATION_MODIFIERS: Record<MagicSaturation, string> = {
+  low: '−1 SL on Casting/Channelling tests',
+  normal: 'No modifier',
+  heavy: '+1 SL for dominant Lore',
+  extreme: '+2 SL dominant Lore / +1 SL other Lores',
+  corrupted: 'Special — consult GM',
+};
 
 interface SpellCastingPanelProps {
   character: Character;
@@ -96,7 +113,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
       // Channelling resolution
       const cn = parseInt(spell.cn, 10) || 0;
       const currentProgress = getChannellingProgress(spell.name)?.accumulatedSL ?? 0;
-      const channelResult = resolveChannellingResult(result, currentProgress, cn);
+      const channelResult = resolveChannellingResult(result, currentProgress, cn, character);
 
       updateCharacter((c) => {
         const existing = c.channellingProgress.find((cp) => cp.spellName === spell.name);
@@ -212,6 +229,48 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
         {!canCastSpells && (
           <div className={styles.readOnlyBanner}>
             Spellcasting talent required — spells shown in read-only mode.
+          </div>
+        )}
+
+        {/* Armour casting penalty note */}
+        {canCastSpells && (() => {
+          const armourPenalty = getArmourCastingPenalty(character);
+          return armourPenalty > 0 ? (
+            <div className={styles.armourPenaltyNote}>
+              ⚠️ Armour Penalty: −{armourPenalty} SL on Casting/Channelling tests (highest AP location: {armourPenalty} AP)
+            </div>
+          ) : null;
+        })()}
+
+        {/* Environmental Saturation */}
+        {canCastSpells && (
+          <div className={styles.saturationRow}>
+            <label className={styles.saturationLabel} htmlFor="magic-saturation-select">
+              Magic Saturation:
+            </label>
+            <select
+              id="magic-saturation-select"
+              className={styles.saturationSelect}
+              value={character.sessionState.magicSaturation ?? 'normal'}
+              onChange={(e) => {
+                const val = e.target.value as MagicSaturation;
+                updateCharacter((c) => ({
+                  ...c,
+                  sessionState: { ...c.sessionState, magicSaturation: val },
+                }));
+              }}
+            >
+              {(Object.keys(SATURATION_LABELS) as MagicSaturation[]).map((level) => (
+                <option key={level} value={level}>
+                  {SATURATION_LABELS[level]}
+                </option>
+              ))}
+            </select>
+            {(character.sessionState.magicSaturation ?? 'normal') !== 'normal' && (
+              <span className={styles.saturationModifier}>
+                {SATURATION_MODIFIERS[character.sessionState.magicSaturation ?? 'normal']}
+              </span>
+            )}
           </div>
         )}
 
@@ -366,6 +425,12 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
           onCriticalChoice={handleCriticalChoice}
           onMiscastRoll={handleMiscastRoll}
           onOvercastAllocated={handleOvercastAllocated}
+          onArcaneMarkAcquired={(mark: string) => {
+            updateCharacter((c) => ({
+              ...c,
+              arcaneMarks: [...(c.arcaneMarks ?? []), mark],
+            }));
+          }}
           onClose={handleCloseCastResult}
         />
       )}

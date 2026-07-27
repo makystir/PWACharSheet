@@ -7,10 +7,11 @@ import { Picker } from '../shared/Picker';
 import { Tooltip } from '../shared/Tooltip';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual } from '../../logic/advancement';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
 import { SPELL_LIST } from '../../data/spells';
+import { RITUAL_LIST } from '../../data/rituals';
 import { resolveTalentTooltip, resolveSkillTooltip } from '../../logic/tooltip-content';
 import type { TooltipContent } from '../../logic/tooltip-content';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
@@ -69,6 +70,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSpellLearningPicker, setShowSpellLearningPicker] = useState(false);
   const [spellLearningType, setSpellLearningType] = useState<'petty' | 'arcane' | 'miracle' | 'chaos'>('petty');
+  const [showRitualPicker, setShowRitualPicker] = useState(false);
 
   const handleTalentTooltip = (talentName: string, characterDesc: string, event: React.MouseEvent) => {
     const content = resolveTalentTooltip(talentName, characterDesc);
@@ -315,6 +317,13 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     updateCharacter((c) => archiveOldEntries(learnSpell(c, spellData, spellLearningType, cost)));
     setRedoStack([]);
     setShowSpellLearningPicker(false);
+  };
+
+  // Learn ritual from picker
+  const handleLearnRitual = (ritual: typeof RITUAL_LIST[number]) => {
+    updateCharacter((c) => archiveOldEntries(learnRitual(c, ritual)));
+    setRedoStack([]);
+    setShowRitualPicker(false);
   };
 
   const careerNames = character.class ? getCareersByClass(character.class) : Object.keys(CAREER_SCHEMES);
@@ -835,6 +844,77 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                 );
               })()}
             </div>
+          </Card>
+        );
+      })()}
+
+      {/* Ritual Learning */}
+      {hasRitualMagicTalent(character) && (() => {
+        const characterLore = getCharacterLore(character);
+        const learnedRitualNames = new Set((character.rituals ?? []).map(r => r.name));
+
+        // Filter rituals by character's lore
+        const availableRituals = RITUAL_LIST.filter(r => {
+          if (learnedRitualNames.has(r.name)) return false;
+          // "Any" or "Any Lore" rituals are always available
+          if (r.type === 'Any' || r.type === 'Any Lore') return true;
+          // "Any Lore of the Eight Winds" is available to any Arcane Magic holder
+          if (r.type === 'Any Lore of the Eight Winds') {
+            return character.talents.some(t => t.n.startsWith('Arcane Magic'));
+          }
+          // Check if the ritual's type matches the character's lore
+          if (!characterLore) return false;
+          // Direct lore match: "Lore of Beasts" matches talent "Arcane Magic (Beasts)"
+          if (r.type.includes(characterLore) || r.type.includes(`Lore of ${characterLore}`)) return true;
+          return false;
+        });
+
+        return (
+          <Card>
+            <SectionHeader icon={ScrollText} title="Learn Rituals" />
+            <div className={styles.talentHelpText}>
+              Rituals cost their listed Learning XP to acquire. Available rituals depend on your Lore.
+            </div>
+            {(character.rituals ?? []).length > 0 && (
+              <>
+                <div className={styles.talentGroupLabelInCareer}>Known Rituals ({(character.rituals ?? []).length})</div>
+                <div className={styles.talentGrid}>
+                  {(character.rituals ?? []).map(r => (
+                    <div key={r.name} className={styles.talentCardInCareer}>
+                      <div className={styles.talentName}>{r.name}</div>
+                      <div className={styles.talentMeta}>CN {r.cn} | {r.type}</div>
+                      <div className={styles.talentMeta}>{r.description}</div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            {availableRituals.length > 0 && (
+              <>
+                <div className={styles.talentGroupLabelOutCareer}>Available Rituals ({availableRituals.length})</div>
+                <div className={styles.talentGrid}>
+                  {availableRituals.map(r => {
+                    const canAfford = character.xpCur >= r.learningXP;
+                    return (
+                      <div key={r.name} className={styles.talentCardOutCareer}>
+                        <div className={styles.talentName}>{r.name}</div>
+                        <div className={styles.talentMeta}>CN {r.cn} | {r.type}</div>
+                        <div className={styles.talentMeta}>{r.description}</div>
+                        <div className={styles.talentMeta}>
+                          Cost: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{r.learningXP} XP</span>
+                        </div>
+                        <button type="button" onClick={() => handleLearnRitual(r)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
+                          Learn ({r.learningXP} XP)
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            {availableRituals.length === 0 && (character.rituals ?? []).length === 0 && (
+              <div className={styles.talentMeta}>No rituals available for your Lore.</div>
+            )}
           </Card>
         );
       })()}

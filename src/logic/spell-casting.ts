@@ -1,6 +1,6 @@
-import type { Character, SpellItem } from '../types/character';
+import type { Character, ArmourItem, SpellItem } from '../types/character';
 import type { RollResult } from './dice-roller';
-import { getBonus } from './calculators';
+import { getBonus, computeAPByLocation } from './calculators';
 import {
   MINOR_MISCAST_TABLE,
   MAJOR_MISCAST_TABLE,
@@ -19,6 +19,7 @@ export interface CastingResult {
   castSuccess: boolean;
   surplusSL: number;
   overcastSlots: number;
+  overcastAllocation: OvercastAllocation | null;
   isCriticalCast: boolean;
   isFumbledCast: boolean;
   triggerMinorMiscast: boolean;
@@ -32,10 +33,118 @@ export interface CastingResult {
 
 /** Overcast option descriptor */
 export interface OvercastOption {
-  category: 'range' | 'aoe' | 'duration' | 'targets';
+  category: 'range' | 'aoe' | 'duration' | 'targets' | 'damage';
   label: string;
   baseValue: string;
   enabled: boolean;
+}
+
+// ─── Revised Overcast Table (Winds of Magic) ──────────────────────────────────
+
+/** A single row in the Overcast Table keyed by SL threshold */
+export interface OvercastTableRow {
+  sl: number;
+  targets: string;
+  damage: number;
+  range: string;
+  aoe: string;
+  duration: string;
+}
+
+/**
+ * The Winds of Magic Overcast Table.
+ * SL thresholds follow a Fibonacci-like progression: 1, 2, 3, 5, 8, 13, 21+.
+ * Each row defines the effect gained when the allocated SL meets or exceeds that threshold.
+ * The highest matching row determines the effect for each column.
+ */
+export const OVERCAST_TABLE: OvercastTableRow[] = [
+  { sl: 1,  targets: '+1 Target',  damage: 1, range: '2× Range', aoe: 'Listed AoE',  duration: 'Listed Duration' },
+  { sl: 2,  targets: '+1 Target',  damage: 2, range: '2× Range', aoe: 'Listed AoE',  duration: '2× Duration' },
+  { sl: 3,  targets: '+1 Target',  damage: 3, range: '2× Range', aoe: '2× AoE',      duration: '2× Duration' },
+  { sl: 5,  targets: '+2 Targets', damage: 4, range: '3× Range', aoe: '2× AoE',      duration: '2× Duration' },
+  { sl: 8,  targets: '+2 Targets', damage: 5, range: '3× Range', aoe: '2× AoE',      duration: '3× Duration' },
+  { sl: 13, targets: '+2 Targets', damage: 6, range: '3× Range', aoe: '2× AoE',      duration: '3× Duration' },
+  { sl: 21, targets: '+3 Targets', damage: 7, range: '4× Range', aoe: '3× AoE',      duration: '3× Duration' },
+];
+
+/** The result of looking up a single column in the overcast table */
+export interface OvercastColumnEffect {
+  category: 'targets' | 'damage' | 'range' | 'aoe' | 'duration';
+  slSpent: number;
+  effect: string;
+}
+
+/** Full overcast allocation result for a single casting */
+export interface OvercastAllocation {
+  surplusSL: number;
+  columnEffects: OvercastColumnEffect[];
+  unspentSL: number;
+}
+
+/**
+ * Look up the overcast effect for a given column based on allocated SL.
+ * Returns the highest row where allocated SL >= row threshold, or null if SL < 1.
+ */
+export function lookupOvercastEffect(
+  column: 'targets' | 'damage' | 'range' | 'aoe' | 'duration',
+  allocatedSL: number,
+): string | null {
+  if (allocatedSL < 1) return null;
+
+  let bestRow: OvercastTableRow | null = null;
+  for (const row of OVERCAST_TABLE) {
+    if (allocatedSL >= row.sl) {
+      bestRow = row;
+    } else {
+      break;
+    }
+  }
+
+  if (!bestRow) return null;
+
+  switch (column) {
+    case 'targets': return bestRow.targets;
+    case 'damage': return `+${bestRow.damage} Damage`;
+    case 'range': return bestRow.range;
+    case 'aoe': return bestRow.aoe;
+    case 'duration': return bestRow.duration;
+  }
+}
+
+/**
+ * Resolve overcast allocations from surplus SL distributed across columns.
+ * Each column may only be accessed once per casting (enforced by the allocations map).
+ * The allocations map keys are column names; values are SL assigned to that column.
+ * Returns the resolved effects and any unspent SL.
+ */
+export function resolveOvercastAllocations(
+  surplusSL: number,
+  allocations: Partial<Record<'targets' | 'damage' | 'range' | 'aoe' | 'duration', number>>,
+): OvercastAllocation {
+  const columnEffects: OvercastColumnEffect[] = [];
+  let totalSpent = 0;
+
+  for (const [column, slSpent] of Object.entries(allocations) as [
+    'targets' | 'damage' | 'range' | 'aoe' | 'duration',
+    number,
+  ][]) {
+    if (slSpent <= 0) continue;
+    // Cap SL spent to available surplus
+    const effectiveSL = Math.min(slSpent, surplusSL - totalSpent);
+    if (effectiveSL <= 0) continue;
+
+    const effect = lookupOvercastEffect(column, effectiveSL);
+    if (effect) {
+      columnEffects.push({ category: column, slSpent: effectiveSL, effect });
+      totalSpent += effectiveSL;
+    }
+  }
+
+  return {
+    surplusSL,
+    columnEffects,
+    unspentSL: surplusSL - totalSpent,
+  };
 }
 
 /** Result of resolving a channelling test */
@@ -43,6 +152,17 @@ export interface ChannellingResult {
   spellName: string;
   accumulatedSL: number;
   ready: boolean;
+  isCriticalChannelling: boolean;
+  isFumbledChannelling: boolean;
+  triggerMinorMiscast: boolean;
+  bonusSL: number;
+}
+
+/** Result of resolving an interruption to channelling */
+export interface InterruptionResult {
+  coolTestPassed: boolean;
+  accumulatedSL: number;
+  triggerMinorMiscast: boolean;
 }
 
 /** Miscast roll result */
@@ -218,14 +338,28 @@ export function computeOvercastSlots(sl: number, cn: number): number {
  * Disables Range/Targets when range="You" AND target="You".
  * Disables Range when range="Touch".
  * Disables Duration when duration="Instant".
+ * Damage is enabled only for magic missile spells.
  * AoE is always enabled.
  */
 export function computeOvercastOptions(spell: SpellItem): OvercastOption[] {
   const isSelfOnly = spell.range === 'You' && spell.target === 'You';
   const isTouch = spell.range === 'Touch';
   const isInstant = spell.duration === 'Instant';
+  const spellIsMagicMissile = isMagicMissile(spell);
 
   return [
+    {
+      category: 'targets',
+      label: 'Targets',
+      baseValue: spell.target,
+      enabled: !isSelfOnly,
+    },
+    {
+      category: 'damage',
+      label: 'Extra Damage',
+      baseValue: 'Spell Damage',
+      enabled: spellIsMagicMissile,
+    },
     {
       category: 'range',
       label: 'Range',
@@ -243,12 +377,6 @@ export function computeOvercastOptions(spell: SpellItem): OvercastOption[] {
       label: 'Duration',
       baseValue: spell.duration,
       enabled: !isInstant,
-    },
-    {
-      category: 'targets',
-      label: 'Targets',
-      baseValue: spell.target,
-      enabled: !isSelfOnly,
     },
   ];
 }
@@ -322,6 +450,7 @@ export function resolveCastingResult(
     castSuccess,
     surplusSL,
     overcastSlots,
+    overcastAllocation: null,
     isCriticalCast,
     isFumbledCast,
     triggerMinorMiscast,
@@ -337,21 +466,65 @@ export function resolveCastingResult(
 // ─── Task 3.3: Channelling Resolution ─────────────────────────────────────────
 
 /**
- * Resolve a channelling test.
- * On success (passed && sl > 0), adds SL to currentProgress.
- * Marks ready when accumulated >= spellCN.
- * On failure, progress is unchanged.
+ * Check if the character has the Aethyric Attunement talent.
+ */
+export function hasAethyricAttunement(character: Character): boolean {
+  return character.talents.some((t) => t.n.startsWith('Aethyric Attunement'));
+}
+
+/**
+ * Resolve a channelling test per the Winds of Magic rules.
+ *
+ * - On success (passed && sl > 0), adds SL to currentProgress.
+ * - Critical Channelling (doubles + success): adds WP Bonus SL on top of normal SL.
+ *   Triggers Minor Miscast unless the character has Aethyric Attunement.
+ * - Fumbled Channelling (doubles + failure): all accumulated SL are lost, Minor Miscast triggered.
+ * - On normal failure, progress is unchanged.
+ * - Marks ready when accumulated >= spellCN.
  */
 export function resolveChannellingResult(
   rollResult: RollResult,
   currentProgress: number,
   spellCN: number,
+  character?: Character,
 ): ChannellingResult {
   let accumulatedSL = currentProgress;
+  let isCriticalChannelling = false;
+  let isFumbledChannelling = false;
+  let triggerMinorMiscast = false;
+  let bonusSL = 0;
 
-  if (rollResult.passed && rollResult.sl > 0) {
+  if (rollResult.isFumble) {
+    // Fumbled Channelling: doubles + failure → lose all SL + Minor Miscast
+    isFumbledChannelling = true;
+    accumulatedSL = 0;
+    triggerMinorMiscast = true;
+  } else if (rollResult.isCritical) {
+    // Critical Channelling: doubles + success → add normal SL + WP Bonus SL
+    isCriticalChannelling = true;
+
+    // Add normal SL first
+    if (rollResult.sl > 0) {
+      accumulatedSL += rollResult.sl;
+    }
+
+    // Add WP Bonus SL
+    if (character) {
+      const wpChar = character.chars.WP;
+      const wpTotal = wpChar.i + wpChar.a + wpChar.b;
+      bonusSL = getBonus(wpTotal);
+      accumulatedSL += bonusSL;
+    }
+
+    // Minor Miscast unless Aethyric Attunement
+    if (!character || !hasAethyricAttunement(character)) {
+      triggerMinorMiscast = true;
+    }
+  } else if (rollResult.passed && rollResult.sl > 0) {
+    // Normal success: add SL
     accumulatedSL += rollResult.sl;
   }
+  // Normal failure: progress unchanged
 
   const ready = accumulatedSL >= spellCN;
 
@@ -359,5 +532,134 @@ export function resolveChannellingResult(
     spellName: '',
     accumulatedSL,
     ready,
+    isCriticalChannelling,
+    isFumbledChannelling,
+    triggerMinorMiscast,
+    bonusSL,
   };
+}
+
+/**
+ * Resolve an interruption during channelling.
+ *
+ * When a channelling wizard is interrupted, they must pass a Hard (-20) Cool Test.
+ * - If passed: channelling continues, SL is preserved.
+ * - If failed: all channelled SL are lost and a Minor Miscast occurs.
+ *
+ * @param coolTestResult - The result of the Hard (-20) Cool test
+ * @param currentProgress - Current accumulated channelling SL
+ * @returns InterruptionResult with the outcome
+ */
+export function resolveChannellingInterruption(
+  coolTestResult: RollResult,
+  currentProgress: number,
+): InterruptionResult {
+  if (coolTestResult.passed) {
+    return {
+      coolTestPassed: true,
+      accumulatedSL: currentProgress,
+      triggerMinorMiscast: false,
+    };
+  }
+
+  // Failed Cool test: lose all SL + Minor Miscast
+  return {
+    coolTestPassed: false,
+    accumulatedSL: 0,
+    triggerMinorMiscast: true,
+  };
+}
+
+// ─── Armour Casting Penalty ───────────────────────────────────────────────────
+
+/**
+ * Determine if an armour item is metal-based (mail, plate, chain, etc.).
+ */
+export function isMetalArmour(item: ArmourItem): boolean {
+  const lower = item.name.toLowerCase();
+  return (
+    lower.includes('mail') ||
+    lower.includes('plate') ||
+    lower.includes('chain') ||
+    lower.includes('breastplate') ||
+    lower.includes('helm') ||
+    lower.includes('metal') ||
+    lower.includes('steel') ||
+    lower.includes('iron') ||
+    lower.includes('gromril') ||
+    lower.includes('ithilmar')
+  );
+}
+
+/**
+ * Determine if an armour item is leather/hide-based (leather, hide, fur, etc.).
+ */
+export function isLeatherArmour(item: ArmourItem): boolean {
+  const lower = item.name.toLowerCase();
+  return (
+    lower.includes('leather') ||
+    lower.includes('hide') ||
+    lower.includes('fur') ||
+    lower.includes('pelt') ||
+    lower.includes('skin') ||
+    lower.includes('bark')
+  );
+}
+
+/**
+ * Check if a character has a specific lore's Arcane Magic talent.
+ * Matches patterns like "Arcane Magic (Metal)", "Arcane Magic (Chamon)",
+ * "Arcane Magic (Lore of Metal)".
+ */
+function hasArcaneMagicLore(character: Character, ...loreKeywords: string[]): boolean {
+  return character.talents.some((t) => {
+    if (!t.n.startsWith('Arcane Magic')) return false;
+    const lower = t.n.toLowerCase();
+    return loreKeywords.some((kw) => lower.includes(kw.toLowerCase()));
+  });
+}
+
+/**
+ * Calculate the casting penalty from armour.
+ * Penalty is -1 SL per Armour Point on the character's most-armoured location (worn items only).
+ *
+ * Exemptions:
+ * - Metal (Chamon) wizards wearing only metal armour are exempt.
+ * - Beasts (Ghur) wizards wearing only leather/hide armour are exempt.
+ *
+ * Returns a non-negative integer representing the SL penalty magnitude.
+ * e.g., returns 3 meaning the character suffers -3 SL on casting/channelling.
+ */
+export function getArmourCastingPenalty(character: Character): number {
+  const wornArmour = character.armour.filter((item) => item.worn === true && item.ap > 0);
+
+  // No worn armour with AP → no penalty
+  if (wornArmour.length === 0) return 0;
+
+  // Check exemptions
+  const isMetalWizard = hasArcaneMagicLore(character, 'metal', 'chamon');
+  const isBeastsWizard = hasArcaneMagicLore(character, 'beasts', 'ghur');
+
+  if (isMetalWizard && wornArmour.every(isMetalArmour)) {
+    return 0;
+  }
+
+  if (isBeastsWizard && wornArmour.every(isLeatherArmour)) {
+    return 0;
+  }
+
+  // Compute AP per location from worn armour
+  const apByLocation = computeAPByLocation(character.armour);
+
+  // Find the highest AP value across all locations
+  const highestAP = Math.max(
+    apByLocation.head,
+    apByLocation.leftArm,
+    apByLocation.rightArm,
+    apByLocation.body,
+    apByLocation.leftLeg,
+    apByLocation.rightLeg,
+  );
+
+  return highestAP;
 }

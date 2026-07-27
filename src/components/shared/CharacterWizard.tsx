@@ -93,12 +93,16 @@ function rollD100(): number {
 
 // ─── Species-restricted careers ──────────────────────────────────────────────
 // Slayer is Dwarf-only, Badger Rider is Halfling-only, Warrior of Tzeentch is excluded from normal creation
+// College Wizard careers (Hierophant, Alchemist (Gold), Druid, Astromancer, Shadowmancer, Spiriter, Pyromancer, Shaman (Amber)) are Human-only
+// Magister Vigilant & Scryer are Human-only; Mundane Alchemist is Human-only (Dwarfs/Halflings cannot become spellcasters via this path)
+const COLLEGE_WIZARD_CAREERS = ['Hierophant', 'Alchemist (Gold)', 'Druid', 'Astromancer', 'Shadowmancer', 'Spiriter', 'Pyromancer', 'Shaman (Amber)'];
+const HUMAN_ONLY_SUPPORTING_CAREERS = ['Magister Vigilant', 'Mundane Alchemist', 'Scryer'];
 const SPECIES_CAREER_EXCLUSIONS: Record<string, string[]> = {
   'Human / Reiklander': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
-  'Dwarf': ['Badger Rider', 'Warrior of Tzeentch'],
-  'Halfling': ['Slayer', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
-  'High Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
-  'Wood Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
+  'Dwarf': ['Badger Rider', 'Warrior of Tzeentch', ...COLLEGE_WIZARD_CAREERS, ...HUMAN_ONLY_SUPPORTING_CAREERS],
+  'Halfling': ['Slayer', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)', ...COLLEGE_WIZARD_CAREERS, ...HUMAN_ONLY_SUPPORTING_CAREERS],
+  'High Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)', ...COLLEGE_WIZARD_CAREERS, ...HUMAN_ONLY_SUPPORTING_CAREERS, 'Beadle'],
+  'Wood Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)', ...COLLEGE_WIZARD_CAREERS, ...HUMAN_ONLY_SUPPORTING_CAREERS, 'Beadle'],
 };
 
 function getExclusionsForSpecies(species: string): string[] {

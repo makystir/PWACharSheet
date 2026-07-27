@@ -1067,6 +1067,227 @@ describe('High Elf Players Guide — Non-Regression', () => {
   });
 });
 
+// ─── Winds of Magic — Spell Count ───────────────────────────────
+
+describe('Winds of Magic — Spell Count', () => {
+  it('SPELL_LIST contains 300+ spells (core + WoM + other supplements)', () => {
+    expect(SPELL_LIST.length).toBeGreaterThanOrEqual(300);
+  });
+
+  it('contains representative spells from all 8 College Lores', () => {
+    // Lore of Light (Hysh)
+    expect(SPELL_LIST.find(s => s.name === 'Blinding Light'), 'Missing Hysh: Blinding Light').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Net of Amyntok'), 'Missing Hysh: Net of Amyntok').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Clarity of Thought'), 'Missing Hysh: Clarity of Thought').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Healing Light'), 'Missing Hysh: Healing Light').toBeDefined();
+
+    // Lore of Metal (Chamon)
+    expect(SPELL_LIST.find(s => s.name === 'Armour of Tin'), 'Missing Chamon: Armour of Tin').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Crucible of Chamon'), 'Missing Chamon: Crucible of Chamon').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Curse of Rust'), 'Missing Chamon: Curse of Rust').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Golden Touch'), 'Missing Chamon: Golden Touch').toBeDefined();
+
+    // Lore of Life (Ghyran)
+    expect(SPELL_LIST.find(s => s.name === 'Barkskin'), 'Missing Ghyran: Barkskin').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Earthblood'), 'Missing Ghyran: Earthblood').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Lifebloom'), 'Missing Ghyran: Lifebloom').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Regenerate'), 'Missing Ghyran: Regenerate').toBeDefined();
+
+    // Lore of Heavens (Azyr)
+    expect(SPELL_LIST.find(s => s.name === 'Curse of Fate'), 'Missing Azyr: Curse of Fate').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Divination'), 'Missing Azyr: Divination').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Fantastic Foresight'), 'Missing Azyr: Fantastic Foresight').toBeDefined();
+
+    // Lore of Shadows (Ulgu)
+    expect(SPELL_LIST.find(s => s.name === 'Black Horrors'), 'Missing Ulgu: Black Horrors').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Doppelganger'), 'Missing Ulgu: Doppelganger').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Pit of Tarnus'), 'Missing Ulgu: Pit of Tarnus').toBeDefined();
+
+    // Lore of Death (Shyish)
+    expect(SPELL_LIST.find(s => s.name === 'Acceptance of Fate'), 'Missing Shyish: Acceptance of Fate').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Amaranth'), 'Missing Shyish: Amaranth').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Limbwither'), 'Missing Shyish: Limbwither').toBeDefined();
+
+    // Lore of Fire (Aqshy)
+    expect(SPELL_LIST.find(s => s.name === 'Body of Fire'), 'Missing Aqshy: Body of Fire').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Burning Head'), 'Missing Aqshy: Burning Head').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Flamestorm'), 'Missing Aqshy: Flamestorm').toBeDefined();
+
+    // Lore of Beasts (Ghur)
+    expect(SPELL_LIST.find(s => s.name === 'Amber Trance'), 'Missing Ghur: Amber Trance').toBeDefined();
+    expect(SPELL_LIST.find(s => s.name === 'Awakening of the Wood'), 'Missing Ghur: Awakening of the Wood').toBeDefined();
+  });
+
+  it('contains WoM arcane utility spells', () => {
+    const arcaneUtility = [
+      'Disrupt Magic',
+      'Silence',
+      'Collapse Construct',
+      'Succour Magical Servant',
+    ];
+    for (const name of arcaneUtility) {
+      expect(SPELL_LIST.find(s => s.name === name), `Missing arcane utility: ${name}`).toBeDefined();
+    }
+  });
+});
+
+// ─── Winds of Magic — Career Structure ──────────────────────────
+
+describe('Winds of Magic — Career Structure', () => {
+  const collegeCareers: Array<{ name: string; cls: string }> = [
+    { name: 'Hierophant', cls: 'Academics' },
+    { name: 'Alchemist (Gold)', cls: 'Academics' },
+    { name: 'Druid', cls: 'Academics' },
+    { name: 'Astromancer', cls: 'Academics' },
+    { name: 'Shadowmancer', cls: 'Academics' },
+    { name: 'Spiriter', cls: 'Academics' },
+    { name: 'Pyromancer', cls: 'Academics' },
+    { name: 'Shaman (Amber)', cls: 'Academics' },
+  ];
+
+  const supportingCareers: Array<{ name: string; cls: string }> = [
+    { name: 'Beadle', cls: 'Warriors' },
+    { name: 'Mundane Alchemist', cls: 'Academics' },
+    { name: 'Magister Vigilant', cls: 'Academics' },
+    { name: 'Scryer', cls: 'Academics' },
+  ];
+
+  const allWomCareers = [...collegeCareers, ...supportingCareers];
+
+  it('all 8 College Wizard careers exist in CAREER_SCHEMES with correct class', () => {
+    for (const { name, cls } of collegeCareers) {
+      expect(CAREER_SCHEMES[name], `Missing college career: ${name}`).toBeDefined();
+      expect(CAREER_SCHEMES[name].class, `Wrong class for ${name}`).toBe(cls);
+    }
+  });
+
+  it('all 4 supporting careers exist in CAREER_SCHEMES with correct class', () => {
+    for (const { name, cls } of supportingCareers) {
+      expect(CAREER_SCHEMES[name], `Missing supporting career: ${name}`).toBeDefined();
+      expect(CAREER_SCHEMES[name].class, `Wrong class for ${name}`).toBe(cls);
+    }
+  });
+
+  it('each WoM career has 4 levels with valid structure', () => {
+    for (const { name } of allWomCareers) {
+      const scheme = CAREER_SCHEMES[name];
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].filter(Boolean);
+      expect(levels.length, `${name} should have 4 levels`).toBe(4);
+      for (const level of levels) {
+        expect(level!.title, `${name} level missing title`).toBeTruthy();
+        expect(level!.status, `${name} level missing status`).toBeTruthy();
+        expect(level!.characteristics.length, `${name} level missing characteristics`).toBeGreaterThan(0);
+        expect(level!.skills.length, `${name} level missing skills`).toBeGreaterThan(0);
+        expect(level!.talents.length, `${name} level missing talents`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('each WoM career has skills and talents sorted alphabetically', () => {
+    for (const { name } of allWomCareers) {
+      const scheme = CAREER_SCHEMES[name];
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].filter(Boolean);
+      for (const level of levels) {
+        const sortedSkills = [...level!.skills].sort((a, b) => a.localeCompare(b));
+        expect(level!.skills, `${name} "${level!.title}" skills not sorted`).toEqual(sortedSkills);
+
+        const sortedTalents = [...level!.talents].sort((a, b) => a.localeCompare(b));
+        expect(level!.talents, `${name} "${level!.title}" talents not sorted`).toEqual(sortedTalents);
+      }
+    }
+  });
+
+  it('each WoM career has cumulative skills/talents (level N+1 is superset of level N)', () => {
+    for (const { name } of allWomCareers) {
+      const scheme = CAREER_SCHEMES[name];
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].filter(Boolean);
+      for (let i = 0; i < levels.length - 1; i++) {
+        const current = levels[i]!;
+        const next = levels[i + 1]!;
+
+        for (const skill of current.skills) {
+          expect(next.skills, `${name} "${next.title}" missing skill "${skill}" from "${current.title}"`).toContain(skill);
+        }
+
+        for (const talent of current.talents) {
+          expect(next.talents, `${name} "${next.title}" missing talent "${talent}" from "${current.title}"`).toContain(talent);
+        }
+      }
+    }
+  });
+});
+
+// ─── Winds of Magic — Talents ───────────────────────────────────
+
+describe('Winds of Magic — Talents', () => {
+  const suffuseTalents = [
+    'Suffuse with Aqshy',
+    'Suffuse with Azyr',
+    'Suffuse with Chamon',
+    'Suffuse with Ghur',
+    'Suffuse with Ghyran',
+    'Suffuse with Hysh',
+    'Suffuse with Shyish',
+    'Suffuse with Ulgu',
+  ];
+
+  const otherWomTalents = [
+    'War Wizard',
+    'Magical Assistant',
+  ];
+
+  it('all 8 "Suffuse with" talents exist in TALENT_DB', () => {
+    for (const name of suffuseTalents) {
+      const found = TALENT_DB.find(t => t.name === name);
+      expect(found, `Missing talent: ${name}`).toBeDefined();
+    }
+  });
+
+  it('all "Suffuse with" talents have name, max, and desc', () => {
+    for (const name of suffuseTalents) {
+      const found = TALENT_DB.find(t => t.name === name)!;
+      expect(found.name).toBe(name);
+      expect(found.max, `${name} missing max`).toBeTruthy();
+      expect(found.desc, `${name} missing desc`).toBeTruthy();
+    }
+  });
+
+  it('War Wizard and Magical Assistant talents exist in TALENT_DB with valid fields', () => {
+    for (const name of otherWomTalents) {
+      const found = TALENT_DB.find(t => t.name === name);
+      expect(found, `Missing talent: ${name}`).toBeDefined();
+      expect(found!.max, `${name} missing max`).toBeTruthy();
+      expect(found!.desc, `${name} missing desc`).toBeTruthy();
+    }
+  });
+});
+
+// ─── Winds of Magic — Advanced Skills ───────────────────────────
+
+describe('Winds of Magic — Advanced Skills', () => {
+  const womSkills = [
+    { n: 'Augury', c: 'Int' },
+    { n: 'Psychometry', c: 'Int' },
+  ];
+
+  it('Augury and Psychometry exist in ADV_SKILL_DB with characteristic Int', () => {
+    for (const { n, c } of womSkills) {
+      const found = ADV_SKILL_DB.find(s => s.n === n);
+      expect(found, `Missing skill: ${n}`).toBeDefined();
+      expect(found!.c, `Wrong characteristic for ${n}`).toBe(c);
+    }
+  });
+
+  it('WoM advanced skills have valid structure', () => {
+    const validChars = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
+    for (const { n } of womSkills) {
+      const found = ADV_SKILL_DB.find(s => s.n === n)!;
+      expect(found.n.length).toBeGreaterThan(0);
+      expect(validChars).toContain(found.c);
+    }
+  });
+});
+
 // ─── Up in Arms — Career Properties ────────────────────────────
 
 describe('Up in Arms — Career Properties', () => {

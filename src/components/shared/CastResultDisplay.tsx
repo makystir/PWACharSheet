@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import type { Character } from '../../types/character';
 import {
   type CastingResult,
   type MiscastResult,
   computeOvercastOptions,
 } from '../../logic/spell-casting';
+import { getCharacterLore } from '../../logic/advancement';
+import { getArcaneMarksTable, type ArcaneMarkEntry } from '../../data/arcane-marks';
 import { OvercastAllocator } from './OvercastAllocator';
 import styles from './CastResultDisplay.module.css';
 
@@ -14,6 +17,7 @@ interface CastResultDisplayProps {
   onOvercastAllocated?: (allocations: Record<string, number>) => void;
   onCriticalChoice?: (choice: 'critical_wound' | 'total_power' | 'unstoppable_force') => void;
   onMiscastRoll?: (table: 'minor' | 'major') => void;
+  onArcaneMarkAcquired?: (mark: string) => void;
   onClose: () => void;
 }
 
@@ -23,13 +27,16 @@ function formatSL(sl: number): string {
 
 export function CastResultDisplay({
   castingResult,
-  character: _character,
+  character,
   miscastResult,
   onOvercastAllocated,
   onCriticalChoice,
   onMiscastRoll,
+  onArcaneMarkAcquired,
   onClose,
 }: CastResultDisplayProps) {
+  const [arcaneMarkResult, setArcaneMarkResult] = useState<ArcaneMarkEntry | null>(null);
+
   const {
     rollResult,
     spell,
@@ -209,6 +216,51 @@ export function CastResultDisplay({
                   Roll 2 Minor Miscasts
                 </button>
               )}
+              {miscastResult.entry.special === 'marked_by_magic' && (() => {
+                const lore = getCharacterLore(character);
+                const table = lore ? getArcaneMarksTable(lore) : null;
+                return table ? (
+                  <>
+                    {!arcaneMarkResult ? (
+                      <button
+                        type="button"
+                        className={styles.miscastBtnMargin}
+                        onClick={() => {
+                          const roll = Math.floor(Math.random() * 10) + 1;
+                          const entry = table.find((e) => e.roll === roll) ?? null;
+                          if (entry) {
+                            setArcaneMarkResult(entry);
+                          }
+                        }}
+                      >
+                        Roll Arcane Mark ({lore})
+                      </button>
+                    ) : (
+                      <div className={styles.miscastEffect}>
+                        <strong>Arcane Mark (d10: {arcaneMarkResult.roll}):</strong>{' '}
+                        {arcaneMarkResult.description}
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <button
+                            type="button"
+                            className={styles.miscastBtnMargin}
+                            onClick={() => onArcaneMarkAcquired?.(arcaneMarkResult.description)}
+                          >
+                            Store Mark on Character
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.miscastBtnMargin}
+                    onClick={() => onMiscastRoll?.('major')}
+                  >
+                    No Arcane Marks table — Roll Major Miscast
+                  </button>
+                );
+              })()}
             </div>
           </>
         )}

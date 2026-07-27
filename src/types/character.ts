@@ -131,6 +131,16 @@ export interface TalentData {
   desc: string;
 }
 
+export interface RitualItem {
+  name: string;
+  cn: number;
+  type: string;
+  learningXP: number;
+  ingredients: string;
+  conditions: string;
+  description: string;
+}
+
 export interface SwordDancingTechnique {
   id: string;          // kebab-case identifier, e.g. "ritual-of-cleansing"
   name: string;        // Display name, e.g. "Ritual of Cleansing"
@@ -281,6 +291,8 @@ export interface Modifier {
   target: string;
 }
 
+export type MagicSaturation = 'low' | 'normal' | 'heavy' | 'extreme' | 'corrupted';
+
 export interface SessionState {
   active: boolean;
   startTime: number | null;
@@ -289,6 +301,7 @@ export interface SessionState {
   resolveAtStart: number;
   advantageHistory: number[];
   temporaryModifiers: Modifier[];
+  magicSaturation: MagicSaturation;
   combatStats: {
     combatsEntered: number;
     totalRounds: number;
@@ -566,6 +579,8 @@ export interface Character {
   magicalBurnout?: MagicalBurnout;
   consumables?: Consumable[];
   psychologyTraits?: PsychologyTrait[];
+  rituals?: RitualItem[];
+  arcaneMarks?: string[];
   initiativeList?: Combatant[];
   activeInitiativeIndex?: number;
   log: string[];
@@ -642,6 +657,7 @@ export const BLANK_CHARACTER: Character = {
     resolveAtStart: 0,
     advantageHistory: [],
     temporaryModifiers: [],
+    magicSaturation: 'normal',
     combatStats: {
       combatsEntered: 0,
       totalRounds: 0,
@@ -733,5 +749,7 @@ export const BLANK_CHARACTER: Character = {
   doomRuneActivations: [],
   forgingCharges: {},
   diseases: [],
+  rituals: [],
+  arcaneMarks: [],
   log: [],
 };

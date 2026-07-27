@@ -164,3 +164,50 @@
   margin-bottom: 8px;
   text-align: center;
 }
+
+/* Armour casting penalty note */
+.armourPenaltyNote {
+  font-size: 12px;
+  color: var(--danger, #c0392b);
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* Environmental Saturation */
+.saturationRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.saturationLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.saturationSelect {
+  font-size: 12px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.saturationModifier {
+  font-size: 11px;
+  color: var(--accent-gold, #d4a017);
+  font-style: italic;
+}

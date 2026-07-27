@@ -15,6 +15,8 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Animal Training (Pigeon)', c: 'Int' },
   // Art
   { n: 'Art (Cartography)', c: 'Dex' },
+  // Augury
+  { n: 'Augury', c: 'Int' },
   // Channelling
   { n: 'Channelling (Aqshy)', c: 'WP' }, { n: 'Channelling (Azyr)', c: 'WP' },
   { n: 'Channelling (Chamon)', c: 'WP' }, { n: 'Channelling (Dhar)', c: 'WP' },
@@ -52,6 +54,8 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Pick Lock', c: 'Dex' },
   { n: 'Play (Any)', c: 'Dex' },
   { n: 'Pray', c: 'Fel' },
+  // Psychometry
+  { n: 'Psychometry', c: 'Int' },
   // Ranged
   { n: 'Ranged (Blackpowder)', c: 'BS' }, { n: 'Ranged (Bow)', c: 'BS' },
   { n: 'Ranged (Catapult)', c: 'BS' }, { n: 'Ranged (Crossbow)', c: 'BS' }, { n: 'Ranged (Engineering)', c: 'BS' },

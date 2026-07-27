@@ -1,6 +1,7 @@
-import type { Character, CharacteristicKey, AdvancementEntry, Skill, CareerScheme, CareerLevel } from '../types/character';
+import type { Character, CharacteristicKey, AdvancementEntry, Skill, CareerScheme, CareerLevel, RitualItem } from '../types/character';
 import { CAREER_SCHEMES } from '../data/careers';
 import { ADV_SKILL_DB } from '../data/advanced-skills';
+import type { RitualData } from '../data/rituals';
 
 /** A skill entry tagged with its original array index, type, and career status for sorted rendering. */
 export interface SortedSkillEntry {
@@ -872,4 +873,74 @@ export function redoAdvancement(character: Character, entry: AdvancementEntry): 
     default:
       return { character: base };
   }
+}
+
+
+/**
+ * Check whether a character has any talent that qualifies them for ritual magic.
+ * Qualifying talents: Arcane Magic (Any), Chaos Magic (Any).
+ */
+export function hasRitualMagicTalent(character: Character): boolean {
+  return character.talents.some(t =>
+    t.n.startsWith('Arcane Magic') ||
+    t.n.startsWith('Chaos Magic')
+  );
+}
+
+/**
+ * Determine the character's Lore from their Arcane/Chaos Magic talent.
+ * Returns the lore name (e.g., "Beasts", "Fire") or null if not found.
+ */
+export function getCharacterLore(character: Character): string | null {
+  for (const t of character.talents) {
+    if (t.n.startsWith('Arcane Magic (') || t.n.startsWith('Chaos Magic (')) {
+      const match = t.n.match(/\(([^)]+)\)/);
+      if (match) return match[1];
+    }
+  }
+  return null;
+}
+
+/**
+ * Learn a ritual: add it to the character's rituals array, deduct XP, and log.
+ * Returns the character unchanged if XP is insufficient.
+ */
+export function learnRitual(
+  character: Character,
+  ritual: RitualData,
+): Character {
+  const cost = ritual.learningXP;
+  if (character.xpCur < cost) return character;
+
+  const currentRituals = character.rituals ?? [];
+  const ritualCount = currentRituals.length;
+
+  const newRitual: RitualItem = {
+    name: ritual.name,
+    cn: ritual.cn,
+    type: ritual.type,
+    learningXP: ritual.learningXP,
+    ingredients: ritual.ingredients,
+    conditions: ritual.conditions,
+    description: ritual.description,
+  };
+
+  const entry: AdvancementEntry = {
+    timestamp: Date.now(),
+    type: 'ritual',
+    name: ritual.name,
+    from: ritualCount,
+    to: ritualCount + 1,
+    xpCost: cost,
+    careerLevel: character.careerLevel,
+    inCareer: true,
+  };
+
+  return {
+    ...character,
+    rituals: [...currentRituals, newRitual],
+    xpCur: character.xpCur - cost,
+    xpSpent: character.xpSpent + cost,
+    advancementLog: [...character.advancementLog, entry],
+  };
 }

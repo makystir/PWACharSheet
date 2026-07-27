@@ -6,10 +6,18 @@ import {
   computeOvercastSlots,
   computeOvercastOptions,
   resolveChannellingResult,
+  resolveChannellingInterruption,
+  hasAethyricAttunement,
   lookupMiscast,
   reverseRollDigits,
   getHitLocation,
   computeMagicMissileDamage,
+  OVERCAST_TABLE,
+  lookupOvercastEffect,
+  resolveOvercastAllocations,
+  getArmourCastingPenalty,
+  isMetalArmour,
+  isLeatherArmour,
 } from '../spell-casting';
 import { BLANK_CHARACTER } from '../../types/character';
 import type { Character, SpellItem } from '../../types/character';
@@ -318,10 +326,26 @@ describe('computeOvercastOptions — Property 7: Overcast option availability', 
     expect(duration.enabled).toBe(false);
   });
 
-  it('normal spell → all options enabled', () => {
+  it('normal spell → all non-damage options enabled, damage disabled (non-missile)', () => {
     const spell = makeSpell({ range: '48 yards', target: '1', duration: 'WPB rounds' });
     const options = computeOvercastOptions(spell);
-    expect(options.every(o => o.enabled)).toBe(true);
+    const range = options.find(o => o.category === 'range')!;
+    const aoe = options.find(o => o.category === 'aoe')!;
+    const duration = options.find(o => o.category === 'duration')!;
+    const targets = options.find(o => o.category === 'targets')!;
+    const damage = options.find(o => o.category === 'damage')!;
+    expect(range.enabled).toBe(true);
+    expect(aoe.enabled).toBe(true);
+    expect(duration.enabled).toBe(true);
+    expect(targets.enabled).toBe(true);
+    expect(damage.enabled).toBe(false);
+  });
+
+  it('magic missile spell → damage option also enabled', () => {
+    const spell = makeSpell({ range: '48 yards', target: '1', duration: 'Instant', effect: 'A bolt of energy strikes the target. Dmg +4' });
+    const options = computeOvercastOptions(spell);
+    const damage = options.find(o => o.category === 'damage')!;
+    expect(damage.enabled).toBe(true);
   });
 });
 
@@ -333,6 +357,9 @@ describe('resolveChannellingResult — Property 8: Channelling accumulation and 
     const result = resolveChannellingResult(roll, 0, 8);
     expect(result.accumulatedSL).toBe(3);
     expect(result.ready).toBe(false);
+    expect(result.isCriticalChannelling).toBe(false);
+    expect(result.isFumbledChannelling).toBe(false);
+    expect(result.triggerMinorMiscast).toBe(false);
   });
 
   it('adding SL 2 to progress 4 with CN 6 → accumulatedSL 6, ready true', () => {
@@ -370,15 +397,24 @@ describe('resolveChannellingResult — Property 8: Channelling accumulation and 
 describe('lookupMiscast — Property 9: Miscast table lookup covers full d100 range', () => {
   describe('minor table — one roll per range', () => {
     it.each([
-      { roll: 1, expectedName: 'Witchfire' },
-      { roll: 15, expectedName: 'Sickened' },
-      { roll: 25, expectedName: 'Unfocused' },
-      { roll: 35, expectedName: 'Pushed Back' },
-      { roll: 45, expectedName: 'Knocked Down' },
-      { roll: 55, expectedName: 'Distracted' },
-      { roll: 65, expectedName: 'Aethyric Shock' },
-      { roll: 75, expectedName: 'Drained' },
-      { roll: 85, expectedName: 'Loss of Concentration' },
+      { roll: 1, expectedName: 'Witchsign' },
+      { roll: 8, expectedName: 'Soured Milk' },
+      { roll: 13, expectedName: 'Blight' },
+      { roll: 18, expectedName: 'Soulwax' },
+      { roll: 23, expectedName: 'Freezing Breath' },
+      { roll: 28, expectedName: 'Unfasten' },
+      { roll: 33, expectedName: 'Wayward Garb' },
+      { roll: 38, expectedName: 'Curse of Temperance' },
+      { roll: 43, expectedName: 'Cloyed Tongue' },
+      { roll: 48, expectedName: 'Driven to Distraction' },
+      { roll: 53, expectedName: 'Unholy Visions' },
+      { roll: 58, expectedName: 'Hexeyes' },
+      { roll: 63, expectedName: 'Rupture' },
+      { roll: 68, expectedName: 'Fell Whispers' },
+      { roll: 73, expectedName: 'The Horror!' },
+      { roll: 78, expectedName: 'Curse of Corruption' },
+      { roll: 83, expectedName: 'Intestinal Rebellion' },
+      { roll: 88, expectedName: 'Marked by Magic' },
       { roll: 92, expectedName: 'Multiplying Misfortune' },
       { roll: 98, expectedName: 'Cascading Chaos' },
     ])('roll $roll → $expectedName', ({ roll, expectedName }) => {
@@ -387,14 +423,14 @@ describe('lookupMiscast — Property 9: Miscast table lookup covers full d100 ra
   });
 
   describe('minor table — boundary values', () => {
-    it('roll 10 → Witchfire (upper boundary)', () => {
-      expect(lookupMiscast(10, 'minor').name).toBe('Witchfire');
+    it('roll 5 → Witchsign (upper boundary)', () => {
+      expect(lookupMiscast(5, 'minor').name).toBe('Witchsign');
     });
-    it('roll 11 → Sickened (lower boundary)', () => {
-      expect(lookupMiscast(11, 'minor').name).toBe('Sickened');
+    it('roll 6 → Soured Milk (lower boundary)', () => {
+      expect(lookupMiscast(6, 'minor').name).toBe('Soured Milk');
     });
-    it('roll 90 → Loss of Concentration (upper boundary)', () => {
-      expect(lookupMiscast(90, 'minor').name).toBe('Loss of Concentration');
+    it('roll 90 → Marked by Magic (upper boundary)', () => {
+      expect(lookupMiscast(90, 'minor').name).toBe('Marked by Magic');
     });
     it('roll 91 → Multiplying Misfortune (lower boundary)', () => {
       expect(lookupMiscast(91, 'minor').name).toBe('Multiplying Misfortune');
@@ -424,14 +460,14 @@ describe('lookupMiscast — Property 9: Miscast table lookup covers full d100 ra
   });
 
   describe('major table — representative rolls', () => {
-    it('roll 5 → Aethyric Feedback', () => {
-      expect(lookupMiscast(5, 'major').name).toBe('Aethyric Feedback');
+    it('roll 5 → Ghostly Voices', () => {
+      expect(lookupMiscast(5, 'major').name).toBe('Ghostly Voices');
     });
-    it('roll 50 → Corruption', () => {
-      expect(lookupMiscast(50, 'major').name).toBe('Corruption');
+    it('roll 50 → Darkling Sight', () => {
+      expect(lookupMiscast(50, 'major').name).toBe('Darkling Sight');
     });
-    it('roll 100 → Realm of Chaos', () => {
-      expect(lookupMiscast(100, 'major').name).toBe('Realm of Chaos');
+    it('roll 100 → Aethyric Feedback', () => {
+      expect(lookupMiscast(100, 'major').name).toBe('Aethyric Feedback');
     });
   });
 });
@@ -487,5 +523,456 @@ describe('computeMagicMissileDamage — Property 11: Magic missile damage comput
     const spell = makeSpell({ effect: 'Target is healed.' });
     // baseDamage = 0, result = 0 + 2 = 2
     expect(computeMagicMissileDamage(spell, 2, 4)).toBe(2);
+  });
+});
+
+
+// ─── Overcast Table (Winds of Magic) ─────────────────────────────────────────
+// **Validates: Requirements 5.1, 5.2, 5.3**
+describe('OVERCAST_TABLE — data structure', () => {
+  it('has 7 rows with Fibonacci-like SL thresholds', () => {
+    expect(OVERCAST_TABLE).toHaveLength(7);
+    expect(OVERCAST_TABLE.map(r => r.sl)).toEqual([1, 2, 3, 5, 8, 13, 21]);
+  });
+
+  it('damage values are +1 through +7', () => {
+    expect(OVERCAST_TABLE.map(r => r.damage)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  });
+
+  it('target values follow +1/+1/+1/+2/+2/+2/+3 pattern', () => {
+    expect(OVERCAST_TABLE.map(r => r.targets)).toEqual([
+      '+1 Target', '+1 Target', '+1 Target',
+      '+2 Targets', '+2 Targets', '+2 Targets',
+      '+3 Targets',
+    ]);
+  });
+
+  it('range values follow 2×/2×/2×/3×/3×/3×/4× pattern', () => {
+    expect(OVERCAST_TABLE.map(r => r.range)).toEqual([
+      '2× Range', '2× Range', '2× Range',
+      '3× Range', '3× Range', '3× Range',
+      '4× Range',
+    ]);
+  });
+
+  it('duration values follow listed/2×/2×/2×/3×/3×/3× pattern', () => {
+    expect(OVERCAST_TABLE.map(r => r.duration)).toEqual([
+      'Listed Duration', '2× Duration', '2× Duration',
+      '2× Duration', '3× Duration', '3× Duration',
+      '3× Duration',
+    ]);
+  });
+
+  it('aoe values follow listed/listed/2×/2×/2×/2×/3× pattern', () => {
+    expect(OVERCAST_TABLE.map(r => r.aoe)).toEqual([
+      'Listed AoE', 'Listed AoE', '2× AoE',
+      '2× AoE', '2× AoE', '2× AoE',
+      '3× AoE',
+    ]);
+  });
+});
+
+describe('lookupOvercastEffect — single column lookup', () => {
+  it('SL 0 → null (below minimum threshold)', () => {
+    expect(lookupOvercastEffect('damage', 0)).toBeNull();
+  });
+
+  it('SL 1 → first row for damage (+1 Damage)', () => {
+    expect(lookupOvercastEffect('damage', 1)).toBe('+1 Damage');
+  });
+
+  it('SL 2 → second row for targets (+1 Target)', () => {
+    expect(lookupOvercastEffect('targets', 2)).toBe('+1 Target');
+  });
+
+  it('SL 4 → still third row (threshold 3 met, 5 not met) for range (2× Range)', () => {
+    expect(lookupOvercastEffect('range', 4)).toBe('2× Range');
+  });
+
+  it('SL 5 → fourth row for range (3× Range)', () => {
+    expect(lookupOvercastEffect('range', 5)).toBe('3× Range');
+  });
+
+  it('SL 8 → fifth row for duration (3× Duration)', () => {
+    expect(lookupOvercastEffect('duration', 8)).toBe('3× Duration');
+  });
+
+  it('SL 13 → sixth row for damage (+6 Damage)', () => {
+    expect(lookupOvercastEffect('damage', 13)).toBe('+6 Damage');
+  });
+
+  it('SL 21 → seventh row for targets (+3 Targets)', () => {
+    expect(lookupOvercastEffect('targets', 21)).toBe('+3 Targets');
+  });
+
+  it('SL 30 (above 21) → still seventh row for aoe (3× AoE)', () => {
+    expect(lookupOvercastEffect('aoe', 30)).toBe('3× AoE');
+  });
+});
+
+describe('resolveOvercastAllocations — multi-column allocation', () => {
+  it('allocating 3 SL to damage and 2 SL to range with 5 surplus', () => {
+    const result = resolveOvercastAllocations(5, { damage: 3, range: 2 });
+    expect(result.surplusSL).toBe(5);
+    expect(result.unspentSL).toBe(0);
+    expect(result.columnEffects).toHaveLength(2);
+    const damageEffect = result.columnEffects.find(e => e.category === 'damage');
+    const rangeEffect = result.columnEffects.find(e => e.category === 'range');
+    expect(damageEffect?.effect).toBe('+3 Damage');
+    expect(damageEffect?.slSpent).toBe(3);
+    expect(rangeEffect?.effect).toBe('2× Range');
+    expect(rangeEffect?.slSpent).toBe(2);
+  });
+
+  it('allocating more SL than surplus caps to available', () => {
+    const result = resolveOvercastAllocations(3, { damage: 2, range: 5 });
+    expect(result.columnEffects).toHaveLength(2);
+    const rangeEffect = result.columnEffects.find(e => e.category === 'range');
+    // Only 1 SL left for range (3 surplus - 2 spent on damage)
+    expect(rangeEffect?.slSpent).toBe(1);
+    expect(rangeEffect?.effect).toBe('2× Range');
+    expect(result.unspentSL).toBe(0);
+  });
+
+  it('empty allocations → no effects, all SL unspent', () => {
+    const result = resolveOvercastAllocations(5, {});
+    expect(result.columnEffects).toHaveLength(0);
+    expect(result.unspentSL).toBe(5);
+  });
+
+  it('zero SL allocations are skipped', () => {
+    const result = resolveOvercastAllocations(5, { damage: 0, range: 3, targets: 0 });
+    expect(result.columnEffects).toHaveLength(1);
+    expect(result.columnEffects[0].category).toBe('range');
+    expect(result.unspentSL).toBe(2);
+  });
+
+  it('CastingResult includes overcastAllocation as null by default', () => {
+    const char = makeCharacter({ intI: 40 });
+    const roll = makeRollResult({ sl: 8, passed: true });
+    const spell = makeSpell({ cn: '4' });
+    const result = resolveCastingResult(roll, spell, char);
+    expect(result.overcastAllocation).toBeNull();
+    expect(result.surplusSL).toBe(4);
+  });
+});
+
+
+// ─── Property 12: Critical Channelling ───────────────────────────────────────
+// **Validates: Requirements 6.2**
+describe('resolveChannellingResult — Critical Channelling (doubles + success)', () => {
+  it('critical roll adds WP Bonus SL on top of normal SL', () => {
+    // Character with WP 45 → WP Bonus = 4
+    const char = makeCharacter({
+      wpI: 45,
+      aSkills: [{ n: 'Channelling', c: 'WP', a: 10 }],
+    });
+    // Rolled doubles on a success: isCritical = true, SL = 3
+    const roll = makeRollResult({ sl: 3, passed: true, isCritical: true, roll: 22 });
+    const result = resolveChannellingResult(roll, 2, 12, char);
+    // accumulated = 2 (prior) + 3 (normal SL) + 4 (WP Bonus) = 9
+    expect(result.accumulatedSL).toBe(9);
+    expect(result.isCriticalChannelling).toBe(true);
+    expect(result.bonusSL).toBe(4);
+  });
+
+  it('critical channelling triggers Minor Miscast without Aethyric Attunement', () => {
+    const char = makeCharacter({ wpI: 30 });
+    const roll = makeRollResult({ sl: 2, passed: true, isCritical: true, roll: 11 });
+    const result = resolveChannellingResult(roll, 0, 8, char);
+    expect(result.triggerMinorMiscast).toBe(true);
+    expect(result.isCriticalChannelling).toBe(true);
+  });
+
+  it('critical channelling does NOT trigger Minor Miscast with Aethyric Attunement', () => {
+    const char = makeCharacter({
+      wpI: 40,
+      talents: [{ n: 'Aethyric Attunement', lvl: 1, desc: '' }],
+    });
+    const roll = makeRollResult({ sl: 3, passed: true, isCritical: true, roll: 33 });
+    const result = resolveChannellingResult(roll, 0, 8, char);
+    expect(result.triggerMinorMiscast).toBe(false);
+    expect(result.isCriticalChannelling).toBe(true);
+    // Still gets the WP Bonus SL (4)
+    expect(result.bonusSL).toBe(4);
+    expect(result.accumulatedSL).toBe(7); // 0 + 3 + 4
+  });
+
+  it('critical channelling can make the spell ready', () => {
+    // WP 50 → WP Bonus = 5
+    const char = makeCharacter({ wpI: 50 });
+    const roll = makeRollResult({ sl: 2, passed: true, isCritical: true, roll: 44 });
+    // Prior progress = 3, spell CN = 8
+    // accumulated = 3 + 2 + 5 = 10 >= 8
+    const result = resolveChannellingResult(roll, 3, 8, char);
+    expect(result.accumulatedSL).toBe(10);
+    expect(result.ready).toBe(true);
+  });
+
+  it('without character parameter, critical still triggers miscast but no bonus SL', () => {
+    const roll = makeRollResult({ sl: 3, passed: true, isCritical: true, roll: 22 });
+    const result = resolveChannellingResult(roll, 0, 8);
+    expect(result.isCriticalChannelling).toBe(true);
+    expect(result.triggerMinorMiscast).toBe(true);
+    expect(result.bonusSL).toBe(0);
+    expect(result.accumulatedSL).toBe(3); // Just normal SL, no bonus
+  });
+});
+
+// ─── Property 13: Fumbled Channelling ────────────────────────────────────────
+// **Validates: Requirements 6.3**
+describe('resolveChannellingResult — Fumbled Channelling (doubles + failure)', () => {
+  it('fumble loses all accumulated SL', () => {
+    const char = makeCharacter({ wpI: 40 });
+    const roll = makeRollResult({ sl: -2, passed: false, isFumble: true, roll: 88 });
+    const result = resolveChannellingResult(roll, 5, 8, char);
+    expect(result.accumulatedSL).toBe(0);
+    expect(result.isFumbledChannelling).toBe(true);
+  });
+
+  it('fumble triggers Minor Miscast', () => {
+    const char = makeCharacter({ wpI: 40 });
+    const roll = makeRollResult({ sl: -3, passed: false, isFumble: true, roll: 99 });
+    const result = resolveChannellingResult(roll, 7, 8, char);
+    expect(result.triggerMinorMiscast).toBe(true);
+  });
+
+  it('fumble makes spell not ready (lost all SL)', () => {
+    const char = makeCharacter({ wpI: 40 });
+    const roll = makeRollResult({ sl: -1, passed: false, isFumble: true, roll: 66 });
+    const result = resolveChannellingResult(roll, 10, 8, char);
+    expect(result.ready).toBe(false);
+    expect(result.accumulatedSL).toBe(0);
+  });
+
+  it('fumble with zero prior progress stays at 0', () => {
+    const roll = makeRollResult({ sl: -2, passed: false, isFumble: true, roll: 77 });
+    const result = resolveChannellingResult(roll, 0, 8);
+    expect(result.accumulatedSL).toBe(0);
+    expect(result.isFumbledChannelling).toBe(true);
+    expect(result.triggerMinorMiscast).toBe(true);
+  });
+});
+
+// ─── Property 14: Channelling Interruption ───────────────────────────────────
+// **Validates: Requirements 6.4**
+describe('resolveChannellingInterruption — Interruption handling', () => {
+  it('passed Cool test → channelling continues, SL preserved', () => {
+    const coolRoll = makeRollResult({ sl: 1, passed: true, roll: 30 });
+    const result = resolveChannellingInterruption(coolRoll, 5);
+    expect(result.coolTestPassed).toBe(true);
+    expect(result.accumulatedSL).toBe(5);
+    expect(result.triggerMinorMiscast).toBe(false);
+  });
+
+  it('failed Cool test → lose all SL + Minor Miscast', () => {
+    const coolRoll = makeRollResult({ sl: -2, passed: false, roll: 75 });
+    const result = resolveChannellingInterruption(coolRoll, 6);
+    expect(result.coolTestPassed).toBe(false);
+    expect(result.accumulatedSL).toBe(0);
+    expect(result.triggerMinorMiscast).toBe(true);
+  });
+
+  it('failed Cool test with zero prior SL → stays at 0, still triggers miscast', () => {
+    const coolRoll = makeRollResult({ sl: -1, passed: false, roll: 60 });
+    const result = resolveChannellingInterruption(coolRoll, 0);
+    expect(result.coolTestPassed).toBe(false);
+    expect(result.accumulatedSL).toBe(0);
+    expect(result.triggerMinorMiscast).toBe(true);
+  });
+
+  it('passed Cool test preserves high accumulated SL', () => {
+    const coolRoll = makeRollResult({ sl: 3, passed: true, roll: 15 });
+    const result = resolveChannellingInterruption(coolRoll, 12);
+    expect(result.coolTestPassed).toBe(true);
+    expect(result.accumulatedSL).toBe(12);
+    expect(result.triggerMinorMiscast).toBe(false);
+  });
+});
+
+// ─── hasAethyricAttunement utility ───────────────────────────────────────────
+describe('hasAethyricAttunement', () => {
+  it('returns true when character has Aethyric Attunement talent', () => {
+    const char = makeCharacter({
+      wpI: 40,
+      talents: [{ n: 'Aethyric Attunement', lvl: 1, desc: '' }],
+    });
+    expect(hasAethyricAttunement(char)).toBe(true);
+  });
+
+  it('returns false when character lacks the talent', () => {
+    const char = makeCharacter({ wpI: 40 });
+    expect(hasAethyricAttunement(char)).toBe(false);
+  });
+
+  it('returns true for variant naming (e.g. with parenthetical)', () => {
+    const char = makeCharacter({
+      wpI: 40,
+      talents: [{ n: 'Aethyric Attunement (Ghyran)', lvl: 1, desc: '' }],
+    });
+    expect(hasAethyricAttunement(char)).toBe(true);
+  });
+});
+
+// ─── Armour Casting Penalty ──────────────────────────────────────────────────
+// **Validates: Requirements 7.1, 7.2, 7.3**
+describe('getArmourCastingPenalty', () => {
+  it('returns 0 for character with no worn armour', () => {
+    const char = makeCharacter({ intI: 40 });
+    expect(getArmourCastingPenalty(char)).toBe(0);
+  });
+
+  it('returns 0 for character with only non-worn armour', () => {
+    const char = makeCharacter({ intI: 40 });
+    char.armour = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: false },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(0);
+  });
+
+  it('returns highest AP location value as penalty', () => {
+    const char = makeCharacter({ intI: 40 });
+    char.armour = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: true },
+      { name: 'Plate Helm', locations: 'Head', enc: '2', ap: 2, qualities: 'Impenetrable', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(2);
+  });
+
+  it('returns penalty based on multi-location armour', () => {
+    const char = makeCharacter({ intI: 40 });
+    char.armour = [
+      { name: 'Mail Coat', locations: 'Arms, Body', enc: '3', ap: 3, qualities: 'Flexible', worn: true },
+    ];
+    // Body and Arms all have AP 3
+    expect(getArmourCastingPenalty(char)).toBe(3);
+  });
+
+  it('Metal wizard wearing only metal armour is exempt', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Metal)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', worn: true },
+      { name: 'Plate Helm', locations: 'Head', enc: '2', ap: 2, qualities: 'Impenetrable', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(0);
+  });
+
+  it('Metal (Chamon) wizard wearing only metal armour is exempt', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Chamon)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Chain Mail', locations: 'Arms, Body', enc: '3', ap: 3, qualities: 'Flexible', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(0);
+  });
+
+  it('Metal wizard wearing mixed armour (metal + leather) gets penalty', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Metal)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', worn: true },
+      { name: 'Leather Leggings', locations: 'Legs', enc: '1', ap: 1, qualities: '—', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(2);
+  });
+
+  it('Beasts wizard wearing only leather armour is exempt', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Beasts)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Leather Jack', locations: 'Arms, Body', enc: '1', ap: 1, qualities: '—', worn: true },
+      { name: 'Leather Leggings', locations: 'Legs', enc: '1', ap: 1, qualities: '—', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(0);
+  });
+
+  it('Beasts (Ghur) wizard wearing only leather armour is exempt', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Ghur)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Hide Armour', locations: 'Body', enc: '2', ap: 2, qualities: '—', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(0);
+  });
+
+  it('Beasts wizard wearing mixed armour (leather + metal) gets penalty', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Beasts)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: true },
+      { name: 'Plate Helm', locations: 'Head', enc: '2', ap: 2, qualities: 'Impenetrable', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(2);
+  });
+
+  it('non-wizard (no Arcane Magic talent) gets full penalty', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Petty Magic', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(2);
+  });
+
+  it('Fire wizard wearing metal armour gets full penalty (no exemption)', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Fire)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(2);
+  });
+});
+
+describe('isMetalArmour', () => {
+  it.each([
+    { name: 'Mail Shirt', expected: true },
+    { name: 'Plate Breastplate', expected: true },
+    { name: 'Chain Mail', expected: true },
+    { name: 'Helm', expected: true },
+    { name: 'Steel Gauntlets', expected: true },
+    { name: 'Iron Helm', expected: true },
+    { name: 'Gromril Armour', expected: true },
+    { name: 'Ithilmar Armour', expected: true },
+    { name: 'Leather Jerkin', expected: false },
+    { name: 'Hide Armour', expected: false },
+    { name: 'Fur Cloak', expected: false },
+  ])('$name → $expected', ({ name, expected }) => {
+    const item = { name, locations: 'Body', enc: '1', ap: 1, qualities: '—' };
+    expect(isMetalArmour(item)).toBe(expected);
+  });
+});
+
+describe('isLeatherArmour', () => {
+  it.each([
+    { name: 'Leather Jerkin', expected: true },
+    { name: 'Leather Jack', expected: true },
+    { name: 'Hide Armour', expected: true },
+    { name: 'Fur Cloak', expected: true },
+    { name: 'Pelt Armour', expected: true },
+    { name: 'Barkskin Vest', expected: true },
+    { name: 'Mail Shirt', expected: false },
+    { name: 'Plate Breastplate', expected: false },
+    { name: 'Helm', expected: false },
+  ])('$name → $expected', ({ name, expected }) => {
+    const item = { name, locations: 'Body', enc: '1', ap: 1, qualities: '—' };
+    expect(isLeatherArmour(item)).toBe(expected);
   });
 });
