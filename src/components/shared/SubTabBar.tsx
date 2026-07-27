@@ -70,9 +70,14 @@ export function SubTabBar({ tabs, activeTab, onTabChange, editMode }: SubTabBarP
   }, [editMode]);
 
   const renderTablist = () => {
+    const inContainer = !!editMode;
+    const subTabBarClass = inContainer
+      ? `${styles.subTabBar} ${styles.subTabBarFlex}`
+      : styles.subTabBar;
+
     if (editMode?.isActive) {
       return (
-        <div className={styles.subTabBar} role="tablist" ref={tablistRef}>
+        <div className={subTabBarClass} role="tablist" ref={tablistRef}>
           {tabs.map((tab, index) => {
             const isFirst = index === 0;
             const isLast = index === tabs.length - 1;
@@ -128,7 +133,7 @@ export function SubTabBar({ tabs, activeTab, onTabChange, editMode }: SubTabBarP
     }
 
     return (
-      <div className={styles.subTabBar} role="tablist">
+      <div className={subTabBarClass} role="tablist">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -150,7 +155,7 @@ export function SubTabBar({ tabs, activeTab, onTabChange, editMode }: SubTabBarP
   }
 
   return (
-    <div className={styles.editModeContainer}>
+    <div className={editMode.isActive ? styles.editModeContainerActive : styles.editModeContainer}>
       {renderTablist()}
       <div className={styles.editControls}>
         <button
@@ -161,15 +166,17 @@ export function SubTabBar({ tabs, activeTab, onTabChange, editMode }: SubTabBarP
         >
           {editMode.isActive ? <Check size={18} /> : <Pencil size={18} />}
         </button>
-        <button
-          type="button"
-          className={styles.resetBtn}
-          aria-label="Reset tab order"
-          disabled={editMode.isDefaultOrder}
-          onClick={handleReset}
-        >
-          <RotateCcw size={18} />
-        </button>
+        {editMode.isActive && (
+          <button
+            type="button"
+            className={styles.resetBtn}
+            aria-label="Reset tab order"
+            disabled={editMode.isDefaultOrder}
+            onClick={handleReset}
+          >
+            <RotateCcw size={18} />
+          </button>
+        )}
       </div>
       <div aria-live="polite" className={styles.srOnly}>
         {announcement}

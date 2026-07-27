@@ -68,15 +68,27 @@
 
 /* === Edit Mode Styles === */
 
-/* Wrapper when edit mode is active */
+/* Wrapper when editMode prop is provided (always shown for toggle button) */
 .editModeContainer {
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-bottom: 4px;
+}
+
+/* Active edit mode: highlight the container */
+.editModeContainerActive {
+  composes: editModeContainer;
   background: var(--bg-secondary);
   border-radius: var(--radius-sm);
   border: 1px solid var(--accent-gold);
-  margin-bottom: 4px;
+}
+
+/* When inside the edit mode container, tablist takes remaining space */
+.subTabBarFlex {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
 }
 
 /* Container for toggle + reset buttons */
