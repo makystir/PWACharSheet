@@ -1,3 +1,5 @@
+import '@testing-library/jest-dom';
+
 /**
  * Global test setup for vitest + jsdom.
  * Provides a default matchMedia mock since jsdom doesn't implement it.

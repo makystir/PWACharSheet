@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { User, Swords, Users, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { User, Swords, Users, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown, MoreHorizontal, Search } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { CharacterSummary } from '../../types/character';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useCommandPaletteContext } from '../command-palette/CommandPaletteContext';
 import styles from './Navigation.module.css';
 
 export type PageSection = 'character' | 'combat' | 'retinue' | 'estate' | 'endeavours' | 'advancement' | 'settings';
@@ -58,6 +59,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [showOverflow, setShowOverflow] = useState(false);
 
+  const { open } = useCommandPaletteContext();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const overflowRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
@@ -130,6 +132,18 @@ export function Navigation({ activePage, onPageChange, characterName, characters
           </button>
         );
       })}
+
+      {/* Search button */}
+      <button
+        type="button"
+        className={styles.navItem}
+        onClick={() => open()}
+        aria-label="Search game reference"
+        data-section="search"
+      >
+        <Search size={18} />
+        <span>Search</span>
+      </button>
 
       {/* More button */}
       <button
@@ -205,6 +219,14 @@ export function Navigation({ activePage, onPageChange, characterName, characters
           <>
             <div className={styles.appTitle}>
               ⚔ WFRP 4e
+              <button
+                type="button"
+                className={styles.searchBtn}
+                onClick={() => open()}
+                aria-label="Search game reference"
+              >
+                <Search size={14} />
+              </button>
             </div>
             {characterName && (
               <div className={styles.charName}>

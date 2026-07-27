@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Navigation } from '../Navigation';
+import { CommandPaletteProvider } from '../../command-palette/CommandPaletteContext';
 
 /**
  * Mobile Navigation Tests
@@ -37,15 +38,18 @@ describe('Navigation mobile touch targets and height', () => {
     vi.restoreAllMocks();
   });
 
+  const renderWithProvider = (ui: React.ReactElement) =>
+    render(<CommandPaletteProvider>{ui}</CommandPaletteProvider>);
+
   it('renders the navigation bar as a nav element with correct landmark', () => {
-    render(<Navigation activePage="character" onPageChange={vi.fn()} />);
+    renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     const nav = screen.getByRole('navigation', { name: /main navigation/i });
     expect(nav).toBeInTheDocument();
   });
 
   it('applies the sidebar class which sets fixed height of 64px on mobile (Req 2.1)', () => {
-    render(<Navigation activePage="character" onPageChange={vi.fn()} />);
+    renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     const nav = screen.getByRole('navigation', { name: /main navigation/i });
     // The nav element uses the sidebar class which has --nav-height-mobile: 64px in mobile media query
@@ -53,18 +57,18 @@ describe('Navigation mobile touch targets and height', () => {
     expect(nav.className).toContain('sidebar');
   });
 
-  it('renders 5 visible tab buttons on mobile: 4 primary + More (Req 2.1)', () => {
-    render(<Navigation activePage="character" onPageChange={vi.fn()} />);
+  it('renders 6 visible tab buttons on mobile: 4 primary + Search + More (Req 2.1)', () => {
+    renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     const navButtons = screen.getAllByRole('button').filter(
       (btn) => btn.getAttribute('data-section') !== null
     );
-    // 4 primary tabs (Character, Combat, Retinue, Settings) + 1 More button
-    expect(navButtons).toHaveLength(5);
+    // 4 primary tabs (Character, Combat, Retinue, Settings) + Search + 1 More button
+    expect(navButtons).toHaveLength(6);
   });
 
   it('nav items have min-height for 48px touch targets via CSS class (Req 1.1)', () => {
-    render(<Navigation activePage="character" onPageChange={vi.fn()} />);
+    renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     const navButtons = screen.getAllByRole('button').filter(
       (btn) => btn.getAttribute('data-section') !== null
@@ -80,7 +84,7 @@ describe('Navigation mobile touch targets and height', () => {
   });
 
   it('renders icons as SVG elements with minimum 22px sizing (Req 1.2)', () => {
-    render(<Navigation activePage="character" onPageChange={vi.fn()} />);
+    renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     const navButtons = screen.getAllByRole('button').filter(
       (btn) => btn.getAttribute('data-section') !== null
@@ -96,10 +100,10 @@ describe('Navigation mobile touch targets and height', () => {
   });
 
   it('renders label text in span elements for each visible nav item (Req 1.3)', () => {
-    render(<Navigation activePage="character" onPageChange={vi.fn()} />);
+    renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
-    // Mobile shows primary tabs + More button (overflow tabs are hidden until popover opens)
-    const expectedLabels = ['Character', 'Combat', 'Retinue', 'Settings', 'More'];
+    // Mobile shows primary tabs + Search + More button (overflow tabs are hidden until popover opens)
+    const expectedLabels = ['Character', 'Combat', 'Retinue', 'Settings', 'Search', 'More'];
 
     expectedLabels.forEach((label) => {
       const labelElement = screen.getByText(label);
@@ -109,7 +113,7 @@ describe('Navigation mobile touch targets and height', () => {
   });
 
   it('active nav item uses navItemActive class with top border accent (Req 1.4)', () => {
-    render(<Navigation activePage="combat" onPageChange={vi.fn()} />);
+    renderWithProvider(<Navigation activePage="combat" onPageChange={vi.fn()} />);
 
     const activeButton = screen.getByRole('button', { name: /combat/i });
     expect(activeButton).toHaveAttribute('aria-current', 'page');
@@ -118,7 +122,7 @@ describe('Navigation mobile touch targets and height', () => {
   });
 
   it('inactive nav items use navItem class (no active border)', () => {
-    render(<Navigation activePage="combat" onPageChange={vi.fn()} />);
+    renderWithProvider(<Navigation activePage="combat" onPageChange={vi.fn()} />);
 
     const characterButton = screen.getByText('Character').closest('button');
     expect(characterButton).not.toBeNull();
@@ -127,7 +131,7 @@ describe('Navigation mobile touch targets and height', () => {
   });
 
   it('does not render app title and character name elements on mobile (hidden via conditional rendering)', () => {
-    render(
+    renderWithProvider(
       <Navigation
         activePage="character"
         onPageChange={vi.fn()}

@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Navigation } from '../layout/Navigation';
 import type { CharacterSummary } from '../../types/character';
+import { CommandPaletteProvider } from '../command-palette/CommandPaletteContext';
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<CommandPaletteProvider>{ui}</CommandPaletteProvider>);
+}
 
 function makeSummary(overrides: Partial<CharacterSummary> & { id: string; name: string }): CharacterSummary {
   return {
@@ -26,8 +31,7 @@ function openSwitcher() {
 describe('Navigation delete confirmation', () => {
   // **Validates: Requirements 1.1**
   it('shows delete button for all characters when multiple characters exist', () => {
-    render(
-      <Navigation
+    renderWithProviders(<Navigation
         activePage="character"
         onPageChange={vi.fn()}
         characterName="Brunhilde"
@@ -45,8 +49,7 @@ describe('Navigation delete confirmation', () => {
 
   // **Validates: Requirements 1.1**
   it('shows delete button for the active character', () => {
-    render(
-      <Navigation
+    renderWithProviders(<Navigation
         activePage="character"
         onPageChange={vi.fn()}
         characterName="Brunhilde"
@@ -64,8 +67,7 @@ describe('Navigation delete confirmation', () => {
 
   // **Validates: Requirements 1.1, 1.2**
   it('shows delete button when only one character exists', () => {
-    render(
-      <Navigation
+    renderWithProviders(<Navigation
         activePage="character"
         onPageChange={vi.fn()}
         characterName="Brunhilde"
@@ -82,8 +84,7 @@ describe('Navigation delete confirmation', () => {
 
   // **Validates: Requirements 2.1**
   it('clicking delete button opens ConfirmDialog with the character name in the message', () => {
-    render(
-      <Navigation
+    renderWithProviders(<Navigation
         activePage="character"
         onPageChange={vi.fn()}
         characterName="Brunhilde"
@@ -105,8 +106,7 @@ describe('Navigation delete confirmation', () => {
 
   // **Validates: Requirements 2.1**
   it('clicking delete on the active character opens ConfirmDialog with the active character name', () => {
-    render(
-      <Navigation
+    renderWithProviders(<Navigation
         activePage="character"
         onPageChange={vi.fn()}
         characterName="Brunhilde"
@@ -129,8 +129,7 @@ describe('Navigation delete confirmation', () => {
   // **Validates: Requirements 2.2**
   it('confirming deletion calls onDeleteCharacter with the correct character ID', () => {
     const onDelete = vi.fn();
-    render(
-      <Navigation
+    renderWithProviders(<Navigation
         activePage="character"
         onPageChange={vi.fn()}
         characterName="Brunhilde"
@@ -155,8 +154,7 @@ describe('Navigation delete confirmation', () => {
   // **Validates: Requirements 2.2**
   it('confirming deletion of the active character calls onDeleteCharacter with the active character ID', () => {
     const onDelete = vi.fn();
-    render(
-      <Navigation
+    renderWithProviders(<Navigation
         activePage="character"
         onPageChange={vi.fn()}
         characterName="Brunhilde"
@@ -182,8 +180,7 @@ describe('Navigation delete confirmation', () => {
   // **Validates: Requirements 2.3**
   it('cancelling deletion closes the dialog without calling onDeleteCharacter', () => {
     const onDelete = vi.fn();
-    render(
-      <Navigation
+    renderWithProviders(<Navigation
         activePage="character"
         onPageChange={vi.fn()}
         characterName="Brunhilde"

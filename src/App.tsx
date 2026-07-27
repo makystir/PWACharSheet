@@ -40,6 +40,9 @@ import type { PageSection } from './components/layout/Navigation';
 import errorStyles from './ErrorBoundary.module.css';
 import { SWUpdateProvider } from './hooks/useSWUpdate';
 import { UpdateBanner } from './components/shared/UpdateBanner';
+import { CommandPaletteProvider } from './components/command-palette/CommandPaletteContext';
+import { useCommandPalette } from './components/command-palette/useCommandPalette';
+import { CommandPalette } from './components/command-palette/CommandPalette';
 
 // Simple error boundary
 interface ErrorBoundaryProps {
@@ -85,6 +88,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 function AppContent() {
+  useCommandPalette();
   const manager = useCharacterManager();
   const { page, subTab, navigate } = useHashRoute();
   const { message: storageErrorMessage } = useStorageErrorToast();
@@ -107,6 +111,7 @@ function AppContent() {
           }}
         />
         <Toast message={storageErrorMessage} duration={5000} />
+        <CommandPalette />
       </>
     );
   }
@@ -120,6 +125,7 @@ function AppContent() {
         navigate={navigate}
       />
       <Toast message={storageErrorMessage} duration={5000} />
+      <CommandPalette />
     </>
   );
 }
@@ -320,7 +326,9 @@ export default function App() {
   return (
     <SWUpdateProvider>
       <ErrorBoundary>
-        <AppContent />
+        <CommandPaletteProvider>
+          <AppContent />
+        </CommandPaletteProvider>
       </ErrorBoundary>
       <UpdateBanner />
     </SWUpdateProvider>
