@@ -7,7 +7,9 @@ import { AddButton } from '../shared/AddButton';
 import { Home, Coins, ScrollText, Building } from 'lucide-react';
 import { computeHirelingUpkeep } from '../../logic/hirelings';
 import { SubTabBar } from '../shared/SubTabBar';
+import { useTabOrder } from '../../hooks/useTabOrder';
 import { EmptyState } from '../shared/EmptyState';
+import { Toast } from '../shared/Toast';
 import { CurrencyInput } from '../shared/CurrencyInput';
 import { LedgerPanel } from '../shared/LedgerPanel';
 import { validateTreasuryDelta, applyCurrencyDelta, type CurrencyDelta } from '../../logic/currency';
@@ -62,9 +64,15 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
   const [activeSubTab, setActiveSubTabInternal] = useState<EstateSubTab>(initialTab);
 
   // Sync from external subTab prop (e.g. URL hash changes)
+  // Falls back to default sub-tab if hash references a non-existent tab ID (Req 6.3)
   useEffect(() => {
-    if (subTab && VALID_SUBTABS.includes(subTab as EstateSubTab)) {
-      setActiveSubTabInternal(subTab as EstateSubTab);
+    if (subTab) {
+      if (VALID_SUBTABS.includes(subTab as EstateSubTab)) {
+        setActiveSubTabInternal(subTab as EstateSubTab);
+      } else {
+        // Invalid tab ID in hash — fall back to default sub-tab
+        setActiveSubTabInternal('wealth');
+      }
     }
   }, [subTab]);
 
@@ -73,6 +81,16 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
     setActiveSubTabInternal(tab);
     onSubTabChange?.(tab);
   };
+
+  // Tab reordering
+  const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
+    pageKey: 'estate',
+    defaultTabs: [
+      { id: 'wealth', label: 'Wealth & Finances' },
+      { id: 'estate', label: 'Estate' },
+      { id: 'holdings', label: 'Holdings' },
+    ],
+  });
 
   const [noteInput, setNoteInput] = useState('');
   const [treasuryError, setTreasuryError] = useState<string | null>(null);
@@ -131,13 +149,18 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
     <div className={styles.sectionGap}>
       {/* Sub-tab navigation */}
       <SubTabBar
-        tabs={[
-          { id: 'wealth', label: 'Wealth & Finances' },
-          { id: 'estate', label: 'Estate' },
-          { id: 'holdings', label: 'Holdings' },
-        ]}
+        tabs={orderedTabs}
         activeTab={activeSubTab}
         onTabChange={(tab) => setActiveSubTab(tab as EstateSubTab)}
+        editMode={{
+          isActive: isEditMode,
+          onToggle: toggleEditMode,
+          onMoveLeft: moveLeft,
+          onMoveRight: moveRight,
+          onReset: resetOrder,
+          isDefaultOrder,
+          saveError,
+        }}
       />
 
       {activeSubTab === 'estate' && (
@@ -374,6 +397,9 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
         </div>
       </Card>
       )}
+
+      {/* Tab order save error toast */}
+      <Toast message={saveError ? 'Tab order could not be saved' : null} duration={5000} />
     </div>
   );
 }

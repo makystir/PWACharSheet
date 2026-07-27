@@ -13,6 +13,7 @@ import { removeAtIndex, restoreAtIndex } from '../../logic/undo';
 import { ANIMAL_TEMPLATES, TRAINED_SKILLS } from '../../data/animals';
 import { Users, Plus, PawPrint } from 'lucide-react';
 import { SubTabBar } from '../shared/SubTabBar';
+import { useTabOrder } from '../../hooks/useTabOrder';
 import { EmptyState } from '../shared/EmptyState';
 import styles from './RetinuePage.module.css';
 
@@ -32,9 +33,15 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
   const [activeSubTab, setActiveSubTabInternal] = useState<RetinueSubTab>(initialTab);
 
   // Sync from external subTab prop (e.g. URL hash changes)
+  // Falls back to default sub-tab if hash references a non-existent tab ID (Req 6.3)
   useEffect(() => {
-    if (subTab && VALID_SUBTABS.includes(subTab as RetinueSubTab)) {
-      setActiveSubTabInternal(subTab as RetinueSubTab);
+    if (subTab) {
+      if (VALID_SUBTABS.includes(subTab as RetinueSubTab)) {
+        setActiveSubTabInternal(subTab as RetinueSubTab);
+      } else {
+        // Invalid tab ID in hash — fall back to default sub-tab
+        setActiveSubTabInternal('hirelings');
+      }
     }
   }, [subTab]);
 
@@ -43,6 +50,15 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
     setActiveSubTabInternal(tab);
     onSubTabChange?.(tab);
   };
+
+  // Tab reordering
+  const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
+    pageKey: 'retinue',
+    defaultTabs: [
+      { id: 'hirelings', label: 'Hirelings' },
+      { id: 'companions', label: 'Animal Companions' },
+    ],
+  });
 
   const [showCreationFlow, setShowCreationFlow] = useState(false);
   const [showAnimalPicker, setShowAnimalPicker] = useState(false);
@@ -98,12 +114,18 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
     <div className={styles.sectionGap}>
       {/* Sub-tab navigation */}
       <SubTabBar
-        tabs={[
-          { id: 'hirelings', label: 'Hirelings' },
-          { id: 'companions', label: 'Animal Companions' },
-        ]}
+        tabs={orderedTabs}
         activeTab={activeSubTab}
         onTabChange={(tab) => setActiveSubTab(tab as RetinueSubTab)}
+        editMode={{
+          isActive: isEditMode,
+          onToggle: toggleEditMode,
+          onMoveLeft: moveLeft,
+          onMoveRight: moveRight,
+          onReset: resetOrder,
+          isDefaultOrder,
+          saveError,
+        }}
       />
 
       {activeSubTab === 'hirelings' && (
@@ -274,6 +296,9 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
         duration={5000}
         action={undoToast.pending ? { label: 'Undo', onAction: undoToast.undo } : undefined}
       />
+
+      {/* Tab order save error toast */}
+      <Toast message={saveError ? 'Tab order could not be saved' : null} duration={5000} />
     </div>
   );
 }

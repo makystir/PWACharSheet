@@ -44,6 +44,7 @@ import { MagicalBurnoutPanel } from '../shared/MagicalBurnoutPanel';
 import RunePanel from '../runes/RunePanel';
 import type { ProtectionItem, EngineeringItem } from '../../types/character';
 import { SubTabBar } from '../shared/SubTabBar';
+import { useTabOrder } from '../../hooks/useTabOrder';
 import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
 import { CurrencyInput } from '../shared/CurrencyInput';
@@ -87,9 +88,15 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const [activeSubTab, setActiveSubTabInternal] = useState<CharSubTab>(initialTab);
 
   // Sync from external subTab prop (e.g. URL hash changes)
+  // Falls back to default sub-tab if hash references a non-existent tab ID (Req 6.3)
   useEffect(() => {
-    if (subTab && VALID_SUBTABS.includes(subTab as CharSubTab)) {
-      setActiveSubTabInternal(subTab as CharSubTab);
+    if (subTab) {
+      if (VALID_SUBTABS.includes(subTab as CharSubTab)) {
+        setActiveSubTabInternal(subTab as CharSubTab);
+      } else {
+        // Invalid tab ID in hash — fall back to default sub-tab
+        setActiveSubTabInternal('identity');
+      }
     }
   }, [subTab]);
 
@@ -98,6 +105,17 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     setActiveSubTabInternal(tab);
     onSubTabChange?.(tab);
   };
+
+  // Tab reordering
+  const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
+    pageKey: 'character',
+    defaultTabs: [
+      { id: 'identity', label: 'Identity' },
+      { id: 'abilities', label: 'Abilities' },
+      { id: 'gear', label: 'Gear & Wealth' },
+      { id: 'notes', label: 'Notes' },
+    ],
+  });
 
   // ─── Portrait state (stored in IndexedDB, NOT localStorage) ─────────────────
   const [portraitURL, setPortraitURL] = useState<string>('');
@@ -358,14 +376,18 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     <div className={styles.sectionGap}>
       {/* Sub-tab navigation */}
       <SubTabBar
-        tabs={[
-          { id: 'identity', label: 'Identity' },
-          { id: 'abilities', label: 'Abilities' },
-          { id: 'gear', label: 'Gear & Wealth' },
-          { id: 'notes', label: 'Notes' },
-        ]}
+        tabs={orderedTabs}
         activeTab={activeSubTab}
         onTabChange={(tab) => setActiveSubTab(tab as CharSubTab)}
+        editMode={{
+          isActive: isEditMode,
+          onToggle: toggleEditMode,
+          onMoveLeft: moveLeft,
+          onMoveRight: moveRight,
+          onReset: resetOrder,
+          isDefaultOrder,
+          saveError,
+        }}
       />
 
       {/* ═══ IDENTITY TAB ═══ */}
@@ -1295,6 +1317,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
       {/* Portrait error toast */}
       <Toast message={portraitError} duration={5000} />
+
+      {/* Tab order save error toast */}
+      <Toast message={saveError ? 'Tab order could not be saved' : null} duration={5000} />
     </div>
   );
 }
