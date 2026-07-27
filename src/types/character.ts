@@ -101,6 +101,7 @@ export interface SpellData {
   target: string;
   duration: string;
   effect: string;
+  lore: string;
 }
 
 export interface ConditionData {

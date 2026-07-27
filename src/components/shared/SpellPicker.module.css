@@ -1,0 +1,247 @@
+/* SpellPicker component styles */
+
+.overlay {
+  composes: overlay from './styles/shared.module.css';
+}
+
+.modal {
+  composes: modalPanel from './styles/shared.module.css';
+  max-width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-heading);
+  color: var(--parchment);
+  margin: 0;
+  font-size: 16px;
+}
+
+.close {
+  padding: 8px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchWrapper {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.search {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.tabBar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabBar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.tabActive {
+  background: var(--parchment);
+  color: var(--bg-primary);
+  border-color: var(--parchment);
+  font-weight: 700;
+}
+
+.spellList {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.groupHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  user-select: none;
+}
+
+.spellItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  width: 100%;
+}
+
+.spellItem:hover {
+  background: var(--bg-tertiary);
+}
+
+.spellItemKnown {
+  opacity: 0.5;
+}
+
+.spellName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spellCn {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+.spellDetail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, padding 0.25s ease;
+  padding: 0 12px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.spellDetailOpen {
+  max-height: 300px;
+  padding: 10px 12px;
+}
+
+.detailRow {
+  display: flex;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.knownIcon {
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.selectBtn {
+  margin-top: 8px;
+  padding: 6px 16px;
+  min-height: 44px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  width: 100%;
+}
+
+.selectBtn:hover {
+  background: var(--bg-tertiary);
+}
+
+.emptyMessage {
+  padding: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Mobile overrides */
+@media (max-width: 767px) {
+  .modal {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    position: relative;
+  }
+
+  .search {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .spellItem {
+    border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+    border-radius: 0;
+  }
+}
+
+/* Body scroll lock — applied via JS when modal is open */
+:global(.spellPickerOpen) {
+  overflow: hidden;
+}

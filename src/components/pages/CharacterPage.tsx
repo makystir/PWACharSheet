@@ -5,6 +5,7 @@ import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { AddButton } from '../shared/AddButton';
 import { Picker } from '../shared/Picker';
+import { SpellPicker } from '../shared/SpellPicker';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { RollDialog } from '../shared/RollDialog';
 import { RollResultDisplay } from '../shared/RollResultDisplay';
@@ -1209,7 +1210,14 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         <Picker items={TALENT_DB} getLabel={(t) => t.name} onSelect={addTalentFromPicker} onClose={() => setShowTalentPicker(false)} title="Select Talent" />
       )}
       {showSpellPicker && (
-        <Picker items={SPELL_LIST} getLabel={(s) => `${s.name} (CN ${s.cn})`} onSelect={addSpellFromPicker} onClose={() => setShowSpellPicker(false)} title="Select Spell" />
+        <SpellPicker
+          spells={SPELL_LIST}
+          characterTalents={character.talents}
+          knownSpellNames={new Set(character.spells.map(s => s.name))}
+          onSelect={addSpellFromPicker}
+          onClose={() => setShowSpellPicker(false)}
+          title="Select Spell"
+        />
       )}
       {showTrappingPicker && (
         <Picker items={TRAPPING_LIST} getLabel={(t) => `${t.name} (Enc ${t.enc})`} onSelect={(t) => { updateCharacter((c) => ({ ...c, trappings: [...c.trappings, { name: t.name, enc: t.enc, quantity: 1 }] })); setShowTrappingPicker(false); }} onClose={() => setShowTrappingPicker(false)} title="Select Trapping" />

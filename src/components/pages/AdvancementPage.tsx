@@ -4,6 +4,7 @@ import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { Picker } from '../shared/Picker';
+import { SpellPicker } from '../shared/SpellPicker';
 import { Tooltip } from '../shared/Tooltip';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
@@ -1060,16 +1061,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         <Picker items={Object.keys(CAREER_SCHEMES).filter(c => c !== character.career)} getLabel={(c) => c} getGroup={(c) => { const s = getCareerScheme(c); return s ? s.class : 'Other'; }} onSelect={handleSwitchCareer} onClose={() => setShowSwitchCareerPicker(false)} title="Switch to Career" />
       )}
       {showSpellLearningPicker && (
-        <Picker
-          items={SPELL_LIST.filter(s => {
-            // Filter spells not already known
-            const alreadyKnown = character.spells.some(cs => cs.name === s.name);
-            if (alreadyKnown) return false;
-            // Filter by type
-            if (spellLearningType === 'petty') return s.cn === '0';
-            return s.cn !== '0'; // arcane, miracle, and chaos all have CN > 0
-          })}
-          getLabel={(s) => `${s.name} (CN ${s.cn})`}
+        <SpellPicker
+          spells={SPELL_LIST}
+          characterTalents={character.talents}
+          knownSpellNames={new Set(character.spells.map(s => s.name))}
           onSelect={handleLearnSpell}
           onClose={() => setShowSpellLearningPicker(false)}
           title={`Learn ${spellLearningType === 'petty' ? 'Petty Spell' : spellLearningType === 'arcane' ? 'Arcane Spell' : spellLearningType === 'miracle' ? 'Miracle' : 'Chaos Spell'}`}
