@@ -1,6 +1,7 @@
 import { getSkillDescription } from '../data/skill-descriptions';
 import { CONDITIONS } from '../data/conditions';
 import { TALENT_DB } from '../data/talents';
+import { TALENT_ALIASES } from '../data/talent-aliases';
 
 /** Structured content for a tooltip popover */
 export interface TooltipContent {
@@ -48,7 +49,8 @@ export function resolveTalentTooltip(
   talentName: string,
   characterDesc: string,
 ): TooltipContent | null {
-  const dbEntry = TALENT_DB.find((t) => t.name === talentName);
+  const canonicalName = TALENT_ALIASES[talentName] ?? talentName;
+  const dbEntry = TALENT_DB.find((t) => t.name === canonicalName);
 
   if (dbEntry) {
     return {

@@ -31,6 +31,7 @@ export const SKILL_DESCRIPTIONS: Record<string, string> = {
   'Stealth ()': 'Move silently and remain hidden. (Ag, Basic, Grouped)',
   // Advanced skills
   'Animal Care': 'Tend to animals — feed, groom, and treat minor ailments. (Int, Advanced)',
+  'Augury': 'Interpret signs, omens, and portents to divine future events. (Int, Advanced)',
   'Animal Training': 'Train animals to perform tasks and obey commands. (Int, Advanced, Grouped)',
   'Channelling': 'Call upon and control the Winds of Magic. (WP, Advanced, Grouped)',
   'Evaluate': 'Determine the value of rare items and detect counterfeits. (Int, Advanced)',
@@ -41,8 +42,10 @@ export const SKILL_DESCRIPTIONS: Record<string, string> = {
   'Pick Lock': 'Open locks without the proper key. (Dex, Advanced)',
   'Play': 'Play a musical instrument. (Dex, Advanced, Grouped)',
   'Pray': 'Commune with your deity and invoke divine power. (Fel, Advanced)',
+  'Psychometry': 'Read psychic impressions left on objects by strong emotions or significant events. (Int, Advanced)',
   'Ranged': 'Attack with ranged weapons — bows, crossbows, firearms. (BS, Advanced, Grouped)',
   'Research': 'Find information in books, libraries, and archives. (Int, Advanced)',
+  'Runesmithing': 'Inscribe magical runes onto weapons, armour, and talismans. (Dex, Advanced)',
   'Sail': 'Operate and navigate sailing vessels. (Ag, Advanced, Grouped)',
   'Secret Signs': 'Communicate using hidden symbols and codes. (Int, Advanced, Grouped)',
   'Set Trap': 'Construct and place traps. (Dex, Advanced)',

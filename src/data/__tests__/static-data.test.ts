@@ -7,6 +7,7 @@ import { ARMOURS } from '../armour';
 import { SPELL_LIST } from '../spells';
 import { TRAPPING_LIST } from '../trappings';
 import { TALENT_DB, TALENT_BONUS_MAP } from '../talents';
+import { TALENT_ALIASES } from '../talent-aliases';
 import { ANIMAL_TEMPLATES, TRAINED_SKILLS } from '../animals';
 import { ADV_SKILL_DB } from '../advanced-skills';
 
@@ -1457,33 +1458,12 @@ describe('Up in Arms — Talent & Skill Properties', () => {
     );
 
     // Known naming variants between career references and TALENT_DB entries
-    // These are pre-existing inconsistencies in the core rulebook data (hyphenation, spacing, etc.)
-    const knownAliases: Record<string, string> = {
-      'Warleader': 'War Leader',
-      'Public Speaker': 'Public Speaking',
-      'Public-Speaking': 'Public Speaking',
-      'Cat Fall': 'Catfall',
-      'Detect Artifact': 'Detect Artefact',
-      'Stouthearted': 'Stout-hearted',
-      'Strongminded': 'Strong-minded',
-      'Trick Rider': 'Trick Riding',
-      'Trick-Riding': 'Trick Riding',
-    };
+    // These are handled by the production TALENT_ALIASES map in src/data/talent-aliases.ts
 
     // Talents referenced in careers that have no equivalent in TALENT_DB at all
     // (pre-existing data gaps from core rulebook or other source books)
     const knownMissing = new Set([
-      'Cat-tongued',
-      'Flagellant',
       'Master Craftsman (Herbalist)',
-      'Numerate',
-      'Numismatics',
-      'Pharmacist',
-      'Sharp-eyed',
-      'Stealthy',
-      'Supportive',
-      'Well-prepared',
-      'Wellprepared',
     ]);
 
     for (const [careerName, scheme] of Object.entries(CAREER_SCHEMES)) {
@@ -1496,8 +1476,8 @@ describe('Up in Arms — Talent & Skill Properties', () => {
           // Exact match first
           if (talentNames.has(talent)) continue;
 
-          // Check known aliases
-          if (knownAliases[talent] && talentNames.has(knownAliases[talent])) continue;
+          // Check known aliases (production alias resolution)
+          if (TALENT_ALIASES[talent] && talentNames.has(TALENT_ALIASES[talent])) continue;
 
           // For parameterized talents like "Fearless (Any)", "Hatred (Any)", "Etiquette (Soldiers)"
           // check that the base talent name exists in TALENT_DB (with any specialization)
