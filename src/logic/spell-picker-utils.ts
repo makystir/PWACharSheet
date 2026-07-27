@@ -179,3 +179,148 @@ export function getAvailableLores(spells: SpellData[]): string[] {
 
   return result;
 }
+
+// ─── Lore categories by type ─────────────────────────────────────────────────
+
+/** Lores that count as "Petty" magic */
+const PETTY_LORES = ['Petty', 'Elven Petty'];
+
+/** Lores that count as "Arcane" magic (learnable with Arcane Magic talent) */
+const ARCANE_LORES = [
+  'Arcane',
+  'Arcane Utility',
+  'Lore of Beasts',
+  'Lore of Death',
+  'Lore of Fire',
+  'Lore of Heavens',
+  'Lore of Life',
+  'Lore of Light',
+  'Lore of Metal',
+  'Lore of Shadows',
+  'Lore of Hedgecraft',
+  'Lore of Witchcraft',
+  'Lore of Daemonology',
+  'Lore of Necromancy',
+  // Elven arcane lores
+  'Elven Arcane',
+  'High Magic',
+  'Magic of Vaul',
+  'Magic of Mathlann',
+  'Magic of Hoeth',
+];
+
+/** Miracle lores (one per deity) */
+const MIRACLE_LORES = [
+  'Miracles of Manann',
+  'Miracles of Morr',
+  'Miracles of Myrmidia',
+  'Miracles of Ranald',
+  'Miracles of Rhya',
+  'Miracles of Shallya',
+  'Miracles of Sigmar',
+  'Miracles of Taal',
+  'Miracles of Ulric',
+  'Miracles of Verena',
+];
+
+/** Chaos lores */
+const CHAOS_LORES = ['Chaos', 'Lore of Daemonology', 'Lore of Necromancy'];
+
+/** Elven-exclusive lores (High Elf / Wood Elf only) */
+const ELVEN_EXCLUSIVE_LORES = [
+  'Elven Petty',
+  'Elven Arcane',
+  'High Magic',
+  'Magic of Vaul',
+  'Magic of Mathlann',
+  'Magic of Hoeth',
+];
+
+// ─── Eligibility filtering ───────────────────────────────────────────────────
+
+/**
+ * Determine the set of eligible lores for a character based on:
+ * - spellType: what kind of spell they're currently learning (petty/arcane/miracle/chaos)
+ * - characterTalents: to derive their specific lore/deity
+ * - species: to determine if elven lores are accessible
+ *
+ * Returns a filtered subset of spells the character is allowed to learn.
+ */
+export function getEligibleSpells(
+  allSpells: SpellData[],
+  spellType: 'petty' | 'arcane' | 'miracle' | 'chaos',
+  characterTalents: Pick<Talent, 'n'>[],
+  species: string
+): SpellData[] {
+  const isElf = species.toLowerCase().includes('elf');
+  const isHighElf = species === 'High Elf' || species.startsWith('High Elves');
+
+  switch (spellType) {
+    case 'petty': {
+      // Petty spells: only show Petty lore (and Elven Petty for Elves)
+      const allowedLores = ['Petty'];
+      if (isElf) allowedLores.push('Elven Petty');
+      return allSpells.filter(s => allowedLores.includes(s.lore));
+    }
+
+    case 'arcane': {
+      // Arcane spells: show only the character's specific lore + shared Arcane spells
+      // Derive character's specific arcane lore from talents
+      const characterLore = deriveCharacterLore(characterTalents);
+      const allowedLores: string[] = ['Arcane', 'Arcane Utility'];
+
+      if (characterLore && !PETTY_LORES.includes(characterLore) && !MIRACLE_LORES.includes(characterLore)) {
+        // Add their specific lore (e.g., "Lore of Fire")
+        allowedLores.push(characterLore);
+      }
+
+      // High Elves with High Magic talent get access to High Magic lore
+      if (isHighElf) {
+        const hasHighMagic = characterTalents.some(t => t.n === 'High Magic');
+        if (hasHighMagic) {
+          allowedLores.push('High Magic');
+        }
+        // Elven Arcane is accessible to all elf wizards
+        allowedLores.push('Elven Arcane');
+        // Magic of Vaul/Mathlann/Hoeth only with specific career talents
+        const hasMagicOfVaul = characterTalents.some(t => t.n === 'Cadai Meditation' || t.n.includes('Smith-Priest'));
+        const hasMagicOfMathlann = characterTalents.some(t => t.n === 'Eye of the Storm');
+        const hasMagicOfHoeth = characterTalents.some(t => t.n === 'Sanctuary of the Mind');
+        if (hasMagicOfVaul) allowedLores.push('Magic of Vaul');
+        if (hasMagicOfMathlann) allowedLores.push('Magic of Mathlann');
+        if (hasMagicOfHoeth) allowedLores.push('Magic of Hoeth');
+      }
+
+      // Filter out Elven-exclusive lores for non-Elves
+      const finalLores = isElf
+        ? allowedLores
+        : allowedLores.filter(l => !ELVEN_EXCLUSIVE_LORES.includes(l));
+
+      return allSpells.filter(s => finalLores.includes(s.lore));
+    }
+
+    case 'miracle': {
+      // Miracles: only show miracles for the character's specific deity
+      const characterLore = deriveCharacterLore(characterTalents);
+      if (characterLore && MIRACLE_LORES.includes(characterLore)) {
+        return allSpells.filter(s => s.lore === characterLore);
+      }
+      // Fallback: if we can't determine deity, show all miracles (shouldn't normally happen)
+      return allSpells.filter(s => MIRACLE_LORES.includes(s.lore));
+    }
+
+    case 'chaos': {
+      // Chaos spells: show Chaos lore spells
+      // Also include shared arcane spells since chaos casters can learn any arcane spell
+      return allSpells.filter(s => CHAOS_LORES.includes(s.lore) || s.lore === 'Arcane');
+    }
+  }
+}
+
+/**
+ * Filter the blessings out of a spell list. Blessings are auto-granted with Bless talent
+ * and should NOT appear in the learnable spell picker.
+ */
+export function excludeBlessings(spells: SpellData[]): SpellData[] {
+  return spells.filter(s => s.lore !== 'Blessings');
+}

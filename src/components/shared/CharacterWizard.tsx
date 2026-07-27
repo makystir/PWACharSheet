@@ -6,8 +6,8 @@ import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { TALENT_DB } from '../../data/talents';
 import { ADV_SKILL_DB } from '../../data/advanced-skills';
 import { rollRandomTalent } from '../../data/randomTalents';
-import { getCareersByClass } from '../../logic/careers';
 import { ensureCareerSkillsExist } from '../../logic/advancement';
+import { getEligibleCareers } from '../../logic/career-eligibility';
 import styles from './CharacterWizard.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -92,30 +92,10 @@ function rollD100(): number {
 }
 
 // ─── Species-restricted careers ──────────────────────────────────────────────
-// Slayer is Dwarf-only, Badger Rider is Halfling-only, Warrior of Tzeentch is excluded from normal creation
-// College Wizard careers (Hierophant, Alchemist (Gold), Druid, Astromancer, Shadowmancer, Spiriter, Pyromancer, Shaman (Amber)) are Human-only
-// Magister Vigilant & Scryer are Human-only; Mundane Alchemist is Human-only (Dwarfs/Halflings cannot become spellcasters via this path)
-const COLLEGE_WIZARD_CAREERS = ['Hierophant', 'Alchemist (Gold)', 'Druid', 'Astromancer', 'Shadowmancer', 'Spiriter', 'Pyromancer', 'Shaman (Amber)'];
-const HUMAN_ONLY_SUPPORTING_CAREERS = ['Magister Vigilant', 'Mundane Alchemist', 'Scryer'];
-const SPECIES_CAREER_EXCLUSIONS: Record<string, string[]> = {
-  'Human / Reiklander': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)'],
-  'Dwarf': ['Badger Rider', 'Warrior of Tzeentch', ...COLLEGE_WIZARD_CAREERS, ...HUMAN_ONLY_SUPPORTING_CAREERS],
-  'Halfling': ['Slayer', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)', ...COLLEGE_WIZARD_CAREERS, ...HUMAN_ONLY_SUPPORTING_CAREERS],
-  'High Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)', ...COLLEGE_WIZARD_CAREERS, ...HUMAN_ONLY_SUPPORTING_CAREERS, 'Beadle'],
-  'Wood Elf': ['Slayer', 'Badger Rider', 'Ironbreaker', 'Warrior of Tzeentch', 'Soldier (Axefighter)', 'Soldier (Quarreller)', 'Soldier (Thunderer)', 'Handgunner (Thunderer)', ...COLLEGE_WIZARD_CAREERS, ...HUMAN_ONLY_SUPPORTING_CAREERS, 'Beadle'],
-};
-
-function getExclusionsForSpecies(species: string): string[] {
-  if (SPECIES_CAREER_EXCLUSIONS[species]) return SPECIES_CAREER_EXCLUSIONS[species];
-  if (species.startsWith('High Elves')) return SPECIES_CAREER_EXCLUSIONS['High Elf'];
-  if (species.startsWith('Dwarfs')) return SPECIES_CAREER_EXCLUSIONS['Dwarf'];
-  return [];
-}
+// Career eligibility is centralised in src/logic/career-eligibility.ts
 
 function getCareersForClassAndSpecies(className: string, species: string): string[] {
-  const all = getCareersByClass(className);
-  const excluded = getExclusionsForSpecies(species);
-  return all.filter(c => !excluded.includes(c) && CAREER_SCHEMES[c]?.level1);
+  return getEligibleCareers(species, className).filter(c => CAREER_SCHEMES[c]?.level1);
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────

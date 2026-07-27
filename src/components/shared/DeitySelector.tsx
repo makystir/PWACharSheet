@@ -3,6 +3,7 @@ import type { Character } from '../../types/character';
 import type { AncestorGod } from '../../data/deityRunes';
 import { ANCESTOR_GODS } from '../../data/deityRunes';
 import { isPriestCareer, getDeityChangeWarnings, isValidDeity } from '../../logic/priestRunes';
+import { isDwarfSpecies } from '../../logic/career-eligibility';
 import { ConfirmDialog } from './ConfirmDialog';
 import styles from './DeitySelector.module.css';
 
@@ -21,7 +22,7 @@ export function DeitySelector({ character, updateCharacter }: DeitySelectorProps
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   // Only render for Dwarf priest characters
-  if (character.species !== 'Dwarf' || !isPriestCareer(character.career)) {
+  if (!isDwarfSpecies(character.species) || !isPriestCareer(character.career)) {
     return null;
   }
 

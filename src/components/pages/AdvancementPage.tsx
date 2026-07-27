@@ -14,6 +14,8 @@ import { TALENT_DB } from '../../data/talents';
 import { SPELL_LIST } from '../../data/spells';
 import { RITUAL_LIST } from '../../data/rituals';
 import { resolveTalentTooltip, resolveSkillTooltip } from '../../logic/tooltip-content';
+import { getEligibleCareers } from '../../logic/career-eligibility';
+import { getEligibleSpells } from '../../logic/spell-picker-utils';
 import type { TooltipContent } from '../../logic/tooltip-content';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { RuneLearningPanel } from '../shared/RuneLearningPanel';
@@ -1058,11 +1060,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         <Picker items={levelTitles} getLabel={(t) => t} onSelect={handleLevelSelect} onClose={() => setShowLevelPicker(false)} title="Select Level" />
       )}
       {showSwitchCareerPicker && (
-        <Picker items={Object.keys(CAREER_SCHEMES).filter(c => c !== character.career)} getLabel={(c) => c} getGroup={(c) => { const s = getCareerScheme(c); return s ? s.class : 'Other'; }} onSelect={handleSwitchCareer} onClose={() => setShowSwitchCareerPicker(false)} title="Switch to Career" />
+        <Picker items={getEligibleCareers(character.species).filter(c => c !== character.career)} getLabel={(c) => c} getGroup={(c) => { const s = getCareerScheme(c); return s ? s.class : 'Other'; }} onSelect={handleSwitchCareer} onClose={() => setShowSwitchCareerPicker(false)} title="Switch to Career" />
       )}
       {showSpellLearningPicker && (
         <SpellPicker
-          spells={SPELL_LIST}
+          spells={getEligibleSpells(SPELL_LIST, spellLearningType, character.talents, character.species)}
           characterTalents={character.talents}
           knownSpellNames={new Set(character.spells.map(s => s.name))}
           onSelect={handleLearnSpell}
