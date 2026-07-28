@@ -89,6 +89,11 @@
   border-radius: 6px;
 }
 
+.checklistPanelComplete {
+  composes: checklistPanel;
+  opacity: 0.6;
+}
+
 .checklistItemMet {
   font-size: 12px;
   color: var(--success);
@@ -183,10 +188,11 @@
 
 .advanceLevelBtnReady {
   composes: advanceLevelBtn;
-  background: rgba(90, 154, 90, 0.3);
-  border: 2px solid var(--success);
+  background: rgba(90, 154, 90, 0.4);
+  border: 3px solid var(--success);
   color: #fff;
   opacity: 1;
+  box-shadow: 0 0 8px rgba(90, 154, 90, 0.5);
 }
 
 .advanceLevelBtnAffordable {
@@ -197,8 +203,8 @@
 
 .advanceLevelBtnDisabled {
   composes: advanceLevelBtn;
-  cursor: not-allowed;
-  opacity: 0.6;
+  pointer-events: none;
+  opacity: 0.4;
 }
 
 .switchCareerBtn {
@@ -337,8 +343,8 @@
 .advanceBtnDisabled {
   composes: smallButton from '../shared/styles/shared.module.css';
   flex: 1;
-  background: var(--border);
-  color: var(--text-muted);
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* Skills table */
@@ -408,22 +414,44 @@
 }
 
 .skillBtnRow {
-  display: flex;
-  gap: 3px;
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.skillBtnRow button {
+  padding: 4px 12px;
+  border: none;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+}
+
+.skillBtnRow button:last-child {
+  border-right: none;
+}
+
+.skillBtnRow button:disabled {
+  background: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.skillBtnRow button:not(:disabled):hover {
+  background: var(--bg-secondary);
 }
 
 .skillAdvanceBtn {
-  composes: smallButton from '../shared/styles/shared.module.css';
-  padding: 2px 6px;
-  font-size: 11px;
+  /* kept for className reference in TSX — styles via parent .skillBtnRow */
 }
 
 .skillAdvanceBtnDisabled {
-  composes: smallButton from '../shared/styles/shared.module.css';
-  padding: 2px 6px;
-  font-size: 11px;
-  background: var(--border);
-  color: var(--text-muted);
+  /* kept for className reference in TSX — styles via parent .skillBtnRow */
 }
 
 /* Talents */
@@ -507,8 +535,8 @@
   padding: 2px 8px;
   font-size: 11px;
   margin-top: 2px;
-  background: var(--border);
-  color: var(--text-muted);
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* Career Scheme display */
@@ -606,4 +634,52 @@
 /* Archive empty state */
 .archiveEmptyMessage {
   composes: emptyMessage from '../shared/styles/shared.module.css';
+}
+
+/* XP display row — large inline values */
+.xpDisplayRow {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.xpDisplayItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.xpDisplayLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.xpDisplayValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--parchment);
+  font-family: var(--font-heading);
+}
+
+/* Career Selection summary line */
+.careerSummaryLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.careerSummaryText {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--parchment);
+}
+
+.careerSummaryEditBtn {
+  composes: smallButton from '../shared/styles/shared.module.css';
+  font-size: 11px;
 }

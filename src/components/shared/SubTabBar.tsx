@@ -26,8 +26,56 @@ interface FocusTarget {
 
 export function SubTabBar({ tabs, activeTab, onTabChange, editMode }: SubTabBarProps) {
   const tablistRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const pendingFocusRef = useRef<FocusTarget | null>(null);
   const [announcement, setAnnouncement] = useState('');
+  const [showEditButton, setShowEditButton] = useState(false);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Show edit button when edit mode is active (user toggled it)
+  useEffect(() => {
+    if (editMode?.isActive) {
+      setShowEditButton(true);
+    }
+  }, [editMode?.isActive]);
+
+  // Clean up long-press timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Long-press handler to reveal the edit button
+  const handlePointerDown = useCallback(() => {
+    if (!editMode || showEditButton || editMode.isActive) return;
+    longPressTimerRef.current = setTimeout(() => {
+      setShowEditButton(true);
+    }, 500);
+  }, [editMode, showEditButton]);
+
+  const handlePointerUp = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const handlePointerCancel = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  // Context menu handler to reveal the edit button
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    if (!editMode || editMode.isActive) return;
+    e.preventDefault();
+    setShowEditButton(true);
+  }, [editMode]);
 
   // After render, apply pending focus to the correct arrow button
   useEffect(() => {
@@ -155,29 +203,38 @@ export function SubTabBar({ tabs, activeTab, onTabChange, editMode }: SubTabBarP
   }
 
   return (
-    <div className={editMode.isActive ? styles.editModeContainerActive : styles.editModeContainer}>
+    <div
+      ref={containerRef}
+      className={editMode.isActive ? styles.editModeContainerActive : styles.editModeContainer}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onContextMenu={handleContextMenu}
+    >
       {renderTablist()}
-      <div className={styles.editControls}>
-        <button
-          type="button"
-          className={styles.editToggleBtn}
-          aria-label={editMode.isActive ? 'Done editing tab order' : 'Edit tab order'}
-          onClick={editMode.onToggle}
-        >
-          {editMode.isActive ? <Check size={18} /> : <Pencil size={18} />}
-        </button>
-        {editMode.isActive && (
+      {(showEditButton || editMode.isActive) && (
+        <div className={styles.editControls}>
           <button
             type="button"
-            className={styles.resetBtn}
-            aria-label="Reset tab order"
-            disabled={editMode.isDefaultOrder}
-            onClick={handleReset}
+            className={styles.editToggleBtn}
+            aria-label={editMode.isActive ? 'Done editing tab order' : 'Edit tab order'}
+            onClick={editMode.onToggle}
           >
-            <RotateCcw size={18} />
+            {editMode.isActive ? <Check size={18} /> : <Pencil size={18} />}
           </button>
-        )}
-      </div>
+          {editMode.isActive && (
+            <button
+              type="button"
+              className={styles.resetBtn}
+              aria-label="Reset tab order"
+              disabled={editMode.isDefaultOrder}
+              onClick={handleReset}
+            >
+              <RotateCcw size={18} />
+            </button>
+          )}
+        </div>
+      )}
       <div aria-live="polite" className={styles.srOnly}>
         {announcement}
       </div>

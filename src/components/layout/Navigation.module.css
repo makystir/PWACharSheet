@@ -246,7 +246,7 @@
     right: 0;
     top: auto;
     width: 100%;
-    --nav-height-mobile: 64px;
+    --nav-height-mobile: 48px;
     height: var(--nav-height-mobile);
     flex-direction: row;
     border-right: none;
@@ -268,44 +268,44 @@
   .navItemActive {
     flex: 1;
     flex-direction: column;
-    gap: 2px;
-    padding: 8px 4px;
-    font-size: 11px;
-    min-height: var(--mobile-touch-lg, 48px);
+    gap: 1px;
+    padding: 4px 4px;
+    font-size: 10px;
+    min-height: 44px;
     justify-content: center;
     align-items: center;
     border-left: none;
     padding-left: 4px;
   }
 
-  /* Icon sizing - minimum 22px */
+  /* Icon sizing - compact for 48px bar */
   .navItem svg,
   .navItemActive svg {
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
-    min-height: 22px;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
   }
 
   /* Active state with top border accent and color differentiation */
   .navItemActive {
-    border-top: 3px solid var(--accent-gold);
+    border-top: 2px solid var(--accent-gold);
     color: var(--accent-gold);
     background: var(--bg-tertiary);
-    padding-top: 5px; /* compensate for 3px border to keep vertical centering */
+    padding-top: 2px; /* compensate for 2px border to keep vertical centering */
   }
 
   .navItem {
-    border-top: 3px solid transparent;
+    border-top: 2px solid transparent;
     color: var(--text-secondary);
-    padding-top: 5px; /* match active state spacing */
+    padding-top: 2px; /* match active state spacing */
   }
 }
 
 /* Overflow popover (positioned above mobile nav bar) */
 .overflowPopover {
   position: absolute;
-  bottom: calc(var(--nav-height-mobile, 64px) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--nav-height-mobile, 48px) + env(safe-area-inset-bottom, 0px));
   right: 0;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -313,18 +313,17 @@
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  padding: 8px;
-  gap: 4px;
+  padding: 4px 8px;
+  gap: 2px;
   z-index: 101;
-  min-width: 180px;
+  min-width: 160px;
 }
 
 .overflowItem,
 .overflowItemActive {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
@@ -349,4 +348,58 @@
 
 .overflowItemActive:hover {
   background: var(--bg-tertiary);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Requirement 7.5: Minimum 44×44px tap targets on mobile
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .searchBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .newCharBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .charActionBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .charDeleteBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .renameConfirmBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .switcherBtn {
+    min-height: 44px;
+  }
+
+  .charSwitchBtn,
+  .charSwitchBtnActive {
+    min-height: 44px;
+  }
 }

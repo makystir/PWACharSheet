@@ -84,11 +84,13 @@ describe('WeaponCards — compact card display', () => {
     expect(screen.getByText('Average')).toBeInTheDocument();
   });
 
-  it('shows damage breakdown text', () => {
+  it('shows damage value in compact stat chip', () => {
     const weapons = [meleeWeapon()];
     render(<WeaponCards {...makeProps({ weapons })} />);
-    // Breakdown should include SB(4) +4
-    expect(screen.getByText(/SB\(4\)/)).toBeInTheDocument();
+    // DMG label should be visible in the primary row
+    expect(screen.getByText('DMG')).toBeInTheDocument();
+    // SB=4, damage=+SB+4 → total=8
+    expect(screen.getByText('8')).toBeInTheDocument();
   });
 
   it('shows "—" for weapons with no damage', () => {
@@ -112,11 +114,11 @@ describe('WeaponCards — compact card display', () => {
     expect(screen.getByText(/Ranged/)).toBeInTheDocument();
   });
 
-  it('shows Range label for ranged weapons and Reach for melee', () => {
+  it('shows RNG label for ranged weapons and RCH for melee', () => {
     const weapons = [meleeWeapon(), rangedWeapon()];
     render(<WeaponCards {...makeProps({ weapons })} />);
-    expect(screen.getByText('Reach')).toBeInTheDocument();
-    expect(screen.getByText('Range')).toBeInTheDocument();
+    expect(screen.getByText('RCH')).toBeInTheDocument();
+    expect(screen.getByText('RNG')).toBeInTheDocument();
   });
 
   it('includes talent bonuses in damage calculation', () => {
@@ -139,10 +141,10 @@ describe('WeaponCards — rune indicator badge', () => {
     expect(screen.getByText(/1\/3 Runes/)).toBeInTheDocument();
   });
 
-  it('shows "Add Runes" button when weapon has no runes', () => {
+  it('hides "Add Runes" button when weapon has zero runes (req 11.2)', () => {
     const weapons = [meleeWeapon({ runes: [] })];
     render(<WeaponCards {...makeProps({ weapons })} />);
-    expect(screen.getByText(/Add Runes/)).toBeInTheDocument();
+    expect(screen.queryByText(/Add Runes/)).not.toBeInTheDocument();
   });
 
   it('calls onOpenRuneManager with weapon index when rune badge is clicked', () => {

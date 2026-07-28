@@ -27,7 +27,7 @@ import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, calc
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../logic/tooltip-content';
 import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
-import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer, Lock, Heart, Shield, ChevronDown, ChevronRight } from 'lucide-react';
+import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer, Lock, Heart, Shield, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { CorruptionCard } from '../shared/CorruptionCard';
 import { DiseasePanel } from '../shared/DiseasePanel';
 import { EmptyState } from '../shared/EmptyState';
@@ -40,9 +40,11 @@ import { DeitySelector } from '../shared/DeitySelector';
 import { GrudgePanel } from '../shared/GrudgePanel';
 import { YenluiPanel } from '../shared/YenluiPanel';
 import { isElf } from '../../logic/endeavours';
+import { isDwarf } from '../../logic/grudges';
 import { MagicalBurnoutPanel } from '../shared/MagicalBurnoutPanel';
 import RunePanel from '../runes/RunePanel';
 import type { ProtectionItem, EngineeringItem } from '../../types/character';
+import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { SubTabBar } from '../shared/SubTabBar';
 import { useTabOrder } from '../../hooks/useTabOrder';
 import { HelpPopover } from '../shared/HelpPopover';
@@ -201,11 +203,28 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const [showTalentPicker, setShowTalentPicker] = useState(false);
   const [showTrappingPicker, setShowTrappingPicker] = useState(false);
 
+  // Responsive characteristics table: hide T. Bonus on mobile by default (Req 7.3)
+  const [showTBonus, setShowTBonus] = useState(false);
+
   const [expandedSpells, setExpandedSpells] = useState<Set<number>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; index: number } | null>(null);
   const [rollDialogState, setRollDialogState] = useState<{ name: string; baseTarget: number } | null>(null);
   const [rollResultState, setRollResultState] = useState<RollResult | null>(null);
   const [tooltip, setTooltip] = useState<{ type: 'skill' | 'talent'; index: number; anchorEl: HTMLElement } | null>(null);
+
+  // Add dropdown menu state for Abilities tab (Req 9.4)
+  const [addDropdown, setAddDropdown] = useState<string | null>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!addDropdown) return;
+    const handleClick = () => setAddDropdown(null);
+    const timer = setTimeout(() => document.addEventListener('click', handleClick), 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClick);
+    };
+  }, [addDropdown]);
 
   const openCharacteristicRoll = (key: CharacteristicKey) => {
     const c = character.chars[key];
@@ -446,27 +465,45 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       </div>
 
       {/* Patron Deity — only visible for Dwarf priest characters */}
-      <DeitySelector character={character} updateCharacter={updateCharacter} />
+      <CollapsibleSection title="Patron Deity" storageKey="collapsible-deity-selector" defaultExpanded={true}>
+        <DeitySelector character={character} updateCharacter={updateCharacter} />
+      </CollapsibleSection>
 
-      {/* Grudge Book — only visible for Dwarf characters with useGrudgeBook enabled */}
-      <GrudgePanel character={character} updateCharacter={updateCharacter} />
+      {/* Grudge Book — only visible for Dwarf characters (zero DOM otherwise per Req 8.5) */}
+      {isDwarf(character.species) && (
+        <CollapsibleSection title="Grudge Book" storageKey="collapsible-grudge-panel" defaultExpanded={true}>
+          <GrudgePanel character={character} updateCharacter={updateCharacter} />
+        </CollapsibleSection>
+      )}
 
-      {/* Yenlui Balance — only visible for Elf characters with useYenlui enabled */}
+      {/* Yenlui Balance — only visible for Elf variants with useYenlui enabled (zero DOM otherwise per Req 8.6) */}
       {character.houseRules.useYenlui === true && isElf(character.species) && (
-        <div className={styles.fieldWithHelp}>
-          <YenluiPanel character={character} updateCharacter={updateCharacter} />
-          <HelpPopover concept="yenlui-balance">{getHelpContent('yenlui-balance')}</HelpPopover>
-        </div>
+        <CollapsibleSection title="Yenlui Balance" storageKey="collapsible-yenlui-panel" defaultExpanded={true}>
+          <div className={styles.fieldWithHelp}>
+            <YenluiPanel character={character} updateCharacter={updateCharacter} />
+            <HelpPopover concept="yenlui-balance">{getHelpContent('yenlui-balance')}</HelpPopover>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Magical Burnout — only visible for High Magic users */}
-      <MagicalBurnoutPanel character={character} updateCharacter={updateCharacter} />
+      <CollapsibleSection title="Magical Burnout" storageKey="collapsible-magical-burnout" defaultExpanded={true}>
+        <MagicalBurnoutPanel character={character} updateCharacter={updateCharacter} />
+      </CollapsibleSection>
 
       {/* Characteristics */}
       <Card>
         <SectionHeader icon={Swords} title="Characteristics" />
+        <button
+          type="button"
+          className={styles.showDetailsToggle}
+          onClick={() => setShowTBonus((v) => !v)}
+          aria-pressed={showTBonus}
+        >
+          {showTBonus ? 'Hide Details' : 'Show Details'}
+        </button>
         <div className={styles.overflowAuto}>
-          <table className={styles.tableBase}>
+          <table className={`${styles.tableBase} ${showTBonus ? styles.tBonusVisible : ''}`}>
             <thead>
               <tr>
                 <th className={styles.thCenter} title="Characteristic">Char</th>
@@ -474,7 +511,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 <th className={styles.thCenter} title="Advances">Advance</th>
                 <th className={styles.thCenter}>Current</th>
                 <th className={styles.thCB} title="Characteristic Bonus">CB</th>
-                <th className={styles.thCenter} title="Talent Bonus">T. Bonus</th>
+                <th className={`${styles.thCenter} ${styles.tBonusCol}`} title="Talent Bonus">T. Bonus</th>
                 <th className={styles.th}></th>
               </tr>
             </thead>
@@ -493,7 +530,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                     </td>
                     <td className={styles.charCurrent}>{current}</td>
                     <td className={styles.charCB}>{getBonus(current)}</td>
-                    <td className={c.b > 0 ? styles.charBonusActive : styles.charBonusInactive}>{c.b || '—'}</td>
+                    <td className={`${c.b > 0 ? styles.charBonusActive : styles.charBonusInactive} ${styles.tBonusCol}`}>{c.b || '—'}</td>
                     <td className={styles.tdCenter}>
                       <button type="button" className={styles.diceBtn} onClick={() => openCharacteristicRoll(key)} title={`Roll ${CHAR_FULL_NAMES[key]}`} aria-label={`Roll ${CHAR_FULL_NAMES[key]}`}>🎲</button>
                     </td>
@@ -519,6 +556,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       </div>
 
       {/* Wound Maximum Formula */}
+      <CollapsibleSection title="Wound Maximum" storageKey="collapsible-wound-max" defaultExpanded={true}>
       {(() => {
         const S = character.chars.S.i + character.chars.S.a + character.chars.S.b;
         const T = character.chars.T.i + character.chars.T.a + character.chars.T.b;
@@ -571,6 +609,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           </Card>
         );
       })()}
+      </CollapsibleSection>
       </>)}
 
       {/* ═══ ABILITIES TAB ═══ */}
@@ -586,7 +625,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {/* Basic Skills */}
       <Card>
         <SectionHeader icon={BookOpen} title="Basic Skills" />
-        <table className={styles.tableBase}>
+        <table className={`${styles.tableBase} ${styles.skillTableCompact}`}>
           <thead>
             <tr>
               <th className={styles.th}>Skill</th>
@@ -643,13 +682,28 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
       {/* Advanced Skills */}
       <Card>
-        <SectionHeader icon={BookOpen} title="Advanced Skills" action={
-          <div className={styles.actionRow}>
-            <AddButton label="Add from Rulebook" onClick={() => setShowAdvSkillPicker(true)} />
-            <AddButton label="Add Custom" onClick={addCustomAdvancedSkill} />
+        <SectionHeader icon={BookOpen} title={<>Advanced Skills{character.aSkills.length > 20 && <span className={styles.countBadge}>{character.aSkills.length}</span>}</>} action={
+          <div className={styles.addDropdownWrapper}>
+            <button
+              type="button"
+              className={styles.addDropdownBtn}
+              onClick={() => setAddDropdown(addDropdown === 'advSkill' ? null : 'advSkill')}
+              aria-expanded={addDropdown === 'advSkill'}
+              aria-haspopup="true"
+            >
+              <Plus size={14} />
+              Add
+              <ChevronDown size={12} />
+            </button>
+            {addDropdown === 'advSkill' && (
+              <div className={styles.addDropdownMenu} role="menu">
+                <button type="button" className={styles.addDropdownItem} role="menuitem" onClick={() => { setShowAdvSkillPicker(true); setAddDropdown(null); }}>Add from Rulebook</button>
+                <button type="button" className={styles.addDropdownItem} role="menuitem" onClick={() => { addCustomAdvancedSkill(); setAddDropdown(null); }}>Add Custom</button>
+              </div>
+            )}
           </div>
         } />
-        <table className={styles.tableBase}>
+        <table className={`${styles.tableBase} ${styles.skillTableCompact}`}>
           <thead>
             <tr>
               <th className={styles.th}>Skill</th>
@@ -718,9 +772,24 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {/* Talents */}
       <Card>
         <SectionHeader icon={Sparkles} title="Talents" action={
-          <div className={styles.actionRow}>
-            <AddButton label="Add from Rulebook" onClick={() => setShowTalentPicker(true)} />
-            <AddButton label="Add Custom" onClick={addCustomTalent} />
+          <div className={styles.addDropdownWrapper}>
+            <button
+              type="button"
+              className={styles.addDropdownBtn}
+              onClick={() => setAddDropdown(addDropdown === 'talent' ? null : 'talent')}
+              aria-expanded={addDropdown === 'talent'}
+              aria-haspopup="true"
+            >
+              <Plus size={14} />
+              Add
+              <ChevronDown size={12} />
+            </button>
+            {addDropdown === 'talent' && (
+              <div className={styles.addDropdownMenu} role="menu">
+                <button type="button" className={styles.addDropdownItem} role="menuitem" onClick={() => { setShowTalentPicker(true); setAddDropdown(null); }}>Add from Rulebook</button>
+                <button type="button" className={styles.addDropdownItem} role="menuitem" onClick={() => { addCustomTalent(); setAddDropdown(null); }}>Add Custom</button>
+              </div>
+            )}
           </div>
         } />
         {character.talents.length === 0 ? (
@@ -793,9 +862,24 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       })()) && (
       <Card>
         <SectionHeader icon={Wand2} title="Spells & Prayers" action={
-          <div className={styles.actionRow}>
-            <AddButton label="Add from Rulebook" onClick={() => setShowSpellPicker(true)} />
-            <AddButton label="Add Custom" onClick={addCustomSpell} />
+          <div className={styles.addDropdownWrapper}>
+            <button
+              type="button"
+              className={styles.addDropdownBtn}
+              onClick={() => setAddDropdown(addDropdown === 'spell' ? null : 'spell')}
+              aria-expanded={addDropdown === 'spell'}
+              aria-haspopup="true"
+            >
+              <Plus size={14} />
+              Add
+              <ChevronDown size={12} />
+            </button>
+            {addDropdown === 'spell' && (
+              <div className={styles.addDropdownMenu} role="menu">
+                <button type="button" className={styles.addDropdownItem} role="menuitem" onClick={() => { setShowSpellPicker(true); setAddDropdown(null); }}>Add from Rulebook</button>
+                <button type="button" className={styles.addDropdownItem} role="menuitem" onClick={() => { addCustomSpell(); setAddDropdown(null); }}>Add Custom</button>
+              </div>
+            )}
           </div>
         } />
         <table className={styles.tableBase}>
@@ -1035,26 +1119,32 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         {character.trappings.length === 0 ? (
           <EmptyState
             icon={Package}
-            heading="No gear yet"
-            description="Add trappings and equipment."
+            heading="No gear yet — add trappings"
+            compact
+            action={{ label: '+ Add', onClick: () => setShowTrappingPicker(true) }}
           />
         ) : (
-          <table className={styles.tableBase}>
-            <thead><tr><th className={styles.th}>Name</th><th className={styles.th} title="Encumbrance value — total Enc is shown in the Wealth & Encumbrance section">Enc</th><th className={styles.th}>Qty</th><th className={styles.thCenter} title="Stored on horse companion — excluded from character encumbrance">🐴</th><th className={styles.th}></th></tr></thead>
-            <tbody>
-              {character.trappings.map((t, i) => (
-                <tr key={i} className={t.storedOnHorse ? styles.rowHorse : i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                  <td className={styles.td}><EditableField label="" value={t.name} onSave={(v) => update(`trappings.${i}.name`, v)} /></td>
-                  <td className={styles.td}><EditableField label="" value={t.enc} onSave={(v) => update(`trappings.${i}.enc`, v)} style={{ minWidth: '40px' }} /></td>
-                  <td className={styles.td}><EditableField label="" value={t.quantity} type="number" onSave={(v) => update(`trappings.${i}.quantity`, v)} style={{ minWidth: '40px' }} /></td>
-                  <td className={styles.tdCenter}>
-                    <input type="checkbox" checked={!!t.storedOnHorse} onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)} title="Stored on horse" className={styles.checkboxCell} />
-                  </td>
-                  <td className={styles.td}><button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn}>✕</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className={styles.trappingsGrid}>
+            {character.trappings.map((t, i) => (
+              <div key={i} className={t.storedOnHorse ? styles.trappingCardHorse : styles.trappingCard}>
+                <div className={styles.trappingActions}>
+                  <input
+                    type="checkbox"
+                    checked={!!t.storedOnHorse}
+                    onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)}
+                    title="Stored on horse"
+                    aria-label="Stored on horse"
+                    className={styles.trappingHorseCheckbox}
+                  />
+                  <button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn} aria-label="Remove trapping">✕</button>
+                </div>
+                <span className={styles.trappingName}>{t.name || '(unnamed)'}</span>
+                <span className={styles.trappingMeta}>
+                  Enc {t.enc || '0'} · Qty {t.quantity || 1}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
       </Card>
 
@@ -1264,8 +1354,10 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         />
       )}
 
-      {/* Roll History */}
-      <RollHistoryPanel history={rollHistory} onClear={clearHistory ?? (() => {})} />
+      {/* Roll History — only on Abilities sub-tab (Req 14.2) */}
+      {activeSubTab === 'abilities' && (
+        <RollHistoryPanel history={rollHistory} onClear={clearHistory ?? (() => {})} />
+      )}
 
       {/* Roll Dialog */}
       {rollDialogState && (

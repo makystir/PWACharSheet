@@ -13,13 +13,12 @@ import {
   type MiscastResult,
 } from '../../logic/spell-casting';
 import { hasSpellcastingTalent } from '../../logic/advancement';
-import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { RollDialog } from '../shared/RollDialog';
 import { CastResultDisplay } from './CastResultDisplay';
 import { EmptyState } from '../shared/EmptyState';
-import { Sparkles, Info } from 'lucide-react';
+import { Sparkles, Settings } from 'lucide-react';
 import styles from './SpellCastingPanel.module.css';
 
 export function SpellCard({ spell }: { spell: SpellItem }) {
@@ -36,6 +35,104 @@ export function SpellCard({ spell }: { spell: SpellItem }) {
         <dt>Effect</dt><dd>{spell.effect}</dd>
       </dl>
     </article>
+  );
+}
+
+interface CompactSpellRowProps {
+  spell: SpellItem;
+  isExpanded: boolean;
+  onToggle: () => void;
+  canCast: boolean;
+  onCast: () => void;
+  onChannel: () => void;
+  onCancelChannel: () => void;
+  channelProgress: { accumulatedSL: number } | undefined;
+  cn: number;
+  isReady: boolean;
+  damageBreakdown: string | null;
+}
+
+function CompactSpellRow({
+  spell,
+  isExpanded,
+  onToggle,
+  canCast,
+  onCast,
+  onChannel,
+  onCancelChannel,
+  channelProgress,
+  cn,
+  isReady,
+  damageBreakdown,
+}: CompactSpellRowProps) {
+  const isPetty = spell.cn === '0' || spell.cn === '-';
+
+  return (
+    <div className={styles.compactSpellItem} role="button" aria-expanded={isExpanded}>
+      <div className={styles.compactSpellHeader} onClick={onToggle}>
+        <span className={isReady ? styles.spellNameReady : styles.spellNameDefault}>
+          {spell.name}
+        </span>
+        <span className={styles.spellCN}>CN {spell.cn}</span>
+        {isReady && <span className={styles.readyBadge}>Ready</span>}
+        {channelProgress && channelProgress.accumulatedSL > 0 && !isReady && (
+          <span className={styles.channelProgress}>
+            {channelProgress.accumulatedSL} / {cn}
+          </span>
+        )}
+      </div>
+
+      {isExpanded && (
+        <div className={styles.expandedDetails}>
+          <dl className={styles.expandedMeta}>
+            <dt>Range</dt><dd>{spell.range}</dd>
+            <dt>Target</dt><dd>{spell.target}</dd>
+            <dt>Duration</dt><dd>{spell.duration}</dd>
+            <dt>Effect</dt>
+            <dd>
+              {spell.effect}
+              {damageBreakdown && (
+                <span className={styles.damageAnnotation}> {damageBreakdown}</span>
+              )}
+            </dd>
+          </dl>
+
+          {canCast && (
+            <div className={styles.expandedActions}>
+              <button
+                type="button"
+                className={styles.castBtn}
+                onClick={(e) => { e.stopPropagation(); onCast(); }}
+                aria-label={`Cast ${spell.name}`}
+              >
+                🎲 Cast
+              </button>
+              {!isPetty && (
+                <button
+                  type="button"
+                  className={styles.channelBtn}
+                  onClick={(e) => { e.stopPropagation(); onChannel(); }}
+                  aria-label={`Channel ${spell.name}`}
+                >
+                  ⚡ Channel
+                </button>
+              )}
+              {channelProgress && channelProgress.accumulatedSL > 0 && (
+                <button
+                  type="button"
+                  className={styles.cancelChannelBtn}
+                  onClick={(e) => { e.stopPropagation(); onCancelChannel(); }}
+                  title="Cancel channelling"
+                  aria-label={`Cancel channelling ${spell.name}`}
+                >
+                  ✕ Cancel
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -74,7 +171,8 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
   const [castingResult, setCastingResult] = useState<CastingResult | null>(null);
   const [showManageSpells, setShowManageSpells] = useState(false);
   const [miscastResult, setMiscastResult] = useState<MiscastResult | null>(null);
-  const isMobile = useMediaQuery('(max-width: 767px)');
+  const [expandedSpell, setExpandedSpell] = useState<string | null>(null);
+  const [saturationExpanded, setSaturationExpanded] = useState(false);
 
   const canCastSpells = hasSpellcastingTalent(character);
 
@@ -237,10 +335,13 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
             canCastSpells ? (
               <button
                 type="button"
-                className={styles.manageBtn}
+                className={styles.manageIconBtn}
                 onClick={() => setShowManageSpells(!showManageSpells)}
+                title={showManageSpells ? 'Hide manage spells' : 'Manage Spells'}
+                aria-label={showManageSpells ? 'Hide manage spells' : 'Manage Spells'}
+                aria-pressed={showManageSpells}
               >
-                {showManageSpells ? 'Hide' : 'Manage Spells'}
+                <Settings size={16} />
               </button>
             ) : undefined
           }
@@ -263,39 +364,55 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
           ) : null;
         })()}
 
-        {/* Environmental Saturation */}
+        {/* Environmental Saturation — compact single-line, expands on tap */}
         {canCastSpells && (
           <div className={styles.saturationRow}>
-            <label className={styles.saturationLabel} htmlFor="magic-saturation-select">
-              Magic Saturation:
-            </label>
-            <select
-              id="magic-saturation-select"
-              className={styles.saturationSelect}
-              value={character.sessionState.magicSaturation ?? 'normal'}
-              onChange={(e) => {
-                const val = e.target.value as MagicSaturation;
-                updateCharacter((c) => ({
-                  ...c,
-                  sessionState: { ...c.sessionState, magicSaturation: val },
-                }));
-              }}
+            <button
+              type="button"
+              className={styles.saturationToggle}
+              onClick={() => setSaturationExpanded(!saturationExpanded)}
+              aria-expanded={saturationExpanded}
+              aria-controls="saturation-selector"
             >
-              {(Object.keys(SATURATION_LABELS) as MagicSaturation[]).map((level) => (
-                <option key={level} value={level}>
-                  {SATURATION_LABELS[level]}
-                </option>
-              ))}
-            </select>
-            {(character.sessionState.magicSaturation ?? 'normal') !== 'normal' && (
-              <span className={styles.saturationModifier}>
-                {SATURATION_MODIFIERS[character.sessionState.magicSaturation ?? 'normal']}
+              <span className={styles.saturationLabel}>Magic Saturation:</span>
+              <span className={styles.saturationValue}>
+                {SATURATION_LABELS[character.sessionState.magicSaturation ?? 'normal']}
               </span>
+              {(character.sessionState.magicSaturation ?? 'normal') !== 'normal' && (
+                <span className={styles.saturationModifier}>
+                  {SATURATION_MODIFIERS[character.sessionState.magicSaturation ?? 'normal']}
+                </span>
+              )}
+            </button>
+            {saturationExpanded && (
+              <div id="saturation-selector" className={styles.saturationSelector}>
+                {(Object.keys(SATURATION_LABELS) as MagicSaturation[]).map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    className={`${styles.saturationOption} ${
+                      (character.sessionState.magicSaturation ?? 'normal') === level
+                        ? styles.saturationOptionActive
+                        : ''
+                    }`}
+                    onClick={() => {
+                      updateCharacter((c) => ({
+                        ...c,
+                        sessionState: { ...c.sessionState, magicSaturation: level },
+                      }));
+                      setSaturationExpanded(false);
+                    }}
+                  >
+                    <span className={styles.saturationOptionLabel}>{SATURATION_LABELS[level]}</span>
+                    <span className={styles.saturationOptionDesc}>{SATURATION_MODIFIERS[level]}</span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         )}
 
-        {/* Memorized spells list */}
+        {/* Memorized spells list — compact with tap-to-expand */}
         {memorizedSpells.length === 0 ? (
           <EmptyState
             icon={Sparkles}
@@ -303,127 +420,36 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
             description="No spells memorized — tap Manage Spells to add some."
             action={canCastSpells ? { label: 'Manage Spells', onClick: () => setShowManageSpells(true) } : undefined}
           />
-        ) : isMobile ? (
-          <div className={styles.spellCardList}>
-            {memorizedSpells.map((spell) => (
-              <SpellCard key={spell.name} spell={spell} />
-            ))}
-          </div>
         ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.th}>Name</th>
-                <th className={styles.th}>CN</th>
-                <th className={styles.th}>Range</th>
-                <th className={styles.th}>Target</th>
-                <th className={styles.th}>Duration</th>
-                <th className={styles.th}>
-                  <span className={styles.effectHeader}>
-                    Effect
-                    <span className={styles.tooltipWrapper} tabIndex={0} aria-describedby="effect-tooltip">
-                      <Info size={14} />
-                      <span className={styles.tooltip} role="tooltip" id="effect-tooltip">
-                        Magic missile damage = listed modifier + Success Levels from your casting roll.
-                      </span>
-                    </span>
-                  </span>
-                </th>
-                {canCastSpells && <th className={styles.th}></th>}
-              </tr>
-            </thead>
-            <tbody>
-              {memorizedSpells.map((spell) => {
-                const isPetty = spell.cn === '0' || spell.cn === '-';
-                const cp = getChannellingProgress(spell.name);
-                const cn = parseInt(spell.cn, 10) || 0;
-                const isReady = cp != null && cp.accumulatedSL >= cn && cn > 0;
+          <div className={styles.compactSpellList}>
+            {memorizedSpells.map((spell) => {
+              const cp = getChannellingProgress(spell.name);
+              const cn = parseInt(spell.cn, 10) || 0;
+              const isReady = cp != null && cp.accumulatedSL >= cn && cn > 0;
+              const wpChar = character.chars.WP;
+              const wpBonus = Math.floor((wpChar.i + wpChar.a + wpChar.b) / 10);
+              const tChar = character.chars.T;
+              const tbBonus = Math.floor((tChar.i + tChar.a + tChar.b) / 10);
+              const breakdown = formatDamageBreakdown(spell, wpBonus, tbBonus);
 
-                return (
-                  <tr key={spell.name} className={isPetty ? styles.pettyRow : undefined}>
-                    <td className={styles.td}>
-                      <span className={isReady ? styles.spellNameReady : styles.spellNameDefault}>
-                        {spell.name}
-                      </span>
-                    </td>
-                    <td className={styles.td}>{spell.cn}</td>
-                    <td className={styles.td}>{spell.range}</td>
-                    <td className={styles.td}>{spell.target}</td>
-                    <td className={styles.td}>{spell.duration}</td>
-                    <td className={styles.effectCell}>
-                      <div className={styles.effectContent}>
-                        {spell.effect}
-                        {(() => {
-                          const wpChar = character.chars.WP;
-                          const wpBonus = Math.floor((wpChar.i + wpChar.a + wpChar.b) / 10);
-                          const tChar = character.chars.T;
-                          const tbBonus = Math.floor((tChar.i + tChar.a + tChar.b) / 10);
-                          const breakdown = formatDamageBreakdown(spell, wpBonus, tbBonus);
-                          return breakdown ? (
-                            <span className={styles.damageAnnotation}>{breakdown}</span>
-                          ) : null;
-                        })()}
-                      </div>
-                    </td>
-                    {canCastSpells && (
-                      <td className={styles.actionsCell}>
-                        <div className={styles.actionRow}>
-                          {/* Cast button */}
-                          <button
-                            type="button"
-                            className={styles.diceBtn}
-                            onClick={() => openCastDialog(spell)}
-                            title={`Cast ${spell.name}`}
-                            aria-label={`Cast ${spell.name}`}
-                          >
-                            🎲
-                          </button>
-
-                          {/* Channel button (non-Petty only) */}
-                          {!isPetty && (
-                            <button
-                              type="button"
-                              className={styles.diceBtn}
-                              onClick={() => openChannelDialog(spell)}
-                              title={`Channel ${spell.name}`}
-                              aria-label={`Channel ${spell.name}`}
-                            >
-                              ⚡
-                            </button>
-                          )}
-
-                          {/* Channelling progress */}
-                          {cp != null && cp.accumulatedSL > 0 && (
-                            <>
-                              <span className={styles.channelProgress}>
-                                {cp.accumulatedSL} / {cn}
-                              </span>
-                              <button
-                                type="button"
-                                className={styles.cancelChannelBtn}
-                                onClick={() => cancelChannelling(spell.name)}
-                                title="Cancel channelling"
-                                aria-label={`Cancel channelling ${spell.name}`}
-                              >
-                                ✕
-                              </button>
-                            </>
-                          )}
-
-                          {/* Ready indicator */}
-                          {isReady && (
-                            <span className={styles.readyBadge}>
-                              Ready
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+              return (
+                <CompactSpellRow
+                  key={spell.name}
+                  spell={spell}
+                  isExpanded={expandedSpell === spell.name}
+                  onToggle={() => setExpandedSpell(expandedSpell === spell.name ? null : spell.name)}
+                  canCast={canCastSpells}
+                  onCast={() => openCastDialog(spell)}
+                  onChannel={() => openChannelDialog(spell)}
+                  onCancelChannel={() => cancelChannelling(spell.name)}
+                  channelProgress={cp}
+                  cn={cn}
+                  isReady={isReady}
+                  damageBreakdown={breakdown}
+                />
+              );
+            })}
+          </div>
         )}
 
         {/* Expandable memorization section (only when talent is present) */}

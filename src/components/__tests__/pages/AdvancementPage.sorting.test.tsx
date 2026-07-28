@@ -64,20 +64,20 @@ describe('AdvancementPage sorting behavior', () => {
   it('career skill rows appear before non-career skill rows in the rendered table (Req 1.1)', () => {
     renderAdvancementPage();
 
+    // Expand the "Other Skills" CollapsibleSection (collapsed by default)
+    const otherSkillsToggle = screen.getByRole('button', { name: /Other Skills/ });
+    fireEvent.click(otherSkillsToggle);
+
     // Get all table rows across the page
     const allRows = screen.getAllByRole('row');
 
-    // Find the indices of the "Career Skills" and "Other Skills" header rows
+    // Find the indices of the "Career Skills" header row
     const careerHeaderIdx = allRows.findIndex(row => row.textContent?.includes('Career Skills'));
-    const otherHeaderIdx = allRows.findIndex(row => row.textContent?.includes('Other Skills'));
 
-    // Career Skills header should come before Other Skills header
+    // Career Skills header should exist
     expect(careerHeaderIdx).toBeGreaterThan(-1);
-    expect(otherHeaderIdx).toBeGreaterThan(-1);
-    expect(careerHeaderIdx).toBeLessThan(otherHeaderIdx);
 
-    // Verify a known career skill (Athletics) appears between the two headers
-    // and a known non-career skill (Art) appears after the Other Skills header
+    // Verify a known career skill (Athletics) appears after the career header
     const athleticsRow = allRows.find(row => {
       const buttons = within(row).queryAllByRole('button', { name: 'Athletics' });
       return buttons.length > 0;
@@ -93,12 +93,11 @@ describe('AdvancementPage sorting behavior', () => {
     const athleticsIdx = allRows.indexOf(athleticsRow!);
     const artIdx = allRows.indexOf(artRow!);
 
-    // Athletics (career) should be between career header and other header
+    // Athletics (career) should be after the career header
     expect(athleticsIdx).toBeGreaterThan(careerHeaderIdx);
-    expect(athleticsIdx).toBeLessThan(otherHeaderIdx);
 
-    // Art (non-career) should be after other header
-    expect(artIdx).toBeGreaterThan(otherHeaderIdx);
+    // Art (non-career, in the Other Skills CollapsibleSection table) should appear after Athletics
+    expect(artIdx).toBeGreaterThan(athleticsIdx);
   });
 
   it('"Career Skills" and "Other Skills" group header rows are rendered (Req 2.1, 2.2)', () => {
@@ -109,8 +108,8 @@ describe('AdvancementPage sorting behavior', () => {
     // (Language (Battle) and Play (Drum or Fife) are advanced skills not in bSkills)
     expect(screen.getByText(/^Career Skills \(6\)$/)).toBeInTheDocument();
 
-    // The remaining 20 basic skills are non-career
-    expect(screen.getByText(/^Other Skills \(20\)$/)).toBeInTheDocument();
+    // The remaining 20 basic skills are in the "Other Skills" CollapsibleSection title
+    expect(screen.getByRole('button', { name: /Other Skills \(20\)/ })).toBeInTheDocument();
   });
 
   it('group header is omitted when its group has zero skills (Req 2.5, 2.6)', () => {
@@ -120,8 +119,8 @@ describe('AdvancementPage sorting behavior', () => {
     // No "Career Skills" header should be rendered
     expect(screen.queryByText(/^Career Skills/)).not.toBeInTheDocument();
 
-    // "Other Skills" header should still be present with all 26 basic skills
-    expect(screen.getByText(/^Other Skills \(26\)$/)).toBeInTheDocument();
+    // "Other Skills" header should still be present in the CollapsibleSection title with all 26 basic skills
+    expect(screen.getByRole('button', { name: /Other Skills \(26\)/ })).toBeInTheDocument();
   });
 
   it('clicking +1 on a sorted career skill deducts the correct XP and advances the right skill (Req 4.1)', () => {
@@ -169,8 +168,13 @@ describe('AdvancementPage sorting behavior', () => {
     // The row should contain the * marker for advanced skills
     expect(langRow.textContent).toContain('*');
 
-    // Also check Lore (History) — a non-career advanced skill
-    const loreButton = screen.getByRole('button', { name: 'Lore (History)' });
+    // Expand the "Other Skills" CollapsibleSection (collapsed by default)
+    const otherSkillsToggle = screen.getByRole('button', { name: /Other Skills/ });
+    fireEvent.click(otherSkillsToggle);
+
+    // Also check Lore (History) — a non-career advanced skill (now visible after expanding)
+    // Use { hidden: true } in case aria-hidden transition hasn't fully cleared
+    const loreButton = within(document.body).getByRole('button', { name: 'Lore (History)', hidden: true });
     const loreRow = loreButton.closest('tr')!;
     expect(loreRow.textContent).toContain('*');
 

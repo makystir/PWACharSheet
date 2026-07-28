@@ -1,26 +1,28 @@
-/* WeaponCards component styles */
+/* WeaponCards component styles — compact layout */
 
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .weaponCard {
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
+  position: relative;
 }
 
-.topRow {
+/* Primary row: name + damage + range/reach + roll button */
+.primaryRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 8px;
+  min-height: 36px;
 }
 
 .weaponName {
@@ -32,6 +34,80 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.primaryStats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.statChip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+}
+
+.statChipLabel {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.statChipValue {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+}
+
+.statChipValueSecondary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+}
+
+.rollBtn {
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(90, 154, 90, 0.15);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.deleteBtn {
+  composes: deleteButton from '../shared/styles/shared.module.css';
+}
+
+/* Secondary line: group + qualities (hidden by default, shown on hover/tap) */
+.secondaryLine {
+  display: none;
+  padding-top: 4px;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.weaponCard:hover .secondaryLine,
+.weaponCard:focus-within .secondaryLine,
+.weaponCard.expanded .secondaryLine {
+  display: flex;
 }
 
 .groupLabel {
@@ -39,40 +115,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.statsRow {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.statBlock {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.statLabel {
-  font-size: 9px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.statValue {
-  font-size: 16px;
-  font-weight: 900;
-  color: var(--accent-gold);
-  font-family: var(--font-heading);
-}
-
-.breakdownText {
-  font-size: 10px;
-  color: var(--text-muted);
-  font-style: italic;
+  white-space: nowrap;
 }
 
 .qualitiesText {
@@ -87,6 +130,12 @@
   margin-left: 4px;
 }
 
+.separator {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+/* Rune badge — shown in secondary line when runes > 0, or in overflow */
 .runeBadge {
   display: inline-flex;
   align-items: center;
@@ -101,35 +150,15 @@
   min-height: 24px;
 }
 
-.rollBtn {
-  min-width: 44px;
-  min-height: 44px;
+/* Footnote (legacy, no longer displayed inline — moved to HelpPopover) */
+.footnoteHelp {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(90, 154, 90, 0.15);
-  border: 1px solid var(--success);
-  border-radius: var(--radius-sm);
-  color: var(--success);
-  cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.deleteBtn {
-  composes: deleteButton from '../shared/styles/shared.module.css';
+  padding-top: 6px;
 }
 
 .emptyMsg {
   composes: emptyMessage from '../shared/styles/shared.module.css';
-}
-
-.footnote {
-  font-size: 10px;
-  color: var(--text-muted);
-  font-style: italic;
-  padding: 4px 0 0;
 }
 
 /* Mobile overrides */
@@ -139,15 +168,38 @@
   }
 
   .rollBtn {
-    min-width: var(--mobile-touch-lg, 48px);
-    min-height: var(--mobile-touch-lg, 48px);
+    min-width: var(--mobile-touch-lg, 44px);
+    min-height: var(--mobile-touch-lg, 44px);
   }
 
   .weaponName {
+    font-size: 13px;
+  }
+
+  .statChipValue {
     font-size: 14px;
   }
 
-  .statValue {
-    font-size: 15px;
+  /* Requirement 7.5: Minimum 44×44px tap targets on mobile */
+  .runeBadge {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 12px;
+  }
+
+  .primaryRow {
+    min-height: 44px;
+  }
+
+  /* On mobile, also show secondary on tap — handled via .expanded class toggled in JS */
+}
+
+/* Touch devices: show secondary on tap via expanded class */
+@media (hover: none) {
+  .weaponCard:hover .secondaryLine {
+    display: none;
+  }
+  .weaponCard.expanded .secondaryLine {
+    display: flex;
   }
 }

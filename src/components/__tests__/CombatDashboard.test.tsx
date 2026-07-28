@@ -80,9 +80,11 @@ describe('CombatDashboard — Wounds Display', () => {
 // ─── Advantage Counter (3.3) ─────────────────────────────────────────────────
 
 describe('CombatDashboard — Advantage Counter', () => {
-  it('does not render advantage when inCombat is false', () => {
+  it('collapses advantage when inCombat is false', () => {
     render(<CombatDashboard {...makeProps({ inCombat: false })} />);
-    expect(screen.queryByText('Advantage')).not.toBeInTheDocument();
+    // Actions group is in DOM but collapsed with aria-hidden
+    const actionsGroup = screen.getByRole('group', { name: 'Actions', hidden: true });
+    expect(actionsGroup.closest('[aria-hidden="true"]')).toBeTruthy();
   });
 
   it('renders advantage counter when inCombat is true', () => {
@@ -116,9 +118,10 @@ describe('CombatDashboard — Advantage Counter', () => {
 // ─── Round Counter (3.4) ─────────────────────────────────────────────────────
 
 describe('CombatDashboard — Round Counter', () => {
-  it('does not render round counter when inCombat is false', () => {
+  it('collapses round counter when inCombat is false', () => {
     render(<CombatDashboard {...makeProps({ inCombat: false })} />);
-    expect(screen.queryByText('Round')).not.toBeInTheDocument();
+    const actionsGroup = screen.getByRole('group', { name: 'Actions', hidden: true });
+    expect(actionsGroup.closest('[aria-hidden="true"]')).toBeTruthy();
   });
 
   it('renders round counter when inCombat is true', () => {
@@ -145,10 +148,13 @@ describe('CombatDashboard — Round Counter', () => {
 // ─── Engaged Toggle (3.5) ────────────────────────────────────────────────────
 
 describe('CombatDashboard — Engaged Toggle', () => {
-  it('does not render engaged toggle when inCombat is false', () => {
+  it('collapses engaged toggle when inCombat is false', () => {
     render(<CombatDashboard {...makeProps({ inCombat: false })} />);
-    expect(screen.queryByLabelText('Engage')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Disengage')).not.toBeInTheDocument();
+    const actionsGroup = screen.getByRole('group', { name: 'Actions', hidden: true });
+    expect(actionsGroup.closest('[aria-hidden="true"]')).toBeTruthy();
+    // Buttons are not focusable when collapsed
+    const engageBtn = screen.getByLabelText('Engage', { selector: 'button' });
+    expect(engageBtn).toHaveAttribute('tabindex', '-1');
   });
 
   it('renders "Not Engaged" when not engaged', () => {
@@ -285,11 +291,10 @@ describe('CombatDashboard — Fortune / Resolve', () => {
 // ─── Readiness Mode (3.8 / 3.9 / Req 1.9) ──────────────────────────────────
 
 describe('CombatDashboard — Readiness Mode', () => {
-  it('hides advantage, round, and engaged toggle when not in combat', () => {
+  it('collapses advantage, round, and engaged toggle when not in combat', () => {
     render(<CombatDashboard {...makeProps({ inCombat: false })} />);
-    expect(screen.queryByText('Advantage')).not.toBeInTheDocument();
-    expect(screen.queryByText('Round')).not.toBeInTheDocument();
-    expect(screen.queryByText('Not Engaged')).not.toBeInTheDocument();
+    const actionsGroup = screen.getByRole('group', { name: 'Actions', hidden: true });
+    expect(actionsGroup.closest('[aria-hidden="true"]')).toBeTruthy();
   });
 
   it('still shows wounds and fortune/resolve when not in combat', () => {

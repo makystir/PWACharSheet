@@ -6,12 +6,17 @@ interface EmptyStateProps {
   heading: string;
   description?: string;
   action?: { label: string; onClick: () => void };
+  compact?: boolean;
 }
 
-export function EmptyState({ icon: Icon, heading, description, action }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, heading, description, action, compact }: EmptyStateProps) {
+  const containerClass = compact
+    ? `${styles.container} ${styles.compact}`
+    : styles.container;
+
   return (
-    <div className={styles.container} role="status">
-      <Icon size={48} className={styles.icon} />
+    <div className={containerClass} role="status">
+      <Icon size={compact ? 16 : 36} className={styles.icon} />
       <h3 className={styles.heading}>{heading}</h3>
       {description && <p className={styles.description}>{description}</p>}
       {action && (

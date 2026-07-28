@@ -77,7 +77,12 @@ export function CollapsibleSection({
           <ChevronRight size={18} className={styles.chevron} aria-hidden="true" />
         )}
       </button>
-      {expanded && <div className={styles.content}>{children}</div>}
+      <div
+        className={expanded ? styles.contentExpanded : styles.contentCollapsed}
+        aria-hidden={!expanded}
+      >
+        {children}
+      </div>
     </div>
   );
 }

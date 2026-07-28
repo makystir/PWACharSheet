@@ -142,23 +142,133 @@
 
 /* ── Empty State ── */
 .emptyState {
-  padding: 16px 0;
+  padding: 8px 0;
   text-align: center;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
   font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Add Consumable Form ── */
 .addForm {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  margin-top: 12px;
+  margin-top: 8px;
+}
+
+/* Inline row: name + doses + add button */
+.inlineRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inlineInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  min-height: 36px;
+  font-family: inherit;
+}
+
+.inlineInput::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.inlineInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.inlineDosesInput {
+  width: 64px;
+  flex-shrink: 0;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  min-height: 36px;
+  font-family: inherit;
+}
+
+.inlineDosesInput::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.inlineDosesInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.inlineAddBtn {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 36px;
+  padding: 6px 12px;
+  background: rgba(201, 168, 76, 0.2);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-heading);
+}
+
+.inlineAddBtn:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.3);
+}
+
+.inlineAddBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Expanded fields (shown via "More options") */
+.expandedFields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Form footer: more options + cancel */
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.moreOptionsBtn {
+  background: none;
+  border: none;
+  color: var(--accent-gold);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.moreOptionsBtn:hover {
+  opacity: 0.8;
 }
 
 .formField {
@@ -197,51 +307,18 @@
   border-color: var(--accent-gold);
 }
 
-/* ── Form Submit / Cancel Buttons ── */
-.formActions {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.submitBtn {
-  flex: 1;
-  min-height: 44px;
-  padding: 10px 16px;
-  background: rgba(201, 168, 76, 0.2);
-  border: 1px solid var(--accent-gold);
-  border-radius: var(--radius-sm);
-  color: var(--accent-gold);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--font-heading);
-}
-
-.submitBtn:hover:not(:disabled) {
-  background: rgba(201, 168, 76, 0.3);
-}
-
-.submitBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
+/* ── Form Cancel Button ── */
 .cancelBtn {
-  min-width: 44px;
-  min-height: 44px;
-  padding: 10px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
   color: var(--text-muted);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 12px;
   cursor: pointer;
+  padding: 4px 8px;
 }
 
 .cancelBtn:hover {
-  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 /* ── Add Consumable Toggle Button ── */
@@ -283,17 +360,18 @@
     padding: 10px;
   }
 
-  .formInput {
+  .inlineInput,
+  .inlineDosesInput {
     min-height: 44px;
     font-size: 16px; /* prevent iOS zoom on focus */
   }
 
-  .formActions {
-    flex-direction: column;
+  .inlineAddBtn {
+    min-height: 44px;
   }
 
-  .submitBtn,
-  .cancelBtn {
-    width: 100%;
+  .formInput {
+    min-height: 44px;
+    font-size: 16px; /* prevent iOS zoom on focus */
   }
 }

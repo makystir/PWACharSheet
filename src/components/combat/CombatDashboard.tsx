@@ -158,6 +158,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
   const [showFortunePopover, setShowFortunePopover] = useState(false);
   const [showResolvePopover, setShowResolvePopover] = useState(false);
   const [expandedCondition, setExpandedCondition] = useState<string | null>(null);
+  const [mobileTooltipCondition, setMobileTooltipCondition] = useState<{ name: string; effectText: string } | null>(null);
   const [endOfTurnReport, setEndOfTurnReport] = useState<{ effects: EndOfTurnEffect[]; result: EndOfTurnResult } | null>(null);
   const [endTurnError, setEndTurnError] = useState<string | null>(null);
 
@@ -242,6 +243,14 @@ export function CombatDashboard(props: CombatDashboardProps) {
     }
     prevInCombatRef.current = inCombat;
   }, [inCombat, updateCharacter]);
+
+  // Auto-dismiss mobile condition tooltip after 4 seconds (Req 9.3)
+  useEffect(() => {
+    if (mobileTooltipCondition) {
+      const timer = setTimeout(() => setMobileTooltipCondition(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [mobileTooltipCondition]);
 
   // Close popovers on outside click
   const handleDocClick = useCallback(() => {
@@ -335,9 +344,10 @@ export function CombatDashboard(props: CombatDashboardProps) {
   return (
     <div className={styles.dashboard} style={stickyStyle} data-testid="combat-dashboard">
       <div className={styles.dashboardGroups}>
-        {/* ── Status Group (Req 14.1, 14.3) ── */}
+        {/* ── Status Group (Req 1.1, 1.4, 1.5) ── */}
         <div role="group" aria-label="Status" className={styles.statusGroup}>
-          <div className={styles.statusMainRow}>
+          {/* ── Primary Row: Wounds + Advantage + Fortune/Resolve ── */}
+          <div className={styles.primaryRow}>
             {/* ── Wounds ── */}
             <div className={woundSectionClass} data-wound-threshold={woundThreshold}>
               <div className={styles.iconLabel}>
@@ -361,7 +371,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
                   style={{ '--wound-pct': `${woundPct}%` } as CSSProperties}
                 />
               </div>
-              <div className={styles.btnRow}>
+              <div className={styles.buttonBar}>
                 <button
                   type="button"
                   aria-label="Decrease wounds"
@@ -386,7 +396,38 @@ export function CombatDashboard(props: CombatDashboardProps) {
               )}
             </div>
 
-            {/* ── Fortune / Resolve compact display ── */}
+            {/* ── Advantage Counter (inline in primary row) ── */}
+            {inCombat && (
+              <div className={styles.advantageInline}>
+                <div className={styles.iconLabel}>
+                  <Zap size={14} color="var(--accent-gold)" aria-hidden="true" />
+                  <span className={styles.label}>{useGroupAdvantage ? 'Group Advantage' : 'Advantage'}</span>
+                </div>
+                <span className={`${styles.bigNumber} ${styles.accentGold} ${styles.numberTransition}${advantageBump ? ` ${styles.numberBump}` : ''}`}>{advantage}</span>
+                <div className={styles.buttonBar}>
+                  <button
+                    type="button"
+                    aria-label="Decrease advantage"
+                    onClick={() => onUpdateAdvantage(-1)}
+                    className={styles.tapButton}
+                  >−</button>
+                  <button
+                    type="button"
+                    aria-label="Increase advantage"
+                    onClick={() => onUpdateAdvantage(1)}
+                    className={styles.tapButton}
+                  >+</button>
+                  <button
+                    type="button"
+                    aria-label="Reset advantage"
+                    onClick={() => onUpdateAdvantage(-advantage)}
+                    className={styles.smallTapButton}
+                  >Reset</button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Fortune / Resolve compact display (inline) ── */}
             <div className={styles.fortuneResolveRow}>
               {/* Fortune */}
               <div className={styles.sectionRelative}>
@@ -510,7 +551,19 @@ export function CombatDashboard(props: CombatDashboardProps) {
                   aria-label={`Info for ${cond.name}`}
                   aria-describedby={conditionTooltip?.name === cond.name ? `tooltip-condition-${cond.name}` : undefined}
                   onClick={(e) => {
-                    // Mobile: toggle inline expansion
+                    // Check if mobile viewport (matches CSS breakpoint)
+                    const isMobile = window.innerWidth < 768;
+                    if (isMobile) {
+                      // Mobile: show bottom-anchored tooltip sheet (Req 9.3)
+                      const text = getConditionEffectText(cond.name);
+                      if (text) {
+                        setMobileTooltipCondition(
+                          mobileTooltipCondition?.name === cond.name ? null : { name: cond.name, effectText: text }
+                        );
+                      }
+                      return;
+                    }
+                    // Desktop: toggle inline expansion
                     setExpandedCondition(isExpanded ? null : cond.name);
                     // Also show the full tooltip on click (existing behavior)
                     if (conditionTooltip?.name === cond.name) {
@@ -539,12 +592,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
                   className={styles.conditionRemoveBtn}
                 >✕</button>
               </div>
-              {/* Mobile tap expansion — effect text below badge */}
-              {isExpanded && effectText && (
-                <div className={styles.conditionEffectExpanded} aria-live="polite">
-                  {effectText}
-                </div>
-              )}
+              {/* Mobile tap expansion — replaced by bottom tooltip sheet (Req 9.3) */}
             </div>
           );
         })}
@@ -599,40 +647,14 @@ export function CombatDashboard(props: CombatDashboardProps) {
         </div>{/* End Status Group */}
 
         {/* ── Group Divider (Req 14.2) ── */}
-        {inCombat && <div className={styles.groupDivider} aria-hidden="true" />}
+        <div className={inCombat ? styles.groupDivider : styles.groupDividerHidden} aria-hidden="true" />
 
-        {/* ── Actions Group (Req 14.1, 14.3) ── */}
-        {inCombat && (
+        {/* ── Actions Group (Req 1.2, 14.1, 14.3) — collapsed when combat not active ── */}
+        <div
+          className={inCombat ? styles.actionsGroupExpanded : styles.actionsGroupCollapsed}
+          aria-hidden={!inCombat}
+        >
           <div role="group" aria-label="Actions" className={styles.actionsGroup}>
-            {/* ── Advantage ── */}
-            <div className={styles.fixedSection}>
-              <div className={styles.iconLabel}>
-                <Zap size={14} color="var(--accent-gold)" />
-                <span className={styles.label}>{useGroupAdvantage ? 'Group Advantage' : 'Advantage'}</span>
-              </div>
-              <span className={`${styles.bigNumber} ${styles.accentGold} ${styles.numberTransition}${advantageBump ? ` ${styles.numberBump}` : ''}`}>{advantage}</span>
-              <div className={styles.btnRow}>
-                <button
-                  type="button"
-                  aria-label="Decrease advantage"
-                  onClick={() => onUpdateAdvantage(-1)}
-                  className={styles.tapButton}
-                >−</button>
-                <button
-                  type="button"
-                  aria-label="Increase advantage"
-                  onClick={() => onUpdateAdvantage(1)}
-                  className={styles.tapButton}
-                >+</button>
-                <button
-                  type="button"
-                  aria-label="Reset advantage"
-                  onClick={() => onUpdateAdvantage(-advantage)}
-                  className={styles.smallTapButton}
-                >Reset</button>
-              </div>
-            </div>
-
             {/* ── Round Counter ── */}
             <div className={styles.fixedSection}>
               <span className={styles.label}>Round</span>
@@ -643,12 +665,14 @@ export function CombatDashboard(props: CombatDashboardProps) {
                   aria-label="Decrease round"
                   onClick={() => onUpdateRound(-1)}
                   className={styles.tapButton}
+                  tabIndex={inCombat ? 0 : -1}
                 >−</button>
                 <button
                   type="button"
                   aria-label="Increase round"
                   onClick={() => onUpdateRound(1)}
                   className={styles.tapButton}
+                  tabIndex={inCombat ? 0 : -1}
                 >+</button>
               </div>
             </div>
@@ -660,12 +684,13 @@ export function CombatDashboard(props: CombatDashboardProps) {
                 aria-label={combatState.engaged ? 'Disengage' : 'Engage'}
                 onClick={onToggleEngaged}
                 className={`${combatState.engaged ? styles.engagedBtnActive : styles.engagedBtnInactive} ${pressableStyles.pressable}`}
+                tabIndex={inCombat ? 0 : -1}
               >
                 {combatState.engaged ? '⚔ Engaged' : 'Not Engaged'}
               </button>
             </div>
           </div>
-        )}
+        </div>
       </div>{/* End dashboardGroups */}
 
       {/* ── End Turn Button (Req 6.1) ── */}
@@ -701,6 +726,27 @@ export function CombatDashboard(props: CombatDashboardProps) {
       {/* ── Initiative Tracker (Req 19.1) ── */}
       {inCombat && character && updateCharacter && (
         <InitiativeTracker character={character} updateCharacter={updateCharacter} />
+      )}
+
+      {/* ── Mobile Condition Tooltip Sheet (Req 9.3) ── */}
+      {mobileTooltipCondition && (
+        <>
+          <div
+            className={styles.conditionTooltipOverlay}
+            onClick={() => setMobileTooltipCondition(null)}
+            aria-hidden="true"
+            data-testid="condition-tooltip-overlay"
+          />
+          <div
+            className={styles.conditionTooltipSheet}
+            role="tooltip"
+            aria-label={`${mobileTooltipCondition.name} effect`}
+            data-testid="condition-tooltip-sheet"
+          >
+            <div className={styles.conditionTooltipName}>{mobileTooltipCondition.name}</div>
+            <div className={styles.conditionTooltipEffect}>{mobileTooltipCondition.effectText}</div>
+          </div>
+        </>
       )}
 
       {/* ── Condition Tooltip ── */}

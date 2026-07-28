@@ -10,9 +10,11 @@ import { useTabOrder } from '../../../hooks/useTabOrder';
 vi.mock('../SubTabBar.module.css', () => ({
   default: {
     subTabBar: 'subTabBar',
+    subTabBarFlex: 'subTabBarFlex',
     tab: 'tab',
     tabActive: 'tabActive',
     editModeContainer: 'editModeContainer',
+    editModeContainerActive: 'editModeContainerActive',
     editControls: 'editControls',
     editToggleBtn: 'editToggleBtn',
     resetBtn: 'resetBtn',
@@ -283,7 +285,7 @@ describe('SubTabBar Integration Tests', () => {
      * Validates: Requirements 2.6
      */
     it('unmounting while in edit mode persists the current order to localStorage', () => {
-      render(
+      const { container } = render(
         <TabBarWithOrder
           pageKey="character"
           defaultTabs={characterTabs}
@@ -292,7 +294,8 @@ describe('SubTabBar Integration Tests', () => {
         />
       );
 
-      // Enter edit mode
+      // Reveal edit button via context menu, then enter edit mode
+      fireEvent.contextMenu(container.firstChild as HTMLElement);
       fireEvent.click(screen.getByLabelText('Edit tab order'));
 
       // Move the first tab right
@@ -307,7 +310,7 @@ describe('SubTabBar Integration Tests', () => {
     });
 
     it('exiting edit mode via toggle persists order before navigation', () => {
-      render(
+      const { container } = render(
         <TabBarWithOrder
           pageKey="character"
           defaultTabs={characterTabs}
@@ -316,7 +319,8 @@ describe('SubTabBar Integration Tests', () => {
         />
       );
 
-      // Enter edit mode
+      // Reveal edit button via context menu, then enter edit mode
+      fireEvent.contextMenu(container.firstChild as HTMLElement);
       fireEvent.click(screen.getByLabelText('Edit tab order'));
 
       // Move second tab left (Abilities goes to position 0)

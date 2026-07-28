@@ -35,6 +35,20 @@
   border: 2px solid var(--danger);
 }
 
+/* ── Two-column desktop layout ── */
+.combatTwoColumn {
+  display: block;
+}
+
+@media (min-width: 1025px) {
+  .combatTwoColumn {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+}
+
 /* ── Mobile overrides ── */
 @media (max-width: 767px) {
   .combatBtn {

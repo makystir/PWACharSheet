@@ -275,10 +275,16 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
       />
     );
 
-    // Find export buttons
+    // Open the Export dropdown first (task 7.2 consolidated buttons into dropdown)
     const buttons = container.querySelectorAll('button');
-    const clipboardBtn = Array.from(buttons).find(b => b.textContent?.includes('Copy to Clipboard'));
-    const downloadBtn = Array.from(buttons).find(b => b.textContent?.includes('Download File'));
+    const exportDropdownBtn = Array.from(buttons).find(b => b.textContent?.includes('Export'));
+    expect(exportDropdownBtn).toBeDefined();
+    fireEvent.click(exportDropdownBtn!);
+
+    // Now find export action buttons within the dropdown
+    const allButtons = container.querySelectorAll('button');
+    const clipboardBtn = Array.from(allButtons).find(b => b.textContent?.includes('Copy to Clipboard'));
+    const downloadBtn = Array.from(allButtons).find(b => b.textContent?.includes('Download File'));
 
     expect(clipboardBtn).toBeDefined();
     expect(downloadBtn).toBeDefined();
@@ -290,8 +296,14 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
     let dialog = container.querySelector('[role="dialog"]');
     expect(dialog).toBeNull();
 
+    // Re-open dropdown for download test
+    fireEvent.click(exportDropdownBtn!);
+    const updatedButtons = container.querySelectorAll('button');
+    const downloadBtn2 = Array.from(updatedButtons).find(b => b.textContent?.includes('Download File'));
+    expect(downloadBtn2).toBeDefined();
+
     // Click "Download File"
-    fireEvent.click(downloadBtn!);
+    fireEvent.click(downloadBtn2!);
 
     // No ConfirmDialog after file export
     dialog = container.querySelector('[role="dialog"]');

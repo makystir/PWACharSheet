@@ -168,7 +168,6 @@ export function Navigation({ activePage, onPageChange, characterName, characters
         <div ref={overflowRef} className={styles.overflowPopover} role="menu">
           {OVERFLOW_ITEMS.map((item) => {
             const isActive = activePage === item.id;
-            const Icon = item.icon;
             return (
               <button
                 key={item.id}
@@ -178,7 +177,6 @@ export function Navigation({ activePage, onPageChange, characterName, characters
                 role="menuitem"
                 aria-current={isActive ? 'page' : undefined}
               >
-                <Icon size={20} />
                 <span>{item.label}</span>
               </button>
             );

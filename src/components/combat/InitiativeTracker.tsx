@@ -99,74 +99,63 @@ export function InitiativeTracker({ character, updateCharacter }: InitiativeTrac
   return (
     <Card>
       <div className={styles.container}>
-        {/* Combatant List */}
-        {sorted.length === 0 ? (
-          <div className={styles.emptyState}>
-            No combatants in initiative order. Add combatants to track turns.
-          </div>
-        ) : (
-          <>
-            <div className={styles.combatantList}>
-              {sorted.map((combatant, index) => (
-                <div
-                  key={combatant.id}
-                  className={
-                    index === activeIndex
-                      ? styles.combatantItemActive
-                      : styles.combatantItem
-                  }
+        {/* Combatant Chip Row + Next Turn (inline) */}
+        {sorted.length > 0 && (
+          <div className={styles.chipRow}>
+            {sorted.map((combatant, index) => (
+              <div
+                key={combatant.id}
+                className={
+                  index === activeIndex
+                    ? styles.combatantChipActive
+                    : styles.combatantChip
+                }
+              >
+                <span className={styles.chipInitiative}>
+                  {combatant.initiative}
+                </span>
+                <span className={styles.chipName}>
+                  {combatant.name}
+                </span>
+                <button
+                  type="button"
+                  className={styles.chipRemoveBtn}
+                  onClick={() => handleRemove(combatant.id)}
+                  aria-label={`Remove ${combatant.name}`}
                 >
-                  <span className={styles.initiativeBadge}>
-                    {combatant.initiative}
-                  </span>
-                  <span className={styles.combatantName}>
-                    {combatant.name}
-                  </span>
-                  {index === activeIndex && (
-                    <span className={styles.activeIndicator}>▶</span>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.removeBtn}
-                    onClick={() => handleRemove(combatant.id)}
-                    aria-label={`Remove ${combatant.name}`}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-
+                  ✕
+                </button>
+              </div>
+            ))}
             <button
               type="button"
               className={styles.nextTurnBtn}
               onClick={handleNextTurn}
-              disabled={sorted.length === 0}
             >
-              Next Turn ▶
+              Next ▶
             </button>
-          </>
+          </div>
         )}
 
         {/* Add Combatant Form */}
-        <div className={styles.addForm}>
+        <div className={sorted.length === 0 ? styles.addFormCompact : styles.addForm}>
           <div className={styles.formFieldName}>
-            <label className={styles.formLabel}>Name</label>
+            {sorted.length > 0 && <label className={styles.formLabel}>Name</label>}
             <input
               type="text"
-              className={styles.formInput}
+              className={sorted.length === 0 ? styles.formInputCompact : styles.formInput}
               placeholder="e.g. Goblin #1"
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={handleKeyDown}
             />
           </div>
-          <div className={styles.formFieldInit}>
-            <label className={styles.formLabel}>Init</label>
+          <div className={sorted.length === 0 ? styles.formFieldInitCompact : styles.formFieldInit}>
+            {sorted.length > 0 && <label className={styles.formLabel}>Init</label>}
             <input
               type="number"
-              className={styles.formInput}
-              placeholder="e.g. 45"
+              className={sorted.length === 0 ? styles.formInputCompact : styles.formInput}
+              placeholder="Init"
               value={initiative}
               onChange={(e) => setInitiative(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -174,7 +163,7 @@ export function InitiativeTracker({ character, updateCharacter }: InitiativeTrac
           </div>
           <button
             type="button"
-            className={styles.addBtn}
+            className={sorted.length === 0 ? styles.addBtnCompact : styles.addBtn}
             onClick={handleAdd}
             disabled={!isFormValid()}
             aria-label="Add combatant"

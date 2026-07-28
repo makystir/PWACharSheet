@@ -8,6 +8,12 @@
   padding-bottom: 8px;
 }
 
+.header svg {
+  max-width: 14px;
+  max-height: 14px;
+  color: var(--text-muted);
+}
+
 .title {
   font-family: var(--font-heading);
   font-size: 18px;

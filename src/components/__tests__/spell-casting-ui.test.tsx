@@ -83,9 +83,12 @@ describe('SpellCastingPanel — empty state', () => {
 describe('SpellCastingPanel — Petty spell channel button', () => {
   it('does not render a Channel button for Petty spells (CN 0)', () => {
     renderPanel();
+    // Expand Dart (CN 0) — compact list requires tap to reveal actions
+    fireEvent.click(screen.getByText('Dart'));
     // Dart is CN 0 — should have no Channel button
     expect(screen.queryByLabelText('Channel Dart')).not.toBeInTheDocument();
-    // Bolt is CN 4 — should have a Channel button
+    // Expand Bolt (CN 4) to see its Channel button
+    fireEvent.click(screen.getByText('Bolt'));
     expect(screen.getByLabelText('Channel Bolt')).toBeInTheDocument();
   });
 });
@@ -95,6 +98,8 @@ describe('SpellCastingPanel — Petty spell channel button', () => {
 describe('SpellCastingPanel — Cast button opens RollDialog', () => {
   it('clicking Cast opens RollDialog with "Language (Magick)" text', () => {
     renderPanel();
+    // Expand spell to reveal cast button
+    fireEvent.click(screen.getByText('Bolt'));
     fireEvent.click(screen.getByLabelText('Cast Bolt'));
     expect(screen.getByRole('dialog', { name: 'Roll Dialog' })).toBeInTheDocument();
     expect(screen.getByText('Language (Magick)')).toBeInTheDocument();
@@ -106,6 +111,8 @@ describe('SpellCastingPanel — Cast button opens RollDialog', () => {
 describe('SpellCastingPanel — Channel button opens RollDialog', () => {
   it('clicking Channel opens RollDialog with "Channelling" text', () => {
     renderPanel();
+    // Expand spell to reveal channel button
+    fireEvent.click(screen.getByText('Bolt'));
     fireEvent.click(screen.getByLabelText('Channel Bolt'));
     expect(screen.getByRole('dialog', { name: 'Roll Dialog' })).toBeInTheDocument();
     expect(screen.getByText('Channelling')).toBeInTheDocument();
@@ -116,10 +123,18 @@ describe('SpellCastingPanel — Channel button opens RollDialog', () => {
 
 describe('SpellCastingPanel — channelling progress display', () => {
   it('displays channelling progress as "X / Y"', () => {
-    renderPanel({
-      channellingProgress: [{ spellName: 'Bolt', accumulatedSL: 3 }],
-    });
-    expect(screen.getByText('3 / 4')).toBeInTheDocument();
+    const { container } = render(
+      <SpellCastingPanel
+        character={makeSpellChar({ channellingProgress: [{ spellName: 'Bolt', accumulatedSL: 3 }] })}
+        update={vi.fn()}
+        updateCharacter={vi.fn()}
+        addRoll={vi.fn()}
+      />,
+    );
+    // Channelling progress shows in the compact header as separate spans
+    const progressEl = container.querySelector('[class*="channelProgress"]');
+    expect(progressEl).not.toBeNull();
+    expect(progressEl!.textContent?.replace(/\s+/g, ' ').trim()).toContain('3 / 4');
   });
 });
 
@@ -130,6 +145,8 @@ describe('SpellCastingPanel — cancel channelling', () => {
     const { character, updateCharacter } = renderPanel({
       channellingProgress: [{ spellName: 'Bolt', accumulatedSL: 3 }],
     });
+    // Expand Bolt to reveal cancel button
+    fireEvent.click(screen.getByText('Bolt'));
     fireEvent.click(screen.getByLabelText('Cancel channelling Bolt'));
     expect(updateCharacter).toHaveBeenCalledTimes(1);
 
@@ -149,7 +166,7 @@ describe('SpellCastingPanel — memorization toggle', () => {
   it('toggling a non-memorized spell calls updateCharacter to set memorized to true', () => {
     const { character, updateCharacter } = renderPanel();
     // Open the manage spells section
-    fireEvent.click(screen.getByText('Manage Spells'));
+    fireEvent.click(screen.getByLabelText('Manage Spells'));
     // Find the checkbox for Flight (non-memorized spell) — it's in the manage section
     const checkboxes = screen.getAllByRole('checkbox');
     // Flight is the 3rd spell (index 2) in the spells array

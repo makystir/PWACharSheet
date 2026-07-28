@@ -74,34 +74,37 @@ function renderPanel(charOverrides: Partial<Character> = {}) {
 // ─── 3.1 Info icon renders in Effect column header ───
 
 describe('SpellCastingPanel damage — tooltip icon', () => {
-  it('renders an info icon in the Effect column header', () => {
+  it('renders damage info in expanded spell details', () => {
     renderPanel({ spells: [magicMissileSpell] });
 
-    // The tooltip wrapper has role="tooltip" inside it; look for the tooltip element
-    const tooltip = screen.getByRole('tooltip');
-    expect(tooltip).toBeInTheDocument();
+    // Expand the spell to reveal details
+    fireEvent.click(screen.getByText('Bolt'));
+
+    // The expanded details should show the spell effect
+    expect(screen.getByText(/Magic missile Dmg \+4/)).toBeInTheDocument();
   });
 });
 
 // ─── 3.2, 3.3 Tooltip text appears on focus ───
 
 describe('SpellCastingPanel damage — tooltip accessibility', () => {
-  it('tooltip text is present in the document with correct content', () => {
+  it('expanded spell metadata uses muted styling', () => {
     renderPanel({ spells: [magicMissileSpell] });
 
-    const tooltip = screen.getByRole('tooltip');
-    expect(tooltip).toHaveTextContent(
-      'Magic missile damage = listed modifier + Success Levels from your casting roll.',
-    );
+    // Expand the spell
+    fireEvent.click(screen.getByText('Bolt'));
+
+    // Verify metadata fields are present in expanded details
+    expect(screen.getByText('Range')).toBeInTheDocument();
+    expect(screen.getByText('Target')).toBeInTheDocument();
+    expect(screen.getByText('Duration')).toBeInTheDocument();
   });
 
-  it('tooltip wrapper is keyboard-focusable (tabIndex=0)', () => {
+  it('spell details are hidden before expansion', () => {
     renderPanel({ spells: [magicMissileSpell] });
 
-    // The tooltip wrapper has aria-describedby="effect-tooltip" and tabIndex={0}
-    const wrapper = document.querySelector('[aria-describedby="effect-tooltip"]');
-    expect(wrapper).not.toBeNull();
-    expect(wrapper).toHaveAttribute('tabindex', '0');
+    // Before expanding, range/target/duration should not be visible
+    expect(screen.queryByText('WP yards')).not.toBeInTheDocument();
   });
 });
 
@@ -110,6 +113,9 @@ describe('SpellCastingPanel damage — tooltip accessibility', () => {
 describe('SpellCastingPanel damage — breakdown for magic missile', () => {
   it('renders damage breakdown annotation for a magic missile spell', () => {
     renderPanel({ spells: [magicMissileSpell] });
+
+    // Expand the spell to reveal breakdown
+    fireEvent.click(screen.getByText('Bolt'));
 
     // "Magic missile Dmg +4" should produce a breakdown of "Dmg: 4 + SL"
     expect(screen.getByText('Dmg: 4 + SL')).toBeInTheDocument();

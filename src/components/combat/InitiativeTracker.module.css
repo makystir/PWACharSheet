@@ -1,139 +1,109 @@
-/* InitiativeTracker — co-located CSS Module */
+/* InitiativeTracker — horizontal chip layout */
 
 /* ── Panel Container ── */
 .container {
   margin-bottom: 12px;
 }
 
-/* ── Combatant List ── */
-.combatantList {
+/* ── Chip Row (horizontal scrollable) ── */
+.chipRow {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
+  overflow-x: auto;
+  gap: 6px;
+  padding: 4px 0;
+  align-items: center;
 }
 
-/* ── Combatant Item ── */
-.combatantItem {
-  display: flex;
+/* ── Combatant Chip ── */
+.combatantChip {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--bg-inset, rgba(0, 0, 0, 0.15));
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  gap: 4px;
   transition: background 0.15s, border-color 0.15s;
 }
 
-.combatantItemActive {
-  composes: combatantItem;
-  background: rgba(201, 168, 76, 0.15);
+.combatantChipActive {
+  composes: combatantChip;
+  background: rgba(200, 168, 76, 0.15);
   border-color: var(--accent-gold);
+  font-weight: 600;
 }
 
-/* ── Initiative Badge ── */
-.initiativeBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 12px;
+/* ── Chip Initiative Number ── */
+.chipInitiative {
+  font-size: 11px;
   font-weight: 700;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
-.combatantItemActive .initiativeBadge {
-  background: rgba(201, 168, 76, 0.2);
-  border-color: var(--accent-gold);
+.combatantChipActive .chipInitiative {
   color: var(--accent-gold);
 }
 
-/* ── Combatant Name ── */
-.combatantName {
-  flex: 1;
+/* ── Chip Name ── */
+.chipName {
   font-weight: 500;
   color: var(--text-primary);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.combatantItemActive .combatantName {
-  font-weight: 700;
+.combatantChipActive .chipName {
   color: var(--accent-gold);
+  font-weight: 600;
 }
 
-/* ── Active Indicator ── */
-.activeIndicator {
-  font-size: 11px;
-  color: var(--accent-gold);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* ── Remove Button ── */
-.removeBtn {
-  min-width: 32px;
-  min-height: 32px;
-  padding: 4px 8px;
-  background: none;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 12px;
+/* ── Chip Remove Button ── */
+.chipRemoveBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin-left: 2px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
 }
 
-.removeBtn:hover {
+.chipRemoveBtn:hover {
   color: var(--danger);
-  border-color: var(--danger);
-  background: rgba(200, 80, 80, 0.1);
+  background: rgba(200, 80, 80, 0.15);
 }
 
-/* ── Next Turn Button ── */
+/* ── Next Turn Button (inline with chips) ── */
 .nextTurnBtn {
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  min-height: 28px;
   background: rgba(201, 168, 76, 0.2);
   border: 1px solid var(--accent-gold);
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   color: var(--accent-gold);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   font-family: var(--font-heading);
   transition: background 0.15s;
+  flex-shrink: 0;
 }
 
-.nextTurnBtn:hover:not(:disabled) {
+.nextTurnBtn:hover {
   background: rgba(201, 168, 76, 0.3);
-}
-
-.nextTurnBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* ── Empty State ── */
-.emptyState {
-  padding: 16px 0;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-style: italic;
 }
 
 /* ── Add Combatant Form ── */
@@ -142,6 +112,12 @@
   gap: 8px;
   align-items: flex-end;
   margin-top: 12px;
+}
+
+.addFormCompact {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 .formField {
@@ -160,6 +136,11 @@
   width: 80px;
 }
 
+.formFieldInitCompact {
+  composes: formField;
+  width: 70px;
+}
+
 .formLabel {
   font-size: 11px;
   color: var(--text-muted);
@@ -170,14 +151,23 @@
 
 .formInput {
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 10px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-size: 14px;
-  min-height: 44px;
+  height: 32px;
+  min-height: 32px;
   font-family: inherit;
+}
+
+.formInputCompact {
+  composes: formInput;
+  height: 32px;
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 13px;
 }
 
 .formInput::placeholder {
@@ -191,9 +181,10 @@
 }
 
 .addBtn {
-  min-width: 44px;
-  min-height: 44px;
-  padding: 8px 14px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 4px 10px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -218,30 +209,67 @@
   cursor: not-allowed;
 }
 
+.addBtnCompact {
+  composes: addBtn;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+}
+
 /* ══════════════════════════════════════════════════════════════════════════════
-   Responsive: <768px — vertical stack, 44px touch targets
+   Responsive: <768px — maintain inline layout, ensure touch targets
    ══════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
   .container {
     width: 100%;
-    overflow-x: hidden;
+  }
+
+  .chipRow {
+    padding: 4px 0;
+    -webkit-overflow-scrolling: touch;
   }
 
   .addForm {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .formFieldName {
+    flex: 1;
+    min-width: 120px;
   }
 
   .formFieldInit {
-    width: 100%;
+    width: 70px;
   }
 
   .formInput {
-    min-height: 44px;
     font-size: 16px; /* prevent iOS zoom on focus */
   }
 
-  .addBtn {
-    width: 100%;
+  /* Requirement 7.5: Minimum 44×44px tap targets on mobile */
+  .chipRemoveBtn {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .nextTurnBtn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 14px;
+  }
+
+  .addBtn,
+  .addBtnCompact {
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .combatantChip {
+    min-height: 44px;
+    padding: 8px 12px;
   }
 }

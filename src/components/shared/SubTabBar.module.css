@@ -47,6 +47,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Compact text-only tabs on mobile: reduced padding, no icons */
+    padding: 8px 8px;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+  }
+
+  /* Hide any icons within tabs on mobile for text-only compact view */
+  .tab svg,
+  .tabActive svg {
+    display: none;
+  }
+
+  /* Compact edit controls on mobile */
+  .editControls {
+    padding: 2px;
   }
 }
 

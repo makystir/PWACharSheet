@@ -131,7 +131,8 @@
 .charCurrent {
   composes: td from '../shared/styles/shared.module.css';
   color: var(--parchment);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 18px;
   text-align: center;
   width: 50px;
 }
@@ -145,6 +146,7 @@
   composes: td from '../shared/styles/shared.module.css';
   color: var(--accent-gold);
   font-weight: 700;
+  font-size: 18px;
   text-align: center;
   width: 50px;
 }
@@ -275,6 +277,82 @@
 .actionRow {
   display: flex;
   gap: 4px;
+}
+
+/* Compact skill table rows (Req 3.3) */
+.skillTableCompact td,
+.skillTableCompact th {
+  padding: 6px 8px;
+}
+
+/* Add dropdown button */
+.addDropdownWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.addDropdownBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.addDropdownBtn:hover {
+  background: var(--bg-secondary);
+}
+
+.addDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  margin-top: 4px;
+  min-width: 160px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.addDropdownItem {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.addDropdownItem:hover {
+  background: var(--bg-tertiary);
+}
+
+/* Count badge in section header */
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-muted);
+  margin-left: 6px;
 }
 
 /* Delete button (inline small) */
@@ -506,6 +584,60 @@
   cursor: default;
 }
 
+/* Trappings card-grid layout (Req 3.5) */
+.trappingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.trappingCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.trappingCardHorse {
+  composes: trappingCard;
+  border-color: var(--accent-gold);
+  background: rgba(200, 168, 76, 0.05);
+}
+
+.trappingName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.trappingMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.trappingActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.trappingHorseCheckbox {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
 /* Trappings table — horse row highlight */
 .rowHorse {
   background: rgba(200, 168, 76, 0.05);
@@ -570,6 +702,11 @@
     color: var(--parchment);
     font-weight: 700;
   }
+
+  /* CB column at 15px on mobile for consistent sizing */
+  .charCB {
+    font-size: 15px;
+  }
 }
 
 /* Req 6.3: Hide Bonus and CB columns below 360px */
@@ -579,6 +716,50 @@
   .charCB,
   .thCB {
     display: none;
+  }
+}
+
+/* ─── Responsive T. Bonus column toggle (Req 7.3) ─── */
+
+/* "Show Details" toggle button — hidden on desktop */
+.showDetailsToggle {
+  display: none;
+}
+
+/* T. Bonus column — visible by default on desktop */
+.tBonusCol {
+  /* no-op on desktop, styled via mobile media query below */
+}
+
+/* On mobile: hide T. Bonus column and show toggle */
+@media (max-width: 767px) {
+  .showDetailsToggle {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .showDetailsToggle:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  /* Hide T. Bonus column by default on mobile */
+  .tBonusCol {
+    display: none;
+  }
+
+  /* When parent table has .tBonusVisible, show the column */
+  .tBonusVisible .tBonusCol {
+    display: table-cell;
   }
 }
 
@@ -635,8 +816,6 @@
   .td,
   .tdCenter,
   .charKey,
-  .charCurrent,
-  .charCB,
   .charBonusActive,
   .charBonusInactive,
   .skillCharCol,

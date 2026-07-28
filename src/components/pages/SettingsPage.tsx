@@ -3,6 +3,7 @@ import type { Character, ArmourPoints, RangedDamageSBMode } from '../../types/ch
 import { BLANK_CHARACTER } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
+import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { RestoreConfirmDialog } from '../shared/RestoreConfirmDialog';
 import { exportToFile, importFromJSON, exportToJSONWithPortrait } from '../../storage/export-import';
@@ -42,6 +43,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
   const [importSuccess, setImportSuccess] = useState('');
   const [quickActions, setQuickActions] = useState<QuickActionConfig[]>(loadQuickActions);
   const [selectedSkill, setSelectedSkill] = useState('');
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
   // Bulk backup state
   const [backupInProgress, setBackupInProgress] = useState(false);
@@ -309,17 +311,17 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
         </div>
 
         {quickActions.length > 0 && (
-          <div className={styles.quickActionsList}>
+          <div className={styles.quickActionsChips}>
             {quickActions.map(qa => (
-              <div key={qa.id} className={styles.quickActionItem}>
-                <span className={styles.quickActionName}>{qa.skillName}</span>
+              <div key={qa.id} className={styles.quickActionChip}>
+                <span>{qa.skillName}</span>
                 <button
                   type="button"
                   className={styles.quickActionRemoveBtn}
                   onClick={() => handleRemoveQuickAction(qa.id)}
                   aria-label={`Remove ${qa.skillName}`}
                 >
-                  <X size={14} />
+                  <X size={12} />
                 </button>
               </div>
             ))}
@@ -359,149 +361,190 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
       {/* House Rules */}
       <Card>
         <SectionHeader icon={Sliders} title="House Rules" />
-        <div className={styles.ruleGroup}>
-          {/* Ranged Damage SB Mode */}
-          <div className={styles.ruleItem}>
-            <div className={styles.ruleLabel}>Ranged Damage SB</div>
-            <div className={styles.ruleDesc}>Add Strength Bonus to ranged weapon damage</div>
-            <div className={styles.selectorRow}>
-              {([
-                { id: 'none' as RangedDamageSBMode, label: 'None (RAW)' },
-                { id: 'halfSB' as RangedDamageSBMode, label: 'Half SB' },
-                { id: 'fullSB' as RangedDamageSBMode, label: 'Full SB' },
-              ]).map(opt => (
+
+        <CollapsibleSection title="Combat Rules" storageKey="collapsible-combat-rules" defaultExpanded={true}>
+          <div className={styles.ruleGroup}>
+            {/* Ranged Damage SB Mode */}
+            <div className={styles.ruleItem}>
+              <div className={styles.ruleLabel}>Ranged Damage SB</div>
+              <div className={styles.ruleDesc} style={character.houseRules.rangedDamageSBMode === 'none' ? { color: 'var(--text-muted)' } : undefined}>
+                Add Strength Bonus to ranged weapon damage
+              </div>
+              <div className={styles.selectorRow}>
+                {([
+                  { id: 'none' as RangedDamageSBMode, label: 'None (RAW)' },
+                  { id: 'halfSB' as RangedDamageSBMode, label: 'Half SB' },
+                  { id: 'fullSB' as RangedDamageSBMode, label: 'Full SB' },
+                ]).map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => update('houseRules.rangedDamageSBMode', opt.id)}
+                    className={character.houseRules.rangedDamageSBMode === opt.id ? styles.selectorBtnActive : styles.selectorBtn}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Impale Crits on 10s */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Impale Crits on 10s</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.impaleCritsOnTens ? { color: 'var(--text-muted)' } : undefined}>
+                    Impale weapons crit on multiples of 10
+                  </div>
+                </div>
                 <button
-                  key={opt.id}
                   type="button"
-                  onClick={() => update('houseRules.rangedDamageSBMode', opt.id)}
-                  className={character.houseRules.rangedDamageSBMode === opt.id ? styles.selectorBtnActive : styles.selectorBtn}
+                  onClick={() => update('houseRules.impaleCritsOnTens', !character.houseRules.impaleCritsOnTens)}
+                  className={character.houseRules.impaleCritsOnTens ? styles.toggleBtnOn : styles.toggleBtnOff}
                 >
-                  {opt.label}
+                  {character.houseRules.impaleCritsOnTens ? 'ON' : 'OFF'}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Impale Crits on 10s */}
-          <div className={styles.ruleItem}>
-            <div className={styles.toggleRow}>
-              <div className={styles.toggleInfo}>
-                <div className={styles.ruleLabel}>Impale Crits on 10s</div>
-                <div className={styles.ruleDesc}>Impale weapons crit on multiples of 10</div>
               </div>
-              <button
-                type="button"
-                onClick={() => update('houseRules.impaleCritsOnTens', !character.houseRules.impaleCritsOnTens)}
-                className={character.houseRules.impaleCritsOnTens ? styles.toggleBtnOn : styles.toggleBtnOff}
-              >
-                {character.houseRules.impaleCritsOnTens ? 'ON' : 'OFF'}
-              </button>
             </div>
-          </div>
 
-          {/* Minimum 1 Wound */}
-          <div className={styles.ruleItem}>
-            <div className={styles.toggleRow}>
-              <div className={styles.toggleInfo}>
-                <div className={styles.ruleLabel}>Minimum 1 Wound (RAW)</div>
-                <div className={styles.ruleDesc}>Hits that overcome TB+AP deal at least 1 wound</div>
+            {/* Minimum 1 Wound */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Minimum 1 Wound (RAW)</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.min1Wound ? { color: 'var(--text-muted)' } : undefined}>
+                    Hits that overcome TB+AP deal at least 1 wound
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.min1Wound', !character.houseRules.min1Wound)}
+                  className={character.houseRules.min1Wound ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.min1Wound ? 'ON' : 'OFF'}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => update('houseRules.min1Wound', !character.houseRules.min1Wound)}
-                className={character.houseRules.min1Wound ? styles.toggleBtnOn : styles.toggleBtnOff}
-              >
-                {character.houseRules.min1Wound ? 'ON' : 'OFF'}
-              </button>
             </div>
-          </div>
 
-          {/* Advantage Cap */}
-          <div className={styles.ruleItem}>
-            <div className={styles.numericRow}>
-              <div className={styles.toggleInfo}>
-                <div className={styles.ruleLabel}>Advantage Cap</div>
-                <div className={styles.ruleDesc}>Max advantage (0 = uncapped). RAW: IB</div>
+            {/* Advantage Cap */}
+            <div className={styles.ruleItem}>
+              <div className={styles.numericRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Advantage Cap</div>
+                  <div className={styles.ruleDesc}>Max advantage (0 = uncapped). RAW: IB</div>
+                </div>
+                <input
+                  type="number"
+                  min={0}
+                  max={99}
+                  value={character.houseRules.advantageCap}
+                  onChange={(e) => {
+                    const val = Math.max(0, Math.min(99, Number(e.target.value) || 0));
+                    update('houseRules.advantageCap', val);
+                  }}
+                  className={styles.numericInput}
+                />
               </div>
-              <input
-                type="number"
-                min={0}
-                max={99}
-                value={character.houseRules.advantageCap}
-                onChange={(e) => {
-                  const val = Math.max(0, Math.min(99, Number(e.target.value) || 0));
-                  update('houseRules.advantageCap', val);
-                }}
-                className={styles.numericInput}
-              />
             </div>
-          </div>
 
-          {/* Group Advantage */}
-          <div className={styles.ruleItem}>
-            <div className={styles.toggleRow}>
-              <div className={styles.toggleInfo}>
-                <div className={styles.ruleLabel}>Group Advantage</div>
-                <div className={styles.ruleDesc}>Party shares a single advantage pool (Up in Arms)</div>
+            {/* Group Advantage */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Group Advantage</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.useGroupAdvantage ? { color: 'var(--text-muted)' } : undefined}>
+                    Party shares a single advantage pool (Up in Arms)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.useGroupAdvantage', !character.houseRules.useGroupAdvantage)}
+                  className={character.houseRules.useGroupAdvantage ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.useGroupAdvantage ? 'ON' : 'OFF'}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => update('houseRules.useGroupAdvantage', !character.houseRules.useGroupAdvantage)}
-                className={character.houseRules.useGroupAdvantage ? styles.toggleBtnOn : styles.toggleBtnOff}
-              >
-                {character.houseRules.useGroupAdvantage ? 'ON' : 'OFF'}
-              </button>
             </div>
           </div>
+        </CollapsibleSection>
 
-          {/* Yenlui Balance */}
-          <div className={styles.ruleItem}>
-            <div className={styles.toggleRow}>
-              <div className={styles.toggleInfo}>
-                <div className={styles.ruleLabel}>Yenlui Balance (High Elf)</div>
-                <div className={styles.ruleDesc}>Track Elven spiritual balance (High Elf Player's Guide)</div>
+        <CollapsibleSection title="Optional Mechanics" storageKey="collapsible-optional-mechanics" defaultExpanded={true}>
+          <div className={styles.ruleGroup}>
+            {/* Yenlui Balance */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Yenlui Balance (High Elf)</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.useYenlui ? { color: 'var(--text-muted)' } : undefined}>
+                    Track Elven spiritual balance (High Elf Player's Guide)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.useYenlui', !character.houseRules.useYenlui)}
+                  className={character.houseRules.useYenlui ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.useYenlui ? 'ON' : 'OFF'}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => update('houseRules.useYenlui', !character.houseRules.useYenlui)}
-                className={character.houseRules.useYenlui ? styles.toggleBtnOn : styles.toggleBtnOff}
-              >
-                {character.houseRules.useYenlui ? 'ON' : 'OFF'}
-              </button>
             </div>
-          </div>
 
-          {/* Grudge Book */}
-          <div className={styles.ruleItem}>
-            <div className={styles.toggleRow}>
-              <div className={styles.toggleInfo}>
-                <div className={styles.ruleLabel}>Grudge Book (Dwarf)</div>
-                <div className={styles.ruleDesc}>Track Dwarf grudges for XP (Dwarf Player's Guide)</div>
+            {/* Grudge Book */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Grudge Book (Dwarf)</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.useGrudgeBook ? { color: 'var(--text-muted)' } : undefined}>
+                    Track Dwarf grudges for XP (Dwarf Player's Guide)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.useGrudgeBook', !character.houseRules.useGrudgeBook)}
+                  className={character.houseRules.useGrudgeBook ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.useGrudgeBook ? 'ON' : 'OFF'}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => update('houseRules.useGrudgeBook', !character.houseRules.useGrudgeBook)}
-                className={character.houseRules.useGrudgeBook ? styles.toggleBtnOn : styles.toggleBtnOff}
-              >
-                {character.houseRules.useGrudgeBook ? 'ON' : 'OFF'}
-              </button>
             </div>
           </div>
-        </div>
+        </CollapsibleSection>
       </Card>
 
       {/* Export/Import */}
       <Card>
         <SectionHeader icon={Download} title="Export / Import" />
         <div className={styles.btnRow}>
-          <button type="button" onClick={handleExportClipboard} className={styles.smallBtn}>
-            <Download size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-            Copy to Clipboard
-          </button>
-          <button type="button" onClick={handleExportFile} className={styles.smallBtn}>
-            <Download size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-            Download File
-          </button>
+          <div className={styles.exportDropdownWrapper}>
+            <button
+              type="button"
+              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+              className={styles.smallBtn}
+              aria-expanded={exportDropdownOpen}
+              aria-haspopup="true"
+            >
+              <Download size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+              Export ▾
+            </button>
+            {exportDropdownOpen && (
+              <div className={styles.exportDropdown}>
+                <button
+                  type="button"
+                  className={styles.exportDropdownItem}
+                  onClick={() => { handleExportClipboard(); setExportDropdownOpen(false); }}
+                >
+                  Copy to Clipboard
+                </button>
+                <button
+                  type="button"
+                  className={styles.exportDropdownItem}
+                  onClick={() => { handleExportFile(); setExportDropdownOpen(false); }}
+                >
+                  Download File
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <div className={styles.importSection}>
           <div className={styles.importRow}>
@@ -516,7 +559,6 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
         </div>
 
         {/* Bulk Backup & Restore */}
-        <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '12px 0' }} />
         <div className={styles.importSection}>
           <div className={styles.importRow}>
             <button
@@ -561,16 +603,27 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
       <Card>
         <SectionHeader icon={Settings} title="Utilities" />
         <div className={styles.btnRowNoMargin}>
-          <button type="button" onClick={() => setShowClearConfirm(true)} className={styles.dangerBtn}>
-            <Trash2 size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-            Clear Sheet
-          </button>
           <button type="button" onClick={() => window.print()} className={styles.smallBtn}>
             <Printer size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
             Print
           </button>
         </div>
       </Card>
+
+      {/* Danger Zone */}
+      <div className={styles.dangerZone}>
+        <CollapsibleSection title="⚠ Danger Zone" storageKey="collapsible-danger-zone" defaultExpanded={false}>
+          <div className={styles.dangerZoneContent}>
+            <p className={styles.dangerZoneDesc}>
+              Actions in this section are destructive and cannot be undone.
+            </p>
+            <button type="button" onClick={() => setShowClearConfirm(true)} className={styles.dangerBtn}>
+              <Trash2 size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+              Clear Sheet
+            </button>
+          </div>
+        </CollapsibleSection>
+      </div>
 
       {/* Dialogs */}
       {showClearConfirm && (

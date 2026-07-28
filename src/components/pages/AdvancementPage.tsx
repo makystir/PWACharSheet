@@ -6,6 +6,7 @@ import { EditableField } from '../shared/EditableField';
 import { Picker } from '../shared/Picker';
 import { SpellPicker } from '../shared/SpellPicker';
 import { Tooltip } from '../shared/Tooltip';
+import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
 import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual } from '../../logic/advancement';
@@ -69,6 +70,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     setHideOutOfCareerSkills(next);
     try { localStorage.setItem('wfrp-hideOutOfCareerSkills', String(next)); } catch { /* ignore */ }
   };
+  const [xpEditMode, setXpEditMode] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSpellLearningPicker, setShowSpellLearningPicker] = useState(false);
@@ -339,31 +341,61 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         <SectionHeader icon={GraduationCap} title="Career" action={
           isComplete ? <span className={styles.completeBadge}><CheckCircle size={14} /> Complete</span> : undefined
         } />
-        <div className={styles.gridAutoFill}>
-          <div>
-            <span className={styles.fieldLabel}>Class</span>
-            <button type="button" onClick={() => setShowClassPicker(true)} className={styles.smallBtnWide}>{character.class || 'Select Class'}</button>
+        {character.career && character.careerLevel ? (
+          <div className={styles.careerSummaryLine}>
+            <span className={styles.careerSummaryText}>
+              {character.career} &gt; {character.careerLevel} (Level {careerLevelNum}) — {character.status || 'No Status'}
+            </span>
+            <button type="button" onClick={() => setShowCareerPicker(true)} className={styles.careerSummaryEditBtn}>Change</button>
           </div>
-          <div>
-            <span className={styles.fieldLabel}>Career</span>
-            <button type="button" onClick={() => setShowCareerPicker(true)} className={styles.smallBtnWide}>{character.career || 'Select Career'}</button>
+        ) : (
+          <div className={styles.gridAutoFill}>
+            <div>
+              <span className={styles.fieldLabel}>Class</span>
+              <button type="button" onClick={() => setShowClassPicker(true)} className={styles.smallBtnWide}>{character.class || 'Select Class'}</button>
+            </div>
+            <div>
+              <span className={styles.fieldLabel}>Career</span>
+              <button type="button" onClick={() => setShowCareerPicker(true)} className={styles.smallBtnWide}>{character.career || 'Select Career'}</button>
+            </div>
+            <div>
+              <span className={styles.fieldLabel}>Level</span>
+              <button type="button" onClick={() => setShowLevelPicker(true)} className={styles.smallBtnWide}>{character.careerLevel || 'Select Level'}</button>
+            </div>
+            <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
           </div>
-          <div>
-            <span className={styles.fieldLabel}>Level</span>
-            <button type="button" onClick={() => setShowLevelPicker(true)} className={styles.smallBtnWide}>{character.careerLevel || 'Select Level'}</button>
-          </div>
-          <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
-        </div>
+        )}
       </Card>
 
       {/* XP Tracking */}
       <Card>
-        <SectionHeader icon={TrendingUp} title="Experience Points" />
-        <div className={styles.gridAutoFill}>
-          <EditableField label="Current XP" value={character.xpCur} type="number" onSave={(v) => update('xpCur', v)} />
-          <EditableField label="Spent XP" value={character.xpSpent} type="number" onSave={(v) => update('xpSpent', v)} />
-          <EditableField label="Total XP" value={character.xpTotal} type="number" onSave={(v) => update('xpTotal', v)} />
-        </div>
+        <SectionHeader icon={TrendingUp} title="Experience Points" action={
+          <button type="button" onClick={() => setXpEditMode(!xpEditMode)} className={styles.hideZeroBtn}>
+            {xpEditMode ? 'Done' : 'Edit'}
+          </button>
+        } />
+        {xpEditMode ? (
+          <div className={styles.gridAutoFill}>
+            <EditableField label="Current XP" value={character.xpCur} type="number" onSave={(v) => update('xpCur', v)} />
+            <EditableField label="Spent XP" value={character.xpSpent} type="number" onSave={(v) => update('xpSpent', v)} />
+            <EditableField label="Total XP" value={character.xpTotal} type="number" onSave={(v) => update('xpTotal', v)} />
+          </div>
+        ) : (
+          <div className={styles.xpDisplayRow}>
+            <div className={styles.xpDisplayItem}>
+              <span className={styles.xpDisplayLabel}>Current</span>
+              <span className={styles.xpDisplayValue}>{character.xpCur}</span>
+            </div>
+            <div className={styles.xpDisplayItem}>
+              <span className={styles.xpDisplayLabel}>Spent</span>
+              <span className={styles.xpDisplayValue}>{character.xpSpent}</span>
+            </div>
+            <div className={styles.xpDisplayItem}>
+              <span className={styles.xpDisplayLabel}>Total</span>
+              <span className={styles.xpDisplayValue}>{character.xpTotal}</span>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Career Progress */}
@@ -381,22 +413,22 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           </div>
 
           {!isMaxLevel && (
-            <div className={styles.checklistPanel}>
+            <div className={readyToProgress ? styles.checklistPanelComplete : styles.checklistPanel}>
               <div className={charsMet ? styles.checklistItemMet : styles.checklistItemUnmet}>
                 {charsMet ? '✓' : '✗'} Characteristics ({charsProgress.filter(c => c.met).length}/{charsProgress.length} at {completionThreshold}+ advances)
               </div>
               <div className={styles.charBadgeRow}>
                 {charsProgress.map((c) => (
                   <span key={c.name} title={CHAR_FULL_NAMES[c.name as CharacteristicKey] || c.name} className={c.met ? styles.charBadgeMet : styles.charBadgeUnmet}>
-                    {c.name}: {c.advances}/{completionThreshold} {c.met ? '✓' : '✗'}
+                    {c.name} {c.met ? '✓' : '✗'}
                   </span>
                 ))}
               </div>
               <div className={skillsMet ? styles.checklistItemMet : styles.checklistItemUnmet}>
-                {skillsMet ? '✓' : '✗'} Skills: {skillsWithAdvances.length}/{Math.min(8, careerSkills.length)} needed at {completionThreshold}+ advances
+                {skillsMet ? '✓' : '✗'} Skills: {skillsWithAdvances.length}/{Math.min(8, careerSkills.length)} at {completionThreshold}+
               </div>
               <div className={`${styles.talentChecklistItem} ${talentsMet ? styles.checklistItemMet : styles.checklistItemUnmet}`}>
-                {talentsMet ? '✓' : '✗'} Talent: {talentsOwned.length > 0 ? talentsOwned.join(', ') : 'none acquired'}
+                {talentsMet ? '✓' : '✗'} Talent: {talentsOwned.length > 0 ? talentsOwned.join(', ') : 'none'}
               </div>
               {readyToProgress && (
                 <div className={styles.readyBanner}>
@@ -530,52 +562,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                   <td className={`${styles.td} ${canAfford ? styles.canAfford : styles.cannotAfford}`}>{cost} XP</td>
                   <td className={styles.statusInCareer}>In</td>
                   <td className={styles.td}>
-                    <div className={styles.skillBtnRow}>
-                      <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+1</button>
-                      <button type="button" onClick={() => handleBulkAdvanceSkill(entry.originalIndex, entry.isBasic, 5)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+5</button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {outCareerSkills.length > 0 && (
-              <tr>
-                <td colSpan={7} className={styles.skillGroupHeaderOutCareer}>
-                  Other Skills ({outCareerSkills.length})
-                </td>
-              </tr>
-            )}
-            {outCareerSkills.map((entry) => {
-              const charVal = character.chars[entry.skill.c as CharacteristicKey];
-              const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + entry.skill.a : entry.skill.a;
-              const cost = getAdvancementCost('skill', entry.skill.a, false);
-              const canAfford = character.xpCur >= cost;
-              const futureLevel = getFutureCareerLevel(character.career, careerLevelNum, { type: 'skill', name: entry.skill.n });
-              return (
-                <tr key={`${entry.isBasic ? 'b' : 'a'}-${entry.originalIndex}`} className={styles.skillRowOutCareer}>
-                  <td className={styles.td}>
-                    <button
-                      type="button"
-                      onClick={(e) => handleSkillTooltip(entry.skill.n, entry.skill.c, e)}
-                      aria-describedby={
-                        activeTooltip?.type === 'skill' && activeTooltip.key === entry.skill.n
-                          ? `tooltip-skill-${entry.skill.n}`
-                          : undefined
-                      }
-                      className={styles.tooltipBtn}
-                    >{entry.skill.n}</button>{!entry.isBasic && <span className={styles.advancedSkillMarker}> *</span>}
-                  </td>
-                  <td className={styles.tdMuted}>{entry.skill.c}</td>
-                  <td className={styles.td}>{entry.skill.a}</td>
-                  <td className={styles.tdBold}>{total}</td>
-                  <td className={`${styles.td} ${canAfford ? styles.canAfford : styles.cannotAfford}`}>{cost} XP</td>
-                  <td className={styles.statusOutCareer}>Out{futureLevel !== null && (
-                    <> <span className={styles.futureCareerWarning}>In-career at CL{futureLevel}</span></>
-                  )}</td>
-                  <td className={styles.td}>
-                    <div className={styles.skillBtnRow}>
-                      <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+1</button>
-                      <button type="button" onClick={() => handleBulkAdvanceSkill(entry.originalIndex, entry.isBasic, 5)} disabled={!canAfford} className={canAfford ? styles.skillAdvanceBtn : styles.skillAdvanceBtnDisabled}>+5</button>
+                    <div className={styles.skillBtnRow} role="group" aria-label="Advance skill amount">
+                      <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford}>+1</button>
+                      <button type="button" onClick={() => handleBulkAdvanceSkill(entry.originalIndex, entry.isBasic, 5)} disabled={!canAfford}>+5</button>
                     </div>
                   </td>
                 </tr>
@@ -583,6 +572,61 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             })}
           </tbody>
         </table>
+        {outCareerSkills.length > 0 && (
+          <CollapsibleSection title={`Other Skills (${outCareerSkills.length})`} storageKey="collapsible-other-skills" defaultExpanded={false}>
+            <table className={styles.tableBase}>
+              <thead>
+                <tr>
+                  <th className={styles.th}>Skill</th>
+                  <th className={styles.th}>Char</th>
+                  <th className={styles.th}>Adv</th>
+                  <th className={styles.th}>Total</th>
+                  <th className={styles.th}>Cost</th>
+                  <th className={styles.th}>Status</th>
+                  <th className={styles.th}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {outCareerSkills.map((entry) => {
+                  const charVal = character.chars[entry.skill.c as CharacteristicKey];
+                  const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + entry.skill.a : entry.skill.a;
+                  const cost = getAdvancementCost('skill', entry.skill.a, false);
+                  const canAfford = character.xpCur >= cost;
+                  const futureLevel = getFutureCareerLevel(character.career, careerLevelNum, { type: 'skill', name: entry.skill.n });
+                  return (
+                    <tr key={`${entry.isBasic ? 'b' : 'a'}-${entry.originalIndex}`} className={styles.skillRowOutCareer}>
+                      <td className={styles.td}>
+                        <button
+                          type="button"
+                          onClick={(e) => handleSkillTooltip(entry.skill.n, entry.skill.c, e)}
+                          aria-describedby={
+                            activeTooltip?.type === 'skill' && activeTooltip.key === entry.skill.n
+                              ? `tooltip-skill-${entry.skill.n}`
+                              : undefined
+                          }
+                          className={styles.tooltipBtn}
+                        >{entry.skill.n}</button>{!entry.isBasic && <span className={styles.advancedSkillMarker}> *</span>}
+                      </td>
+                      <td className={styles.tdMuted}>{entry.skill.c}</td>
+                      <td className={styles.td}>{entry.skill.a}</td>
+                      <td className={styles.tdBold}>{total}</td>
+                      <td className={`${styles.td} ${canAfford ? styles.canAfford : styles.cannotAfford}`}>{cost} XP</td>
+                      <td className={styles.statusOutCareer}>Out{futureLevel !== null && (
+                        <> <span className={styles.futureCareerWarning}>In-career at CL{futureLevel}</span></>
+                      )}</td>
+                      <td className={styles.td}>
+                        <div className={styles.skillBtnRow} role="group" aria-label="Advance skill amount">
+                          <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford}>+1</button>
+                          <button type="button" onClick={() => handleBulkAdvanceSkill(entry.originalIndex, entry.isBasic, 5)} disabled={!canAfford}>+5</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </CollapsibleSection>
+        )}
       </Card>
 
       {/* Talents Advancement */}

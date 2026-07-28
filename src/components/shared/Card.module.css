@@ -1,15 +1,19 @@
 .card {
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  border: 1px solid color-mix(in srgb, var(--card-border) 50%, transparent);
   border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: 0 2px 8px var(--shadow);
+  box-shadow: 0 1px 3px var(--shadow);
 }
 
-/* Mobile UI Optimization (Requirements 4.1, 4.2, 4.3, 15.3) */
+.card + .card {
+  margin-top: 12px;
+}
+
+/* Mobile UI Optimization (Requirements 4.1, 4.2, 4.5, 7.1) */
 @media (max-width: 767px) {
   .card {
-    padding: 10px;
+    padding: 12px;
     margin-bottom: 8px;
     border-radius: 6px;
   }

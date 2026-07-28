@@ -7,9 +7,11 @@ import { SubTabBar } from '../SubTabBar';
 vi.mock('../SubTabBar.module.css', () => ({
   default: {
     subTabBar: 'subTabBar',
+    subTabBarFlex: 'subTabBarFlex',
     tab: 'tab',
     tabActive: 'tabActive',
     editModeContainer: 'editModeContainer',
+    editModeContainerActive: 'editModeContainerActive',
     editControls: 'editControls',
     editToggleBtn: 'editToggleBtn',
     resetBtn: 'resetBtn',
@@ -48,7 +50,7 @@ describe('SubTabBar edit mode', () => {
    * Toggle button rendering and icon switch
    */
   describe('toggle button rendering and icon switch', () => {
-    it('renders "Edit tab order" aria-label when edit mode is inactive', () => {
+    it('edit button is hidden by default when edit mode is inactive', () => {
       render(
         <SubTabBar
           tabs={baseTabs}
@@ -57,6 +59,24 @@ describe('SubTabBar edit mode', () => {
           editMode={makeEditMode({ isActive: false })}
         />
       );
+
+      const toggleBtn = screen.queryByLabelText('Edit tab order');
+      expect(toggleBtn).not.toBeInTheDocument();
+    });
+
+    it('renders "Edit tab order" button after context menu interaction', () => {
+      const { container } = render(
+        <SubTabBar
+          tabs={baseTabs}
+          activeTab="identity"
+          onTabChange={vi.fn()}
+          editMode={makeEditMode({ isActive: false })}
+        />
+      );
+
+      // Simulate context menu (right-click / long-press) to reveal edit button
+      const wrapper = container.firstChild as HTMLElement;
+      fireEvent.contextMenu(wrapper);
 
       const toggleBtn = screen.getByLabelText('Edit tab order');
       expect(toggleBtn).toBeInTheDocument();
@@ -80,7 +100,7 @@ describe('SubTabBar edit mode', () => {
 
     it('calls onToggle when the toggle button is clicked', () => {
       const onToggle = vi.fn();
-      render(
+      const { container } = render(
         <SubTabBar
           tabs={baseTabs}
           activeTab="identity"
@@ -88,6 +108,10 @@ describe('SubTabBar edit mode', () => {
           editMode={makeEditMode({ isActive: false, onToggle })}
         />
       );
+
+      // Reveal the edit button via context menu first
+      const wrapper = container.firstChild as HTMLElement;
+      fireEvent.contextMenu(wrapper);
 
       fireEvent.click(screen.getByLabelText('Edit tab order'));
       expect(onToggle).toHaveBeenCalledTimes(1);

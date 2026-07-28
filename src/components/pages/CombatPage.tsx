@@ -10,6 +10,7 @@ import { removeAtIndex, restoreAtIndex } from '../../logic/undo';
 import { RollResultDisplay } from '../shared/RollResultDisplay';
 import { FortuneResolvePanel } from '../shared/FortuneResolvePanel';
 import { SpellCastingPanel } from '../shared/SpellCastingPanel';
+import { EmptyState } from '../shared/EmptyState';
 import { RuneManager } from '../shared/RuneManager';
 import { RollHistoryPanel } from '../shared/RollHistoryPanel';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
@@ -33,6 +34,7 @@ import { computeSkillTarget, type RollResult, type DifficultyLevel } from '../..
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
 import type { CharacteristicKey } from '../../types/character';
 import type { HitLocation } from '../combat/hitLocationTable';
+import { Sword } from 'lucide-react';
 
 // Re-exports for backward compatibility
 export { RANGED_GROUPS, findSkillForWeapon } from '../../logic/weapons';
@@ -64,6 +66,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
   const [downLocation, setDownLocation] = useState<HitLocation | undefined>(undefined);
 
   const isMobile = useMediaQuery('(max-width: 767px)');
+  const isDesktop = useMediaQuery('(min-width: 1025px)');
   const inCombat = character.combatState.inCombat;
   const TB = getBonus(character.chars.T.i + character.chars.T.a + character.chars.T.b);
 
@@ -97,111 +100,135 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
 
   return (
     <div className={styles.sectionGap}>
-      {/* ── Dashboard ── */}
-      <CombatDashboard
-        wCur={character.wCur} totalWounds={totalWounds} advantage={character.advantage}
-        combatState={character.combatState} conditions={character.conditions}
-        fortune={character.fortune} fate={character.fate} resolve={character.resolve} resilience={character.resilience}
-        inCombat={inCombat}
-        useGroupAdvantage={character.houseRules?.useGroupAdvantage ?? false}
-        character={character}
-        updateCharacter={updateCharacter}
-        onUpdateWounds={(d) => update('wCur', Math.max(0, Math.min(totalWounds, character.wCur + d)))}
-        onUpdateAdvantage={(d) => update('advantage', d < 0 ? decrementAdvantage(character.advantage) : d === -character.advantage ? 0 : incrementAdvantage(character.advantage, character.houseRules.advantageCap))}
-        onUpdateRound={(d) => update('combatState.currentRound', Math.max(0, character.combatState.currentRound + d))}
-        onToggleEngaged={() => update('combatState.engaged', !character.combatState.engaged)}
-        onRemoveCondition={(name) => updateCharacter((c) => ({ ...c, conditions: removeCondition(c.conditions, name) }))}
-        onSpendFortune={() => updateCharacter((c) => ({ ...c, fortune: Math.max(0, c.fortune - 1) }))}
-        onSpendResolve={() => updateCharacter((c) => ({ ...c, resolve: Math.max(0, c.resolve - 1) }))}
-        onOpenConditionPicker={() => setShowConditionPicker(true)}
-        onEndTurn={(result) => {
-          updateCharacter((c) => {
-            let newConditions = c.conditions;
-            for (const name of result.removedConditions) {
-              newConditions = removeCondition(newConditions, name);
-            }
-            return {
-              ...c,
-              wCur: result.newWounds,
-              conditions: newConditions,
-              combatState: { ...c.combatState, currentRound: result.roundAdvanced },
-            };
-          });
-        }}
-      />
+      {/* ── Two-column layout: Dashboard (left) + Equipment (right) on desktop ── */}
+      <div className={isDesktop ? styles.combatTwoColumn : undefined}>
+        {/* ── Left column: Dashboard + combat panels + spells ── */}
+        <div>
+          {/* ── Dashboard ── */}
+          <CombatDashboard
+            wCur={character.wCur} totalWounds={totalWounds} advantage={character.advantage}
+            combatState={character.combatState} conditions={character.conditions}
+            fortune={character.fortune} fate={character.fate} resolve={character.resolve} resilience={character.resilience}
+            inCombat={inCombat}
+            useGroupAdvantage={character.houseRules?.useGroupAdvantage ?? false}
+            character={character}
+            updateCharacter={updateCharacter}
+            onUpdateWounds={(d) => update('wCur', Math.max(0, Math.min(totalWounds, character.wCur + d)))}
+            onUpdateAdvantage={(d) => update('advantage', d < 0 ? decrementAdvantage(character.advantage) : d === -character.advantage ? 0 : incrementAdvantage(character.advantage, character.houseRules.advantageCap))}
+            onUpdateRound={(d) => update('combatState.currentRound', Math.max(0, character.combatState.currentRound + d))}
+            onToggleEngaged={() => update('combatState.engaged', !character.combatState.engaged)}
+            onRemoveCondition={(name) => updateCharacter((c) => ({ ...c, conditions: removeCondition(c.conditions, name) }))}
+            onSpendFortune={() => updateCharacter((c) => ({ ...c, fortune: Math.max(0, c.fortune - 1) }))}
+            onSpendResolve={() => updateCharacter((c) => ({ ...c, resolve: Math.max(0, c.resolve - 1) }))}
+            onOpenConditionPicker={() => setShowConditionPicker(true)}
+            onEndTurn={(result) => {
+              updateCharacter((c) => {
+                let newConditions = c.conditions;
+                for (const name of result.removedConditions) {
+                  newConditions = removeCondition(newConditions, name);
+                }
+                return {
+                  ...c,
+                  wCur: result.newWounds,
+                  conditions: newConditions,
+                  combatState: { ...c.combatState, currentRound: result.roundAdvanced },
+                };
+              });
+            }}
+          />
 
-      {/* ── Active Combat panels ── */}
-      {inCombat && (
-        <>
-          <CollapsibleSection title="Attack Flow" storageKey={`combat-attack-${characterId}`} defaultExpanded={true}>
-            <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} />
+          {/* ── Active Combat panels ── */}
+          {inCombat && (
+            <>
+              <CollapsibleSection title="Attack Flow" storageKey={`collapsible-attack-flow-${characterId}`} defaultExpanded={false}>
+                <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} />
+              </CollapsibleSection>
+              <CollapsibleSection title="Quick Roll" storageKey={`collapsible-quick-roll-${characterId}`} defaultExpanded={false}>
+                <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
+              </CollapsibleSection>
+              <CollapsibleSection title="Take Damage" storageKey={`collapsible-take-damage-${characterId}`} defaultExpanded={false}>
+                <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} wCur={character.wCur} totalWounds={totalWounds}
+                  onApplyWounds={(w) => update('wCur', Math.max(0, character.wCur - w))} min1Wound={character.houseRules.min1Wound}
+                  onDown={(location) => setDownLocation(location)} />
+              </CollapsibleSection>
+            </>
+          )}
+
+          {/* ── Fortune / Resolve (collapsed by default — dashboard shows compact version) ── */}
+          <CollapsibleSection title="Fortune & Resolve" storageKey={`collapsible-fortune-resolve-combat-${characterId}`} defaultExpanded={false}>
+            <FortuneResolvePanel character={character} update={update} updateCharacter={updateCharacter} />
           </CollapsibleSection>
-          <CollapsibleSection title="Quick Roll" storageKey={`combat-quickroll-${characterId}`} defaultExpanded={true}>
-            <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
+
+          {/* ── Spell Casting (conditional) ── */}
+          {hasSpellcasting && <SpellCastingPanel character={character} update={update} updateCharacter={updateCharacter} addRoll={addRoll} />}
+        </div>
+
+        {/* ── Right column: Weapons + Armour ── */}
+        <div>
+          {/* ── Weapons ── */}
+          {character.weapons.length > 0 ? (
+            <CollapsibleSection title="Weapons" storageKey={`combat-weapons-${characterId}`} defaultExpanded={true}>
+              <WeaponCards weapons={character.weapons} character={character} onRollWeapon={openWeaponRoll}
+                onDeleteWeapon={(i) => {
+                  const weapon = character.weapons[i];
+                  updateCharacter((c) => ({ ...c, weapons: removeAtIndex(c.weapons, i) }));
+                  undoToast.show('Weapon removed', weapon, i, (item, index) => {
+                    updateCharacter((c) => ({ ...c, weapons: restoreAtIndex(c.weapons, item as typeof weapon, index) }));
+                  });
+                }}
+                onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'weapon', index: i })}
+                onOpenWeaponPicker={() => setShowWeaponPicker(true)}
+                onAddCustomWeapon={() => updateCharacter((c) => ({ ...c, weapons: [...c.weapons, { name: '', group: '', enc: '0', damage: '', qualities: '' }] }))} />
+            </CollapsibleSection>
+          ) : (
+            <CollapsibleSection title="Weapons" storageKey={`combat-weapons-${characterId}`} defaultExpanded={true}>
+              <EmptyState
+                icon={Sword}
+                heading="Add Weapon"
+                compact
+                action={{ label: 'Add Weapon', onClick: () => setShowWeaponPicker(true) }}
+              />
+            </CollapsibleSection>
+          )}
+
+          {/* ── Armour ── */}
+          <CollapsibleSection title="Armour" storageKey={`combat-armour-${characterId}`} defaultExpanded={true}>
+            <ArmourMap armourPoints={armourPoints} armourList={character.armour}
+              weapons={character.weapons}
+              toughnessBonus={TB}
+              onDeleteArmour={(i) => {
+                const armourPiece = character.armour[i];
+                updateCharacter((c) => ({ ...c, armour: removeAtIndex(c.armour, i) }));
+                undoToast.show('Armour removed', armourPiece, i, (item, index) => {
+                  updateCharacter((c) => ({ ...c, armour: restoreAtIndex(c.armour, item as typeof armourPiece, index) }));
+                });
+              }}
+              onUpdateArmour={(i, field, value) => {
+                updateCharacter((c) => {
+                  const armour = [...c.armour];
+                  armour[i] = { ...armour[i], [field]: value };
+                  return { ...c, armour };
+                });
+              }}
+              onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'armour', index: i })}
+              onOpenArmourPicker={() => setShowArmourPicker(true)}
+              onAddCustomArmour={() => updateCharacter((c) => ({ ...c, armour: [...c.armour, { name: '', locations: '', enc: '0', ap: 0, qualities: '' }] }))} />
           </CollapsibleSection>
-          <CollapsibleSection title="Take Damage" storageKey={`combat-damage-${characterId}`} defaultExpanded={true}>
-            <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} wCur={character.wCur} totalWounds={totalWounds}
-              onApplyWounds={(w) => update('wCur', Math.max(0, character.wCur - w))} min1Wound={character.houseRules.min1Wound}
-              onDown={(location) => setDownLocation(location)} />
-          </CollapsibleSection>
-        </>
-      )}
-
-      {/* ── Fortune / Resolve (readiness) ── */}
-      <FortuneResolvePanel character={character} update={update} updateCharacter={updateCharacter} />
-
-      {/* ── Spell Casting (conditional) ── */}
-      {hasSpellcasting && <SpellCastingPanel character={character} update={update} updateCharacter={updateCharacter} addRoll={addRoll} />}
-
-      {/* ── Weapons ── */}
-      <CollapsibleSection title="Weapons" storageKey={`combat-weapons-${characterId}`} defaultExpanded={true}>
-        <WeaponCards weapons={character.weapons} character={character} onRollWeapon={openWeaponRoll}
-          onDeleteWeapon={(i) => {
-            const weapon = character.weapons[i];
-            updateCharacter((c) => ({ ...c, weapons: removeAtIndex(c.weapons, i) }));
-            undoToast.show('Weapon removed', weapon, i, (item, index) => {
-              updateCharacter((c) => ({ ...c, weapons: restoreAtIndex(c.weapons, item as typeof weapon, index) }));
-            });
-          }}
-          onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'weapon', index: i })}
-          onOpenWeaponPicker={() => setShowWeaponPicker(true)}
-          onAddCustomWeapon={() => updateCharacter((c) => ({ ...c, weapons: [...c.weapons, { name: '', group: '', enc: '0', damage: '', qualities: '' }] }))} />
-      </CollapsibleSection>
-
-      {/* ── Armour ── */}
-      <CollapsibleSection title="Armour" storageKey={`combat-armour-${characterId}`} defaultExpanded={true}>
-        <ArmourMap armourPoints={armourPoints} armourList={character.armour}
-          weapons={character.weapons}
-          toughnessBonus={TB}
-          onDeleteArmour={(i) => {
-            const armourPiece = character.armour[i];
-            updateCharacter((c) => ({ ...c, armour: removeAtIndex(c.armour, i) }));
-            undoToast.show('Armour removed', armourPiece, i, (item, index) => {
-              updateCharacter((c) => ({ ...c, armour: restoreAtIndex(c.armour, item as typeof armourPiece, index) }));
-            });
-          }}
-          onUpdateArmour={(i, field, value) => {
-            updateCharacter((c) => {
-              const armour = [...c.armour];
-              armour[i] = { ...armour[i], [field]: value };
-              return { ...c, armour };
-            });
-          }}
-          onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'armour', index: i })}
-          onOpenArmourPicker={() => setShowArmourPicker(true)}
-          onAddCustomArmour={() => updateCharacter((c) => ({ ...c, armour: [...c.armour, { name: '', locations: '', enc: '0', ap: 0, qualities: '' }] }))} />
-      </CollapsibleSection>
+        </div>
+      </div>
 
       {/* ── Active Combat: Ammo, Critical Wounds, Roll History ── */}
       {inCombat && (
         <>
-          <CollapsibleSection title="Ammo Tracker" storageKey={`combat-ammo-${characterId}`} defaultExpanded={!isMobile}>
-            <AmmoTracker ammo={character.ammo}
-              onUpdate={(i, field, value) => update(`ammo.${i}.${field}`, value)}
-              onAdd={() => updateCharacter((c) => ({ ...c, ammo: [...c.ammo, { name: 'New Ammo', quantity: 12, max: 12, enc: '0', qualities: '' }] }))}
-              onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))}
-              defaultCollapsed={isMobile} />
-          </CollapsibleSection>
+          {character.ammo.length > 0 && (
+            <CollapsibleSection title="Ammo Tracker" storageKey={`combat-ammo-${characterId}`} defaultExpanded={!isMobile}>
+              <AmmoTracker ammo={character.ammo}
+                onUpdate={(i, field, value) => update(`ammo.${i}.${field}`, value)}
+                onAdd={() => updateCharacter((c) => ({ ...c, ammo: [...c.ammo, { name: 'New Ammo', quantity: 12, max: 12, enc: '0', qualities: '' }] }))}
+                onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))}
+                defaultCollapsed={isMobile} />
+            </CollapsibleSection>
+          )}
           <CollapsibleSection title="Critical Wounds" storageKey={`combat-critical-${characterId}`} defaultExpanded={!isMobile}>
             <CriticalWoundsPanel criticalWounds={character.criticalWounds}
               onAdd={() => updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, { location: 'Body', description: 'New wound', effects: '', duration: '', severity: 1, healed: false }) }))}
@@ -211,9 +238,11 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
               preselectedLocation={downLocation}
               onAddWound={(wound) => { updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, wound) })); setDownLocation(undefined); }} />
           </CollapsibleSection>
-          <CollapsibleSection title="Roll History" storageKey={`combat-history-${characterId}`} defaultExpanded={!isMobile}>
-            {rollHistory && clearHistory && <RollHistoryPanel history={rollHistory} onClear={clearHistory} defaultExpanded={true} />}
-          </CollapsibleSection>
+          {rollHistory && rollHistory.length > 0 && clearHistory && (
+            <CollapsibleSection title="Roll History" storageKey={`combat-history-${characterId}`} defaultExpanded={!isMobile}>
+              <RollHistoryPanel history={rollHistory} onClear={clearHistory} defaultExpanded={true} />
+            </CollapsibleSection>
+          )}
         </>
       )}
 

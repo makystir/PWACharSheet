@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import type { WeaponItem, Character } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { AddButton } from '../shared/AddButton';
 import { EmptyState } from '../shared/EmptyState';
+import { HelpPopover } from '../shared/HelpPopover';
 import { calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
 import { getRuneQualities } from '../../logic/runes';
 import { getBonus } from '../../logic/calculators';
@@ -29,6 +31,11 @@ export function WeaponCards({
   onAddCustomWeapon,
 }: WeaponCardsProps) {
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+  const handleCardTap = (index: number) => {
+    setExpandedIndex((prev) => (prev === index ? null : index));
+  };
 
   return (
     <Card>
@@ -60,19 +67,33 @@ export function WeaponCards({
             const runeQualities = getRuneQualities(w.runes ?? []);
             const hasRunes = (w.runes?.length ?? 0) > 0;
             const rangeReach = w.rangeReach || w.maxR || '—';
+            const isExpanded = expandedIndex === i;
+            const hasQualities = (w.qualities && w.qualities !== '—') || runeQualities.length > 0;
 
             return (
-              <div key={i} className={styles.weaponCard} data-testid={`weapon-card-${i}`}>
-                {/* Top: name + actions */}
-                <div className={styles.topRow}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className={styles.weaponName} title={w.name}>{w.name || 'Unnamed'}</div>
-                    <div className={styles.groupLabel}>{w.group || 'Unknown'}{isRanged ? ' (Ranged)' : ''}</div>
+              <div
+                key={i}
+                className={`${styles.weaponCard}${isExpanded ? ` ${styles.expanded}` : ''}`}
+                data-testid={`weapon-card-${i}`}
+                onClick={() => handleCardTap(i)}
+              >
+                {/* Primary row: name + damage + range/reach + roll */}
+                <div className={styles.primaryRow}>
+                  <div className={styles.weaponName} title={w.name}>{w.name || 'Unnamed'}</div>
+                  <div className={styles.primaryStats}>
+                    <div className={styles.statChip}>
+                      <span className={styles.statChipLabel}>DMG</span>
+                      <span className={styles.statChipValue}>{calc.num !== null ? calc.num : '—'}</span>
+                    </div>
+                    <div className={styles.statChip}>
+                      <span className={styles.statChipLabel}>{isRanged ? 'RNG' : 'RCH'}</span>
+                      <span className={styles.statChipValueSecondary}>{rangeReach}</span>
+                    </div>
                   </div>
                   <button
                     type="button"
                     className={styles.rollBtn}
-                    onClick={() => onRollWeapon(w)}
+                    onClick={(e) => { e.stopPropagation(); onRollWeapon(w); }}
                     title={`Roll ${w.name}`}
                     aria-label={`Roll ${w.name}`}
                   >
@@ -82,64 +103,55 @@ export function WeaponCards({
                     <button
                       type="button"
                       className={styles.deleteBtn}
-                      onClick={() => onDeleteWeapon(i)}
+                      onClick={(e) => { e.stopPropagation(); onDeleteWeapon(i); }}
                       aria-label={`Delete ${w.name}`}
                     >✕</button>
                   )}
                 </div>
 
-                {/* Stats row: Total Damage, Range/Reach */}
-                <div className={styles.statsRow}>
-                  <div className={styles.statBlock}>
-                    <span className={styles.statLabel}>Damage</span>
-                    <span className={styles.statValue}>{calc.num !== null ? calc.num : '—'}</span>
-                  </div>
-                  <div className={styles.statBlock}>
-                    <span className={styles.statLabel}>{isRanged ? 'Range' : 'Reach'}</span>
-                    <span className={styles.statValue} style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{rangeReach}</span>
-                  </div>
-                  {calc.breakdown && (
-                    <div style={{ flex: 1 }}>
-                      <span className={styles.breakdownText}>{calc.breakdown}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Qualities */}
-                {(w.qualities && w.qualities !== '—') || runeQualities.length > 0 ? (
-                  <div className={styles.qualitiesText}>
-                    {w.qualities && w.qualities !== '—' ? w.qualities : ''}
-                    {runeQualities.length > 0 && (
-                      <span className={styles.runeQualitiesText}>
-                        {w.qualities && w.qualities !== '—' ? ', ' : ''}
-                        +{runeQualities.join(', ')}
+                {/* Secondary line: group + qualities (shown on hover/tap) */}
+                <div className={styles.secondaryLine}>
+                  <span className={styles.groupLabel}>{w.group || 'Unknown'}{isRanged ? ' (Ranged)' : ''}</span>
+                  {hasQualities && (
+                    <>
+                      <span className={styles.separator}>·</span>
+                      <span className={styles.qualitiesText}>
+                        {w.qualities && w.qualities !== '—' ? w.qualities : ''}
+                        {runeQualities.length > 0 && (
+                          <span className={styles.runeQualitiesText}>
+                            {w.qualities && w.qualities !== '—' ? ', ' : ''}
+                            +{runeQualities.join(', ')}
+                          </span>
+                        )}
                       </span>
-                    )}
-                  </div>
-                ) : null}
-
-                {/* Rune management */}
-                {onOpenRuneManager && (
-                  <div>
+                    </>
+                  )}
+                  {/* Show rune badge in secondary line only when weapon has runes */}
+                  {onOpenRuneManager && hasRunes && (
                     <button
                       type="button"
                       className={styles.runeBadge}
-                      onClick={() => onOpenRuneManager(i)}
+                      onClick={(e) => { e.stopPropagation(); onOpenRuneManager(i); }}
                       aria-label={`Manage runes for ${w.name}`}
                     >
-                      ⚒ {hasRunes ? `${w.runes!.length}/3 Runes` : 'Add Runes'}
+                      ⚒ {w.runes!.length}/3 Runes
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
       )}
 
-      <div className={styles.footnote}>
-        Total = base damage + SB (or ½SB for ranged) + talent bonuses. Final damage = Total + attack SL.
-      </div>
+      {/* Footnote behind help icon tooltip */}
+      {weapons.length > 0 && (
+        <div className={styles.footnoteHelp}>
+          <HelpPopover concept="weapon-damage-formula">
+            Total = base damage + SB (or ½SB for ranged) + talent bonuses. Final damage = Total + attack SL.
+          </HelpPopover>
+        </div>
+      )}
     </Card>
   );
 }

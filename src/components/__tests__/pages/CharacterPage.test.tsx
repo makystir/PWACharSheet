@@ -38,9 +38,10 @@ describe('CharacterPage', () => {
       // Navigate to the Abilities tab where advanced skills are rendered
       fireEvent.click(screen.getByText('Abilities'));
 
-      // Click the "Add from Rulebook" button in the Advanced Skills section to open picker
-      const addFromRulebookButtons = screen.getAllByText('Add from Rulebook');
-      fireEvent.click(addFromRulebookButtons[0]);
+      // Click the "Add" dropdown button in the Advanced Skills section, then "Add from Rulebook"
+      const addButtons = screen.getAllByText('Add');
+      fireEvent.click(addButtons[0]);
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Add from Rulebook' }));
 
       // Select the first skill from the picker (Animal Care) - grouped picker shows name without characteristic
       fireEvent.click(screen.getByText('Animal Care'));
@@ -113,9 +114,10 @@ describe('CharacterPage', () => {
       // Navigate to the Abilities tab where talents are rendered
       fireEvent.click(screen.getByText('Abilities'));
 
-      // Click "Add Custom" for talents (second Add Custom button — first is advanced skills)
-      const addCustomButtons = screen.getAllByText('Add Custom');
-      fireEvent.click(addCustomButtons[1]);
+      // Click "Add" dropdown for talents (second "Add" button — first is advanced skills), then "Add Custom"
+      const addButtons = screen.getAllByText('Add');
+      fireEvent.click(addButtons[1]);
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Add Custom' }));
 
       expect(captured.talents).toHaveLength(1);
       expect(captured.talents[0].n).toBe('');

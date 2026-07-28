@@ -3,9 +3,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 12px 24px;
   text-align: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .icon {
@@ -14,24 +14,24 @@
 
 .heading {
   font-family: var(--font-heading);
-  font-size: 18px;
+  font-size: 14px;
   color: var(--text-primary);
   margin: 0;
 }
 
 .description {
-  font-size: 14px;
+  font-size: 11px;
   color: var(--text-secondary);
   max-width: 280px;
   margin: 0;
 }
 
 .actionButton {
-  margin-top: 8px;
-  padding: 10px 20px;
+  margin-top: 4px;
+  padding: 8px 16px;
   min-height: 44px;
   min-width: 44px;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--bg-primary);
   background: var(--accent-gold);
@@ -42,4 +42,31 @@
 
 .actionButton:hover {
   background: var(--accent-gold-dark);
+}
+
+/* Compact variant: single-line rendering for specific contexts */
+.compact {
+  flex-direction: row;
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+.compact .icon {
+  display: none;
+}
+
+.compact .heading {
+  font-size: 12px;
+  font-family: var(--font-body, var(--font-heading));
+}
+
+.compact .description {
+  font-size: 12px;
+}
+
+.compact .actionButton {
+  margin-top: 0;
+  padding: 4px 12px;
+  min-height: 32px;
+  font-size: 12px;
 }

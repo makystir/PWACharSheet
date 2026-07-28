@@ -67,7 +67,7 @@ describe('SpellCastingPanel gating — no talent, no spells', () => {
     expect(screen.queryByLabelText(/^Cast /)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/^Channel /)).not.toBeInTheDocument();
     // No manage spells button
-    expect(screen.queryByText('Manage Spells')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Manage Spells')).not.toBeInTheDocument();
   });
 });
 
@@ -95,7 +95,7 @@ describe('SpellCastingPanel gating — spells but no talent', () => {
     expect(screen.queryByLabelText('Channel Bolt')).not.toBeInTheDocument();
 
     // No manage spells button
-    expect(screen.queryByText('Manage Spells')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Manage Spells')).not.toBeInTheDocument();
   });
 });
 
@@ -112,15 +112,12 @@ describe('SpellCastingPanel gating — Arcane Magic talent', () => {
     expect(screen.queryByText(/no spellcasting talent/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/spellcasting talent required/i)).not.toBeInTheDocument();
 
-    // Cast buttons present
-    expect(screen.getByLabelText('Cast Dart')).toBeInTheDocument();
-    expect(screen.getByLabelText('Cast Bolt')).toBeInTheDocument();
-
-    // Channel button for non-petty spell
-    expect(screen.getByLabelText('Channel Bolt')).toBeInTheDocument();
+    // Spell names visible in compact list
+    expect(screen.getByText('Dart')).toBeInTheDocument();
+    expect(screen.getByText('Bolt')).toBeInTheDocument();
 
     // Manage spells button present
-    expect(screen.getByText('Manage Spells')).toBeInTheDocument();
+    expect(screen.getByLabelText('Manage Spells')).toBeInTheDocument();
   });
 });
 
@@ -137,12 +134,12 @@ describe('SpellCastingPanel gating — Petty Magic talent', () => {
     expect(screen.queryByText(/no spellcasting talent/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/spellcasting talent required/i)).not.toBeInTheDocument();
 
-    // Cast buttons present
-    expect(screen.getByLabelText('Cast Dart')).toBeInTheDocument();
-    expect(screen.getByLabelText('Cast Bolt')).toBeInTheDocument();
+    // Spell names visible in compact list
+    expect(screen.getByText('Dart')).toBeInTheDocument();
+    expect(screen.getByText('Bolt')).toBeInTheDocument();
 
     // Manage spells button present
-    expect(screen.getByText('Manage Spells')).toBeInTheDocument();
+    expect(screen.getByLabelText('Manage Spells')).toBeInTheDocument();
   });
 });
 
@@ -159,11 +156,11 @@ describe('SpellCastingPanel gating — Bless talent', () => {
     expect(screen.queryByText(/no spellcasting talent/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/spellcasting talent required/i)).not.toBeInTheDocument();
 
-    // Cast buttons present
-    expect(screen.getByLabelText('Cast Dart')).toBeInTheDocument();
-    expect(screen.getByLabelText('Cast Bolt')).toBeInTheDocument();
+    // Spell names visible in compact list
+    expect(screen.getByText('Dart')).toBeInTheDocument();
+    expect(screen.getByText('Bolt')).toBeInTheDocument();
 
     // Manage spells button present
-    expect(screen.getByText('Manage Spells')).toBeInTheDocument();
+    expect(screen.getByLabelText('Manage Spells')).toBeInTheDocument();
   });
 });

@@ -171,7 +171,7 @@ describe('ArmourMap — location selection', () => {
 // ─── 6.4: Compact read-only list of worn armour items ───────────────────────
 
 describe('ArmourMap — worn armour list', () => {
-  it('renders armour items with name, locations, AP, and qualities', () => {
+  it('renders armour items with name, locations, AP, and qualities revealed on tap', () => {
     const armourList = [
       makeArmourItem({ name: 'Leather Cap', locations: 'Head', ap: 1, qualities: 'Partial' }),
     ];
@@ -181,6 +181,10 @@ describe('ArmourMap — worn armour list', () => {
     expect(item).toHaveTextContent('Leather Cap');
     expect(item).toHaveTextContent('Head');
     expect(item).toHaveTextContent('AP 1');
+    // Qualities are hidden by default (progressive disclosure)
+    expect(item).not.toHaveTextContent('Partial');
+    // Tap to reveal qualities
+    fireEvent.click(item.querySelector('[role="button"]')!);
     expect(item).toHaveTextContent('Partial');
   });
 
@@ -247,5 +251,104 @@ describe('ArmourMap — no redundant Manage Armour link', () => {
   it('does not render a "Manage Armour" link', () => {
     render(<ArmourMap {...makeProps()} />);
     expect(screen.queryByText('Manage Armour')).not.toBeInTheDocument();
+  });
+});
+
+// ─── 11.4 & 11.5: Compact list with overflow toggle ────────────────────────
+
+describe('ArmourMap — compact list with overflow toggle', () => {
+  it('shows all items when list has 4 or fewer items', () => {
+    const armourList = [
+      makeArmourItem({ name: 'Helmet', locations: 'Head', ap: 2 }),
+      makeArmourItem({ name: 'Breastplate', locations: 'Body', ap: 3 }),
+      makeArmourItem({ name: 'Greaves', locations: 'Legs', ap: 1 }),
+      makeArmourItem({ name: 'Bracers', locations: 'Arms', ap: 1 }),
+    ];
+    render(<ArmourMap {...makeProps({ armourList })} />);
+
+    expect(screen.getByTestId('armour-item-0')).toBeInTheDocument();
+    expect(screen.getByTestId('armour-item-1')).toBeInTheDocument();
+    expect(screen.getByTestId('armour-item-2')).toBeInTheDocument();
+    expect(screen.getByTestId('armour-item-3')).toBeInTheDocument();
+    expect(screen.queryByTestId('armour-show-all-toggle')).not.toBeInTheDocument();
+  });
+
+  it('caps visible list at 3 with "Show all (N)" toggle when > 4 items', () => {
+    const armourList = [
+      makeArmourItem({ name: 'Helmet', locations: 'Head', ap: 2 }),
+      makeArmourItem({ name: 'Breastplate', locations: 'Body', ap: 3 }),
+      makeArmourItem({ name: 'Greaves', locations: 'Legs', ap: 1 }),
+      makeArmourItem({ name: 'Bracers', locations: 'Arms', ap: 1 }),
+      makeArmourItem({ name: 'Cloak', locations: 'All', ap: 1 }),
+    ];
+    render(<ArmourMap {...makeProps({ armourList })} />);
+
+    expect(screen.getByTestId('armour-item-0')).toBeInTheDocument();
+    expect(screen.getByTestId('armour-item-1')).toBeInTheDocument();
+    expect(screen.getByTestId('armour-item-2')).toBeInTheDocument();
+    expect(screen.queryByTestId('armour-item-3')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('armour-item-4')).not.toBeInTheDocument();
+    expect(screen.getByTestId('armour-show-all-toggle')).toHaveTextContent('Show all (5)');
+  });
+
+  it('reveals all items when "Show all" toggle is clicked', () => {
+    const armourList = [
+      makeArmourItem({ name: 'Helmet', locations: 'Head', ap: 2 }),
+      makeArmourItem({ name: 'Breastplate', locations: 'Body', ap: 3 }),
+      makeArmourItem({ name: 'Greaves', locations: 'Legs', ap: 1 }),
+      makeArmourItem({ name: 'Bracers', locations: 'Arms', ap: 1 }),
+      makeArmourItem({ name: 'Cloak', locations: 'All', ap: 1 }),
+    ];
+    render(<ArmourMap {...makeProps({ armourList })} />);
+
+    fireEvent.click(screen.getByTestId('armour-show-all-toggle'));
+    expect(screen.getByTestId('armour-item-3')).toBeInTheDocument();
+    expect(screen.getByTestId('armour-item-4')).toBeInTheDocument();
+    expect(screen.getByTestId('armour-show-all-toggle')).toHaveTextContent('Show less');
+  });
+
+  it('collapses back to 3 items when "Show less" is clicked', () => {
+    const armourList = [
+      makeArmourItem({ name: 'Helmet', locations: 'Head', ap: 2 }),
+      makeArmourItem({ name: 'Breastplate', locations: 'Body', ap: 3 }),
+      makeArmourItem({ name: 'Greaves', locations: 'Legs', ap: 1 }),
+      makeArmourItem({ name: 'Bracers', locations: 'Arms', ap: 1 }),
+      makeArmourItem({ name: 'Cloak', locations: 'All', ap: 1 }),
+    ];
+    render(<ArmourMap {...makeProps({ armourList })} />);
+
+    // Expand
+    fireEvent.click(screen.getByTestId('armour-show-all-toggle'));
+    // Collapse
+    fireEvent.click(screen.getByTestId('armour-show-all-toggle'));
+    expect(screen.queryByTestId('armour-item-3')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('armour-item-4')).not.toBeInTheDocument();
+    expect(screen.getByTestId('armour-show-all-toggle')).toHaveTextContent('Show all (5)');
+  });
+
+  it('renders name, AP, and locations on a single compact row', () => {
+    const armourList = [
+      makeArmourItem({ name: 'Helmet', locations: 'Head', ap: 2 }),
+    ];
+    render(<ArmourMap {...makeProps({ armourList })} />);
+
+    const item = screen.getByTestId('armour-item-0');
+    expect(item).toHaveTextContent('Helmet');
+    expect(item).toHaveTextContent('AP 2');
+    expect(item).toHaveTextContent('Head');
+  });
+
+  it('hides qualities and rune info until item is tapped', () => {
+    const armourList = [
+      makeArmourItem({ name: 'Fine Mail', locations: 'Body', ap: 3, qualities: 'Fine, Flexible' }),
+    ];
+    render(<ArmourMap {...makeProps({ armourList })} />);
+
+    const item = screen.getByTestId('armour-item-0');
+    // Qualities not visible initially
+    expect(item).not.toHaveTextContent('Fine, Flexible');
+    // Tap to expand
+    fireEvent.click(item.querySelector('[role="button"]')!);
+    expect(item).toHaveTextContent('Fine, Flexible');
   });
 });

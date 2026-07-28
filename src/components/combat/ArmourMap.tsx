@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { ArmourPoints, ArmourItem, WeaponData } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -89,6 +89,12 @@ export function ArmourMap({
 }: ArmourMapProps) {
   const [selectedLocation, setSelectedLocation] = useState<LocationKey | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [expandedArmourIndex, setExpandedArmourIndex] = useState<number | null>(null);
+  const [showAllArmour, setShowAllArmour] = useState(false);
+
+  const handleArmourItemToggle = useCallback((index: number) => {
+    setExpandedArmourIndex(prev => prev === index ? null : index);
+  }, []);
 
   const handleLocationTap = (key: LocationKey) => {
     setSelectedLocation(prev => prev === key ? null : key);
@@ -187,123 +193,151 @@ export function ArmourMap({
         <div className={styles.emptyMsg}>No armour worn.</div>
       )}
       <div className={styles.armourListSection}>
-        {armourList.map((item, i) => {
-          const runeQualities = getRuneQualities(item.runes ?? []);
-          const hasRunes = (item.runes?.length ?? 0) > 0;
-          const isEditing = editingIndex === i;
-
+        {(() => {
+          const shouldCap = armourList.length > 4 && !showAllArmour;
+          const visibleItems = shouldCap ? armourList.slice(0, 3) : armourList;
           return (
-            <div key={i} className={styles.armourRow} data-testid={`armour-item-${i}`}>
-              {isEditing && onUpdateArmour ? (
-                <div className={styles.editForm}>
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => onUpdateArmour(i, 'name', e.target.value)}
-                    placeholder="Name"
-                    className={styles.editInput}
-                    aria-label="Armour name"
-                  />
-                  <div className={styles.editRow}>
-                    <input
-                      type="text"
-                      value={item.locations}
-                      onChange={(e) => onUpdateArmour(i, 'locations', e.target.value)}
-                      placeholder="Locations (e.g. Arms, Body)"
-                      className={styles.editInput}
-                      aria-label="Armour locations"
-                    />
-                    <input
-                      type="number"
-                      value={item.ap}
-                      onChange={(e) => onUpdateArmour(i, 'ap', Math.max(0, Number(e.target.value) || 0))}
-                      placeholder="AP"
-                      className={styles.editInputSmall}
-                      aria-label="Armour points"
-                      min={0}
-                    />
-                  </div>
-                  <div className={styles.editRow}>
-                    <input
-                      type="text"
-                      value={item.qualities}
-                      onChange={(e) => onUpdateArmour(i, 'qualities', e.target.value)}
-                      placeholder="Qualities (e.g. Flexible)"
-                      className={styles.editInput}
-                      aria-label="Armour qualities"
-                    />
-                    <input
-                      type="text"
-                      value={item.enc}
-                      onChange={(e) => onUpdateArmour(i, 'enc', e.target.value)}
-                      placeholder="Enc"
-                      className={styles.editInputSmall}
-                      aria-label="Encumbrance"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.editDoneBtn}
-                    onClick={() => setEditingIndex(null)}
-                  >Done</button>
-                </div>
-              ) : (
-                <div className={styles.armourInfo}>
-                  <div className={styles.armourNameRow}>
-                    <span className={styles.armourName} title={item.name}>{item.name || 'Unnamed'}</span>
-                    <span className={styles.armourAP}>AP {item.ap}</span>
-                  </div>
-                  <div className={styles.armourDetail}>
-                    {item.locations}
-                  </div>
-                  {((item.qualities && item.qualities !== '—') || runeQualities.length > 0) && (
-                    <div className={styles.qualitiesText}>
-                      {item.qualities && item.qualities !== '—' ? item.qualities : ''}
-                      {runeQualities.length > 0 && (
-                        <span className={styles.runeQualitiesText}>
-                          {item.qualities && item.qualities !== '—' ? ', ' : ''}
-                          +{runeQualities.join(', ')}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+            <>
+              {visibleItems.map((item, i) => {
+                const runeQualities = getRuneQualities(item.runes ?? []);
+                const hasRunes = (item.runes?.length ?? 0) > 0;
+                const isEditing = editingIndex === i;
+                const isExpanded = expandedArmourIndex === i;
+                const hasQualities = (item.qualities && item.qualities !== '—') || runeQualities.length > 0;
 
-              {/* Edit button */}
-              {onUpdateArmour && !isEditing && (
+                return (
+                  <div key={i} className={styles.armourRow} data-testid={`armour-item-${i}`}>
+                    {isEditing && onUpdateArmour ? (
+                      <div className={styles.editForm}>
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => onUpdateArmour(i, 'name', e.target.value)}
+                          placeholder="Name"
+                          className={styles.editInput}
+                          aria-label="Armour name"
+                        />
+                        <div className={styles.editRow}>
+                          <input
+                            type="text"
+                            value={item.locations}
+                            onChange={(e) => onUpdateArmour(i, 'locations', e.target.value)}
+                            placeholder="Locations (e.g. Arms, Body)"
+                            className={styles.editInput}
+                            aria-label="Armour locations"
+                          />
+                          <input
+                            type="number"
+                            value={item.ap}
+                            onChange={(e) => onUpdateArmour(i, 'ap', Math.max(0, Number(e.target.value) || 0))}
+                            placeholder="AP"
+                            className={styles.editInputSmall}
+                            aria-label="Armour points"
+                            min={0}
+                          />
+                        </div>
+                        <div className={styles.editRow}>
+                          <input
+                            type="text"
+                            value={item.qualities}
+                            onChange={(e) => onUpdateArmour(i, 'qualities', e.target.value)}
+                            placeholder="Qualities (e.g. Flexible)"
+                            className={styles.editInput}
+                            aria-label="Armour qualities"
+                          />
+                          <input
+                            type="text"
+                            value={item.enc}
+                            onChange={(e) => onUpdateArmour(i, 'enc', e.target.value)}
+                            placeholder="Enc"
+                            className={styles.editInputSmall}
+                            aria-label="Encumbrance"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.editDoneBtn}
+                          onClick={() => setEditingIndex(null)}
+                        >Done</button>
+                      </div>
+                    ) : (
+                      <div
+                        className={styles.armourInfo}
+                        onClick={() => hasQualities && handleArmourItemToggle(i)}
+                        role={hasQualities ? 'button' : undefined}
+                        tabIndex={hasQualities ? 0 : undefined}
+                        onKeyDown={hasQualities ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleArmourItemToggle(i); } } : undefined}
+                        aria-expanded={hasQualities ? isExpanded : undefined}
+                        aria-label={hasQualities ? `${item.name || 'Unnamed'} — tap to show details` : undefined}
+                      >
+                        <div className={styles.armourCompactRow}>
+                          <span className={styles.armourName} title={item.name}>{item.name || 'Unnamed'}</span>
+                          <span className={styles.armourAP}>AP {item.ap}</span>
+                          <span className={styles.armourLocations}>{item.locations}</span>
+                        </div>
+                        {isExpanded && hasQualities && (
+                          <div className={styles.armourSecondary}>
+                            {item.qualities && item.qualities !== '—' && (
+                              <span className={styles.qualitiesText}>{item.qualities}</span>
+                            )}
+                            {runeQualities.length > 0 && (
+                              <span className={styles.runeQualitiesText}>
+                                {item.qualities && item.qualities !== '—' ? ', ' : ''}
+                                +{runeQualities.join(', ')}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Edit button */}
+                    {onUpdateArmour && !isEditing && (
+                      <button
+                        type="button"
+                        className={styles.editBtn}
+                        onClick={() => setEditingIndex(i)}
+                        aria-label={`Edit ${item.name || 'armour'}`}
+                      >✎</button>
+                    )}
+
+                    {/* Rune management */}
+                    {onOpenRuneManager && !isEditing && (
+                      <button
+                        type="button"
+                        className={styles.runeBadge}
+                        onClick={() => onOpenRuneManager(i)}
+                        aria-label={`Manage runes for ${item.name}`}
+                      >
+                        ⚒ {hasRunes ? `${item.runes!.length}/3` : 'Runes'}
+                      </button>
+                    )}
+
+                    {/* Delete button */}
+                    {onDeleteArmour && !isEditing && (
+                      <button
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={() => onDeleteArmour(i)}
+                        aria-label={`Delete ${item.name}`}
+                      >✕</button>
+                    )}
+                  </div>
+                );
+              })}
+              {armourList.length > 4 && (
                 <button
                   type="button"
-                  className={styles.editBtn}
-                  onClick={() => setEditingIndex(i)}
-                  aria-label={`Edit ${item.name || 'armour'}`}
-                >✎</button>
-              )}
-
-              {/* Rune management */}
-              {onOpenRuneManager && !isEditing && (
-                <button
-                  type="button"
-                  className={styles.runeBadge}
-                  onClick={() => onOpenRuneManager(i)}
-                  aria-label={`Manage runes for ${item.name}`}
+                  className={styles.showAllToggle}
+                  onClick={() => setShowAllArmour(prev => !prev)}
+                  data-testid="armour-show-all-toggle"
                 >
-                  ⚒ {hasRunes ? `${item.runes!.length}/3` : 'Runes'}
+                  {showAllArmour ? 'Show less' : `Show all (${armourList.length})`}
                 </button>
               )}
-
-              {/* Delete button */}
-              {onDeleteArmour && !isEditing && (
-                <button
-                  type="button"
-                  className={styles.deleteBtn}
-                  onClick={() => onDeleteArmour(i)}
-                  aria-label={`Delete ${item.name}`}
-                >✕</button>
-              )}
-            </div>
+            </>
           );
-        })}
+        })()}
       </div>
 
     </Card>

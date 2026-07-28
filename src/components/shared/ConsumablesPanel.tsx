@@ -21,8 +21,10 @@ const EMPTY_FORM: NewConsumableForm = {
   effect: '',
 };
 
+type FormMode = 'hidden' | 'inline' | 'expanded';
+
 export function ConsumablesPanel({ character, updateCharacter }: ConsumablesPanelProps) {
-  const [showForm, setShowForm] = useState(false);
+  const [formMode, setFormMode] = useState<FormMode>('hidden');
   const [form, setForm] = useState<NewConsumableForm>(EMPTY_FORM);
 
   const consumables = character.consumables ?? [];
@@ -75,12 +77,12 @@ export function ConsumablesPanel({ character, updateCharacter }: ConsumablesPane
     }));
 
     setForm(EMPTY_FORM);
-    setShowForm(false);
+    setFormMode('hidden');
   };
 
   const handleCancel = () => {
     setForm(EMPTY_FORM);
-    setShowForm(false);
+    setFormMode('hidden');
   };
 
   return (
@@ -89,7 +91,7 @@ export function ConsumablesPanel({ character, updateCharacter }: ConsumablesPane
         {/* Consumables List */}
         {consumables.length === 0 ? (
           <div className={styles.emptyState}>
-            No consumables tracked. Add healing draughts, antidotes, or other limited-use items.
+            No consumables tracked. Tap + to add.
           </div>
         ) : (
           <div className={styles.consumableList}>
@@ -151,51 +153,70 @@ export function ConsumablesPanel({ character, updateCharacter }: ConsumablesPane
         )}
 
         {/* Add Consumable Form */}
-        {showForm ? (
+        {formMode !== 'hidden' ? (
           <div className={styles.addForm}>
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Name</label>
+            <div className={styles.inlineRow}>
               <input
                 type="text"
-                className={styles.formInput}
-                placeholder="e.g. Healing Draught"
+                className={styles.inlineInput}
+                placeholder="Name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+                aria-label="Consumable name"
               />
-            </div>
-
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Max Doses</label>
               <input
                 type="number"
-                className={styles.formInput}
-                placeholder="e.g. 3"
+                className={styles.inlineDosesInput}
+                placeholder="Doses"
                 min="1"
                 value={form.maxDoses}
                 onChange={(e) => setForm({ ...form, maxDoses: e.target.value })}
+                aria-label="Max doses"
               />
-            </div>
-
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Effect</label>
-              <input
-                type="text"
-                className={styles.formInput}
-                placeholder="e.g. Heals 1d10 wounds"
-                value={form.effect}
-                onChange={(e) => setForm({ ...form, effect: e.target.value })}
-              />
-            </div>
-
-            <div className={styles.formActions}>
               <button
                 type="button"
-                className={styles.submitBtn}
+                className={styles.inlineAddBtn}
                 onClick={handleSubmit}
                 disabled={!isFormValid()}
+                aria-label="Add consumable"
               >
-                Add Consumable
+                Add
               </button>
+            </div>
+
+            {formMode === 'expanded' && (
+              <div className={styles.expandedFields}>
+                <div className={styles.formField}>
+                  <label className={styles.formLabel}>Effect</label>
+                  <input
+                    type="text"
+                    className={styles.formInput}
+                    placeholder="e.g. Heals 1d10 wounds"
+                    value={form.effect}
+                    onChange={(e) => setForm({ ...form, effect: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className={styles.formFooter}>
+              {formMode === 'inline' ? (
+                <button
+                  type="button"
+                  className={styles.moreOptionsBtn}
+                  onClick={() => setFormMode('expanded')}
+                >
+                  More options
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.moreOptionsBtn}
+                  onClick={() => setFormMode('inline')}
+                >
+                  Fewer options
+                </button>
+              )}
               <button
                 type="button"
                 className={styles.cancelBtn}
@@ -209,7 +230,7 @@ export function ConsumablesPanel({ character, updateCharacter }: ConsumablesPane
           <button
             type="button"
             className={styles.addToggleBtn}
-            onClick={() => setShowForm(true)}
+            onClick={() => setFormMode('inline')}
           >
             + Add Consumable
           </button>

@@ -32,6 +32,36 @@
   font-size: 12px;
 }
 
+/* Compact icon button for Manage Spells (replaces full-width text button) */
+.manageIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.manageIconBtn:hover,
+.manageIconBtn:focus-visible {
+  color: var(--accent-gold, #d4a017);
+  border-color: var(--accent-gold, #d4a017);
+}
+
+.manageIconBtn[aria-pressed="true"] {
+  color: var(--accent-gold, #d4a017);
+  border-color: var(--accent-gold, #d4a017);
+  background: rgba(212, 160, 23, 0.1);
+}
+
 .channelProgress {
   font-size: 12px;
   font-weight: 700;
@@ -236,16 +266,27 @@
   text-align: center;
 }
 
-/* Environmental Saturation */
+/* Environmental Saturation — compact single-line with tap-to-expand */
 .saturationRow {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
   margin-bottom: 8px;
-  padding: 6px 12px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.saturationToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
 }
 
 .saturationLabel {
@@ -255,20 +296,61 @@
   white-space: nowrap;
 }
 
-.saturationSelect {
+.saturationValue {
   font-size: 12px;
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--parchment);
+}
+
+.saturationSelector {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+
+.saturationOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.saturationOption:last-child {
+  border-bottom: none;
+}
+
+.saturationOption:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.saturationOptionActive {
+  background: rgba(212, 160, 23, 0.1);
+}
+
+.saturationOptionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--parchment);
+  min-width: 70px;
+}
+
+.saturationOptionDesc {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 .saturationModifier {
   font-size: 11px;
   color: var(--accent-gold, #d4a017);
   font-style: italic;
+  margin-left: auto;
 }
 
 /* Mobile spell card layout */
@@ -326,4 +408,151 @@
 .cardFields dd {
   margin: 0;
   color: var(--text-secondary);
+}
+
+
+/* Compact spell list — tap-to-expand pattern */
+.compactSpellList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.compactSpellItem {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.compactSpellItem[aria-expanded="true"] {
+  border-color: var(--accent-gold, #d4a017);
+}
+
+.compactSpellHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+  min-height: 44px;
+}
+
+.compactSpellHeader:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Expanded details area */
+.expandedDetails {
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.expandedMeta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 10px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.expandedMeta dt {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.expandedMeta dd {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Highlighted action buttons in expanded state */
+.expandedActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.castBtn {
+  padding: 6px 14px;
+  background: var(--accent-gold, #d4a017);
+  color: var(--bg-primary, #1a1a2e);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 36px;
+  min-width: 44px;
+  transition: background 0.15s ease;
+}
+
+.castBtn:hover {
+  background: color-mix(in srgb, var(--accent-gold, #d4a017) 85%, white);
+}
+
+.channelBtn {
+  padding: 6px 14px;
+  background: var(--bg-primary, #1a1a2e);
+  color: var(--accent-gold, #d4a017);
+  border: 1px solid var(--accent-gold, #d4a017);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 36px;
+  min-width: 44px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.channelBtn:hover {
+  background: rgba(212, 160, 23, 0.12);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Requirement 7.5: Minimum 44×44px tap targets on mobile
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .castBtn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .channelBtn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .saturationToggle {
+    min-height: 44px;
+  }
+
+  .saturationOption {
+    min-height: 44px;
+  }
+
+  .diceBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cancelChannelBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }

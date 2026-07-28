@@ -34,6 +34,7 @@ describe('SettingsPage', () => {
       render(
         <SettingsPage
           character={char}
+          characterId="test-char-1"
           update={vi.fn()}
           updateCharacter={updateCharacter}
           totalWounds={10}
@@ -42,6 +43,9 @@ describe('SettingsPage', () => {
           coinWeight={0}
         />
       );
+
+      // Expand Danger Zone to access Clear Sheet
+      fireEvent.click(screen.getByRole('button', { name: /danger zone/i }));
 
       // Click Clear Sheet
       fireEvent.click(screen.getByText('Clear Sheet'));
@@ -64,10 +68,11 @@ describe('SettingsPage', () => {
   });
 
   describe('Export/Import rendering', () => {
-    it('renders export and import buttons', () => {
+    it('renders export dropdown button and import button', () => {
       render(
         <SettingsPage
           character={makeCharacter({ name: 'Test' })}
+          characterId="test-char-2"
           update={vi.fn()}
           updateCharacter={vi.fn()}
           totalWounds={10}
@@ -77,17 +82,33 @@ describe('SettingsPage', () => {
         />
       );
 
+      // Export dropdown button visible
+      const exportBtn = screen.getByRole('button', { name: /export/i });
+      expect(exportBtn).toBeTruthy();
+      expect(screen.getByText('Import from File')).toBeTruthy();
+
+      // Options hidden until dropdown opened
+      expect(screen.queryByText('Copy to Clipboard')).toBeNull();
+      expect(screen.queryByText('Download File')).toBeNull();
+
+      // Open dropdown
+      fireEvent.click(exportBtn);
+
+      // Now options are visible
       expect(screen.getByText('Copy to Clipboard')).toBeTruthy();
       expect(screen.getByText('Download File')).toBeTruthy();
-      expect(screen.getByText('Import from File')).toBeTruthy();
     });
   });
 
   describe('Utilities rendering', () => {
-    it('renders Clear Sheet and Print buttons', () => {
+    it('renders Print button and Clear Sheet inside collapsed Danger Zone', () => {
+      // Ensure no persisted state interferes with defaultExpanded
+      localStorage.removeItem('collapsible-danger-zone');
+
       render(
         <SettingsPage
           character={makeCharacter({ name: 'Test' })}
+          characterId="test-char-3"
           update={vi.fn()}
           updateCharacter={vi.fn()}
           totalWounds={10}
@@ -97,8 +118,16 @@ describe('SettingsPage', () => {
         />
       );
 
-      expect(screen.getByText('Clear Sheet')).toBeTruthy();
       expect(screen.getByText('Print')).toBeTruthy();
+
+      // Clear Sheet is inside collapsed Danger Zone
+      const dangerHeader = screen.getByRole('button', { name: /danger zone/i });
+      expect(dangerHeader).toBeTruthy();
+      expect(dangerHeader).toHaveAttribute('aria-expanded', 'false');
+
+      // Expand Danger Zone to access Clear Sheet
+      fireEvent.click(dangerHeader);
+      expect(screen.getByText('Clear Sheet')).toBeTruthy();
     });
   });
 });

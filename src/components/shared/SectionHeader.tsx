@@ -4,7 +4,7 @@ import styles from './SectionHeader.module.css';
 
 interface SectionHeaderProps {
   icon: LucideIcon;
-  title: string;
+  title: ReactNode;
   action?: ReactNode;
   collapsible?: boolean;
   collapsed?: boolean;
@@ -14,7 +14,7 @@ interface SectionHeaderProps {
 export function SectionHeader({ icon: Icon, title, action, collapsible, collapsed, onToggleCollapse }: SectionHeaderProps) {
   return (
     <div className={styles.header}>
-      <Icon size={20} color="var(--accent-gold)" />
+      <Icon size={14} />
       {collapsible ? (
         <button
           type="button"
