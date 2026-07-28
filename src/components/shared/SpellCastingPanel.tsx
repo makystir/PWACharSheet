@@ -8,6 +8,7 @@ import {
   resolveChannellingResult,
   lookupMiscast,
   getArmourCastingPenalty,
+  formatDamageBreakdown,
   type CastingResult,
   type MiscastResult,
 } from '../../logic/spell-casting';
@@ -16,7 +17,7 @@ import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { RollDialog } from '../shared/RollDialog';
 import { CastResultDisplay } from './CastResultDisplay';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Info } from 'lucide-react';
 import styles from './SpellCastingPanel.module.css';
 
 const SATURATION_LABELS: Record<MagicSaturation, string> = {
@@ -288,7 +289,17 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
                 <th className={styles.th}>Range</th>
                 <th className={styles.th}>Target</th>
                 <th className={styles.th}>Duration</th>
-                <th className={styles.th}>Effect</th>
+                <th className={styles.th}>
+                  <span className={styles.effectHeader}>
+                    Effect
+                    <span className={styles.tooltipWrapper} tabIndex={0} aria-describedby="effect-tooltip">
+                      <Info size={14} />
+                      <span className={styles.tooltip} role="tooltip" id="effect-tooltip">
+                        Magic missile damage = listed modifier + Success Levels from your casting roll.
+                      </span>
+                    </span>
+                  </span>
+                </th>
                 {canCastSpells && <th className={styles.th}></th>}
               </tr>
             </thead>
@@ -311,7 +322,19 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
                     <td className={styles.td}>{spell.target}</td>
                     <td className={styles.td}>{spell.duration}</td>
                     <td className={styles.effectCell}>
-                      {spell.effect}
+                      <div className={styles.effectContent}>
+                        {spell.effect}
+                        {(() => {
+                          const wpChar = character.chars.WP;
+                          const wpBonus = Math.floor((wpChar.i + wpChar.a + wpChar.b) / 10);
+                          const tChar = character.chars.T;
+                          const tbBonus = Math.floor((tChar.i + tChar.a + tChar.b) / 10);
+                          const breakdown = formatDamageBreakdown(spell, wpBonus, tbBonus);
+                          return breakdown ? (
+                            <span className={styles.damageAnnotation}>{breakdown}</span>
+                          ) : null;
+                        })()}
+                      </div>
                     </td>
                     {canCastSpells && (
                       <td className={styles.actionsCell}>

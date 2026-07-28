@@ -272,6 +272,47 @@ export function computeMagicMissileDamage(
 }
 
 /**
+ * Formats the damage formula for display in the spell table.
+ * Returns null for non-magic-missile spells.
+ *
+ * Examples:
+ *   "Dmg +4"  → "Dmg: 4 + SL"
+ *   "Dmg WPB" → "Dmg: WPB(4) + SL"  (if wpBonus=4)
+ *   "Dmg TB"  → "Dmg: TB(3) + SL"   (if tbBonus=3)
+ *   "Healing" → null
+ */
+export function formatDamageBreakdown(
+  spell: SpellItem,
+  wpBonus: number,
+  tbBonus: number,
+): string | null {
+  if (!isMagicMissile(spell)) {
+    return null;
+  }
+
+  const effect = spell.effect;
+
+  // Check "Dmg WPB" pattern first (before the numeric pattern, since "WPB" is more specific)
+  if (/Dmg\s+WPB/i.test(effect)) {
+    return `Dmg: WPB(${wpBonus}) + SL`;
+  }
+
+  // Check "Dmg TB" pattern
+  if (/Dmg\s+TB/i.test(effect)) {
+    return `Dmg: TB(${tbBonus}) + SL`;
+  }
+
+  // Check "Dmg +N" or "Dmg N" pattern
+  const plusMatch = effect.match(/Dmg\s*\+?\s*(\d+)/i);
+  if (plusMatch) {
+    return `Dmg: ${plusMatch[1]} + SL`;
+  }
+
+  // Spell is a magic missile but doesn't match a specific pattern — default to 0
+  return `Dmg: 0 + SL`;
+}
+
+/**
  * Reverse a d100 roll's digits to get the hit location roll.
  * e.g. 34→43, 70→7, 100→1, 5→50.
  * Roll 100 is treated as "00" → reversed "00" → 0 → clamped to 1.
@@ -662,4 +703,30 @@ export function getArmourCastingPenalty(character: Character): number {
   );
 
   return highestAP;
+}
+
+// ─── Spell Damage Clarity: Formatting Functions ───────────────────────────────
+
+/**
+ * Formats the damage breakdown for the cast result dialog.
+ * Shows the full arithmetic: modifier + SL(X) = Total
+ * or modifier + SL(X) + Overcast(Y) = Total when overcast applies.
+ *
+ * Examples:
+ *   (4, 3, 0) → "4 + SL(3) = 7"
+ *   (4, 3, 2) → "4 + SL(3) + Overcast(2) = 9"
+ */
+export function formatCastDamageBreakdown(
+  damageModifier: number,
+  castingSL: number,
+  overcastBonus?: number,
+): string {
+  const effectiveOvercast = overcastBonus && overcastBonus > 0 ? overcastBonus : 0;
+  const total = damageModifier + castingSL + effectiveOvercast;
+
+  if (effectiveOvercast > 0) {
+    return `${damageModifier} + SL(${castingSL}) + Overcast(${effectiveOvercast}) = ${total}`;
+  }
+
+  return `${damageModifier} + SL(${castingSL}) = ${total}`;
 }

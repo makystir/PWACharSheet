@@ -4,6 +4,8 @@ import {
   type CastingResult,
   type MiscastResult,
   computeOvercastOptions,
+  formatCastDamageBreakdown,
+  parseDamageFromEffect,
 } from '../../logic/spell-casting';
 import { getCharacterLore } from '../../logic/advancement';
 import { getArcaneMarksTable, type ArcaneMarkEntry } from '../../data/arcane-marks';
@@ -185,7 +187,16 @@ export function CastResultDisplay({
                 Hit: {hitLocation}
               </div>
               <div className={styles.damageLabel}>
-                Damage: {damage}
+                Damage: {(() => {
+                  const wpChar = character.chars.WP;
+                  const wpBonus = Math.floor((wpChar.i + wpChar.a + wpChar.b) / 10);
+                  const tChar = character.chars.T;
+                  const tbBonus = Math.floor((tChar.i + tChar.a + tChar.b) / 10);
+                  const damageModifier = parseDamageFromEffect(spell.effect, wpBonus, tbBonus);
+                  const baseDamage = damageModifier + slAchieved;
+                  const overcastDamageBonus = damage != null && damage > baseDamage ? damage - baseDamage : 0;
+                  return formatCastDamageBreakdown(damageModifier, slAchieved, overcastDamageBonus > 0 ? overcastDamageBonus : undefined);
+                })()}
               </div>
             </div>
           </>
