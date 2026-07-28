@@ -33,7 +33,9 @@ import { DiseasePanel } from '../shared/DiseasePanel';
 import { EmptyState } from '../shared/EmptyState';
 import { getRuneById } from '../../logic/runes';
 import { RUNE_CATALOGUE } from '../../data/runes';
-import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel } from '../../logic/priestRunes';
+import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel, isPriestCareer } from '../../logic/priestRunes';
+import { isDwarfSpecies } from '../../logic/career-eligibility';
+import { hasHighMagic } from '../../logic/magicalBurnout';
 import { activateRuneOfForging, resetForgingCharges, calculateForgingCharges } from '../../logic/engineeringRunes';
 import { activateDoomRune } from '../../logic/doomRunes';
 import { DeitySelector } from '../shared/DeitySelector';
@@ -465,9 +467,11 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       </div>
 
       {/* Patron Deity — only visible for Dwarf priest characters */}
-      <CollapsibleSection title="Patron Deity" storageKey="collapsible-deity-selector" defaultExpanded={true}>
-        <DeitySelector character={character} updateCharacter={updateCharacter} />
-      </CollapsibleSection>
+      {isDwarfSpecies(character.species) && isPriestCareer(character.career) && (
+        <CollapsibleSection title="Patron Deity" storageKey="collapsible-deity-selector" defaultExpanded={true}>
+          <DeitySelector character={character} updateCharacter={updateCharacter} />
+        </CollapsibleSection>
+      )}
 
       {/* Grudge Book — only visible for Dwarf characters (zero DOM otherwise per Req 8.5) */}
       {isDwarf(character.species) && (
@@ -487,9 +491,11 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       )}
 
       {/* Magical Burnout — only visible for High Magic users */}
-      <CollapsibleSection title="Magical Burnout" storageKey="collapsible-magical-burnout" defaultExpanded={true}>
-        <MagicalBurnoutPanel character={character} updateCharacter={updateCharacter} />
-      </CollapsibleSection>
+      {hasHighMagic(character) && (
+        <CollapsibleSection title="Magical Burnout" storageKey="collapsible-magical-burnout" defaultExpanded={true}>
+          <MagicalBurnoutPanel character={character} updateCharacter={updateCharacter} />
+        </CollapsibleSection>
+      )}
 
       {/* Characteristics */}
       <Card>
