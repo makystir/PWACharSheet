@@ -8,7 +8,94 @@
   box-shadow: 0 2px 8px var(--shadow);
 }
 
-/* ── Main Row ── */
+/* ══════════════════════════════════════════════════════════════════════════════
+   Dashboard Visual Grouping (Requirement 14)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.dashboardGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .dashboardGroups {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+.statusGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+}
+
+.statusMainRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+@media (max-width: 767px) {
+  .statusMainRow {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.actionsGroup {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 767px) {
+  .actionsGroup {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.groupDivider {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .groupDivider {
+    display: block;
+    width: 1px;
+    align-self: stretch;
+    background: var(--border);
+    opacity: 0.6;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 767px) {
+  .groupDivider {
+    display: block;
+    height: 1px;
+    width: 100%;
+    background: var(--border);
+    opacity: 0.4;
+  }
+}
+
+/* ── Main Row (legacy — kept for non-grouped contexts) ── */
 
 .mainRow {
   display: flex;
@@ -19,7 +106,6 @@
 
 @media (max-width: 767px) {
   .mainRow {
-    /* Req 7.1: wounds/advantage/round in single row without wrapping */
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: flex-start;
@@ -697,6 +783,69 @@
     min-width: var(--mobile-touch-min, 44px);
     min-height: var(--mobile-touch-min, 44px);
     margin-left: 4px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Quick Condition Buttons (Requirement 5)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.quickCondRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.quickCondBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  min-height: 36px;
+  cursor: pointer;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.quickCondBtn:hover:not(:disabled) {
+  background: rgba(202, 138, 4, 0.12);
+  border-color: var(--accent-gold);
+  color: var(--text-primary);
+}
+
+.quickCondBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quickCondLevel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-gold);
+  color: #000;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@media (max-width: 767px) {
+  .quickCondRow {
+    gap: 8px;
+  }
+
+  .quickCondBtn {
+    min-height: 44px;
+    padding: 8px 12px;
   }
 }
 

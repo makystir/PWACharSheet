@@ -5,6 +5,7 @@ import { resolveConditionTooltip } from '../../logic/tooltip-content';
 import { Tooltip } from '../shared/Tooltip';
 import { Check, Info, X } from 'lucide-react';
 import styles from './ConditionPicker.module.css';
+import pressableStyles from '../../styles/micro-interactions.module.css';
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ export function ConditionPicker({ conditions, onApply, onRemove, onClose }: Cond
                   type="button"
                   aria-label={isActive ? `Increment ${cond.name}` : `Apply ${cond.name}`}
                   onClick={() => handleApply(cond.name)}
-                  className={styles.nameBtn}
+                  className={`${styles.nameBtn} ${pressableStyles.pressable}`}
                 >
                   {cond.name}
                   {isActive && active.level > 1 ? ` (${active.level})` : ''}

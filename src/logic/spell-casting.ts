@@ -705,6 +705,37 @@ export function getArmourCastingPenalty(character: Character): number {
   return highestAP;
 }
 
+// ─── Overcast Damage Preview ──────────────────────────────────────────────────
+
+/**
+ * Compute overcast damage preview given base damage and allocation count.
+ * Uses the OVERCAST_TABLE to determine the bonus damage for the allocated SL.
+ * Returns { base, bonus, total } for display in the overcast allocator.
+ */
+export function computeOvercastDamagePreview(
+  baseDamage: number,
+  damageAllocation: number
+): { base: number; bonus: number; total: number } {
+  // Handle NaN/undefined baseDamage gracefully
+  const safeBase = Number.isFinite(baseDamage) ? baseDamage : 0;
+
+  if (damageAllocation <= 0) {
+    return { base: safeBase, bonus: 0, total: safeBase };
+  }
+
+  // Find highest matching row in OVERCAST_TABLE
+  let bonus = 0;
+  for (const row of OVERCAST_TABLE) {
+    if (damageAllocation >= row.sl) {
+      bonus = row.damage;
+    } else {
+      break;
+    }
+  }
+
+  return { base: safeBase, bonus, total: safeBase + bonus };
+}
+
 // ─── Spell Damage Clarity: Formatting Functions ───────────────────────────────
 
 /**

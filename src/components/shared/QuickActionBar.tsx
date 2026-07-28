@@ -1,4 +1,5 @@
 import styles from './QuickActionBar.module.css';
+import pressableStyles from '../../styles/micro-interactions.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ export function QuickActionBar({ actions, onTrigger }: QuickActionBarProps) {
         <button
           key={action.id}
           type="button"
-          className={styles.actionButton}
+          className={`${styles.actionButton} ${pressableStyles.pressable}`}
           onClick={() => onTrigger(action)}
           aria-label={`Quick roll ${action.skillName}`}
         >

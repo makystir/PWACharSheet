@@ -270,3 +270,60 @@
   color: var(--accent-gold, #d4a017);
   font-style: italic;
 }
+
+/* Mobile spell card layout */
+.spellCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.spellCard {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.spellName {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--parchment);
+}
+
+.spellCN {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-gold, #d4a017);
+  background: rgba(212, 160, 23, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+}
+
+.cardFields {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.cardFields dt {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.cardFields dd {
+  margin: 0;
+  color: var(--text-secondary);
+}

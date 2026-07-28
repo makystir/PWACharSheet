@@ -2,6 +2,7 @@ import type { WeaponItem, Character } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { AddButton } from '../shared/AddButton';
+import { EmptyState } from '../shared/EmptyState';
 import { calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
 import { getRuneQualities } from '../../logic/runes';
 import { getBonus } from '../../logic/calculators';
@@ -43,7 +44,12 @@ export function WeaponCards({
       } />
 
       {weapons.length === 0 && (
-        <div className={styles.emptyMsg}>No weapons — add one to get started.</div>
+        <EmptyState
+          icon={Sword}
+          heading="No Weapons"
+          description="No weapons equipped — add one from the rulebook or create a custom weapon."
+          action={onOpenWeaponPicker ? { label: 'Add Weapon', onClick: onOpenWeaponPicker } : undefined}
+        />
       )}
 
       {weapons.length > 0 && (

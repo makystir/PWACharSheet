@@ -12,6 +12,8 @@ const helpContent: Record<string, string> = {
     'Advance your career by spending XP on career skills and characteristics. Complete all advances in your current level to unlock the next career level or switch to a related career.',
   'yenlui-balance':
     'Yenlui is the Elven concept of inner balance between Light (Cadai) and Dark (Cytharai). Your current state affects sword-dancing difficulty and roleplaying guidance. Shifts occur through actions and tests.',
+  'xp-cost-table':
+    'Advances 1–50 use XP costs that match the Core Rulebook table exactly. Advances 51+ are extrapolated using the established progression formula (each tier of 5 increases cost by 5 XP).',
 };
 
 /**

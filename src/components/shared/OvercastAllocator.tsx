@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import type { OvercastOption } from '../../logic/spell-casting';
+import { computeOvercastDamagePreview } from '../../logic/spell-casting';
 import styles from './OvercastAllocator.module.css';
 
 interface OvercastAllocatorProps {
   options: OvercastOption[];
   availableSlots: number;
+  baseDamage?: number;
   onAllocate: (allocations: Record<string, number>) => void;
 }
 
-export function OvercastAllocator({ options, availableSlots, onAllocate }: OvercastAllocatorProps) {
+export function OvercastAllocator({ options, availableSlots, baseDamage, onAllocate }: OvercastAllocatorProps) {
   const initialAllocations: Record<string, number> = {};
   for (const opt of options) {
     if (opt.enabled) {
@@ -37,41 +39,51 @@ export function OvercastAllocator({ options, availableSlots, onAllocate }: Overc
       </div>
 
       {options.map((opt) => (
-        <div key={opt.category} className={styles.row}>
-          {opt.enabled ? (
-            <>
+        <div key={opt.category}>
+          <div className={styles.row}>
+            {opt.enabled ? (
+              <>
+                <div>
+                  <span className={styles.label}>{opt.label}</span>
+                  <span className={styles.baseValue}>({opt.baseValue})</span>
+                </div>
+                <div className={styles.controls}>
+                  <button
+                    type="button"
+                    className={(allocations[opt.category] ?? 0) <= 0 ? styles.stepBtnDisabled : styles.stepBtn}
+                    disabled={(allocations[opt.category] ?? 0) <= 0}
+                    onClick={() => decrement(opt.category)}
+                    aria-label={`Decrease ${opt.label}`}
+                  >
+                    −
+                  </button>
+                  <span className={styles.count}>{allocations[opt.category] ?? 0}</span>
+                  <button
+                    type="button"
+                    className={totalAllocated >= availableSlots ? styles.stepBtnDisabled : styles.stepBtn}
+                    disabled={totalAllocated >= availableSlots}
+                    onClick={() => increment(opt.category)}
+                    aria-label={`Increase ${opt.label}`}
+                  >
+                    +
+                  </button>
+                </div>
+              </>
+            ) : (
               <div>
-                <span className={styles.label}>{opt.label}</span>
-                <span className={styles.baseValue}>({opt.baseValue})</span>
+                <span className={styles.disabledLabel}>{opt.label}: </span>
+                <span className={styles.naText}>N/A ({opt.baseValue})</span>
               </div>
-              <div className={styles.controls}>
-                <button
-                  type="button"
-                  className={(allocations[opt.category] ?? 0) <= 0 ? styles.stepBtnDisabled : styles.stepBtn}
-                  disabled={(allocations[opt.category] ?? 0) <= 0}
-                  onClick={() => decrement(opt.category)}
-                  aria-label={`Decrease ${opt.label}`}
-                >
-                  −
-                </button>
-                <span className={styles.count}>{allocations[opt.category] ?? 0}</span>
-                <button
-                  type="button"
-                  className={totalAllocated >= availableSlots ? styles.stepBtnDisabled : styles.stepBtn}
-                  disabled={totalAllocated >= availableSlots}
-                  onClick={() => increment(opt.category)}
-                  aria-label={`Increase ${opt.label}`}
-                >
-                  +
-                </button>
+            )}
+          </div>
+          {opt.category === 'damage' && opt.enabled && baseDamage != null && (allocations['damage'] ?? 0) > 0 && (() => {
+            const preview = computeOvercastDamagePreview(baseDamage, allocations['damage'] ?? 0);
+            return (
+              <div className={styles.damagePreview}>
+                Base: {preview.base} → Modified: {preview.total}
               </div>
-            </>
-          ) : (
-            <div>
-              <span className={styles.disabledLabel}>{opt.label}: </span>
-              <span className={styles.naText}>N/A ({opt.baseValue})</span>
-            </div>
-          )}
+            );
+          })()}
         </div>
       ))}
 

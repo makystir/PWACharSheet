@@ -73,7 +73,8 @@ describe('SpellCastingPanel — empty state', () => {
         { name: 'Flight', cn: '8', range: 'You', target: 'You', duration: 'WPB rounds+', effect: 'Gain Flight trait', memorized: false },
       ],
     });
-    expect(screen.getByText('No spells memorized')).toBeInTheDocument();
+    expect(screen.getByText('No Spells')).toBeInTheDocument();
+    expect(screen.getByText(/No spells memorized/)).toBeInTheDocument();
   });
 });
 

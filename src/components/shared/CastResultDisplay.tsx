@@ -172,6 +172,13 @@ export function CastResultDisplay({
               <OvercastAllocator
                 options={computeOvercastOptions(spell)}
                 availableSlots={overcastSlots}
+                baseDamage={isMagicMissile ? (() => {
+                  const wpChar = character.chars.WP;
+                  const wpBonus = Math.floor((wpChar.i + wpChar.a + wpChar.b) / 10);
+                  const tChar = character.chars.T;
+                  const tbBonus = Math.floor((tChar.i + tChar.a + tChar.b) / 10);
+                  return parseDamageFromEffect(spell.effect, wpBonus, tbBonus) + slAchieved;
+                })() : undefined}
                 onAllocate={onOvercastAllocated}
               />
             </div>

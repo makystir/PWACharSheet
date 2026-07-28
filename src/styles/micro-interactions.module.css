@@ -1,0 +1,16 @@
+.pressable {
+  transition: transform 150ms ease;
+}
+
+.pressable:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable {
+    transition: none;
+  }
+  .pressable:active {
+    transform: none;
+  }
+}

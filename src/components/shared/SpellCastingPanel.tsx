@@ -13,12 +13,31 @@ import {
   type MiscastResult,
 } from '../../logic/spell-casting';
 import { hasSpellcastingTalent } from '../../logic/advancement';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { RollDialog } from '../shared/RollDialog';
 import { CastResultDisplay } from './CastResultDisplay';
+import { EmptyState } from '../shared/EmptyState';
 import { Sparkles, Info } from 'lucide-react';
 import styles from './SpellCastingPanel.module.css';
+
+export function SpellCard({ spell }: { spell: SpellItem }) {
+  return (
+    <article className={styles.spellCard} role="article" aria-label={`Spell: ${spell.name}`}>
+      <header className={styles.cardHeader}>
+        <span className={styles.spellName}>{spell.name}</span>
+        <span className={styles.spellCN}>CN {spell.cn}</span>
+      </header>
+      <dl className={styles.cardFields}>
+        <dt>Range</dt><dd>{spell.range}</dd>
+        <dt>Target</dt><dd>{spell.target}</dd>
+        <dt>Duration</dt><dd>{spell.duration}</dd>
+        <dt>Effect</dt><dd>{spell.effect}</dd>
+      </dl>
+    </article>
+  );
+}
 
 const SATURATION_LABELS: Record<MagicSaturation, string> = {
   low: 'Low',
@@ -55,6 +74,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
   const [castingResult, setCastingResult] = useState<CastingResult | null>(null);
   const [showManageSpells, setShowManageSpells] = useState(false);
   const [miscastResult, setMiscastResult] = useState<MiscastResult | null>(null);
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   const canCastSpells = hasSpellcastingTalent(character);
 
@@ -277,8 +297,17 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
 
         {/* Memorized spells list */}
         {memorizedSpells.length === 0 ? (
-          <div className={styles.emptySpells}>
-            No spells memorized
+          <EmptyState
+            icon={Sparkles}
+            heading="No Spells"
+            description="No spells memorized — tap Manage Spells to add some."
+            action={canCastSpells ? { label: 'Manage Spells', onClick: () => setShowManageSpells(true) } : undefined}
+          />
+        ) : isMobile ? (
+          <div className={styles.spellCardList}>
+            {memorizedSpells.map((spell) => (
+              <SpellCard key={spell.name} spell={spell} />
+            ))}
           </div>
         ) : (
           <table className={styles.table}>

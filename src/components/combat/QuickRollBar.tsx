@@ -7,6 +7,7 @@ import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { Dice6 } from 'lucide-react';
 import styles from './QuickRollBar.module.css';
+import pressableStyles from '../../styles/micro-interactions.module.css';
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ export function QuickRollBar({ character, onRoll }: QuickRollBarProps) {
           <button
             key={entry.name}
             type="button"
-            className={styles.skillButton}
+            className={`${styles.skillButton} ${pressableStyles.pressable}`}
             style={{ flexShrink: 0 }}
             onClick={() => handleSkillTap(entry)}
             aria-label={`Roll ${entry.name}`}

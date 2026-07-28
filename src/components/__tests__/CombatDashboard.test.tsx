@@ -215,7 +215,7 @@ describe('CombatDashboard — Condition Badges', () => {
   it('renders "+" button to open condition picker in combat mode', () => {
     const onOpenConditionPicker = vi.fn();
     render(<CombatDashboard {...makeProps({ inCombat: true, onOpenConditionPicker })} />);
-    fireEvent.click(screen.getByLabelText('Add condition'));
+    fireEvent.click(screen.getByRole('button', { name: 'Add Condition' }));
     expect(onOpenConditionPicker).toHaveBeenCalledTimes(1);
   });
 

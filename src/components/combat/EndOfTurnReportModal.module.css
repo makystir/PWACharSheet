@@ -1,0 +1,182 @@
+/* EndOfTurnReportModal — CSS Module */
+
+.overlay {
+  composes: overlay from '../shared/styles/shared.module.css';
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Header ── */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ── Sections ── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sectionIcon {
+  font-style: normal;
+}
+
+.effectList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.effectItem {
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.05));
+}
+
+.effectDamage {
+  composes: effectItem;
+  color: var(--danger);
+  border-left: 3px solid var(--danger);
+}
+
+.effectReminder {
+  composes: effectItem;
+  color: var(--accent-gold);
+  font-style: italic;
+  border-left: 3px solid var(--accent-gold);
+}
+
+.effectRemove {
+  composes: effectItem;
+  color: var(--success);
+  border-left: 3px solid var(--success);
+}
+
+/* ── Empty state ── */
+
+.emptyMessage {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+  padding: 12px 8px;
+}
+
+/* ── Divider ── */
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+  border: none;
+}
+
+/* ── Button Row ── */
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.cancelBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: var(--bg-primary);
+}
+
+.applyBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 20px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(202, 138, 4, 0.15);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+}
+
+.applyBtn:hover {
+  background: rgba(202, 138, 4, 0.25);
+}
+
+.applyBtn:active {
+  background: rgba(202, 138, 4, 0.35);
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 767px) {
+  .modal {
+    width: 95%;
+    max-width: none;
+  }
+
+  .buttonRow {
+    flex-direction: column-reverse;
+  }
+
+  .cancelBtn,
+  .applyBtn {
+    width: 100%;
+    min-height: 48px;
+  }
+}

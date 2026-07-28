@@ -104,3 +104,10 @@
   color: var(--text-muted);
   font-style: italic;
 }
+
+.damagePreview {
+  font-size: 11px;
+  color: var(--accent-gold);
+  padding: 2px 0 2px 4px;
+  font-style: italic;
+}

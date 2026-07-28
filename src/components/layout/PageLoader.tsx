@@ -86,15 +86,18 @@ export class LazyErrorBoundary extends Component<LazyErrorBoundaryProps, LazyErr
 
 interface PageLoaderProps {
   children: ReactNode;
+  skeleton?: ReactNode;  // page-specific skeleton fallback
 }
 
 /**
  * Wrapper component combining React.Suspense with LazyErrorBoundary.
  * Use this to wrap lazily-loaded page components.
+ * When a skeleton prop is provided, it is used as the Suspense fallback
+ * instead of the generic LoadingIndicator.
  */
-export function PageLoader({ children }: PageLoaderProps) {
+export function PageLoader({ children, skeleton }: PageLoaderProps) {
   return (
-    <Suspense fallback={<LoadingIndicator />}>
+    <Suspense fallback={skeleton ?? <LoadingIndicator />}>
       <LazyErrorBoundary>
         {children}
       </LazyErrorBoundary>

@@ -5,11 +5,45 @@ import type { FortuneSpendReason, ResolveSpendReason } from '../../logic/fortune
 import { CONDITIONS } from '../../data/conditions';
 import { CONDITION_COLORS, CONDITION_COLOR_FALLBACK, getConditionIntensity } from '../../data/condition-colors';
 import { resolveConditionTooltip } from '../../logic/tooltip-content';
-import { processEndOfTurn, type EndOfTurnResult } from '../../logic/end-of-turn';
+import { processEndOfTurn, type EndOfTurnEffect, type EndOfTurnResult } from '../../logic/end-of-turn';
 import { Tooltip } from '../shared/Tooltip';
+import { EmptyState } from '../shared/EmptyState';
+import { EndOfTurnReportModal } from './EndOfTurnReportModal';
 import { InitiativeTracker } from './InitiativeTracker';
-import { Heart, Zap, Star, Shield, AlertTriangle, Skull } from 'lucide-react';
+import { Heart, Zap, Star, Shield, AlertTriangle, Skull, Droplets, ArrowDown, Flame } from 'lucide-react';
+import { applyCondition } from '../../logic/combat';
 import styles from './CombatDashboard.module.css';
+import pressableStyles from '../../styles/micro-interactions.module.css';
+
+// ─── Quick Condition Buttons (Req 5) ─────────────────────────────────────────
+
+const QUICK_CONDITIONS = [
+  { name: 'Bleeding', icon: Droplets, stackable: true, maxLevel: 10 },
+  { name: 'Stunned', icon: Zap, stackable: true, maxLevel: 10 },
+  { name: 'Prone', icon: ArrowDown, stackable: false, maxLevel: 1 },
+  { name: 'Ablaze', icon: Flame, stackable: true, maxLevel: 10 },
+] as const;
+
+function QuickConditionButton({ config, currentLevel, onApply }: {
+  config: typeof QUICK_CONDITIONS[number];
+  currentLevel: number;
+  onApply: () => void;
+}) {
+  const atMax = currentLevel >= config.maxLevel;
+  return (
+    <button
+      type="button"
+      className={`${styles.quickCondBtn} ${pressableStyles.pressable}`}
+      disabled={atMax}
+      onClick={onApply}
+      aria-label={`Add ${config.name}${currentLevel > 0 ? ` (currently ${currentLevel})` : ''}`}
+    >
+      <config.icon size={16} />
+      <span>{config.name}</span>
+      {currentLevel > 0 && <span className={styles.quickCondLevel}>{currentLevel}</span>}
+    </button>
+  );
+}
 
 /** Get brief effect text for a condition */
 function getConditionEffectText(conditionName: string): string {
@@ -124,7 +158,8 @@ export function CombatDashboard(props: CombatDashboardProps) {
   const [showFortunePopover, setShowFortunePopover] = useState(false);
   const [showResolvePopover, setShowResolvePopover] = useState(false);
   const [expandedCondition, setExpandedCondition] = useState<string | null>(null);
-  const [endTurnSummary, setEndTurnSummary] = useState<EndOfTurnResult | null>(null);
+  const [endOfTurnReport, setEndOfTurnReport] = useState<{ effects: EndOfTurnEffect[]; result: EndOfTurnResult } | null>(null);
+  const [endTurnError, setEndTurnError] = useState<string | null>(null);
 
   // ── State change transition tracking (Req 14) ──
   const prevWoundsRef = useRef(wCur);
@@ -234,28 +269,43 @@ export function CombatDashboard(props: CombatDashboardProps) {
   const woundThreshold = getWoundThreshold(wCur, totalWounds);
   const woundSectionClass = getWoundSectionClass(wCur, totalWounds);
 
-  // ── End Turn handler (Req 8) ──
+  // ── End Turn handler (Req 6.1) — shows modal before applying ──
   const handleEndTurn = useCallback(() => {
-    // Compute Toughness Bonus from character characteristics
-    const tb = character
-      ? Math.floor((character.chars.T.i + character.chars.T.a + character.chars.T.b) / 10)
-      : 0;
+    try {
+      // Compute Toughness Bonus from character characteristics
+      const tb = character
+        ? Math.floor((character.chars.T.i + character.chars.T.a + character.chars.T.b) / 10)
+        : 0;
 
-    // Compute lowest AP across body locations (excluding shield)
-    const lowestAP = character
-      ? Math.min(character.ap.head, character.ap.lArm, character.ap.rArm, character.ap.body, character.ap.lLeg, character.ap.rLeg)
-      : 0;
+      // Compute lowest AP across body locations (excluding shield)
+      const lowestAP = character
+        ? Math.min(character.ap.head, character.ap.lArm, character.ap.rArm, character.ap.body, character.ap.lLeg, character.ap.rLeg)
+        : 0;
 
-    const result = processEndOfTurn({
-      currentWounds: wCur,
-      conditions,
-      currentRound: combatState.currentRound,
-      tb,
-      lowestAP,
-    });
-    // Show summary
-    setEndTurnSummary(result);
-    // Apply effects via parent callbacks
+      const result = processEndOfTurn({
+        currentWounds: wCur,
+        conditions,
+        currentRound: combatState.currentRound,
+        tb,
+        lowestAP,
+      });
+
+      // Show modal with computed results instead of applying immediately
+      setEndOfTurnReport({ effects: result.effects, result });
+    } catch (error) {
+      // Do not apply partial effects — show error notification
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred during end-of-turn processing';
+      setEndTurnError(message);
+      // Auto-dismiss error after 5 seconds
+      setTimeout(() => setEndTurnError(null), 5000);
+    }
+  }, [wCur, conditions, combatState.currentRound, character]);
+
+  // ── Apply end-of-turn effects (Req 6.6) ──
+  const handleApplyEndOfTurn = useCallback(() => {
+    if (!endOfTurnReport) return;
+    const { result } = endOfTurnReport;
+
     if (onEndTurn) {
       onEndTurn(result);
     } else {
@@ -267,9 +317,15 @@ export function CombatDashboard(props: CombatDashboardProps) {
       }
       onUpdateRound(1);
     }
-    // Auto-dismiss summary after 5 seconds
-    setTimeout(() => setEndTurnSummary(null), 5000);
-  }, [wCur, conditions, combatState.currentRound, character, onEndTurn, onUpdateWounds, onRemoveCondition, onUpdateRound]);
+
+    // Clear the modal
+    setEndOfTurnReport(null);
+  }, [endOfTurnReport, wCur, onEndTurn, onUpdateWounds, onRemoveCondition, onUpdateRound]);
+
+  // ── Cancel end-of-turn (Req 6.5) ──
+  const handleCancelEndOfTurn = useCallback(() => {
+    setEndOfTurnReport(null);
+  }, []);
 
   // Sticky positioning remains inline because tests assert on style.position
   const stickyStyle: CSSProperties | undefined = inCombat
@@ -278,206 +334,141 @@ export function CombatDashboard(props: CombatDashboardProps) {
 
   return (
     <div className={styles.dashboard} style={stickyStyle} data-testid="combat-dashboard">
-      <div className={styles.mainRow}>
-        {/* ── Wounds ── */}
-        <div className={woundSectionClass} data-wound-threshold={woundThreshold}>
-          <div className={styles.iconLabel}>
-            {woundThreshold === 'critical' ? (
-              <Skull size={14} color={woundColor} aria-hidden="true" />
-            ) : woundThreshold === 'caution' ? (
-              <AlertTriangle size={14} color={woundColor} aria-hidden="true" />
-            ) : (
-              <Heart size={14} color={woundColor} aria-hidden="true" />
-            )}
-            <span className={styles.label}>Wounds</span>
-          </div>
-          <div className={styles.woundNumbers}>
-            <span className={`${styles.bigNumber} ${woundClass} ${styles.numberTransition}${woundBump ? ` ${styles.numberBump}` : ''}`}>{wCur}</span>
-            <span className={styles.woundTotal}>/ {totalWounds}</span>
-          </div>
-          <div className={styles.progressBar}>
-            <div
-              data-testid="wound-progress"
-              className={progressClass}
-              style={{ '--wound-pct': `${woundPct}%` } as CSSProperties}
-            />
-          </div>
-          <div className={styles.btnRow}>
-            <button
-              type="button"
-              aria-label="Decrease wounds"
-              onClick={() => onUpdateWounds(-1)}
-              className={styles.tapButtonDecrease}
-            >−</button>
-            <button
-              type="button"
-              aria-label="Increase wounds"
-              onClick={() => onUpdateWounds(1)}
-              className={styles.tapButtonIncrease}
-            >+</button>
-            <button
-              type="button"
-              aria-label="Full wounds"
-              onClick={() => onUpdateWounds(totalWounds - wCur)}
-              className={styles.smallTapButton}
-            >Full</button>
-          </div>
-          {wCur <= 0 && (
-            <div data-testid="down-alert" className={styles.downAlert}>⚠ Down!</div>
-          )}
-        </div>
-
-        {/* ── Advantage (combat only) ── */}
-        {inCombat && (
-          <div className={styles.fixedSection}>
-            <div className={styles.iconLabel}>
-              <Zap size={14} color="var(--accent-gold)" />
-              <span className={styles.label}>{useGroupAdvantage ? 'Group Advantage' : 'Advantage'}</span>
-            </div>
-            <span className={`${styles.bigNumber} ${styles.accentGold} ${styles.numberTransition}${advantageBump ? ` ${styles.numberBump}` : ''}`}>{advantage}</span>
-            <div className={styles.btnRow}>
-              <button
-                type="button"
-                aria-label="Decrease advantage"
-                onClick={() => onUpdateAdvantage(-1)}
-                className={styles.tapButton}
-              >−</button>
-              <button
-                type="button"
-                aria-label="Increase advantage"
-                onClick={() => onUpdateAdvantage(1)}
-                className={styles.tapButton}
-              >+</button>
-              <button
-                type="button"
-                aria-label="Reset advantage"
-                onClick={() => onUpdateAdvantage(-advantage)}
-                className={styles.smallTapButton}
-              >Reset</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Round Counter (combat only) ── */}
-        {inCombat && (
-          <div className={styles.fixedSection}>
-            <span className={styles.label}>Round</span>
-            <span className={`${styles.bigNumber} ${styles.accentGold}`}>{combatState.currentRound}</span>
-            <div className={styles.btnRow}>
-              <button
-                type="button"
-                aria-label="Decrease round"
-                onClick={() => onUpdateRound(-1)}
-                className={styles.tapButton}
-              >−</button>
-              <button
-                type="button"
-                aria-label="Increase round"
-                onClick={() => onUpdateRound(1)}
-                className={styles.tapButton}
-              >+</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Engaged Toggle (combat only) ── */}
-        {inCombat && (
-          <div className={styles.engagedSection}>
-            <button
-              type="button"
-              aria-label={combatState.engaged ? 'Disengage' : 'Engage'}
-              onClick={onToggleEngaged}
-              className={combatState.engaged ? styles.engagedBtnActive : styles.engagedBtnInactive}
-            >
-              {combatState.engaged ? '⚔ Engaged' : 'Not Engaged'}
-            </button>
-          </div>
-        )}
-
-        {/* ── Fortune / Resolve compact display ── */}
-        <div className={styles.fortuneResolveRow}>
-          {/* Fortune */}
-          <div className={styles.sectionRelative}>
-            <div className={styles.iconLabelSmall}>
-              <Star size={12} color="var(--accent-gold)" />
-              <span className={styles.label}>Fortune</span>
-            </div>
-            <button
-              type="button"
-              aria-label="Toggle fortune popover"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowFortunePopover((v) => !v);
-                setShowResolvePopover(false);
-              }}
-              className={fortune > 0 ? styles.fortuneBtnActive : styles.fortuneBtnInactive}
-            >
-              {fortune}<span className={styles.fortuneSuffix}>/{fate}</span>
-            </button>
-            {showFortunePopover && (
-              <div className={styles.popover} onClick={(e) => e.stopPropagation()} data-testid="fortune-popover">
-                <div className={styles.popoverLabel}>Spend Fortune</div>
-                <div className={styles.popoverList}>
-                  {FORTUNE_REASONS.map((reason) => (
-                    <button
-                      key={reason}
-                      type="button"
-                      disabled={fortune <= 0}
-                      className={fortune <= 0 ? styles.spendBtnDisabled : styles.spendBtn}
-                      onClick={() => {
-                        onSpendFortune(reason);
-                        setShowFortunePopover(false);
-                      }}
-                    >{reason}</button>
-                  ))}
-                </div>
+      <div className={styles.dashboardGroups}>
+        {/* ── Status Group (Req 14.1, 14.3) ── */}
+        <div role="group" aria-label="Status" className={styles.statusGroup}>
+          <div className={styles.statusMainRow}>
+            {/* ── Wounds ── */}
+            <div className={woundSectionClass} data-wound-threshold={woundThreshold}>
+              <div className={styles.iconLabel}>
+                {woundThreshold === 'critical' ? (
+                  <Skull size={14} color={woundColor} aria-hidden="true" />
+                ) : woundThreshold === 'caution' ? (
+                  <AlertTriangle size={14} color={woundColor} aria-hidden="true" />
+                ) : (
+                  <Heart size={14} color={woundColor} aria-hidden="true" />
+                )}
+                <span className={styles.label}>Wounds</span>
               </div>
-            )}
-          </div>
-
-          {/* Resolve */}
-          <div className={styles.sectionRelative}>
-            <div className={styles.iconLabelSmall}>
-              <Shield size={12} color="var(--accent-gold)" />
-              <span className={styles.label}>Resolve</span>
-            </div>
-            <button
-              type="button"
-              aria-label="Toggle resolve popover"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowResolvePopover((v) => !v);
-                setShowFortunePopover(false);
-              }}
-              className={resolve > 0 ? styles.fortuneBtnActive : styles.fortuneBtnInactive}
-            >
-              {resolve}<span className={styles.fortuneSuffix}>/{resilience}</span>
-            </button>
-            {showResolvePopover && (
-              <div className={styles.popover} onClick={(e) => e.stopPropagation()} data-testid="resolve-popover">
-                <div className={styles.popoverLabel}>Spend Resolve</div>
-                <div className={styles.popoverList}>
-                  {RESOLVE_REASONS.map((reason) => (
-                    <button
-                      key={reason}
-                      type="button"
-                      disabled={resolve <= 0}
-                      className={resolve <= 0 ? styles.spendBtnDisabled : styles.spendBtn}
-                      onClick={() => {
-                        onSpendResolve(reason);
-                        setShowResolvePopover(false);
-                      }}
-                    >{reason}</button>
-                  ))}
-                </div>
+              <div className={styles.woundNumbers}>
+                <span className={`${styles.bigNumber} ${woundClass} ${styles.numberTransition}${woundBump ? ` ${styles.numberBump}` : ''}`}>{wCur}</span>
+                <span className={styles.woundTotal}>/ {totalWounds}</span>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+              <div className={styles.progressBar}>
+                <div
+                  data-testid="wound-progress"
+                  className={progressClass}
+                  style={{ '--wound-pct': `${woundPct}%` } as CSSProperties}
+                />
+              </div>
+              <div className={styles.btnRow}>
+                <button
+                  type="button"
+                  aria-label="Decrease wounds"
+                  onClick={() => onUpdateWounds(-1)}
+                  className={styles.tapButtonDecrease}
+                >−</button>
+                <button
+                  type="button"
+                  aria-label="Increase wounds"
+                  onClick={() => onUpdateWounds(1)}
+                  className={styles.tapButtonIncrease}
+                >+</button>
+                <button
+                  type="button"
+                  aria-label="Full wounds"
+                  onClick={() => onUpdateWounds(totalWounds - wCur)}
+                  className={styles.smallTapButton}
+                >Full</button>
+              </div>
+              {wCur <= 0 && (
+                <div data-testid="down-alert" className={styles.downAlert}>⚠ Down!</div>
+              )}
+            </div>
 
-      {/* ── Condition Badges ── */}
-      <div className={conditions.length > 0 || inCombat || exitingConditions.length > 0 ? styles.conditionRowSpaced : styles.conditionRow}>
+            {/* ── Fortune / Resolve compact display ── */}
+            <div className={styles.fortuneResolveRow}>
+              {/* Fortune */}
+              <div className={styles.sectionRelative}>
+                <div className={styles.iconLabelSmall}>
+                  <Star size={12} color="var(--accent-gold)" />
+                  <span className={styles.label}>Fortune</span>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Toggle fortune popover"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowFortunePopover((v) => !v);
+                    setShowResolvePopover(false);
+                  }}
+                  className={fortune > 0 ? styles.fortuneBtnActive : styles.fortuneBtnInactive}
+                >
+                  {fortune}<span className={styles.fortuneSuffix}>/{fate}</span>
+                </button>
+                {showFortunePopover && (
+                  <div className={styles.popover} onClick={(e) => e.stopPropagation()} data-testid="fortune-popover">
+                    <div className={styles.popoverLabel}>Spend Fortune</div>
+                    <div className={styles.popoverList}>
+                      {FORTUNE_REASONS.map((reason) => (
+                        <button
+                          key={reason}
+                          type="button"
+                          disabled={fortune <= 0}
+                          className={fortune <= 0 ? styles.spendBtnDisabled : styles.spendBtn}
+                          onClick={() => {
+                            onSpendFortune(reason);
+                            setShowFortunePopover(false);
+                          }}
+                        >{reason}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Resolve */}
+              <div className={styles.sectionRelative}>
+                <div className={styles.iconLabelSmall}>
+                  <Shield size={12} color="var(--accent-gold)" />
+                  <span className={styles.label}>Resolve</span>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Toggle resolve popover"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowResolvePopover((v) => !v);
+                    setShowFortunePopover(false);
+                  }}
+                  className={resolve > 0 ? styles.fortuneBtnActive : styles.fortuneBtnInactive}
+                >
+                  {resolve}<span className={styles.fortuneSuffix}>/{resilience}</span>
+                </button>
+                {showResolvePopover && (
+                  <div className={styles.popover} onClick={(e) => e.stopPropagation()} data-testid="resolve-popover">
+                    <div className={styles.popoverLabel}>Spend Resolve</div>
+                    <div className={styles.popoverList}>
+                      {RESOLVE_REASONS.map((reason) => (
+                        <button
+                          key={reason}
+                          type="button"
+                          disabled={resolve <= 0}
+                          className={resolve <= 0 ? styles.spendBtnDisabled : styles.spendBtn}
+                          onClick={() => {
+                            onSpendResolve(reason);
+                            setShowResolvePopover(false);
+                          }}
+                        >{reason}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* ── Condition Badges ── */}
+          <div className={conditions.length > 0 || inCombat || exitingConditions.length > 0 ? styles.conditionRowSpaced : styles.conditionRow}>
         {/* Exiting conditions (fade-out animation) */}
         {exitingConditions.map((cond) => {
           const colorDef = CONDITION_COLORS[cond.name] ?? CONDITION_COLOR_FALLBACK;
@@ -557,54 +548,154 @@ export function CombatDashboard(props: CombatDashboardProps) {
             </div>
           );
         })}
-        {inCombat && (
+        {inCombat && conditions.length === 0 && exitingConditions.length === 0 && (
+          <EmptyState
+            icon={AlertTriangle}
+            heading="No Conditions"
+            description="No active conditions — tap below to apply one."
+            action={{ label: 'Add Condition', onClick: onOpenConditionPicker }}
+          />
+        )}
+        {inCombat && conditions.length > 0 && (
           <button
             type="button"
             aria-label="Add condition"
             onClick={onOpenConditionPicker}
-            className={styles.addConditionBtn}
-          >{conditions.length === 0 && <span className={styles.conditionLabel}>Conditions</span>}+</button>
+            className={`${styles.addConditionBtn} ${pressableStyles.pressable}`}
+          >+</button>
+        )}
+        {inCombat && conditions.length === 0 && exitingConditions.length > 0 && (
+          <button
+            type="button"
+            aria-label="Add condition"
+            onClick={onOpenConditionPicker}
+            className={`${styles.addConditionBtn} ${pressableStyles.pressable}`}
+          ><span className={styles.conditionLabel}>Conditions</span>+</button>
         )}
       </div>
 
-      {/* ── End Turn Button (Req 8.1) ── */}
+      {/* ── Quick Condition Buttons (Req 5) ── */}
+      {inCombat && updateCharacter && (
+        <div className={styles.quickCondRow} data-testid="quick-condition-row">
+          {QUICK_CONDITIONS.map((config) => {
+            const existing = conditions.find((c) => c.name === config.name);
+            const currentLevel = existing?.level ?? 0;
+            return (
+              <QuickConditionButton
+                key={config.name}
+                config={config}
+                currentLevel={currentLevel}
+                onApply={() => {
+                  updateCharacter((char) => ({
+                    ...char,
+                    conditions: applyCondition(char.conditions, config.name),
+                  }));
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+        </div>{/* End Status Group */}
+
+        {/* ── Group Divider (Req 14.2) ── */}
+        {inCombat && <div className={styles.groupDivider} aria-hidden="true" />}
+
+        {/* ── Actions Group (Req 14.1, 14.3) ── */}
+        {inCombat && (
+          <div role="group" aria-label="Actions" className={styles.actionsGroup}>
+            {/* ── Advantage ── */}
+            <div className={styles.fixedSection}>
+              <div className={styles.iconLabel}>
+                <Zap size={14} color="var(--accent-gold)" />
+                <span className={styles.label}>{useGroupAdvantage ? 'Group Advantage' : 'Advantage'}</span>
+              </div>
+              <span className={`${styles.bigNumber} ${styles.accentGold} ${styles.numberTransition}${advantageBump ? ` ${styles.numberBump}` : ''}`}>{advantage}</span>
+              <div className={styles.btnRow}>
+                <button
+                  type="button"
+                  aria-label="Decrease advantage"
+                  onClick={() => onUpdateAdvantage(-1)}
+                  className={styles.tapButton}
+                >−</button>
+                <button
+                  type="button"
+                  aria-label="Increase advantage"
+                  onClick={() => onUpdateAdvantage(1)}
+                  className={styles.tapButton}
+                >+</button>
+                <button
+                  type="button"
+                  aria-label="Reset advantage"
+                  onClick={() => onUpdateAdvantage(-advantage)}
+                  className={styles.smallTapButton}
+                >Reset</button>
+              </div>
+            </div>
+
+            {/* ── Round Counter ── */}
+            <div className={styles.fixedSection}>
+              <span className={styles.label}>Round</span>
+              <span className={`${styles.bigNumber} ${styles.accentGold}`}>{combatState.currentRound}</span>
+              <div className={styles.btnRow}>
+                <button
+                  type="button"
+                  aria-label="Decrease round"
+                  onClick={() => onUpdateRound(-1)}
+                  className={styles.tapButton}
+                >−</button>
+                <button
+                  type="button"
+                  aria-label="Increase round"
+                  onClick={() => onUpdateRound(1)}
+                  className={styles.tapButton}
+                >+</button>
+              </div>
+            </div>
+
+            {/* ── Engaged Toggle ── */}
+            <div className={styles.engagedSection}>
+              <button
+                type="button"
+                aria-label={combatState.engaged ? 'Disengage' : 'Engage'}
+                onClick={onToggleEngaged}
+                className={`${combatState.engaged ? styles.engagedBtnActive : styles.engagedBtnInactive} ${pressableStyles.pressable}`}
+              >
+                {combatState.engaged ? '⚔ Engaged' : 'Not Engaged'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>{/* End dashboardGroups */}
+
+      {/* ── End Turn Button (Req 6.1) ── */}
       {inCombat && (
         <div className={styles.endTurnSection}>
           <button
             type="button"
             aria-label="End Turn"
             onClick={handleEndTurn}
-            className={styles.endTurnBtn}
+            className={`${styles.endTurnBtn} ${pressableStyles.pressable}`}
             data-testid="end-turn-btn"
           >
             End Turn
           </button>
-          {endTurnSummary && endTurnSummary.effects.length > 0 && (
-            <div className={styles.endTurnSummary} data-testid="end-turn-summary" aria-live="polite">
-              <div className={styles.endTurnSummaryTitle}>End of Turn Effects (Round {endTurnSummary.roundAdvanced})</div>
-              <ul className={styles.endTurnSummaryList}>
-                {endTurnSummary.effects.map((effect, idx) => (
-                  <li key={idx} className={
-                    effect.type === 'damage' ? styles.endTurnEffectDamage
-                    : effect.type === 'reminder' ? styles.endTurnEffectReminder
-                    : styles.endTurnEffectRemove
-                  }>
-                    {effect.type === 'reminder' && <span className={styles.reminderIcon} aria-hidden="true">⚠ </span>}
-                    {effect.type === 'reminder'
-                      ? `${effect.condition}: ${effect.description}`
-                      : effect.description}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {endTurnSummary && endTurnSummary.effects.length === 0 && (
-            <div className={styles.endTurnSummary} data-testid="end-turn-summary" aria-live="polite">
-              <div className={styles.endTurnSummaryTitle}>End of Turn (Round {endTurnSummary.roundAdvanced})</div>
-              <span className={styles.endTurnNoEffects}>No automated effects applied</span>
+          {endTurnError && (
+            <div className={styles.endTurnSummary} data-testid="end-turn-error" aria-live="assertive" role="alert">
+              <div className={styles.endTurnEffectDamage}>⚠ {endTurnError}</div>
             </div>
           )}
         </div>
+      )}
+
+      {/* ── End-of-Turn Report Modal (Req 6.1) ── */}
+      {endOfTurnReport && (
+        <EndOfTurnReportModal
+          effects={endOfTurnReport.effects}
+          result={endOfTurnReport.result}
+          onApply={handleApplyEndOfTurn}
+          onCancel={handleCancelEndOfTurn}
+        />
       )}
 
       {/* ── Initiative Tracker (Req 19.1) ── */}

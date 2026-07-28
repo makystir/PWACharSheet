@@ -431,7 +431,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
 
       {/* Characteristics Advancement */}
       <Card>
-        <SectionHeader icon={Swords} title="Advance Characteristics" />
+        <div className={styles.sectionWithHelp}>
+          <SectionHeader icon={Swords} title="Advance Characteristics" />
+          <HelpPopover concept="xp-cost-table">{getHelpContent('xp-cost-table')}</HelpPopover>
+        </div>
         <div className={styles.charHelpText}>
           <span className={styles.charHelpInCareer}>In-Career</span> costs follow the WFRP 4e tiered table. <span className={styles.charHelpOutCareer}>Out-of-Career</span> costs are double.
         </div>

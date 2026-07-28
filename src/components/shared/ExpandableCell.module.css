@@ -1,0 +1,36 @@
+.cell {
+  display: inline-block;
+  width: 100%;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  line-height: 1.4;
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.truncated {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.expanded {
+  white-space: normal;
+  max-width: none;
+}
+
+@media (min-width: 1024px) {
+  .truncated {
+    max-width: 400px;
+  }
+}

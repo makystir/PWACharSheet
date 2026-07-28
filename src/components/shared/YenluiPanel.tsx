@@ -1,6 +1,7 @@
 import type { Character, YenluiState } from '../../types/character';
 import { isYenluiVisible, YENLUI_STATE_META, getYenluiTalentNotes } from '../../logic/yenlui';
 import { Card } from './Card';
+import { ObsessionTracker } from './ObsessionTracker';
 import styles from './YenluiPanel.module.css';
 
 interface YenluiPanelProps {
@@ -123,6 +124,11 @@ export function YenluiPanel({ character, updateCharacter }: YenluiPanelProps) {
             </section>
           );
         })()}
+
+        {/* Obsession tracker — High Elf Yenlui mechanic */}
+        {character.species.toLowerCase().includes('high elf') && (
+          <ObsessionTracker character={character} updateCharacter={updateCharacter} />
+        )}
       </div>
     </Card>
   );

@@ -427,14 +427,23 @@ describe('Feature: reorderable-sub-tabs, Property 15: DOM Focus Order Matches Vi
         const expectedOrder = tabs.map((t) => t.id);
         expect(tabIdsInDomOrder).toEqual(expectedOrder);
 
-        // Additionally verify that tab role buttons (labels) are in order
-        const tabRoleButtons = container.querySelectorAll('[role="tab"]');
+        // Additionally verify that tab role buttons (labels) are in visual order
+        // In edit mode, each tab's edit group wrapper contains arrow buttons with data-tab-id.
+        // We use the first arrow button in each group to identify tab order rather than
+        // text matching (since multiple tabs can share the same label text).
+        const editGroups = container.querySelectorAll('[role="tab"]');
         const tabRoleIds: string[] = [];
-        tabRoleButtons.forEach((btn) => {
-          const text = btn.textContent || '';
-          const matchingTab = tabs.find((t) => t.label === text);
-          if (matchingTab && !tabRoleIds.includes(matchingTab.id)) {
-            tabRoleIds.push(matchingTab.id);
+        editGroups.forEach((btn) => {
+          // The sibling arrow buttons (prev/next) share the same parent with data-tab-id
+          const parent = btn.parentElement;
+          if (parent) {
+            const arrowBtn = parent.querySelector('[data-tab-id]');
+            if (arrowBtn) {
+              const tabId = arrowBtn.getAttribute('data-tab-id')!;
+              if (!tabRoleIds.includes(tabId)) {
+                tabRoleIds.push(tabId);
+              }
+            }
           }
         });
 

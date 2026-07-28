@@ -1,5 +1,6 @@
 import type { AncestorGod } from '../data/deityRunes';
 import type { ActiveDisease } from '../logic/diseases';
+import type { ObsessionData } from '../logic/obsessions';
 
 export type CharacteristicKey = 'WS' | 'BS' | 'S' | 'T' | 'I' | 'Ag' | 'Dex' | 'Int' | 'WP' | 'Fel';
 
@@ -577,6 +578,7 @@ export interface Character {
   diseases?: ActiveDisease[];
   grudges?: GrudgeEntry[];
   yenluiState?: YenluiState;
+  obsession?: ObsessionData;
   magicalBurnout?: MagicalBurnout;
   consumables?: Consumable[];
   psychologyTraits?: PsychologyTrait[];

@@ -3,12 +3,14 @@ import type { Character, ArmourPoints, WeaponData } from '../types/character';
 import { BLANK_CHARACTER } from '../types/character';
 import { saveCharacter } from '../storage/character-manager';
 import {
+  getBonus,
   calculateTotalWounds,
   calculateArmourPoints,
   calculateMaxEncumbrance,
   calculateCoinWeight,
   syncWoundFields,
 } from '../logic/calculators';
+import { evaluateFatiguedThreshold } from '../logic/conditions';
 import { syncTalentBonuses } from '../logic/talents';
 import { SPECIES_DATA } from '../data/species';
 
@@ -244,6 +246,17 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
       return synced === prev ? prev : synced;
     });
   }, [character.chars, character.woundsUseSB, hardyLevel]);
+
+  // Evaluate Fatigued→Unconscious threshold after any condition update
+  const conditionsJson = JSON.stringify(character.conditions);
+  useEffect(() => {
+    const tChar = character.chars.T;
+    const toughnessBonus = getBonus(tChar.i + tChar.a + tChar.b);
+    const result = evaluateFatiguedThreshold(character.conditions, toughnessBonus);
+    if (result.applied.length > 0) {
+      setCharacter(prev => ({ ...prev, conditions: result.conditions }));
+    }
+  }, [conditionsJson, character.chars]);
 
   // Derive Strong Back and Sturdy levels from talents
   const strongBackLevel = useMemo(() => {

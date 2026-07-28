@@ -723,6 +723,14 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             <AddButton label="Add Custom" onClick={addCustomTalent} />
           </div>
         } />
+        {character.talents.length === 0 ? (
+          <EmptyState
+            icon={Sparkles}
+            heading="No Talents"
+            description="No talents acquired yet — add one from the rulebook or create a custom talent."
+            action={{ label: 'Add Talent', onClick: () => setShowTalentPicker(true) }}
+          />
+        ) : (
         <table className={styles.tableBase}>
           <thead>
             <tr>
@@ -771,6 +779,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             ))}
           </tbody>
         </table>
+        )}
       </Card>
 
       {/* Spells — only show if character has magic talents/skills, relevant career skills, or already has spells */}

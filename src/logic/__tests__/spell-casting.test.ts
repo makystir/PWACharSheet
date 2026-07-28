@@ -15,6 +15,7 @@ import {
   OVERCAST_TABLE,
   lookupOvercastEffect,
   resolveOvercastAllocations,
+  computeOvercastDamagePreview,
   getArmourCastingPenalty,
   isMetalArmour,
   isLeatherArmour,
@@ -974,5 +975,84 @@ describe('isLeatherArmour', () => {
   ])('$name → $expected', ({ name, expected }) => {
     const item = { name, locations: 'Body', enc: '1', ap: 1, qualities: '—' };
     expect(isLeatherArmour(item)).toBe(expected);
+  });
+});
+
+// ─── computeOvercastDamagePreview ────────────────────────────────────────────
+// **Validates: Requirements 7.2, 7.3**
+describe('computeOvercastDamagePreview', () => {
+  it('0 allocation → bonus 0, total equals base', () => {
+    const result = computeOvercastDamagePreview(8, 0);
+    expect(result).toEqual({ base: 8, bonus: 0, total: 8 });
+  });
+
+  it('negative allocation → treated as 0 allocation', () => {
+    const result = computeOvercastDamagePreview(5, -1);
+    expect(result).toEqual({ base: 5, bonus: 0, total: 5 });
+  });
+
+  it('allocation 1 → bonus 1 (first OVERCAST_TABLE row)', () => {
+    const result = computeOvercastDamagePreview(8, 1);
+    expect(result).toEqual({ base: 8, bonus: 1, total: 9 });
+  });
+
+  it('allocation 2 → bonus 2 (second row)', () => {
+    const result = computeOvercastDamagePreview(8, 2);
+    expect(result).toEqual({ base: 8, bonus: 2, total: 10 });
+  });
+
+  it('allocation 3 → bonus 3 (third row)', () => {
+    const result = computeOvercastDamagePreview(8, 3);
+    expect(result).toEqual({ base: 8, bonus: 3, total: 11 });
+  });
+
+  it('allocation 4 → bonus 3 (between thresholds 3 and 5)', () => {
+    const result = computeOvercastDamagePreview(8, 4);
+    expect(result).toEqual({ base: 8, bonus: 3, total: 11 });
+  });
+
+  it('allocation 5 → bonus 4 (fourth row)', () => {
+    const result = computeOvercastDamagePreview(8, 5);
+    expect(result).toEqual({ base: 8, bonus: 4, total: 12 });
+  });
+
+  it('allocation 8 → bonus 5 (fifth row)', () => {
+    const result = computeOvercastDamagePreview(8, 8);
+    expect(result).toEqual({ base: 8, bonus: 5, total: 13 });
+  });
+
+  it('allocation 13 → bonus 6 (sixth row)', () => {
+    const result = computeOvercastDamagePreview(8, 13);
+    expect(result).toEqual({ base: 8, bonus: 6, total: 14 });
+  });
+
+  it('allocation 21 → bonus 7 (seventh/max row)', () => {
+    const result = computeOvercastDamagePreview(8, 21);
+    expect(result).toEqual({ base: 8, bonus: 7, total: 15 });
+  });
+
+  it('allocation above 21 → still bonus 7 (capped at max row)', () => {
+    const result = computeOvercastDamagePreview(8, 50);
+    expect(result).toEqual({ base: 8, bonus: 7, total: 15 });
+  });
+
+  it('base damage 0 → total equals bonus only', () => {
+    const result = computeOvercastDamagePreview(0, 3);
+    expect(result).toEqual({ base: 0, bonus: 3, total: 3 });
+  });
+
+  it('NaN baseDamage → treated as 0', () => {
+    const result = computeOvercastDamagePreview(NaN, 2);
+    expect(result).toEqual({ base: 0, bonus: 2, total: 2 });
+  });
+
+  it('undefined baseDamage → treated as 0', () => {
+    const result = computeOvercastDamagePreview(undefined as unknown as number, 3);
+    expect(result).toEqual({ base: 0, bonus: 3, total: 3 });
+  });
+
+  it('Infinity baseDamage → treated as 0', () => {
+    const result = computeOvercastDamagePreview(Infinity, 1);
+    expect(result).toEqual({ base: 0, bonus: 1, total: 1 });
   });
 });

@@ -39,6 +39,32 @@ export interface EndOfTurnParams {
  * - Wounds floor at 0
  * - Skip all damage if wounds already at 0
  */
+export interface CharacterCombatState {
+  wounds: number;
+  conditions: { name: string; level: number }[];
+  currentRound: number;
+}
+
+/**
+ * Apply a pre-computed EndOfTurnResult to character combat state.
+ * Sets wounds to result.newWounds, removes conditions listed in
+ * result.removedConditions, and sets round to result.roundAdvanced.
+ */
+export function applyEndOfTurnResult(
+  state: CharacterCombatState,
+  result: EndOfTurnResult
+): CharacterCombatState {
+  const remainingConditions = state.conditions.filter(
+    (c) => !result.removedConditions.includes(c.name)
+  );
+
+  return {
+    wounds: result.newWounds,
+    conditions: remainingConditions,
+    currentRound: result.roundAdvanced,
+  };
+}
+
 export function processEndOfTurn(params: EndOfTurnParams): EndOfTurnResult {
   const { currentWounds, conditions, currentRound, tb, lowestAP, injectedD10 } = params;
   const effects: EndOfTurnEffect[] = [];

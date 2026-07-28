@@ -9,6 +9,7 @@ import { useMediaQuery } from './hooks/useMediaQuery';
 import { PrintLayout } from './components/layout/PrintLayout';
 import { CharacterPage } from './components/pages/CharacterPage';
 import { loadQuickActions } from './storage/quick-actions';
+import { CombatSkeleton, AdvancementSkeleton, SettingsSkeleton } from './components/skeletons';
 
 const CombatPage = lazy(() => import('./components/pages/CombatPage'));
 const EstatePage = lazy(() => import('./components/pages/EstatePage'));
@@ -215,7 +216,7 @@ function AppWithCharacter({
       case 'character':
         return <CharacterPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} subTab={subTab} onSubTabChange={(tab) => navigate('character', tab)} />;
       case 'combat':
-        return <PageLoader><CombatPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} /></PageLoader>;
+        return <PageLoader skeleton={<CombatSkeleton />}><CombatPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} /></PageLoader>;
       case 'retinue':
         return <PageLoader><RetinuePage character={character} update={update} updateCharacter={updateCharacter} subTab={subTab} onSubTabChange={(tab) => navigate('retinue', tab)} /></PageLoader>;
       case 'estate':
@@ -223,9 +224,9 @@ function AppWithCharacter({
       case 'endeavours':
         return <PageLoader><EndeavoursPage {...pageProps} /></PageLoader>;
       case 'advancement':
-        return <PageLoader><AdvancementPage {...pageProps} /></PageLoader>;
+        return <PageLoader skeleton={<AdvancementSkeleton />}><AdvancementPage {...pageProps} /></PageLoader>;
       case 'settings':
-        return <PageLoader><SettingsPage {...pageProps} characterId={manager.activeId} currentTheme={currentTheme} onThemeChange={setTheme} /></PageLoader>;
+        return <PageLoader skeleton={<SettingsSkeleton />}><SettingsPage {...pageProps} characterId={manager.activeId} currentTheme={currentTheme} onThemeChange={setTheme} /></PageLoader>;
       default:
         return <CharacterPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} subTab={subTab} onSubTabChange={(tab) => navigate('character', tab)} />;
     }
