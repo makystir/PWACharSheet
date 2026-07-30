@@ -14,7 +14,7 @@ export interface Consumable {
 }
 
 // Psychology traits (Requirement 11)
-export type PsychologyType = 'Animosity' | 'Hatred' | 'Fear' | 'Terror' | 'Frenzy' | 'Prejudice';
+export type PsychologyType = 'Animosity' | 'Hatred' | 'Fear' | 'Terror' | 'Frenzy' | 'Prejudice' | 'Phobia' | 'Trauma';
 
 export interface PsychologyTrait {
   id: string;
@@ -125,6 +125,7 @@ export interface SpeciesData {
   skills: string[];
   talents: string[];
   randomTalentSlots?: number;
+  woundMultiplier?: number;
 }
 
 export interface TalentData {
@@ -582,6 +583,7 @@ export interface Character {
   magicalBurnout?: MagicalBurnout;
   consumables?: Consumable[];
   psychologyTraits?: PsychologyTrait[];
+  brokenTally?: number;
   rituals?: RitualItem[];
   arcaneMarks?: string[];
   initiativeList?: Combatant[];

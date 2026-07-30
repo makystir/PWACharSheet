@@ -104,7 +104,10 @@ describe('Feature: dwarf-weapons, Property 3: Range derivation correctness', () 
 // **Validates: Requirements 6.1, 6.4**
 
 describe('Feature: dwarf-weapons, Property 7: BP quality annotation invariant', () => {
-  it('a weapon has "BP" in its qualities iff group is "Blackpowder" OR name is "(2H) Drakegun" or "Drakefire Pistol"', () => {
+  // Ogre blackpowder weapons are crude and don't use standard powder/shot — they lack the BP quality
+  const OGRE_BLACKPOWDER_WEAPONS = ['Leadbelcher Gun', 'Ogre Pistol'];
+
+  it('a weapon has "BP" in its qualities iff group is "Blackpowder" (excluding Ogre weapons) OR name is "(2H) Drakegun" or "Drakefire Pistol"', () => {
     // Use fc.constantFrom to iterate over all weapons in the catalogue
     const weaponArb = fc.constantFrom(...WEAPONS);
 
@@ -112,7 +115,7 @@ describe('Feature: dwarf-weapons, Property 7: BP quality annotation invariant', 
       fc.property(weaponArb, (weapon) => {
         const hasBP = weapon.qualities.split(',').map(q => q.trim()).includes('BP');
         const shouldHaveBP =
-          weapon.group === 'Blackpowder' ||
+          (weapon.group === 'Blackpowder' && !OGRE_BLACKPOWDER_WEAPONS.includes(weapon.name)) ||
           weapon.name === '(2H) Drakegun' ||
           weapon.name === 'Drakefire Pistol';
 

@@ -21,7 +21,7 @@ describe('getSpeciesData', () => {
   });
 
   it('returns undefined for unknown species', () => {
-    expect(getSpeciesData('Ogre')).toBeUndefined();
+    expect(getSpeciesData('Gnome')).toBeUndefined();
   });
 });
 
@@ -121,7 +121,7 @@ describe('applySpeciesData — Property 3', () => {
 
   it('returns unchanged character for unknown species', () => {
     const char = makeBlankCharacter();
-    const result = applySpeciesData(char, 'Ogre');
+    const result = applySpeciesData(char, 'Gnome');
     expect(result.species).toBe('');
     expect(result.fate).toBe(0);
   });

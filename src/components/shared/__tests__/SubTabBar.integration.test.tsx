@@ -355,14 +355,18 @@ describe('Feature: reorderable-sub-tabs, Property 11: Hash Routes Use Tab IDs Re
 
   // ─── Generators ────────────────────────────────────────────────────────────
 
-  /** Generate an array of tabs with unique IDs (2-6 tabs) */
+  /** Generate an array of tabs with unique IDs AND unique labels (2-6 tabs) */
   const arbitraryTabs = fc.uniqueArray(
     fc.record({
       id: fc.string({ minLength: 1, maxLength: 12 }).filter((s) => /^[a-z][a-z0-9-]*$/.test(s)),
       label: fc.string({ minLength: 1, maxLength: 15 }).filter((s) => s.trim().length > 0 && !s.includes('\n')),
     }),
     { minLength: 2, maxLength: 6, selector: (tab) => tab.id }
-  );
+  ).filter((tabs) => {
+    // Ensure labels are also unique so that tabs.find(t => t.label === text) is unambiguous
+    const labels = tabs.map((t) => t.label);
+    return new Set(labels).size === labels.length;
+  });
 
   /** Generate tabs with a random permutation for storage order */
   const tabsWithPermutation = arbitraryTabs.chain((tabs) => {

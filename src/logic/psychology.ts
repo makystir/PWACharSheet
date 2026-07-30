@@ -1,4 +1,4 @@
-import type { PsychologyType } from '../types/character';
+import type { PsychologyType, PsychologyTrait } from '../types/character';
 
 export const PSYCHOLOGY_REMINDERS: Record<PsychologyType, string> = {
   Animosity: "Must pass Cool Test or verbally abuse/hinder target",
@@ -35,4 +35,24 @@ export function validatePsychologyTrait(
 
   // Frenzy: no additional fields required
   return true;
+}
+
+
+/**
+ * Remove a psychology trait by id from the list.
+ * Returns a new array without the entry matching the given id.
+ */
+export function removePsychologyTrait(
+  traits: PsychologyTrait[],
+  id: string
+): PsychologyTrait[] {
+  return traits.filter(t => t.id !== id);
+}
+
+/**
+ * Determine whether the phobia acquisition alert should be active.
+ * The alert is active if and only if brokenTally >= WP.
+ */
+export function isPhobiaAlertActive(brokenTally: number, wp: number): boolean {
+  return brokenTally >= wp;
 }

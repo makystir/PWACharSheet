@@ -91,6 +91,10 @@ export const WEAPONS: WeaponData[] = [
   // MELEE — HALFLING (Archives of the Empire)
   {name:"Iron Skillet",group:"Basic",enc:"1",rangeReach:"Average",damage:"+SB+3",qualities:"Defensive"},
   {name:"Nan's Cleaver",group:"Basic",enc:"1",rangeReach:"Average",damage:"+SB+3",qualities:"Hack"},
+  // MELEE — OGRE (Archives of the Empire Vol. II)
+  {name:"Ogre Club",group:"Basic",enc:"2",rangeReach:"Average",damage:"+SB+4",qualities:"— (non-Ogres treat as Improvised)"},
+  {name:"Ironfist",group:"Basic",enc:"2",rangeReach:"Short",damage:"+SB+3",qualities:"Shield 1, Defensive"},
+  {name:"(2H) Great Ogre Club",group:"Two-Handed",enc:"4",rangeReach:"Long",damage:"+SB+6",qualities:"Impact, Tiring"},
   // RANGED — SLING
   {name:"Sling",group:"Sling",enc:"0",damage:"+6",maxR:"60",optR:"20",rangeMod:"4",qualities:"—"},
   // RANGED — BOW
@@ -132,6 +136,12 @@ export const WEAPONS: WeaponData[] = [
   // RANGED — ENTANGLING
   {name:"Net",group:"Entangling",enc:"1",damage:"—",maxR:"4",optR:"—",rangeMod:"—",qualities:"Entangle"},
   {name:"Whip",group:"Entangling",enc:"0",damage:"+SB+2",maxR:"6",optR:"—",rangeMod:"—",qualities:"Entangle"},
+  // RANGED — OGRE (Archives of the Empire Vol. II)
+  {name:"Great Throwing Spear",group:"Throwing",enc:"2",damage:"+SB+4",maxR:"SBx3",optR:"1/3 max",rangeMod:"var",qualities:"Impale"},
+  {name:"Leadbelcher Gun",group:"Blackpowder",enc:"8",damage:"+10",maxR:"50",optR:"16",rangeMod:"10",reload:"5",qualities:"Dangerous, Reload 5"},
+  {name:"Ogre Pistol",group:"Blackpowder",enc:"3",damage:"+8",maxR:"20",optR:"6",rangeMod:"4",reload:"3",qualities:"Dangerous, Pistol, Reload 3"},
+  {name:"Harpoon Launcher",group:"Engineering",enc:"4",damage:"+SB+5",maxR:"30",optR:"10",rangeMod:"6",reload:"2",qualities:"Impale, Reload 2"},
+  {name:"Chain Trap",group:"Entangling",enc:"2",damage:"—",maxR:"SBx2",optR:"—",rangeMod:"—",qualities:"Entangle"},
   // RANGED — SLING (2H)
   {name:"(2H) Staff Sling",group:"Sling",enc:"2",damage:"+7",maxR:"100",optR:"33",rangeMod:"7",qualities:"—"},
   // RANGED — DWARF BLACKPOWDER
@@ -160,6 +170,9 @@ export const WEAPONS: WeaponData[] = [
   {name:"Swiftshiver Shafts (12)",group:"Ammunition",enc:"0",damage:"+1",qualities:"Blast 1, Penetrating"},
   // AMMUNITION — DWARF (Archives of the Empire)
   {name:"Drakefire Shot (12)",group:"Ammunition",enc:"0",damage:"+2",qualities:"Damaging"},
+  // AMMUNITION — OGRE (Archives of the Empire Vol. II)
+  {name:"Leadbelcher Shot (12)",group:"Ammunition",enc:"0",damage:"—",maxR:"Half Weapon",qualities:"Blast 3"},
+  {name:"Leadbelcher Ball (1)",group:"Ammunition",enc:"0",damage:"+4",qualities:"Penetrating, Impale, Impact"},
   {name:"Sharp Stick",group:"Ammunition",enc:"0",damage:"-2",qualities:"Dangerous, Imprecise, Undamaging"},
   {name:"Bolt",group:"Ammunition",enc:"0",damage:"-",qualities:"Impale"},
   {name:"Lead Bullet",group:"Ammunition",enc:"0",damage:"+1",qualities:"Pummel"},

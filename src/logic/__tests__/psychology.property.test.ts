@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { validatePsychologyTrait } from '../psychology';
-import type { PsychologyType } from '../../types/character';
+import { validatePsychologyTrait, removePsychologyTrait, isPhobiaAlertActive } from '../psychology';
+import type { PsychologyType, PsychologyTrait } from '../../types/character';
 
 // Feature: ux-polish-and-functionality, Property 10: Psychology Trait Validation
 
@@ -164,5 +164,120 @@ describe('Feature: ux-polish-and-functionality', () => {
         { numRuns: 100 }
       );
     });
+  });
+});
+
+
+// ─── Feature: archives-vol2-integration ─────────────────────────────────────
+
+describe('Feature: archives-vol2-integration, Property 5: Removing a psychology entry decreases list length', () => {
+  /**
+   * **Validates: Requirements 12.5**
+   *
+   * For any non-empty list of PsychologyTrait entries and any valid index within
+   * that list, removing the entry at that index SHALL result in a list that is
+   * shorter by exactly 1 and does not contain the removed entry's id.
+   */
+
+  const arbPsychType: fc.Arbitrary<PsychologyType> = fc.constantFrom(
+    'Animosity', 'Hatred', 'Fear', 'Terror', 'Frenzy', 'Prejudice'
+  );
+
+  const arbTrait: fc.Arbitrary<PsychologyTrait> = fc.record({
+    id: fc.uuid(),
+    type: arbPsychType,
+    target: fc.string({ minLength: 0, maxLength: 30 }),
+    rating: fc.option(fc.integer({ min: 1, max: 10 }), { nil: undefined }),
+  });
+
+  const arbNonEmptyTraitList: fc.Arbitrary<PsychologyTrait[]> = fc.array(arbTrait, { minLength: 1, maxLength: 20 });
+
+  it('removing an entry by id decreases list length by exactly 1 and removes that id', () => {
+    fc.assert(
+      fc.property(
+        arbNonEmptyTraitList,
+        (traits) => {
+          // Pick a valid index
+          const index = Math.floor(Math.random() * traits.length);
+          const targetId = traits[index].id;
+          const result = removePsychologyTrait(traits, targetId);
+
+          // Count how many entries had this id in the original list
+          const countWithId = traits.filter(t => t.id === targetId).length;
+
+          // Result should be shorter by the number of entries with that id
+          expect(result.length).toBe(traits.length - countWithId);
+          // Result should not contain the removed id
+          expect(result.some(t => t.id === targetId)).toBe(false);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('removing an entry preserves all other entries in order', () => {
+    fc.assert(
+      fc.property(
+        arbNonEmptyTraitList,
+        (traits) => {
+          const index = Math.floor(Math.random() * traits.length);
+          const targetId = traits[index].id;
+          const result = removePsychologyTrait(traits, targetId);
+
+          // All entries in result should be from original list (excluding removed id)
+          const expected = traits.filter(t => t.id !== targetId);
+          expect(result).toEqual(expected);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
+
+describe('Feature: archives-vol2-integration, Property 6: Broken tally threshold alert triggers correctly', () => {
+  /**
+   * **Validates: Requirements 12.7**
+   *
+   * For any WP characteristic value (1–99) and any brokenTally value (0–99),
+   * the phobia acquisition alert SHALL be active if and only if brokenTally >= WP.
+   */
+
+  it('alert is active if and only if brokenTally >= WP', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 99 }),
+        fc.integer({ min: 0, max: 99 }),
+        (wp, brokenTally) => {
+          const alertActive = isPhobiaAlertActive(brokenTally, wp);
+          const expected = brokenTally >= wp;
+          expect(alertActive).toBe(expected);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('alert is never active when brokenTally is 0 and WP is at least 1', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 99 }),
+        (wp) => {
+          expect(isPhobiaAlertActive(0, wp)).toBe(false);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('alert is always active when brokenTally equals WP', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 99 }),
+        (wp) => {
+          expect(isPhobiaAlertActive(wp, wp)).toBe(true);
+        }
+      ),
+      { numRuns: 100 }
+    );
   });
 });

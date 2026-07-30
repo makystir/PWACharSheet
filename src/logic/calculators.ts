@@ -12,13 +12,17 @@ export function getBonus(value: number): number {
  * Core wound calculation — single source of truth.
  * Both syncWoundFields and computeWoundMaximum delegate here.
  *
- * Formula: (woundsUseSB ? floor(S/10) : 0) + 2×floor(T/10) + floor(WP/10) + Hardy×floor(T/10)
+ * Formula: ((woundsUseSB ? floor(S/10) : 0) + 2×floor(T/10) + floor(WP/10)) × multiplier + Hardy×floor(T/10)
+ *
+ * The multiplier is applied to the base formula BEFORE Hardy is added.
+ * For Ogres (multiplier=2), Hardy is still added after doubling.
  *
  * @param strength - Total strength characteristic value
  * @param toughness - Total toughness characteristic value
  * @param willpower - Total willpower characteristic value
  * @param hardyLevel - Number of Hardy talent levels (0+)
  * @param woundsUseSB - Whether species uses SB in wound formula
+ * @param multiplier - Wound multiplier (default 1, Ogres use 2)
  * @returns Object with total and individual component values
  */
 function calculateWoundsCore(
@@ -26,7 +30,8 @@ function calculateWoundsCore(
   toughness: number,
   willpower: number,
   hardyLevel: number,
-  woundsUseSB: boolean
+  woundsUseSB: boolean,
+  multiplier: number = 1
 ): { total: number; sb: number; tb: number; wpb: number; hardy: number } {
   const sbRaw = Math.floor(strength / 10);
   const tbRaw = Math.floor(toughness / 10);
@@ -35,29 +40,32 @@ function calculateWoundsCore(
   const sb = woundsUseSB ? sbRaw : 0;
   const tb = 2 * tbRaw;
   const wpb = wpbRaw;
+  const base = (sb + tb + wpb) * multiplier;
   const hardy = hardyLevel * tbRaw;
-  const total = sb + tb + wpb + hardy;
+  const total = base + hardy;
 
   return { total, sb, tb, wpb, hardy };
 }
 
 /**
  * Calculates total wounds using the WFRP 4e formula:
- * (SB if woundsUseSB) + 2×TB + WPB + Hardy×TB
- * - Humans/Dwarves (woundsUseSB=true): SB + 2×TB + WPB + Hardy×TB
- * - Halflings/Elves (woundsUseSB=false): 2×TB + WPB + Hardy×TB
+ * ((SB if woundsUseSB) + 2×TB + WPB) × multiplier + Hardy×TB
+ * - Humans/Dwarves (woundsUseSB=true, multiplier=1): SB + 2×TB + WPB + Hardy×TB
+ * - Halflings/Elves (woundsUseSB=false, multiplier=1): 2×TB + WPB + Hardy×TB
+ * - Ogres (woundsUseSB=true, multiplier=2): (SB + 2×TB + WPB) × 2 + Hardy×TB
  * Result is always a non-negative integer.
  */
 export function calculateTotalWounds(
   chars: Record<CharacteristicKey, CharacteristicValue>,
   woundsUseSB: boolean,
-  hardyLevel: number
+  hardyLevel: number,
+  multiplier: number = 1
 ): number {
   const strength = chars.S.i + chars.S.a + chars.S.b;
   const toughness = chars.T.i + chars.T.a + chars.T.b;
   const willpower = chars.WP.i + chars.WP.a + chars.WP.b;
 
-  const { total } = calculateWoundsCore(strength, toughness, willpower, hardyLevel, woundsUseSB);
+  const { total } = calculateWoundsCore(strength, toughness, willpower, hardyLevel, woundsUseSB, multiplier);
   return Math.max(0, total);
 }
 
@@ -71,7 +79,7 @@ export function calculateTotalWounds(
  * woundsUseSB setting. The conditional inclusion happens at total computation time.
  * Delegates to calculateWoundsCore with woundsUseSB=true to obtain raw SB.
  */
-export function syncWoundFields(character: Character, hardyLevel: number): Character {
+export function syncWoundFields(character: Character, hardyLevel: number, multiplier: number = 1): Character {
   const { chars } = character;
 
   const strength = chars.S.i + chars.S.a + chars.S.b;
@@ -79,7 +87,7 @@ export function syncWoundFields(character: Character, hardyLevel: number): Chara
   const willpower = chars.WP.i + chars.WP.a + chars.WP.b;
 
   // Always pass woundsUseSB=true so sb returns the raw strength bonus
-  const core = calculateWoundsCore(strength, toughness, willpower, hardyLevel, true);
+  const core = calculateWoundsCore(strength, toughness, willpower, hardyLevel, true, multiplier);
 
   const wSB = core.sb;
   const wTB2 = core.tb;
@@ -113,13 +121,14 @@ export interface WoundMaxResult {
  * Computes wound maximum with a full formula breakdown.
  * Delegates to calculateWoundsCore and returns the WoundMaxResult shape.
  *
- * Formula: (woundsUseSB ? floor(S/10) : 0) + 2×floor(T/10) + floor(WP/10) + Hardy×floor(T/10)
+ * Formula: ((woundsUseSB ? floor(S/10) : 0) + 2×floor(T/10) + floor(WP/10)) × multiplier + Hardy×floor(T/10)
  *
  * @param strength - Total strength characteristic value
  * @param toughness - Total toughness characteristic value
  * @param willpower - Total willpower characteristic value
  * @param hardyLevel - Number of Hardy talent levels (0+)
  * @param woundsUseSB - Whether species uses SB in wound formula
+ * @param multiplier - Wound multiplier (default 1, Ogres use 2)
  * @returns WoundMaxResult with total and individual component values
  */
 export function computeWoundMaximum(
@@ -127,9 +136,10 @@ export function computeWoundMaximum(
   toughness: number,
   willpower: number,
   hardyLevel: number,
-  woundsUseSB: boolean
+  woundsUseSB: boolean,
+  multiplier: number = 1
 ): WoundMaxResult {
-  return calculateWoundsCore(strength, toughness, willpower, hardyLevel, woundsUseSB);
+  return calculateWoundsCore(strength, toughness, willpower, hardyLevel, woundsUseSB, multiplier);
 }
 
 /** Body location keys used for armour point calculation. */

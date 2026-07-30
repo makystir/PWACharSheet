@@ -35,6 +35,7 @@ export const LORE_CATEGORIES = [
   "Miracles of Taal",
   "Miracles of Ulric",
   "Miracles of Verena",
+  "Lore of the Great Maw",
 ] as const;
 
 /** Canonical display ordering for lore groups in the spell picker */
@@ -64,6 +65,8 @@ export const LORE_DISPLAY_ORDER: string[] = [
   "Magic of Vaul",
   "Magic of Mathlann",
   "Magic of Hoeth",
+  // Ogre
+  "Lore of the Great Maw",
   // Blessings & Miracles
   "Blessings",
   "Miracles of Manann",
@@ -555,4 +558,13 @@ export const SPELL_LIST: SpellData[] = [
   {name:"Sword of Justice",cn:"-",range:"You",target:"You",duration:"FelB rounds",effect:"Sword ignores AP and counts as Magical; criminal targets must pass Average (+20) Endurance or gain Unconscious for FelB rounds",lore:"Miracles of Verena"},
   {name:"Truth Will Out",cn:"-",range:"FelB yards",target:"1",duration:"Instant",effect:"Ask target a single question answered truthfully; target may resist with Average (+20) Cool Test; +2 SL withholds minor info, +4 SL significant, +6 SL may lie",lore:"Miracles of Verena"},
   {name:"Wisdom of the Owl",cn:"-",range:"You",target:"You",duration:"FelB rounds",effect:"+20 to all Intelligence Tests; gain +1 Menacing and Acute Sense (Sight) Talent",lore:"Miracles of Verena"},
+
+  // LORE OF THE GREAT MAW
+  {name:"Bonecrusher",cn:"5",range:"WP yards",target:"1",duration:"Instant",effect:"Magic missile dealing +4 damage that ignores armour points",lore:"Lore of the Great Maw"},
+  {name:"Bullgorger",cn:"5",range:"WPB yards",target:"1",duration:"WPB Rounds",effect:"Target gains +2 SB",lore:"Lore of the Great Maw"},
+  {name:"Braingobbler",cn:"5",range:"You",target:"You",duration:"WPB Rounds",effect:"Caster gains Fear 2",lore:"Lore of the Great Maw"},
+  {name:"Taste Death",cn:"2",range:"You",target:"You",duration:"Instant",effect:"Learn the cause of death from a corpse the caster is touching",lore:"Lore of the Great Maw"},
+  {name:"Trollguts",cn:"7",range:"TB yards",target:"1",duration:"TB Rounds",effect:"Target gains the Regenerate trait",lore:"Lore of the Great Maw"},
+  {name:"The Maw",cn:"11",range:"WP yards",target:"AoE (WPB yards)",duration:"WPB Rounds",effect:"Creates a pit that deals Damage +10 and applies Entangle",lore:"Lore of the Great Maw"},
+  {name:"Feast of the Fallen",cn:"9",range:"You",target:"Special",duration:"WPB Rounds",effect:"All allies within WPB yards gain the Vampiric trait",lore:"Lore of the Great Maw"},
 ];

@@ -27,4 +27,5 @@ export const ARMOURS: ArmourData[] = [
   {name:"Ithilmar Helm",locations:"Head",enc:"1",ap:2,qualities:"Impenetrable"},
   {name:"Mail Skirt",locations:"Legs",enc:"1",ap:1,qualities:"—"},
   {name:"Miner's Helm",locations:"Head",enc:"1",ap:1,qualities:"—"},
+  {name:"Ogre Gutplate",locations:"Body",enc:"—",ap:3,qualities:"Impenetrable"},
 ];

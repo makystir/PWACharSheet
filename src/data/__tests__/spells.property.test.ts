@@ -75,6 +75,43 @@ const SPELL_BY_NAME = new Map(SPELL_LIST.map(s => [s.name, s]));
 
 // ─── Property Tests ──────────────────────────────────────────────────────────
 
+describe('Feature: archives-vol2-integration, Property 3: Lore of the Great Maw spells have complete data', () => {
+  /**
+   * Property 3: Lore of the Great Maw spells have complete data
+   * For any spell in SPELL_LIST with lore === "Lore of the Great Maw", the spell entry SHALL have
+   * non-empty name, cn, range, target, duration, effect, and lore fields, and the cn field SHALL
+   * be a valid positive integer string.
+   *
+   * Validates: Requirements 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8
+   */
+  it('Lore of the Great Maw spells have complete data with valid positive integer CN', () => {
+    const greatMawSpells = SPELL_LIST.filter(s => s.lore === 'Lore of the Great Maw');
+    expect(greatMawSpells.length).toBeGreaterThan(0);
+
+    fc.assert(
+      fc.property(
+        fc.constantFrom(...greatMawSpells),
+        (spell) => {
+          // All fields must be non-empty strings
+          expect(spell.name.length).toBeGreaterThan(0);
+          expect(spell.cn.length).toBeGreaterThan(0);
+          expect(spell.range.length).toBeGreaterThan(0);
+          expect(spell.target.length).toBeGreaterThan(0);
+          expect(spell.duration.length).toBeGreaterThan(0);
+          expect(spell.effect.length).toBeGreaterThan(0);
+          expect(spell.lore.length).toBeGreaterThan(0);
+
+          // CN must be a valid positive integer
+          const cn = parseInt(spell.cn, 10);
+          expect(Number.isNaN(cn)).toBe(false);
+          expect(cn).toBeGreaterThan(0);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
+
 describe('Feature: empire-deity-miracles', () => {
   /**
    * Property 1: All canonical miracles exist in SPELL_LIST

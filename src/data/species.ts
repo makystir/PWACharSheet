@@ -273,6 +273,17 @@ export const SPECIES_DATA: Record<string, SpeciesData> = {
     skills: ["Cool", "Endurance", "Entertain (Singing)", "Evaluate", "Gossip", "Haggle", "Language (Eltharin)", "Language (Any)", "Melee (Basic)", "Navigation", "Sail", "Swim"],
     talents: ["Acute Sense (Sight)", "Night Vision", "Old Salt or Strong Swimmer", "Orientation or Sixth Sense", "Read/Write"],
   },
+  "Ogre": {
+    chars: { WS: 20, BS: 10, S: 35, T: 35, I: 0, Ag: 15, Dex: 10, Int: 10, WP: 20, Fel: 10 } as Record<CharacteristicKey, number>,
+    move: 6,
+    fate: 0,
+    resilience: 3,
+    extraPoints: 1,
+    woundsUseSB: true,
+    woundMultiplier: 2,
+    skills: ["Athletics", "Consume Alcohol", "Endurance", "Entertain (Storytelling)", "Intimidate", "Language (Grumbarth)", "Lore (Ogres)", "Melee (Basic)", "Melee (Brawling)", "Navigation", "Outdoor Survival", "Track"],
+    talents: ["Dirty Fighting", "Large", "Resistance (Chaos)", "Resistance (Poison (Ingested))", "Very Resilient or Very Strong", "Vice (Food)"],
+  },
 };
 
 export const SPECIES_OPTIONS = Object.keys(SPECIES_DATA);

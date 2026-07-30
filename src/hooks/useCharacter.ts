@@ -97,10 +97,12 @@ export function backfillCharacter(char: Character, weaponsRef?: WeaponData[]): C
   // Sync wound component fields on load to fix stale values from localStorage
   const hardy = patched.talents.find(t => t.n === 'Hardy');
   const hardyLevel = hardy ? hardy.lvl : 0;
-  patched = syncWoundFields(patched, hardyLevel);
+  const speciesDataForWounds = patched.species ? SPECIES_DATA[patched.species] : undefined;
+  const woundMultiplier = speciesDataForWounds?.woundMultiplier ?? 1;
+  patched = syncWoundFields(patched, hardyLevel, woundMultiplier);
 
   // Auto-initialize wCur for new characters (wCur=0 means "never initialized" when wound max > 0)
-  const totalWounds = calculateTotalWounds(patched.chars, patched.woundsUseSB, hardyLevel);
+  const totalWounds = calculateTotalWounds(patched.chars, patched.woundsUseSB, hardyLevel, woundMultiplier);
   if (patched.wCur === 0 && totalWounds > 0) {
     patched.wCur = totalWounds;
   }
@@ -233,19 +235,26 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     return hardy ? hardy.lvl : 0;
   }, [character.talents]);
 
+  // Derive wound multiplier from species data
+  const woundMultiplier = useMemo(() => {
+    if (!character.species) return 1;
+    const speciesData = SPECIES_DATA[character.species];
+    return speciesData?.woundMultiplier ?? 1;
+  }, [character.species]);
+
   useEffect(() => {
     setCharacter(prev => {
-      let synced = syncWoundFields(prev, hardyLevel);
+      let synced = syncWoundFields(prev, hardyLevel, woundMultiplier);
 
       // Auto-initialize wCur when characteristics first become non-zero
-      const totalWounds = calculateTotalWounds(synced.chars, synced.woundsUseSB, hardyLevel);
+      const totalWounds = calculateTotalWounds(synced.chars, synced.woundsUseSB, hardyLevel, woundMultiplier);
       if (synced.wCur === 0 && totalWounds > 0) {
         synced = synced === prev ? { ...prev, wCur: totalWounds } : { ...synced, wCur: totalWounds };
       }
 
       return synced === prev ? prev : synced;
     });
-  }, [character.chars, character.woundsUseSB, hardyLevel]);
+  }, [character.chars, character.woundsUseSB, hardyLevel, woundMultiplier]);
 
   // Evaluate Fatigued→Unconscious threshold after any condition update
   const conditionsJson = JSON.stringify(character.conditions);
@@ -300,8 +309,8 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
   }, [character.armour]);
 
   const totalWounds = useMemo(
-    () => calculateTotalWounds(character.chars, character.woundsUseSB, hardyLevel),
-    [character.chars, character.woundsUseSB, hardyLevel]
+    () => calculateTotalWounds(character.chars, character.woundsUseSB, hardyLevel, woundMultiplier),
+    [character.chars, character.woundsUseSB, hardyLevel, woundMultiplier]
   );
 
   const armourPoints = useMemo(

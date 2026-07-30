@@ -46,6 +46,10 @@ export function isHumanSpecies(species: string): boolean {
   return species.toLowerCase().includes('human') || species.toLowerCase().includes('reiklander');
 }
 
+export function isOgreSpecies(species: string): boolean {
+  return species === 'Ogre';
+}
+
 // ─── Career restriction lists ────────────────────────────────────────────────
 
 /** Careers only available to Dwarf characters */
@@ -91,6 +95,13 @@ const HALFLING_ONLY_CAREERS = [
   'Badger Rider',
 ];
 
+/** Careers only available to Ogre characters */
+const OGRE_ONLY_CAREERS = [
+  'Maneater',
+  'Rhinox Herder',
+  'Ogre Butcher',
+];
+
 /** Human-only Imperial College Wizard careers (require Human Petty Magic → College path) */
 const COLLEGE_WIZARD_CAREERS = [
   'Hierophant',
@@ -130,6 +141,7 @@ export function getExcludedCareers(species: string): string[] {
   const isElf = isElfSpecies(species);
   const isHalfling = isHalflingSpecies(species);
   const isHuman = isHumanSpecies(species);
+  const isOgre = isOgreSpecies(species);
 
   // Exclude Dwarf-only careers for non-Dwarfs
   if (!isDwarf) {
@@ -144,6 +156,11 @@ export function getExcludedCareers(species: string): string[] {
   // Exclude Halfling-only careers for non-Halflings
   if (!isHalfling) {
     excluded.push(...HALFLING_ONLY_CAREERS);
+  }
+
+  // Exclude Ogre-only careers for non-Ogres
+  if (!isOgre) {
+    excluded.push(...OGRE_ONLY_CAREERS);
   }
 
   // Exclude College Wizard + Human-only supporting careers for non-Humans

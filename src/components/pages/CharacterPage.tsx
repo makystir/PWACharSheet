@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { Character, CharacteristicKey, ArmourPoints, Skill, Talent, SpellItem } from '../../types/character';
+import type { Character, CharacteristicKey, ArmourPoints, Skill, Talent, SpellItem, PsychologyTrait, PsychologyType } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -16,7 +16,7 @@ import { Toast } from '../shared/Toast';
 import { Tooltip } from '../shared/Tooltip';
 import { getPortraitStore } from '../../storage/portrait-store';
 import { applySpeciesData } from '../../logic/species';
-import { SPECIES_OPTIONS } from '../../data/species';
+import { SPECIES_OPTIONS, SPECIES_DATA } from '../../data/species';
 import { SPELL_LIST } from '../../data/spells';
 import { ADV_SKILL_DB } from '../../data/advanced-skills';
 import { TALENT_DB } from '../../data/talents';
@@ -54,6 +54,7 @@ import { getHelpContent } from '../../logic/help-content';
 import { CurrencyInput } from '../shared/CurrencyInput';
 import { ConsumablesPanel } from '../shared/ConsumablesPanel';
 import { PsychologyPanel } from '../shared/PsychologyPanel';
+import { PsychologyTracker } from './PsychologyTracker';
 import { SessionNotesPanel } from '../shared/SessionNotesPanel';
 import { applyCurrencyDelta } from '../../logic/currency';
 import { filterSkills } from '../../logic/skill-filter';
@@ -569,7 +570,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         const WP = character.chars.WP.i + character.chars.WP.a + character.chars.WP.b;
         const hardyTalent = character.talents.find(t => t.n === 'Hardy');
         const hardyLvl = hardyTalent ? hardyTalent.lvl : 0;
-        const woundResult = computeWoundMaximum(S, T, WP, hardyLvl, character.woundsUseSB);
+        const speciesWoundData = character.species ? SPECIES_DATA[character.species] : undefined;
+        const woundMult = speciesWoundData?.woundMultiplier ?? 1;
+        const woundResult = computeWoundMaximum(S, T, WP, hardyLvl, character.woundsUseSB, woundMult);
         const effectiveMax = character.eMaxOverride != null ? character.eMaxOverride : woundResult.total;
 
         const formulaParts: string[] = [];
@@ -615,6 +618,39 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           </Card>
         );
       })()}
+      </CollapsibleSection>
+
+      {/* Psychology Tracker (Archives Vol. II) */}
+      <CollapsibleSection title="Psychology Tracker" storageKey="collapsible-psychology-tracker" defaultExpanded={true}>
+        <PsychologyTracker
+          psychologyTraits={character.psychologyTraits ?? []}
+          brokenTally={character.brokenTally ?? 0}
+          wpValue={character.chars.WP.i + character.chars.WP.a + character.chars.WP.b}
+          onAddTrait={(type, target, rating) => {
+            const newTrait: PsychologyTrait = {
+              id: crypto.randomUUID(),
+              type: type as PsychologyType,
+              target,
+              rating,
+            };
+            updateCharacter((c) => ({
+              ...c,
+              psychologyTraits: [...(c.psychologyTraits ?? []), newTrait],
+            }));
+          }}
+          onRemoveTrait={(id) => {
+            updateCharacter((c) => ({
+              ...c,
+              psychologyTraits: (c.psychologyTraits ?? []).filter((t) => t.id !== id),
+            }));
+          }}
+          onIncrementBrokenTally={() => {
+            updateCharacter((c) => ({
+              ...c,
+              brokenTally: (c.brokenTally ?? 0) + 1,
+            }));
+          }}
+        />
       </CollapsibleSection>
       </>)}
 
