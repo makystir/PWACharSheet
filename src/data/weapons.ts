@@ -80,6 +80,17 @@ export const WEAPONS: WeaponData[] = [
   {name:"(2H) Steam Drill",group:"Engineering",enc:"3",rangeReach:"Short",damage:"+SB+6",qualities:"Impact, Impale"},
   {name:"Cog Axe",group:"Engineering",enc:"2",rangeReach:"Average",damage:"+SB+4",qualities:"Hack, Penetrating, Trap Blade"},
   {name:"Steam Gauntlet",group:"Engineering",enc:"2",rangeReach:"Very Short",damage:"+SB+7",qualities:"Pummel, Shield 1"},
+  // MELEE — EONIR (Archives of the Empire)
+  {name:"Eonir War Blade",group:"Basic",enc:"0",rangeReach:"Average",damage:"+SB+3",qualities:"Precise"},
+  {name:"(2H) Eonir Spear",group:"Polearm",enc:"1",rangeReach:"Long",damage:"+SB+4",qualities:"Penetrating"},
+  {name:"Wildwood Sword",group:"Two-Handed",enc:"2",rangeReach:"Long",damage:"+SB+5",qualities:"Hack"},
+  // MELEE — DWARF (Archives of the Empire)
+  {name:"Bearded Axe",group:"Basic",enc:"2",rangeReach:"Average",damage:"+SB+4",qualities:"Trap Blade"},
+  {name:"Dwarf Hammer",group:"Basic",enc:"2",rangeReach:"Average",damage:"+SB+4",qualities:"Pummel"},
+  {name:"(2H) Slayer's Axe",group:"Two-Handed",enc:"3",rangeReach:"Long",damage:"+SB+6",qualities:"Hack, Impact"},
+  // MELEE — HALFLING (Archives of the Empire)
+  {name:"Iron Skillet",group:"Basic",enc:"1",rangeReach:"Average",damage:"+SB+3",qualities:"Defensive"},
+  {name:"Nan's Cleaver",group:"Basic",enc:"1",rangeReach:"Average",damage:"+SB+3",qualities:"Hack"},
   // RANGED — SLING
   {name:"Sling",group:"Sling",enc:"0",damage:"+6",maxR:"60",optR:"20",rangeMod:"4",qualities:"—"},
   // RANGED — BOW
@@ -116,6 +127,8 @@ export const WEAPONS: WeaponData[] = [
   {name:"Rock",group:"Throwing",enc:"0",damage:"+SB",maxR:"STRx2",optR:"1/3 max",rangeMod:"var",qualities:"Pummel"},
   {name:"Throwing Axe",group:"Throwing",enc:"1",damage:"+SB+3",maxR:"STR",optR:"1/3 max",rangeMod:"var",qualities:"Hack"},
   {name:"Throwing Knife",group:"Throwing",enc:"0",damage:"+SB+2",maxR:"STR",optR:"1/3 max",rangeMod:"var",qualities:"—"},
+  // RANGED — EONIR THROWING (Archives of the Empire)
+  {name:"Blackbriar Javelin",group:"Throwing",enc:"1",damage:"+SB+3",maxR:"SBx3",optR:"1/3 max",rangeMod:"var",qualities:"Impale, Poisoned"},
   // RANGED — ENTANGLING
   {name:"Net",group:"Entangling",enc:"1",damage:"—",maxR:"4",optR:"—",rangeMod:"—",qualities:"Entangle"},
   {name:"Whip",group:"Entangling",enc:"0",damage:"+SB+2",maxR:"6",optR:"—",rangeMod:"—",qualities:"Entangle"},
@@ -142,6 +155,11 @@ export const WEAPONS: WeaponData[] = [
   {name:"Barbed Arrow",group:"Ammunition",enc:"0",damage:"-",qualities:"Impale, Slash (1A)"},
   {name:"Bodkin Arrow",group:"Ammunition",enc:"0",damage:"-",qualities:"Impale, Penetrating"},
   {name:"Elf Arrow",group:"Ammunition",enc:"0",damage:"+1",qualities:"Accurate, Impale, Penetrating"},
+  // AMMUNITION — EONIR (Archives of the Empire)
+  {name:"Starfire Shafts (12)",group:"Ammunition",enc:"0",damage:"-",qualities:"Accurate, Impale"},
+  {name:"Swiftshiver Shafts (12)",group:"Ammunition",enc:"0",damage:"+1",qualities:"Blast 1, Penetrating"},
+  // AMMUNITION — DWARF (Archives of the Empire)
+  {name:"Drakefire Shot (12)",group:"Ammunition",enc:"0",damage:"+2",qualities:"Damaging"},
   {name:"Sharp Stick",group:"Ammunition",enc:"0",damage:"-2",qualities:"Dangerous, Imprecise, Undamaging"},
   {name:"Bolt",group:"Ammunition",enc:"0",damage:"-",qualities:"Impale"},
   {name:"Lead Bullet",group:"Ammunition",enc:"0",damage:"+1",qualities:"Pummel"},
