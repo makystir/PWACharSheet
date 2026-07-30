@@ -262,6 +262,49 @@ describe('SettingsPage — Advantage Cap input', () => {
   });
 });
 
+// ─── 2.2: Psychology Tracker toggle (Optional Mechanics) ────────────────────
+
+describe('SettingsPage — Psychology Tracker toggle', () => {
+  it('renders "Psychology Tracker" label in the Optional Mechanics section', () => {
+    render(<SettingsPage {...makeProps()} />);
+    expect(screen.getByText('Psychology Tracker')).toBeInTheDocument();
+    expect(screen.getByText('Track phobias, animosity, hatred, and trauma (Archives Vol. II)')).toBeInTheDocument();
+  });
+
+  it('shows OFF when usePsychologyTracker is false (default)', () => {
+    render(<SettingsPage {...makeProps()} />);
+    const toggle = findToggleButton('Psychology Tracker');
+    expect(toggle).toHaveTextContent('OFF');
+  });
+
+  it('shows ON when usePsychologyTracker is true', () => {
+    const character = structuredClone(BLANK_CHARACTER);
+    character.houseRules.usePsychologyTracker = true;
+    render(<SettingsPage {...makeProps({ character })} />);
+    const toggle = findToggleButton('Psychology Tracker');
+    expect(toggle).toHaveTextContent('ON');
+  });
+
+  it('clicking toggle calls update to enable usePsychologyTracker', () => {
+    const update = vi.fn();
+    render(<SettingsPage {...makeProps({ update })} />);
+    // Default is false, so clicking should call update with true
+    const toggle = findToggleButton('Psychology Tracker');
+    fireEvent.click(toggle);
+    expect(update).toHaveBeenCalledWith('houseRules.usePsychologyTracker', true);
+  });
+
+  it('clicking toggle calls update to disable usePsychologyTracker', () => {
+    const update = vi.fn();
+    const character = structuredClone(BLANK_CHARACTER);
+    character.houseRules.usePsychologyTracker = true;
+    render(<SettingsPage {...makeProps({ update, character })} />);
+    const toggle = findToggleButton('Psychology Tracker');
+    fireEvent.click(toggle);
+    expect(update).toHaveBeenCalledWith('houseRules.usePsychologyTracker', false);
+  });
+});
+
 // ─── 5.2: RAW default labels ────────────────────────────────────────────────
 
 describe('SettingsPage — RAW default labels', () => {

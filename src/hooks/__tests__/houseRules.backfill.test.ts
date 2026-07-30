@@ -37,6 +37,7 @@ const RAW_DEFAULTS = {
   useGroupAdvantage: false,
   useYenlui: false,
   useGrudgeBook: false,
+  usePsychologyTracker: false,
 };
 
 /** Create a character missing the houseRules field (simulates pre-feature data). */
@@ -67,6 +68,7 @@ describe('Backfill — character loaded without houseRules', () => {
       useGroupAdvantage: false,
       useYenlui: false,
       useGrudgeBook: false,
+      usePsychologyTracker: false,
     };
 
     const patched = backfillCharacter(char);
@@ -79,6 +81,7 @@ describe('Backfill — character loaded without houseRules', () => {
       useGroupAdvantage: false,
       useYenlui: false,
       useGrudgeBook: false,
+      usePsychologyTracker: false,
     });
   });
 });
@@ -125,6 +128,7 @@ describe('Import — character imported with custom houseRules', () => {
       useGroupAdvantage: false,
       useYenlui: false,
       useGrudgeBook: false,
+      usePsychologyTracker: false,
     };
     const importData = {
       _v: 6,
@@ -192,6 +196,7 @@ describe('Import — character imported with custom houseRules', () => {
       useGroupAdvantage: false,
       useYenlui: false,
       useGrudgeBook: false,
+      usePsychologyTracker: false,
     };
 
     const json = exportToJSON(original);

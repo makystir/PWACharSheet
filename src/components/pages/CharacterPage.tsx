@@ -620,7 +620,8 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       })()}
       </CollapsibleSection>
 
-      {/* Psychology Tracker (Archives Vol. II) */}
+      {/* Psychology Tracker (Archives Vol. II) — only when enabled */}
+      {character.houseRules.usePsychologyTracker && (
       <CollapsibleSection title="Psychology Tracker" storageKey="collapsible-psychology-tracker" defaultExpanded={true}>
         <PsychologyTracker
           psychologyTraits={character.psychologyTraits ?? []}
@@ -652,6 +653,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           }}
         />
       </CollapsibleSection>
+      )}
       </>)}
 
       {/* ═══ ABILITIES TAB ═══ */}

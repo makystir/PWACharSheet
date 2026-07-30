@@ -493,6 +493,7 @@ export interface HouseRules {
   useGroupAdvantage: boolean;
   useYenlui: boolean;
   useGrudgeBook: boolean;
+  usePsychologyTracker: boolean;
 }
 
 export interface Character {
@@ -746,6 +747,7 @@ export const BLANK_CHARACTER: Character = {
     useGroupAdvantage: false,
     useYenlui: false,
     useGrudgeBook: false,
+    usePsychologyTracker: false,
   },
   knownRunes: [],
   learnedTechniques: [],

@@ -80,6 +80,9 @@ export function backfillCharacter(char: Character, weaponsRef?: WeaponData[]): C
 
   if (!patched.houseRules) {
     patched.houseRules = structuredClone(BLANK_CHARACTER.houseRules);
+  } else {
+    // Merge defaults for any newly-added houseRules fields (backward compatibility)
+    patched.houseRules = { ...structuredClone(BLANK_CHARACTER.houseRules), ...patched.houseRules };
   }
 
   // Fix weapon damage formulas from old exports that had incorrect values

@@ -507,6 +507,25 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                 </button>
               </div>
             </div>
+
+            {/* Psychology Tracker */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Psychology Tracker</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.usePsychologyTracker ? { color: 'var(--text-muted)' } : undefined}>
+                    Track phobias, animosity, hatred, and trauma (Archives Vol. II)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.usePsychologyTracker', !character.houseRules.usePsychologyTracker)}
+                  className={character.houseRules.usePsychologyTracker ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.usePsychologyTracker ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
           </div>
         </CollapsibleSection>
       </Card>
