@@ -184,6 +184,13 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                     updateCharacter((c) => ({ ...c, weapons: restoreAtIndex(c.weapons, item as typeof weapon, index) }));
                   });
                 }}
+                onUpdateWeapon={(i, field, value) => {
+                  updateCharacter((c) => {
+                    const weapons = [...c.weapons];
+                    weapons[i] = { ...weapons[i], [field]: value };
+                    return { ...c, weapons };
+                  });
+                }}
                 onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'weapon', index: i })}
                 onOpenWeaponPicker={() => setShowWeaponPicker(true)}
                 onAddCustomWeapon={() => updateCharacter((c) => ({ ...c, weapons: [...c.weapons, { name: '', group: '', enc: '0', damage: '', qualities: '' }] }))} />

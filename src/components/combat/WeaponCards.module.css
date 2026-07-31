@@ -135,6 +135,78 @@
   opacity: 0.5;
 }
 
+/* Edit form */
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.editRow {
+  display: flex;
+  gap: 6px;
+}
+
+.editInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.editInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.editInputSmall {
+  composes: editInput;
+  max-width: 60px;
+  text-align: center;
+}
+
+.editDoneBtn {
+  align-self: flex-end;
+  padding: 4px 12px;
+  background: rgba(90, 154, 90, 0.15);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.editDoneBtn:hover {
+  background: rgba(90, 154, 90, 0.25);
+}
+
+.editBtn {
+  min-width: 28px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.editBtn:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
 /* Rune badge — shown in secondary line when runes > 0, or in overflow */
 .runeBadge {
   display: inline-flex;

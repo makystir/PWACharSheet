@@ -16,6 +16,7 @@ export interface WeaponCardsProps {
   character: Character;
   onRollWeapon: (weapon: WeaponItem) => void;
   onDeleteWeapon?: (weaponIndex: number) => void;
+  onUpdateWeapon?: (weaponIndex: number, field: keyof WeaponItem, value: string) => void;
   onOpenRuneManager?: (weaponIndex: number) => void;
   onOpenWeaponPicker?: () => void;
   onAddCustomWeapon?: () => void;
@@ -26,12 +27,14 @@ export function WeaponCards({
   character,
   onRollWeapon,
   onDeleteWeapon,
+  onUpdateWeapon,
   onOpenRuneManager,
   onOpenWeaponPicker,
   onAddCustomWeapon,
 }: WeaponCardsProps) {
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const handleCardTap = (index: number) => {
     setExpandedIndex((prev) => (prev === index ? null : index));
@@ -75,8 +78,70 @@ export function WeaponCards({
                 key={i}
                 className={`${styles.weaponCard}${isExpanded ? ` ${styles.expanded}` : ''}`}
                 data-testid={`weapon-card-${i}`}
-                onClick={() => handleCardTap(i)}
+                onClick={() => { if (editingIndex !== i) handleCardTap(i); }}
               >
+                {editingIndex === i && onUpdateWeapon ? (
+                  <div className={styles.editForm} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="text"
+                      value={w.name}
+                      onChange={(e) => onUpdateWeapon(i, 'name', e.target.value)}
+                      placeholder="Weapon name"
+                      className={styles.editInput}
+                      aria-label="Weapon name"
+                    />
+                    <div className={styles.editRow}>
+                      <input
+                        type="text"
+                        value={w.group}
+                        onChange={(e) => onUpdateWeapon(i, 'group', e.target.value)}
+                        placeholder="Group (e.g. Basic)"
+                        className={styles.editInput}
+                        aria-label="Weapon group"
+                      />
+                      <input
+                        type="text"
+                        value={w.damage}
+                        onChange={(e) => onUpdateWeapon(i, 'damage', e.target.value)}
+                        placeholder="Damage (e.g. SB+4)"
+                        className={styles.editInput}
+                        aria-label="Weapon damage"
+                      />
+                    </div>
+                    <div className={styles.editRow}>
+                      <input
+                        type="text"
+                        value={w.rangeReach || ''}
+                        onChange={(e) => onUpdateWeapon(i, 'rangeReach', e.target.value)}
+                        placeholder="Range/Reach"
+                        className={styles.editInput}
+                        aria-label="Range or reach"
+                      />
+                      <input
+                        type="text"
+                        value={w.enc}
+                        onChange={(e) => onUpdateWeapon(i, 'enc', e.target.value)}
+                        placeholder="Enc"
+                        className={styles.editInputSmall}
+                        aria-label="Encumbrance"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={w.qualities}
+                      onChange={(e) => onUpdateWeapon(i, 'qualities', e.target.value)}
+                      placeholder="Qualities (e.g. Fast, Impale)"
+                      className={styles.editInput}
+                      aria-label="Weapon qualities"
+                    />
+                    <button
+                      type="button"
+                      className={styles.editDoneBtn}
+                      onClick={() => setEditingIndex(null)}
+                    >Done</button>
+                  </div>
+                ) : (
+                <>
                 {/* Primary row: name + damage + range/reach + roll */}
                 <div className={styles.primaryRow}>
                   <div className={styles.weaponName} title={w.name}>{w.name || 'Unnamed'}</div>
@@ -90,6 +155,14 @@ export function WeaponCards({
                       <span className={styles.statChipValueSecondary}>{rangeReach}</span>
                     </div>
                   </div>
+                  {onUpdateWeapon && (
+                    <button
+                      type="button"
+                      className={styles.editBtn}
+                      onClick={(e) => { e.stopPropagation(); setEditingIndex(i); }}
+                      aria-label={`Edit ${w.name || 'weapon'}`}
+                    >✎</button>
+                  )}
                   <button
                     type="button"
                     className={styles.rollBtn}
@@ -138,6 +211,8 @@ export function WeaponCards({
                     </button>
                   )}
                 </div>
+                </>
+                )}
               </div>
             );
           })}
