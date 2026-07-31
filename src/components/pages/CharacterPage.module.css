@@ -53,6 +53,11 @@
   margin: 0 auto;
 }
 
+/* Constrain columns that contain numInputs or dice buttons */
+.skillTableCompact .tdCenter {
+  width: 60px;
+}
+
 /* Dice roll button */
 .diceBtn {
   background: none;
@@ -123,6 +128,26 @@
 
 .charTable {
   table-layout: fixed;
+}
+
+/* Force narrow columns to stay compact */
+.charTable .thCenter,
+.charTable .tdCenter {
+  width: 70px;
+}
+
+.skillCharCol {
+  composes: td from '../shared/styles/shared.module.css';
+  text-align: center;
+  width: 50px;
+  color: var(--text-muted);
+}
+
+.skillTotalCol {
+  composes: td from '../shared/styles/shared.module.css';
+  font-weight: 600;
+  text-align: center;
+  width: 55px;
 }
 
 .charKey {
@@ -254,18 +279,6 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
-.skillCharCol {
-  composes: td from '../shared/styles/shared.module.css';
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.skillTotalCol {
-  composes: td from '../shared/styles/shared.module.css';
-  font-weight: 600;
-  text-align: center;
-}
-
 /* Career skill highlighting */
 .careerSkillRow {
   border-left: 3px solid var(--accent-gold);
@@ -288,6 +301,10 @@
 .skillTableCompact td,
 .skillTableCompact th {
   padding: 6px 8px;
+}
+
+.skillTableCompact .thCenter {
+  width: 60px;
 }
 
 /* Add dropdown button */
