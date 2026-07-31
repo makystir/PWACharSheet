@@ -84,10 +84,11 @@ describe('Feature: print-layout-redesign', () => {
           expect(html).not.toContain('ENDEAVOUR_MARKER');
           expect(html).not.toContain('LEDGER_MARKER');
 
-          // XP totals should not be displayed
-          expect(html).not.toContain('>999<');
-          expect(html).not.toContain('>888<');
-          expect(html).not.toContain('>1887<');
+          // XP totals ARE now displayed per Req 1.1 (current/spent/total)
+          // Verify they appear in the Experience section
+          expect(html).toContain('999');
+          expect(html).toContain('888');
+          expect(html).toContain('1887');
 
           // No img tags with portrait
           const imgs = container.querySelectorAll('img');

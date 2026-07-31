@@ -6,14 +6,14 @@ Full rewrite of the `PrintLayout` component and its CSS module to produce a rich
 
 ## Tasks
 
-- [ ] 1. Install font dependencies and set up imports
-  - [ ] 1.1 Install @fontsource/cinzel, @fontsource/cinzel-decorative, and @fontsource/im-fell-english packages
+- [x] 1. Install font dependencies and set up imports
+  - [x] 1.1 Install @fontsource/cinzel, @fontsource/cinzel-decorative, and @fontsource/im-fell-english packages
     - Run `npm install @fontsource/cinzel @fontsource/cinzel-decorative @fontsource/im-fell-english`
     - Add font CSS imports to the top of `src/components/layout/PrintLayout.tsx`
     - _Requirements: 2.3, 3.4, 3.5_
 
-- [ ] 2. Rewrite the CSS module with Old World theming
-  - [ ] 2.1 Create the base print CSS module with @page rules and page container styles
+- [x] 2. Rewrite the CSS module with Old World theming
+  - [x] 2.1 Create the base print CSS module with @page rules and page container styles
     - Replace `src/components/layout/PrintLayout.module.css` entirely
     - Define `@page` rules for A4 (210mm × 297mm) with 15mm margins
     - Add `@page` size declaration for US Letter (216mm × 279mm) as alternative
@@ -23,7 +23,7 @@ Full rewrite of the `PrintLayout` component and its CSS module to produce a rich
     - Add `.cornerOrnament` using `::before`/`::after` pseudo-elements with Unicode glyphs (✦, ◆, ⚜) positioned absolutely
     - _Requirements: 2.1, 2.2, 2.4, 4.1, 4.5, 7.1, 7.3_
 
-  - [ ] 2.2 Add section, typography, and decorative styles to the CSS module
+  - [x] 2.2 Add section, typography, and decorative styles to the CSS module
     - Define `.sectionBox` class with `break-inside: avoid` and `page-break-inside: avoid`
     - Define `.sectionHeading` using Cinzel font-family at 700 weight
     - Define `.pageTitle` using Cinzel Decorative at 900 weight with text-shadow
@@ -38,8 +38,8 @@ Full rewrite of the `PrintLayout` component and its CSS module to produce a rich
     - Define multi-column grid for basic skills (minimum 2 columns via CSS grid)
     - _Requirements: 2.3, 2.5, 2.6, 2.7, 3.1, 3.2, 3.3, 3.4, 3.5, 4.3, 4.4, 4.6, 6.1_
 
-- [ ] 3. Rewrite the PrintLayout component — Page 1 (Identity & Skills)
-  - [ ] 3.1 Implement the component shell, props interface, helper functions, and Page 1 structure
+- [x] 3. Rewrite the PrintLayout component — Page 1 (Identity & Skills)
+  - [x] 3.1 Implement the component shell, props interface, helper functions, and Page 1 structure
     - Rewrite `src/components/layout/PrintLayout.tsx` with the same `PrintLayoutProps` interface (no breaking API changes)
     - Import fonts at the top of the file
     - Implement `shouldRenderSection(character, key)` helper with all 13 section keys as per design
@@ -48,8 +48,8 @@ Full rewrite of the `PrintLayout` component and its CSS module to produce a rich
     - Apply corner ornaments, page border, parchment background, and footer to Page 1
     - _Requirements: 1.1, 2.1, 2.2, 2.3, 2.4, 2.7, 3.4, 4.6, 6.1, 6.2, 6.4, 6.6_
 
-- [ ] 4. Rewrite the PrintLayout component — Page 2 (Combat & Equipment)
-  - [ ] 4.1 Implement Page 2 with armour, weapons, trappings, wealth, and encumbrance sections
+- [x] 4. Rewrite the PrintLayout component — Page 2 (Combat & Equipment)
+  - [x] 4.1 Implement Page 2 with armour, weapons, trappings, wealth, and encumbrance sections
     - Render ArmourSection: armour table + compact AP by location (all six hit locations + shield in a single row)
     - Render WeaponsTable with columns: name, group, encumbrance, range/reach, damage, qualities
     - Conditionally render AmmunitionTable (when ammo array is non-empty)
@@ -62,8 +62,8 @@ Full rewrite of the `PrintLayout` component and its CSS module to produce a rich
     - Use `break-inside: avoid` on each section box
     - _Requirements: 1.1, 2.5, 4.2, 4.3, 6.3, 6.5_
 
-- [ ] 5. Rewrite the PrintLayout component — Page 3+ (Optional Sections)
-  - [ ] 5.1 Implement conditional optional sections with house-rule gating
+- [x] 5. Rewrite the PrintLayout component — Page 3+ (Optional Sections)
+  - [x] 5.1 Implement conditional optional sections with house-rule gating
     - Conditionally render Spells/Prayers section (only when `spells.length > 0`)
     - Conditionally render Companions section (only when `companions.length > 0`)
     - Conditionally render Critical Wounds table showing location, description, effects, severity (only when `criticalWounds.length > 0`)
@@ -79,18 +79,18 @@ Full rewrite of the `PrintLayout` component and its CSS module to produce a rich
     - Apply page break rules for multi-page overflow and footer on each page
     - _Requirements: 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11_
 
-- [ ] 6. Ensure print media isolation
-  - [ ] 6.1 Verify print-only visibility and hide interactive elements
+- [x] 6. Ensure print media isolation
+  - [x] 6.1 Verify print-only visibility and hide interactive elements
     - Ensure the `.printWrapper` class uses `display: none` by default and `@media print { display: block }`
     - Ensure no `<button>`, `<input>`, `<select>`, or `<textarea>` elements appear in the PrintLayout output
     - Ensure the PrintLayout wrapper is the sole visible content in print context (via `@media print` rules on the app shell hiding other content)
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 7. Checkpoint — Verify build and basic rendering
+- [x] 7. Checkpoint — Verify build and basic rendering
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Update test generators and write property-based tests
-  - [ ] 8.1 Extend printLayoutGenerators.ts with arbitraries for new optional section types
+- [x] 8. Update test generators and write property-based tests
+  - [x] 8.1 Extend printLayoutGenerators.ts with arbitraries for new optional section types
     - Add `arbitraryEnterprise` generator (name, type, expansionLevel, debt, incomeSources, specialRules)
     - Add `arbitraryGrudgeEntry` generator (offence, perpetrator, restitution, type, status)
     - Add `arbitraryPsychologyTrait` generator (type, target, rating)
@@ -102,33 +102,33 @@ Full rewrite of the `PrintLayout` component and its CSS module to produce a rich
     - Update `arbitraryCharacter()` to include all new optional fields and houseRules
     - _Requirements: 5.1–5.11, 1.2–1.8_
 
-  - [ ]* 8.2 Write property test: Conditional section omission (Property 1)
+  - [x] 8.2 Write property test: Conditional section omission (Property 1)
     - **Property 1: Conditional section omission**
     - Generate random characters with varied combinations of empty/non-empty arrays and enabled/disabled house rules
     - Assert: when visibility condition is NOT met, the `[data-section]` element for that section does NOT exist in rendered output
     - Cover all 11 conditional section rules from requirements 5.1–5.11
     - **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11**
 
-  - [ ]* 8.3 Write property test: Optional section data completeness (Property 2)
+  - [x] 8.3 Write property test: Optional section data completeness (Property 2)
     - **Property 2: Optional section data completeness**
     - Generate characters with non-empty optional arrays and house rules enabled
     - Assert: for each item in the array, all required fields appear in the rendered text content
     - Covers psychology traits (type, target, rating), enterprises (name, type, expansion level), grudges (offence, perpetrator, restitution, type, status), critical wounds (location, description, effects, severity), rituals (name, CN, type, description), hirelings (name, role, status)
     - **Validates: Requirements 1.2, 1.3, 1.4, 1.6, 1.7, 1.8**
 
-  - [ ]* 8.4 Write property test: Page footer contains character name (Property 3)
+  - [x] 8.4 Write property test: Page footer contains character name (Property 3)
     - **Property 3: Page footer contains character name**
     - Generate characters with non-empty names
     - Assert: every `.pageFooter` element in the rendered output contains the character's name
     - **Validates: Requirements 4.6**
 
-  - [ ]* 8.5 Write property test: Section boxes prevent page breaks (Property 4)
+  - [x] 8.5 Write property test: Section boxes prevent page breaks (Property 4)
     - **Property 4: Section boxes prevent page breaks**
     - Generate arbitrary characters and render the layout
     - Assert: every `.sectionBox` element has the CSS class that applies `break-inside: avoid`
     - **Validates: Requirements 4.3**
 
-- [ ] 9. Final checkpoint — Ensure all tests pass
+- [x] 9. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

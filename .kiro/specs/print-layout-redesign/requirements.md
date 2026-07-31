@@ -2,122 +2,112 @@
 
 ## Introduction
 
-This feature redesigns the print output of the WFRP 4e character sheet PWA to produce a clean, focused, and thematically styled printable character record. The print layout includes only gameplay-essential information that a player needs at the table, excludes application UI and non-essential data, and uses Warhammer Fantasy Roleplay-consistent visual decorations (borders, headers, ornamental dividers). The output is optimized for clean printing on A4 paper with proper page breaks and no content clipping.
+This document specifies the requirements for a full redesign of the Print Layout component in the WFRP 4e Character Sheet PWA. The redesigned layout must present all character data needed for tabletop play, support multi-page printing on A4/Letter paper, and evoke the dark fantasy aesthetic of the Warhammer Old World through decorative CSS elements such as parchment textures, ornamental borders, blackletter-inspired headings, and heraldic flourishes.
 
 ## Glossary
 
-- **Print_Layout**: The React component responsible for rendering the print-specific view of a character, visible only when the browser print dialog is invoked
-- **Character_Record**: The complete set of gameplay-essential data for a WFRP 4e character that a player references during play sessions
-- **Essential_Content**: Character data required for active gameplay — characteristics, skills, talents, wounds, weapons, armour, spells, trappings, wealth, fate/fortune, resilience/resolve, movement, and conditions
-- **Non_Essential_Content**: Data not needed during play sessions — advancement log, session history, house rules configuration, XP tracking, combat state metadata, estate ledger entries, endeavour records, and application settings
-- **WFRP_Decoration**: Visual styling elements consistent with Warhammer Fantasy Roleplay aesthetic — parchment-toned backgrounds, ornamental double-line borders, Cinzel serif typography for headers, heraldic dividers, and aged-document styling
-- **Page_Break**: A CSS page-break directive that forces content to begin on a new printed page, preventing content from being split across pages
-- **Section_Box**: A bordered container grouping related character data with a titled header
+- **Print_Layout**: The React component responsible for rendering the character sheet in a printer-optimized format, triggered via the browser print dialog
+- **Character_Sheet**: The complete set of character data stored in the application, encompassing all gameplay-relevant fields
+- **Old_World_Theme**: A visual design language inspired by Germanic medieval and dark renaissance aesthetics—parchment textures, weathered borders, blackletter typography, iron-bound ornamentation, and heraldic sigils
+- **Section**: A visually distinct grouping of related character data within the printed output (e.g., Characteristics, Skills, Armour)
+- **Page_Break**: A CSS-controlled boundary that forces content onto the next printed page
+- **Optional_Mechanic**: A gameplay subsystem enabled via house rules toggles (enterprises, psychology tracker, grudge book, yenlui balance)
+- **Decorative_Element**: A CSS-only visual flourish (border, corner ornament, divider, background texture) that contributes to the Old_World_Theme without requiring external image assets
 
 ## Requirements
 
-### Requirement 1: Essential Content Selection
+### Requirement 1: Complete Character Data Coverage
 
-**User Story:** As a player, I want the printed sheet to contain only the information I need during gameplay, so that I can quickly reference my character without visual noise.
-
-#### Acceptance Criteria
-
-1. THE Print_Layout SHALL display the following Essential_Content sections: personal details (name, species, class, career, career level, status), characteristics, fate and fortune, resilience and resolve, movement rates, basic skills, advanced skills, talents, weapons, armour and armour points, trappings, wealth, encumbrance, wounds, conditions, spells (when present), psychology, corruption and mutations, and ambitions
-2. THE Print_Layout SHALL exclude the following Non_Essential_Content: advancement log, session history, house rules, XP totals, combat state metadata, estate ledger details, endeavour records, application settings, and character portrait
-3. WHEN a character has no spells, THE Print_Layout SHALL omit the Spells section entirely
-4. WHEN a character has no mutations, THE Print_Layout SHALL omit the Mutations section entirely
-5. WHEN a character has companions, THE Print_Layout SHALL display companion stat blocks including name, species, characteristics, wounds, traits, and trained skills
-
-### Requirement 2: Logical Content Organization
-
-**User Story:** As a player, I want the printed sheet organized in the order I reference things during play, so that I can find information quickly at the table.
+**User Story:** As a player, I want every gameplay-relevant piece of character data included on my printed sheet, so that I can reference all information at the table without needing the digital app.
 
 #### Acceptance Criteria
 
-1. THE Print_Layout SHALL organize page one to contain: character identity (name, species, career, status), characteristics, fate/fortune/resilience/resolve, movement, skills, and talents
-2. THE Print_Layout SHALL organize page two to contain: weapons, armour and armour points, wounds, conditions, wealth, encumbrance, trappings, spells (if present), psychology, corruption/mutations, and ambitions
-3. THE Print_Layout SHALL place the character name and career prominently at the top of page one as the primary identifier
-4. THE Print_Layout SHALL group related data within Section_Box containers with clearly labeled headers
+1. THE Print_Layout SHALL render the following core Sections: personal details (name, species, class, career, career level, career path, status, age, height, hair, eyes), characteristics (all 10 with initial/advances/current), fate/fortune, resilience/resolve, movement (M/Walk/Run), XP (current/spent/total), basic skills, advanced skills, talents, weapons, armour, armour points by location, trappings, ammunition, wealth (GC/SS/D), encumbrance summary, wounds (breakdown and total), corruption/sin, mutations, spells and prayers, companions, conditions, ambitions, party details, and estate
+2. WHEN the character has psychology traits recorded in the psychologyTraits array, THE Print_Layout SHALL render each trait displaying its type, target, and rating where applicable
+3. WHEN the enterprises house rule is enabled and the character has one or more enterprises, THE Print_Layout SHALL render each enterprise displaying its name, type, expansion level, debt, income sources, and special rules
+4. WHEN the grudge book house rule is enabled and the character has one or more grudges, THE Print_Layout SHALL render each grudge displaying offence, perpetrator, restitution, type, and status
+5. WHEN the yenlui house rule is enabled, THE Print_Layout SHALL render the current yenlui state (light, balanced, or dark)
+6. WHEN the character has one or more critical wounds, THE Print_Layout SHALL render each critical wound displaying location, description, effects, and severity
+7. WHEN the character has one or more rituals, THE Print_Layout SHALL render each ritual displaying name, CN, type, and description
+8. WHEN the character has one or more hirelings, THE Print_Layout SHALL render each hireling displaying name, role, status, characteristics, and skills summary
 
-### Requirement 3: Print-Clean Output
+### Requirement 2: Old World Decorative Theming
 
-**User Story:** As a player, I want the printed sheet to render cleanly on paper without clipped content or awkward breaks, so that I get a professional-looking physical character record.
-
-#### Acceptance Criteria
-
-1. THE Print_Layout SHALL fit content within A4 page dimensions (210mm × 297mm) with 1cm margins
-2. THE Print_Layout SHALL place Page_Break directives between logical page boundaries to prevent content from splitting across pages
-3. THE Print_Layout SHALL prevent table rows from splitting across page boundaries
-4. THE Print_Layout SHALL size all text, tables, and spacing to remain within printable area without overflow or horizontal clipping
-5. WHEN a section contains more content than fits on the current page, THE Print_Layout SHALL move the entire section to the next page rather than splitting it mid-section
-6. THE Print_Layout SHALL use a base font size between 8px and 10px to maximize content density while maintaining legibility on paper
-
-### Requirement 4: WFRP Thematic Decoration
-
-**User Story:** As a WFRP player, I want the printed sheet to look and feel like an in-universe document, so that it enhances the tabletop experience with appropriate Warhammer Fantasy aesthetic.
+**User Story:** As a player, I want my printed character sheet to look like an in-universe document from the Old World, so that it enhances immersion during tabletop play.
 
 #### Acceptance Criteria
 
-1. THE Print_Layout SHALL use Cinzel serif font family for section headers and the character name
-2. THE Print_Layout SHALL use a parchment-toned background color (warm off-white in the #f5efe0 range) for the page
-3. THE Print_Layout SHALL render Section_Box containers with ornamental double-line borders in a muted gold-brown tone
-4. THE Print_Layout SHALL display section headers in uppercase with letter-spacing consistent with WFRP_Decoration style
-5. THE Print_Layout SHALL apply a subtle aged-document aesthetic through muted earth-tone colors for text and borders
-6. THE Print_Layout SHALL include a decorative double-rule border around each printed page
+1. THE Print_Layout SHALL apply a parchment-style background colour or subtle gradient to all printed pages
+2. THE Print_Layout SHALL render ornamental double-rule or engraved-style borders around each page
+3. THE Print_Layout SHALL render Section headings using a blackletter-inspired or decorative serif font family distinct from body text
+4. THE Print_Layout SHALL render decorative corner ornaments on the outermost page border using CSS-only techniques (pseudo-elements, box-shadows, or border-image)
+5. THE Print_Layout SHALL render horizontal dividers between major Sections using ornamental rule patterns (not plain lines)
+6. THE Print_Layout SHALL apply a dark, muted colour palette (deep browns, aged golds, parchment cream, iron greys) throughout all printed content
+7. THE Print_Layout SHALL render at least one heraldic or sigil-style Decorative_Element per page using CSS shapes or Unicode glyphs
 
-### Requirement 5: Skills Display Completeness
+### Requirement 3: Typography and Readability
 
-**User Story:** As a player, I want all my skills displayed with their linked characteristic and calculated total, so that I can make skill tests without mental arithmetic.
-
-#### Acceptance Criteria
-
-1. THE Print_Layout SHALL display each skill with its name, linked characteristic abbreviation, advance value, and calculated skill total
-2. THE Print_Layout SHALL display basic skills and advanced skills in separate labeled sections
-3. THE Print_Layout SHALL calculate the skill total as the sum of the linked characteristic current value and the skill advance value
-4. WHEN a skill has zero advances, THE Print_Layout SHALL still display the skill with its base characteristic value as the total
-
-### Requirement 6: Combat Reference Data
-
-**User Story:** As a player, I want all combat-relevant data presented together clearly, so that I can resolve combat actions quickly during play.
+**User Story:** As a player, I want my printed character sheet to remain clearly readable despite the decorative styling, so that I can quickly find values during gameplay.
 
 #### Acceptance Criteria
 
-1. THE Print_Layout SHALL display each weapon with its name, group, encumbrance, range/reach, damage value, and qualities
-2. THE Print_Layout SHALL display each armour piece with its name, covered locations, encumbrance, AP value, and qualities
-3. THE Print_Layout SHALL display the armour points summary showing AP totals for each hit location (Head, Right Arm, Left Arm, Body, Right Leg, Left Leg, Shield) with their corresponding dice roll ranges
-4. THE Print_Layout SHALL display current wounds and total wounds prominently
-5. THE Print_Layout SHALL display the wound calculation breakdown (SB + TB×2 + WPB + Hardy)
-6. WHEN a character has active conditions, THE Print_Layout SHALL display condition names and their current stack levels
+1. THE Print_Layout SHALL render body text at a minimum effective size of 8pt when printed
+2. THE Print_Layout SHALL render numeric values (characteristic scores, skill totals, AP values) in a bold weight to distinguish them from labels
+3. THE Print_Layout SHALL maintain a minimum contrast ratio of 4.5:1 between text and background across all Sections
+4. THE Print_Layout SHALL use consistent font sizing hierarchy: page title largest, Section headings medium, table headers small-caps or uppercase, body text standard
+5. THE Print_Layout SHALL limit decorative fonts to headings and titles, using a legible serif or sans-serif for data cells and descriptions
 
-### Requirement 7: Wealth and Encumbrance Tracking
+### Requirement 4: Multi-Page Layout and Print Optimisation
 
-**User Story:** As a player, I want wealth and carrying capacity clearly printed, so that I can track resources and weight limits during adventures.
-
-#### Acceptance Criteria
-
-1. THE Print_Layout SHALL display wealth in all three denominations: Gold Crowns (GC), Silver Shillings (SS), and Brass Pennies (D)
-2. THE Print_Layout SHALL display encumbrance totals broken down by category (weapons, armour, trappings) and the combined total
-3. THE Print_Layout SHALL display the maximum encumbrance capacity
-4. THE Print_Layout SHALL display each trapping item with its name, encumbrance value, and quantity
-
-### Requirement 8: Responsive Section Rendering
-
-**User Story:** As a player with a unique character build, I want the print layout to adapt to my character's data, so that space is used efficiently regardless of whether I have spells, companions, or other optional content.
+**User Story:** As a player, I want the printed sheet to flow cleanly across multiple pages without cutting content mid-section, so that the output is professional and easy to read.
 
 #### Acceptance Criteria
 
-1. WHEN a character has spells, THE Print_Layout SHALL render a Spells section displaying each spell with name, casting number, range, target, duration, and effect
-2. WHEN a character has no companions, THE Print_Layout SHALL omit the Companions section without leaving blank space
-3. WHEN a character has many talents or skills, THE Print_Layout SHALL allow the content to flow onto additional pages with proper Page_Break handling
-4. WHEN a character has ammo items, THE Print_Layout SHALL display ammunition with name, quantity, and qualities
+1. THE Print_Layout SHALL target A4 paper size (210mm × 297mm) with margins no larger than 15mm per side
+2. WHEN rendered content exceeds one page, THE Print_Layout SHALL insert Page_Breaks at logical boundaries between Sections rather than mid-table or mid-section
+3. THE Print_Layout SHALL apply CSS `break-inside: avoid` to each Section to prevent splitting a single Section across two pages where feasible
+4. WHEN a single Section exceeds the available height of one page, THE Print_Layout SHALL allow that Section to break across pages with a repeated table header on the continuation page
+5. THE Print_Layout SHALL support US Letter paper size (216mm × 279mm) as an alternative via CSS `@page` size declaration
+6. THE Print_Layout SHALL render a footer on each page displaying the character name and generation date
 
-### Requirement 9: Print Trigger Isolation
+### Requirement 5: Conditional Section Rendering
 
-**User Story:** As a user of the PWA, I want the print layout to appear only when I print and not affect the normal application display, so that screen and print experiences remain independent.
+**User Story:** As a player, I want only the sections relevant to my character to appear on the printed sheet, so that non-applicable sections do not waste paper.
 
 #### Acceptance Criteria
 
-1. WHILE the browser is not in print mode, THE Print_Layout SHALL remain hidden and not affect screen layout or performance
-2. WHEN the browser enters print mode, THE Print_Layout SHALL become visible and all screen-only UI elements SHALL be hidden
-3. THE Print_Layout SHALL not include interactive elements (buttons, inputs, toggles, or editable fields)
-4. THE Print_Layout SHALL render static text representations of all character data
+1. WHEN the character has zero spells and zero prayers, THE Print_Layout SHALL omit the Spells and Prayers Section entirely
+2. WHEN the character has zero enterprises or the enterprises house rule is disabled, THE Print_Layout SHALL omit the Enterprises Section entirely
+3. WHEN the character has zero grudges or the grudge book house rule is disabled, THE Print_Layout SHALL omit the Grudge Book Section entirely
+4. WHEN the yenlui house rule is disabled, THE Print_Layout SHALL omit the Yenlui Balance Section entirely
+5. WHEN the character has zero companions, THE Print_Layout SHALL omit the Companions Section entirely
+6. WHEN the character has zero mutations, THE Print_Layout SHALL omit the Mutations Section entirely
+7. WHEN the character has zero critical wounds, THE Print_Layout SHALL omit the Critical Wounds Section entirely
+8. WHEN the character has zero hirelings, THE Print_Layout SHALL omit the Hirelings Section entirely
+9. WHEN the character has zero rituals, THE Print_Layout SHALL omit the Rituals Section entirely
+10. WHEN the character has no estate name defined, THE Print_Layout SHALL omit the Estate Section entirely
+11. WHEN the psychology tracker house rule is disabled or the character has zero psychology traits, THE Print_Layout SHALL omit the Psychology Traits Section entirely
+
+### Requirement 6: Section Layout and Information Density
+
+**User Story:** As a player, I want data-dense sections arranged efficiently to minimise page count while remaining scannable, so that my sheet is compact yet usable.
+
+#### Acceptance Criteria
+
+1. THE Print_Layout SHALL render basic skills in a multi-column grid (minimum two columns) to reduce vertical space usage
+2. THE Print_Layout SHALL render the characteristics table as a single horizontal row of all 10 characteristics with initial, advances, and current values stacked vertically
+3. THE Print_Layout SHALL render armour points in a compact visual format showing all six hit locations plus shield in a single row or diagram
+4. THE Print_Layout SHALL group fate/fortune, resilience/resolve, movement, and wounds into a single compact status row beneath characteristics
+5. THE Print_Layout SHALL render weapons in a table with columns for name, group, encumbrance, range/reach, damage, and qualities
+6. THE Print_Layout SHALL render talents in a table with columns for name, times taken, and description
+
+### Requirement 7: Print Media Isolation
+
+**User Story:** As a player, I want the print layout to display only when printing and not affect the on-screen application, so that screen and print experiences remain independent.
+
+#### Acceptance Criteria
+
+1. THE Print_Layout SHALL be visible only within a `@media print` context or when explicitly rendered in a print-preview mode
+2. THE Print_Layout SHALL hide all interactive UI elements (buttons, inputs, navigation, modals) from the printed output
+3. THE Print_Layout SHALL not affect the visual styling of non-print application views when loaded in the DOM
+4. WHEN the user triggers the browser print dialog, THE Print_Layout SHALL be the sole visible content in the printed output

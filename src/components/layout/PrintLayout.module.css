@@ -1,27 +1,113 @@
-/* Print-specific styles for the Warhammer character sheet print layout */
+/* ==========================================================================
+   PrintLayout.module.css — Print Stylesheet
+   Layer 1 (Task 2.1): @page rules, page container, parchment, corner ornaments
+   Layer 2 (Task 2.2): Section, typography, decorative styles, heraldic, tables
+   ========================================================================== */
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   @PAGE RULES
+   ══════════════════════════════════════════════════════════════════════════════ */
 
 @page {
-  size: A4;
-  margin: 1cm;
+  size: A4; /* 210mm × 297mm */
+  margin: 15mm;
 }
 
-.page {
-  font-family: 'Cinzel', 'Times New Roman', serif;
-  font-size: 9px;
-  color: #1a1510;
-  line-height: 1.35;
-  background: #f5efe0;
-  width: 190mm;
+@page letter {
+  size: letter; /* 216mm × 279mm (US Letter alternative) */
+  margin: 15mm;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   PRINT WRAPPER — Hidden on screen, visible in print
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.printWrapper {
+  display: none;
+}
+
+@media print {
+  .printWrapper {
+    display: block;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   PAGE SHEET — Parchment background, double-rule border, depth shadow
+   ══════════════════════════════════════════════════════════════════════════════ */
 
 .pageSheet {
-  border: 3px double #8a7a5a;
-  padding: 12px;
+  position: relative;
+  /* Parchment background: warm cream/tan linear gradient with radial aging spots */
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(139, 117, 53, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 60%, rgba(59, 42, 26, 0.05) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 80%, rgba(139, 117, 53, 0.04) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 15%, rgba(74, 74, 74, 0.03) 0%, transparent 40%),
+    linear-gradient(
+      175deg,
+      #f4edd3 0%,
+      #f0e6c4 20%,
+      #ede0b8 40%,
+      #f2e8c8 60%,
+      #eee1bb 80%,
+      #f4edd3 100%
+    );
+  /* Double-rule page border (3px double) */
+  border: 3px double #3b2a1a;
+  /* Inner box-shadow for depth */
+  box-shadow:
+    inset 0 0 0 4px #f4edd3,
+    inset 0 0 0 5px #8b7535,
+    inset 0 0 12px rgba(59, 42, 26, 0.15);
+  padding: 16px 18px;
+  box-sizing: border-box;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   CORNER ORNAMENTS — Unicode glyphs positioned absolutely via pseudo-elements
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.cornerOrnament {
+  position: relative;
+}
+
+/* Top ornament row: ✦ left — ◆ center — ✦ right */
+.cornerOrnament::before {
+  content: '✦\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0◆\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0✦';
+  position: absolute;
+  top: 6px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #8b7535;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* Bottom ornament row: ⚜ left — ◆ center — ⚜ right */
+.cornerOrnament::after {
+  content: '⚜\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0◆\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0⚜';
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #8b7535;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   PAGE BREAK UTILITIES
+   ══════════════════════════════════════════════════════════════════════════════ */
 
 .pageBreak {
   composes: pageSheet;
   page-break-after: always;
+  break-after: page;
 }
 
 .conditionalPage {
@@ -29,56 +115,184 @@
   break-before: auto;
 }
 
-/* Title area */
+/* ══════════════════════════════════════════════════════════════════════════════
+   SECTION, TYPOGRAPHY & DECORATIVE STYLES
+   Layer 2 (Task 2.2): Full Old World themed styling
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Page-level wrapper used by the component ─────────────────────────────── */
+.page {
+  font-family: 'IM Fell English', 'Times New Roman', serif;
+  font-size: 9px;
+  font-weight: 400;
+  color: #3b2a1a;
+  line-height: 1.35;
+  background: #f4edd3;
+  width: 190mm;
+}
+
+/* ─── Page Title — Cinzel Decorative 900 with text-shadow ─────────────────── */
+.pageTitle {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #3b2a1a;
+  text-align: center;
+  text-shadow:
+    1px 1px 0 rgba(139, 117, 53, 0.4),
+    2px 2px 4px rgba(59, 42, 26, 0.3);
+  margin-bottom: 6px;
+}
+
+/* ─── Title area ──────────────────────────────────────────────────────────── */
 .titleArea {
   text-align: center;
   margin-bottom: 8px;
 }
 
 .characterName {
-  font-family: 'Cinzel', serif;
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 18px;
   font-weight: 900;
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: #3a2a10;
-  border-bottom: 3px double #8a7a5a;
-  border-top: 3px double #8a7a5a;
+  color: #3b2a1a;
+  text-shadow:
+    1px 1px 0 rgba(139, 117, 53, 0.4),
+    2px 2px 4px rgba(59, 42, 26, 0.3);
+  border-bottom: 3px double #8b7535;
+  border-top: 3px double #8b7535;
   padding: 4px 0;
 }
 
 .subtitle {
+  font-family: 'IM Fell English', 'Times New Roman', serif;
   font-size: 9px;
-  color: #6a5a40;
+  font-weight: 400;
+  color: #4a4a4a;
   letter-spacing: 1px;
   margin-top: 2px;
 }
 
-/* Section containers */
+/* ─── Section containers ──────────────────────────────────────────────────── */
 .sectionBox {
-  border: 1px solid #a89878;
+  border: 1px solid #8b7535;
   border-radius: 4px;
   padding: 8px 10px;
   margin-bottom: 6px;
-  background: rgba(168, 136, 78, 0.06);
+  background: rgba(139, 117, 53, 0.06);
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-.sectionTitle {
-  font-family: 'Cinzel', serif;
+/* ─── Section Heading — Cinzel 700 ────────────────────────────────────────── */
+.sectionHeading {
+  font-family: 'Cinzel', 'Georgia', serif;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
   text-align: center;
-  color: #4a3a20;
-  border-bottom: 2px solid #8a7a5a;
+  color: #3b2a1a;
+  border-bottom: 2px solid #8b7535;
   padding-bottom: 3px;
   margin-bottom: 5px;
 }
 
-/* Table styles */
+/* Alias: .sectionTitle kept for backward compatibility with existing component */
+.sectionTitle {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+  color: #3b2a1a;
+  border-bottom: 2px solid #8b7535;
+  padding-bottom: 3px;
+  margin-bottom: 5px;
+}
+
+/* ─── Numeric Values — Cinzel bold (700) for scores, totals, AP ───────────── */
+.numericValue {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 9px;
+  font-weight: 700;
+  color: #3b2a1a;
+}
+
+/* ─── Section Divider — Ornamental rule ───────────────────────────────────── */
+.sectionDivider {
+  border: none;
+  border-top: 1px solid #c8b898;
+  margin: 8px 0;
+  position: relative;
+  overflow: visible;
+}
+
+.sectionDivider::after {
+  content: '✧ ─── ⚜ ─── ✧';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f4edd3;
+  padding: 0 8px;
+  font-size: 9px;
+  color: #8b7535;
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+/* ─── Heraldic Glyph — CSS clip-path shield + Unicode glyph ──────────────── */
+.heraldic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px auto;
+  width: 28px;
+  height: 32px;
+  background: linear-gradient(180deg, #8b7535 0%, #5c4e23 100%);
+  clip-path: polygon(0% 0%, 100% 0%, 100% 65%, 50% 100%, 0% 65%);
+  color: #f4edd3;
+  font-size: 14px;
+  line-height: 1;
+  text-align: center;
+}
+
+.heraldic::after {
+  content: '⚔';
+  display: block;
+}
+
+/* ─── Page Footer — Character name + generation date ──────────────────────── */
+.pageFooter {
+  text-align: center;
+  margin-top: 8px;
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 7px;
+  font-weight: 400;
+  color: #8b7535;
+  letter-spacing: 1px;
+  border-top: 1px solid #8b7535;
+  padding-top: 4px;
+}
+
+.pageFooter::before {
+  content: '⚜';
+  margin-right: 6px;
+  font-size: 8px;
+}
+
+.pageFooter::after {
+  content: '⚜';
+  margin-left: 6px;
+  font-size: 8px;
+}
+
+/* ─── Table styles — alternating row tinting + thead repetition ───────────── */
 .tbl {
   width: 100%;
   border-collapse: collapse;
@@ -89,33 +303,68 @@
   page-break-inside: avoid;
 }
 
+/* Alternating row tinting for readability */
+.tbl tbody tr:nth-child(even) {
+  background: rgba(139, 117, 53, 0.05);
+}
+
+.tbl tbody tr:nth-child(odd) {
+  background: transparent;
+}
+
+/* thead displayed for browser header repetition across page breaks */
+.tbl thead {
+  display: table-header-group;
+}
+
+.tbl thead th {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #e8dcc8;
+  color: #3b2a1a;
+  border: 1px solid #c8b898;
+  padding: 2px 4px;
+  text-align: center;
+}
+
 .tblInline {
   border-collapse: collapse;
 }
 
+/* ─── Body/data cell styles — IM Fell English 400 ─────────────────────────── */
 .cell {
+  font-family: 'IM Fell English', 'Times New Roman', serif;
+  font-weight: 400;
   border: 1px solid #c8b898;
   padding: 2px 4px;
   font-size: 9px;
+  color: #3b2a1a;
 }
 
 .hdrCell {
+  font-family: 'Cinzel', 'Georgia', serif;
   border: 1px solid #c8b898;
   padding: 2px 4px;
   font-size: 8px;
   font-weight: 700;
   background: #e8dcc8;
-  color: #4a3a20;
+  color: #3b2a1a;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .valCell {
+  font-family: 'IM Fell English', 'Times New Roman', serif;
+  font-weight: 400;
   border: 1px solid #c8b898;
   padding: 2px 4px;
   font-size: 9px;
   text-align: center;
+  color: #3b2a1a;
 }
 
 /* Cell variants */
@@ -132,23 +381,27 @@
 
 .valCellBold {
   composes: valCell;
+  font-family: 'Cinzel', 'Georgia', serif;
   font-weight: 700;
 }
 
 .valCellBoldLg {
   composes: valCell;
+  font-family: 'Cinzel', 'Georgia', serif;
   font-weight: 700;
   font-size: 10px;
 }
 
 .valCellBoldXl {
   composes: valCell;
+  font-family: 'Cinzel', 'Georgia', serif;
   font-weight: 900;
   font-size: 11px;
 }
 
 .valCellExtraBold {
   composes: valCell;
+  font-family: 'Cinzel', 'Georgia', serif;
   font-weight: 900;
 }
 
@@ -167,44 +420,18 @@
   font-weight: 900;
 }
 
-/* Column width helpers applied alongside hdrCell */
-.colW22 {
-  width: 22px;
-}
+/* Column width helpers */
+.colW22 { width: 22px; }
+.colW24 { width: 24px; }
+.colW26 { width: 26px; }
+.colW28 { width: 28px; }
+.colW38 { width: 38px; }
+.colW40 { width: 40px; }
+.colW45 { width: 45px; }
+.colW50 { width: 50px; }
+.colW55 { width: 55px; }
 
-.colW24 {
-  width: 24px;
-}
-
-.colW26 {
-  width: 26px;
-}
-
-.colW28 {
-  width: 28px;
-}
-
-.colW38 {
-  width: 38px;
-}
-
-.colW40 {
-  width: 40px;
-}
-
-.colW45 {
-  width: 45px;
-}
-
-.colW50 {
-  width: 50px;
-}
-
-.colW55 {
-  width: 55px;
-}
-
-/* Grid layouts */
+/* ─── Grid layouts ────────────────────────────────────────────────────────── */
 .gridCharsRow {
   display: grid;
   grid-template-columns: 3fr 1fr 1.5fr;
@@ -212,11 +439,20 @@
   margin-bottom: 4px;
 }
 
+/* Multi-column grid for basic skills — minimum 2 columns (using 3 for density) */
 .gridSkills {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 4px;
   margin-bottom: 4px;
+}
+
+/* Fallback: ensure minimum 2 columns even at narrow widths */
+@media print {
+  .gridSkills {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    min-width: 0;
+  }
 }
 
 .gridTalentsAmb {
@@ -254,11 +490,13 @@
   padding: 4px 10px;
 }
 
-/* Text blocks */
+/* ─── Text blocks ─────────────────────────────────────────────────────────── */
 .textBlock {
   composes: cell;
   min-height: 24px;
   white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .textBlockSmall {
@@ -266,15 +504,19 @@
   font-size: 8px;
   margin-top: 2px;
   white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
-/* Footer */
+/* ─── Footer (existing class — kept for backward compatibility) ───────────── */
 .footer {
   text-align: center;
   margin-top: 8px;
+  font-family: 'Cinzel', 'Georgia', serif;
   font-size: 7px;
-  color: #8a7a5a;
+  font-weight: 400;
+  color: #8b7535;
   letter-spacing: 1px;
-  border-top: 1px solid #c8b898;
+  border-top: 1px solid #8b7535;
   padding-top: 4px;
 }

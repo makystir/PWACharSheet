@@ -2,75 +2,94 @@
 
 ## Overview
 
-This design refactors the existing `PrintLayout` component to fully meet the WFRP 4e character sheet print requirements. The redesign focuses on:
+This design covers a full rewrite of the `PrintLayout` React component to produce a richly themed, multi-page printed character sheet evoking the dark fantasy aesthetic of the Warhammer Old World. The new layout replaces the existing functional-but-plain print output with an immersive document styled to resemble a weathered parchment record bound in iron, using exclusively CSS decorative techniques (pseudo-elements, gradients, box-shadows, borders, Unicode glyphs).
 
-1. **Conditional section rendering** — sections like Spells, Mutations, Companions, and Ammo only render when the character has relevant data
-2. **Improved page-break strategy** — CSS-driven page breaks that keep logical sections together and prevent mid-table splits
-3. **Complete combat reference** — conditions display, wound breakdown, and full weapon/armour details
-4. **Skills calculation display** — showing linked characteristic + advances = total for every skill
-5. **Enhanced WFRP theming** — ornamental borders, Cinzel headers, parchment tones, and decorative dividers
+The component consumes the existing `Character` interface unchanged and conditionally renders sections based on data presence and house-rule toggles. It targets A4 paper (with US Letter fallback) and uses CSS `@page`, `break-inside: avoid`, and explicit page-break boundaries to produce clean multi-page output.
 
-The existing component already handles most essential content rendering. This redesign extends it with missing sections (conditions, companions, ammo, mutations detail), improves the page break logic, and adds thematic decorations.
+### Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| CSS-only decoration (no image assets) | Keeps bundle size minimal, works offline, and avoids print-media image rendering issues |
+| `@fontsource/cinzel` + `@fontsource/cinzel-decorative` + `@fontsource/im-fell-english` | Self-hosted fonts available via npm; no external network requests; evokes Germanic medieval feel |
+| CSS Modules (`.module.css`) | Matches existing project convention; scoped class names avoid leaking into on-screen styles |
+| Single component with helper render functions | Follows existing `PrintLayout.tsx` pattern; keeps print concerns co-located |
+| Conditional rendering driven by data + `houseRules` flags | Avoids empty sections, minimises page count for simple characters |
+| Mermaid-free architecture | Component is a leaf renderer with no state management or complex data flow |
 
 ## Architecture
 
-### Component Structure
-
-The `PrintLayout` remains a single component file with internal helper functions for section rendering. This avoids the complexity of a multi-component tree for a purely presentational, non-interactive output. The component is structured as:
+The print layout is a pure presentational component with no side effects, no state, and no event handlers. It receives pre-computed character data via props and renders HTML/CSS optimised for `@media print`.
 
 ```
-PrintLayout.tsx
-├── PrintLayout (main export)
-│   ├── Page 1: Identity + Stats + Skills + Talents
-│   ├── Page 2: Combat (Weapons, Armour, Wounds, Conditions)
-│   └── Page 3+ (conditional): Spells, Companions, Ammo, Mutations
-└── Helper functions (renderSkillsSection, renderConditionalSections, etc.)
+┌─────────────────────────────────────────────────────┐
+│  App (screen)                                       │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  PrintLayout (hidden on screen, visible on    │  │
+│  │  print via @media print display rules)        │  │
+│  │                                               │  │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────────────┐ │  │
+│  │  │ Page 1  │ │ Page 2  │ │ Page 3+ (cond.) │ │  │
+│  │  │ Identity│ │ Combat  │ │ Spells/Optional │ │  │
+│  │  │ + Stats │ │ + Gear  │ │ Mechanics       │ │  │
+│  │  └─────────┘ └─────────┘ └─────────────────┘ │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Component Tree
+
+```
+PrintLayout
+├── PageWrapper (handles @page styling, borders, corner ornaments, footer)
+│   ├── Page 1: Identity & Skills
+│   │   ├── TitleBlock (character name, subtitle, heraldic glyph)
+│   │   ├── PersonalDetails (name, species, career, status, physical)
+│   │   ├── CharacteristicsTable (10-column horizontal layout)
+│   │   ├── StatusRow (fate/fortune, resilience/resolve, movement, wounds, XP)
+│   │   ├── SkillsGrid (basic skills in 2-col, advanced skills)
+│   │   ├── TalentsTable
+│   │   └── AmbitionsParty
+│   ├── Page 2: Combat & Equipment
+│   │   ├── ArmourSection (table + AP diagram)
+│   │   ├── WeaponsTable
+│   │   ├── AmmunitionTable (conditional)
+│   │   ├── TrappingsTable
+│   │   ├── WealthEncumbrance
+│   │   ├── CorruptionMutations
+│   │   └── ConditionsTable (conditional)
+│   └── Page 3+: Optional Sections (conditional, auto-flowing)
+│       ├── SpellsTable (conditional)
+│       ├── CompanionsSection (conditional)
+│       ├── CriticalWoundsTable (conditional)
+│       ├── HirelingsSection (conditional)
+│       ├── EnterprisesSection (conditional, house rule gated)
+│       ├── GrudgeBookSection (conditional, house rule gated)
+│       ├── PsychologyTraitsSection (conditional, house rule gated)
+│       ├── RitualsTable (conditional)
+│       ├── YenluiBalance (conditional, house rule gated)
+│       └── EstateSection (conditional)
 ```
 
 ### Data Flow
 
-```mermaid
-graph TD
-    A[App.tsx] -->|character, totalWounds, armourPoints| B[PrintLayout]
-    B --> C[Page 1: Identity & Stats]
-    B --> D[Page 2: Combat & Equipment]
-    B --> E[Page 3+: Conditional Sections]
-    
-    C --> C1[Personal Details]
-    C --> C2[Characteristics]
-    C --> C3[Fate/Fortune/Resilience/Resolve]
-    C --> C4[Movement]
-    C --> C5[Skills - Basic & Advanced]
-    C --> C6[Talents]
-    C --> C7[Ambitions]
-    
-    D --> D1[Weapons]
-    D --> D2[Armour + AP Summary]
-    D --> D3[Wounds + Breakdown]
-    D --> D4[Conditions]
-    D --> D5[Wealth + Encumbrance]
-    D --> D6[Trappings]
-    D --> D7[Psychology + Corruption]
-    
-    E --> E1["Spells (if any)"]
-    E --> E2["Companions (if any)"]
-    E --> E3["Ammo (if any)"]
-    E --> E4["Mutations (if any)"]
 ```
-
-### Design Decisions
-
-1. **Single component, no sub-components**: The print layout is purely presentational with no state or interaction. Splitting into sub-components adds import/export overhead without benefit for a hidden DOM tree that renders once.
-
-2. **Internal render helpers**: Functions like `renderConditions()`, `renderCompanions()`, `renderAmmo()` keep the JSX readable while avoiding prop-drilling overhead.
-
-3. **Props unchanged**: The existing `PrintLayoutProps` interface (`character`, `totalWounds`, `armourPoints`) already provides all needed data. No new props are required since companion, spell, ammo, condition, and mutation data all live on the `Character` object.
-
-4. **CSS Module for print styles**: Continue using `PrintLayout.module.css` with `@media print` rules in `App.css` for visibility toggling.
+Character (from IndexedDB)
+    │
+    ├── totalWounds (pre-computed by parent)
+    ├── armourPoints (pre-computed by parent)
+    │
+    └── PrintLayout component (props: { character, totalWounds, armourPoints })
+            │
+            ├── Reads character.houseRules to gate optional sections
+            ├── Reads arrays (.spells, .companions, .enterprises, etc.)
+            │   to conditionally render or omit sections
+            └── Computes encumbrance totals inline (matching existing logic)
+```
 
 ## Components and Interfaces
 
-### PrintLayout Component
+### Props Interface
 
 ```typescript
 interface PrintLayoutProps {
@@ -80,248 +99,265 @@ interface PrintLayoutProps {
 }
 ```
 
-No interface changes needed. All data is accessed through the existing `Character` type.
+This interface remains unchanged from the existing component — no breaking changes to the public API.
 
-### Internal Render Helpers
+### Internal Helper Functions
 
-```typescript
-// Renders a single skill row with char value + advances = total
-function renderSkillRow(skill: Skill, chars: Record<CharacteristicKey, CharacteristicValue>): JSX.Element
+| Function | Purpose |
+|----------|---------|
+| `renderPage1()` | Identity, characteristics, skills, talents, ambitions |
+| `renderPage2()` | Combat stats, armour, weapons, ammunition, trappings, wealth |
+| `renderOptionalSections()` | Conditionally rendered sections (spells, companions, enterprises, etc.) |
+| `renderPageFooter(pageNum)` | Footer with character name + generation date |
+| `shouldRenderSection(sectionKey)` | Determines visibility based on data + house rules |
+| `renderSectionDivider()` | Ornamental horizontal rule between major sections |
+| `renderCornerOrnaments()` | CSS pseudo-element corner decoration (rendered via class) |
 
-// Renders conditions section (only if conditions exist with level > 0)
-function renderConditions(conditions: Condition[]): JSX.Element | null
-
-// Renders companion stat blocks (only if companions array is non-empty)
-function renderCompanions(companions: Companion[]): JSX.Element | null
-
-// Renders ammo section (only if ammo array is non-empty)
-function renderAmmo(ammo: AmmoItem[]): JSX.Element | null
-
-// Renders mutations section (only if mutations array is non-empty)
-function renderMutations(mutations: MutationEntry[]): JSX.Element | null
-
-// Renders spells section (only if spells array is non-empty)
-function renderSpells(spells: SpellItem[]): JSX.Element | null
-```
-
-### Skill Total Calculation
-
-The skill total is calculated inline as:
+### Section Visibility Logic
 
 ```typescript
-const charValue = chars[skill.c as CharacteristicKey];
-const total = charValue ? (charValue.i + charValue.a + charValue.b) + skill.a : skill.a;
+type SectionKey =
+  | 'spells' | 'companions' | 'mutations' | 'criticalWounds'
+  | 'hirelings' | 'enterprises' | 'grudgeBook' | 'psychologyTraits'
+  | 'rituals' | 'yenlui' | 'estate' | 'conditions' | 'ammunition';
+
+function shouldRenderSection(character: Character, key: SectionKey): boolean {
+  switch (key) {
+    case 'spells': return character.spells.length > 0;
+    case 'companions': return character.companions.length > 0;
+    case 'mutations': return character.mutations.length > 0;
+    case 'criticalWounds': return character.criticalWounds.length > 0;
+    case 'hirelings': return character.hirelings.length > 0;
+    case 'enterprises':
+      return character.houseRules.useEnterprises && (character.enterprises?.length ?? 0) > 0;
+    case 'grudgeBook':
+      return character.houseRules.useGrudgeBook && (character.grudges?.length ?? 0) > 0;
+    case 'psychologyTraits':
+      return character.houseRules.usePsychologyTracker && (character.psychologyTraits?.length ?? 0) > 0;
+    case 'rituals': return (character.rituals?.length ?? 0) > 0;
+    case 'yenlui': return character.houseRules.useYenlui;
+    case 'estate': return character.estate.name.length > 0;
+    case 'conditions': return character.conditions.filter(c => c.level > 0).length > 0;
+    case 'ammunition': return character.ammo.length > 0;
+  }
+}
 ```
 
-This gives the full characteristic value (initial + advances + bonus) plus skill advances, matching WFRP 4e rules where skill total = characteristic + advances.
+### CSS Architecture
 
-Note: The existing implementation uses `getBonus()` (tens digit only) for the skill total column. The redesign corrects this to use the full characteristic value, since WFRP 4e skill tests roll against the full characteristic + advances value, not the bonus.
+The CSS module is structured in layers:
 
-### Conditional Section Rendering Logic
+1. **@page rules** — Paper size, margins
+2. **Page container** — Outer border, corner ornaments, parchment background
+3. **Section styling** — Consistent box treatment with ornamental headers
+4. **Table styling** — Dense data tables with alternating row tinting
+5. **Typography scale** — Font hierarchy from title → section heading → table header → body
+6. **Decorative elements** — Corner ornaments, divider rules, heraldic glyphs
+7. **Print utilities** — break-inside, page-break-after, visibility toggling
 
-```typescript
-// Sections render only when data is present
-const hasSpells = character.spells.length > 0;
-const hasCompanions = character.companions.length > 0;
-const hasAmmo = character.ammo.length > 0;
-const hasMutations = character.mutations.length > 0;
-const hasConditions = character.conditions.some(c => c.level > 0);
-```
+### Font Stack
+
+| Role | Font | Weight | Fallback |
+|------|------|--------|----------|
+| Page title | Cinzel Decorative | 900 | Cinzel, serif |
+| Section headings | Cinzel | 700 | Georgia, serif |
+| Table headers | Cinzel | 600 (small-caps) | Georgia, serif |
+| Body / data cells | IM Fell English | 400 | 'Times New Roman', serif |
+| Numeric values | Cinzel | 700 | Georgia, serif |
+
+### Decorative CSS Techniques
+
+| Element | CSS Technique |
+|---------|---------------|
+| Parchment background | `background: linear-gradient(...)` with warm cream/tan tones and subtle `radial-gradient` aging spots |
+| Page border | Double `border` (3px double) with inner `box-shadow` (inset) for depth |
+| Corner ornaments | `::before` and `::after` pseudo-elements with Unicode glyphs (✦, ◆, ⚜) positioned absolutely |
+| Section dividers | `border-image` with repeating gradient, or `::after` pseudo-element with decorative character row |
+| Iron rivets | Small `border-radius: 50%` pseudo-elements at border intersections |
+| Heraldic sigil | CSS-drawn shield shape using `clip-path` or Unicode heraldic glyph (⚔, 🛡, ☠) |
+| Drop shadow on title | `text-shadow` with dark offset |
+| Weathered edges | Subtle `box-shadow` with spread to simulate paper wear |
 
 ## Data Models
 
-### Existing Types Used (no changes)
+No new data models are introduced. The component consumes the existing `Character` interface from `src/types/character.ts` (version `_v: 7`) along with the existing `ArmourPoints` type.
 
-| Type | Source | Usage in Print Layout |
-|------|--------|----------------------|
-| `Character` | `src/types/character.ts` | Top-level character data |
-| `ArmourPoints` | `src/types/character.ts` | Pre-calculated AP per location |
-| `CharacteristicKey` | `src/types/character.ts` | Characteristic abbreviations |
-| `CharacteristicValue` | `src/types/character.ts` | `{ i, a, b }` for each characteristic |
-| `Skill` | `src/types/character.ts` | `{ n, c, a }` — name, char, advances |
-| `Talent` | `src/types/character.ts` | `{ n, lvl, desc }` |
-| `WeaponItem` | `src/types/character.ts` | Weapon details |
-| `ArmourItem` | `src/types/character.ts` | Armour piece details |
-| `SpellItem` | `src/types/character.ts` | Spell details |
-| `AmmoItem` | `src/types/character.ts` | Ammo with name, quantity, max, enc, qualities |
-| `Companion` | `src/types/character.ts` | Full companion stat block |
-| `MutationEntry` | `src/types/character.ts` | `{ id, type, name, effect }` |
-| `Condition` | `src/types/character.ts` | `{ name, level, duration?, source? }` |
-| `Trapping` | `src/types/character.ts` | `{ name, enc, quantity }` |
+### Key Data Structures Consumed
 
-### Calculation Dependencies
+| Field | Type | Print Usage |
+|-------|------|-------------|
+| `character.chars` | `Record<CharacteristicKey, CharacteristicValue>` | Characteristics table (i, a, b → current) |
+| `character.bSkills` / `aSkills` | `Skill[]` | Skills grids |
+| `character.talents` | `Talent[]` | Talents table |
+| `character.weapons` | `WeaponItem[]` | Weapons table |
+| `character.armour` | `ArmourItem[]` | Armour table |
+| `character.spells` | `SpellItem[]` | Spells section (conditional) |
+| `character.companions` | `Companion[]` | Companions section (conditional) |
+| `character.hirelings` | `Hireling[]` | Hirelings section (conditional) |
+| `character.enterprises` | `Enterprise[]` (optional) | Enterprises section (conditional + house rule) |
+| `character.grudges` | `GrudgeEntry[]` (optional) | Grudge book section (conditional + house rule) |
+| `character.psychologyTraits` | `PsychologyTrait[]` (optional) | Psychology section (conditional + house rule) |
+| `character.rituals` | `RitualItem[]` (optional) | Rituals section (conditional) |
+| `character.yenluiState` | `YenluiState` (optional) | Yenlui indicator (conditional + house rule) |
+| `character.criticalWounds` | `CriticalWound[]` | Critical wounds (conditional) |
+| `character.mutations` | `MutationEntry[]` | Mutations table (conditional) |
+| `character.estate` | `Estate` | Estate section (conditional on name) |
+| `character.houseRules` | `HouseRules` | Gates optional sections |
+| `armourPoints` | `ArmourPoints` | AP by location display |
+| `totalWounds` | `number` | Wounds total |
 
-| Function | Source | Purpose |
-|----------|--------|---------|
-| `getBonus(value)` | `src/logic/calculators.ts` | Tens digit of characteristic (for wound breakdown) |
-| `calculateMaxEncumbrance(chars, strongBackLevel)` | `src/logic/calculators.ts` | Max encumbrance = SB + TB + Strong Back |
+### Computed Values (inline)
 
-### CSS Page-Break Strategy
+| Value | Computation |
+|-------|-------------|
+| Encumbrance (weapons) | `weapons.reduce(sum enc)` |
+| Encumbrance (armour) | `armour.reduce(sum worn enc)` |
+| Encumbrance (trappings) | `trappings.reduce(sum enc × qty)` |
+| Max encumbrance | `calculateMaxEncumbrance(chars, strongBackLevel)` |
+| SB, TB, WPB | `getBonus(char.i + char.a + char.b)` |
+| Hardy wounds bonus | `hardyLevel × TB` |
 
-The CSS uses the following approach for clean printing:
 
-```css
-/* Force page break after page 1 */
-.pageBreak {
-  page-break-after: always;
-}
-
-/* Prevent section boxes from splitting across pages */
-.sectionBox {
-  break-inside: avoid;
-  page-break-inside: avoid;
-}
-
-/* Prevent table rows from splitting */
-.tbl tr {
-  break-inside: avoid;
-  page-break-inside: avoid;
-}
-
-/* Page 2+ sections that may overflow use avoid-break */
-.pageSheet {
-  /* No forced break — content flows naturally */
-}
-
-/* Conditional page 3 starts on new page when content overflows */
-.conditionalPage {
-  page-break-before: auto;
-  break-before: auto;
-}
-```
-
-The strategy:
-1. **Page 1** always breaks after — it contains identity, characteristics, skills, and talents
-2. **Page 2** contains combat and equipment data; sections use `break-inside: avoid` so they won't split
-3. **Overflow pages** (3+) form automatically when conditional content (spells, companions) pushes beyond page 2. The browser's print engine handles pagination, with `break-inside: avoid` on each section box ensuring clean splits.
-
-### A4 Sizing
-
-```css
-@page {
-  size: A4;
-  margin: 1cm;
-}
-
-.page {
-  width: 190mm; /* A4 width minus 2×1cm margins */
-  font-size: 9px;
-}
-```
 
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-### Property 1: Conditional sections are omitted when data is empty
+### Property 1: Conditional section omission
 
-*For any* character where `spells.length === 0`, the rendered output SHALL NOT contain a Spells section; where `mutations.length === 0`, no Mutations section; where `companions.length === 0`, no Companions section; and where `ammo.length === 0`, no Ammo section.
+*For any* `Character` object and any optional section key, if the section's visibility condition is not met (empty data array, disabled house rule, or both), then the rendered output SHALL NOT contain a DOM element for that section.
 
-**Validates: Requirements 1.3, 1.4, 8.2**
+Specifically:
+- Empty spells → no "Spells" section
+- Empty enterprises OR `useEnterprises === false` → no "Enterprises" section
+- Empty grudges OR `useGrudgeBook === false` → no "Grudge Book" section
+- `useYenlui === false` → no "Yenlui" section
+- Empty companions → no "Companions" section
+- Empty mutations → no "Mutations" section
+- Empty criticalWounds → no "Critical Wounds" section
+- Empty hirelings → no "Hirelings" section
+- Empty rituals → no "Rituals" section
+- `estate.name === ''` → no "Estate" section
+- Empty psychologyTraits OR `usePsychologyTracker === false` → no "Psychology" section
 
-### Property 2: Non-essential content is excluded from print output
+**Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11**
 
-*For any* character (regardless of what non-essential data is populated), the rendered PrintLayout output SHALL NOT contain advancement log entries, session history, house rules settings, XP totals, combat state metadata, estate ledger entries, endeavour records, or character portrait images.
+### Property 2: Optional section data completeness
 
-**Validates: Requirements 1.2**
+*For any* character with non-empty optional data arrays and the relevant house rule enabled, every item in that array SHALL have its required fields rendered in the output.
 
-### Property 3: Skill total calculation correctness
+- For any psychology trait: type and target appear in rendered output; rating appears when defined
+- For any enterprise: name, type, and expansion level appear
+- For any grudge: offence, perpetrator, restitution, type, and status appear
+- For any critical wound: location, description, effects, and severity appear
+- For any ritual: name, CN, type, and description appear
+- For any hireling: name, role, and status appear
 
-*For any* skill with a valid linked characteristic, the displayed skill total SHALL equal the characteristic's current value (initial + advances + bonus) plus the skill's advance value. Formally: `total = (chars[skill.c].i + chars[skill.c].a + chars[skill.c].b) + skill.a`.
+**Validates: Requirements 1.2, 1.3, 1.4, 1.6, 1.7, 1.8**
 
-**Validates: Requirements 5.3, 5.4**
+### Property 3: Page footer contains character name
 
-### Property 4: Wound breakdown calculation correctness
+*For any* character with a non-empty name, every page wrapper element in the rendered output SHALL contain a footer element that includes the character's name.
 
-*For any* character, the wound breakdown SHALL display SB equal to `floor(S_total / 10)`, TB×2 equal to `2 * floor(T_total / 10)`, WPB equal to `floor(WP_total / 10)`, and Hardy equal to `hardyLevel * floor(T_total / 10)`, where each `X_total = chars[X].i + chars[X].a + chars[X].b`.
+**Validates: Requirements 4.6**
 
-**Validates: Requirements 6.4, 6.5**
+### Property 4: Section boxes prevent page breaks
 
-### Property 5: Weapon fields completeness
+*For any* rendered section box element in the print layout output, that element SHALL have the CSS class that applies `break-inside: avoid` and `page-break-inside: avoid`.
 
-*For any* weapon in a character's weapons array, the rendered weapon row SHALL contain the weapon's name, group, encumbrance, range/reach, damage value, and qualities.
-
-**Validates: Requirements 6.1**
-
-### Property 6: Spell fields completeness when present
-
-*For any* character with spells (spells.length > 0), the rendered Spells section SHALL display each spell with its name, casting number, range, target, duration, and effect.
-
-**Validates: Requirements 8.1**
-
-### Property 7: Companion stat block completeness
-
-*For any* character with companions (companions.length > 0), the rendered output SHALL display each companion's name, species, characteristics (M, WS, BS, S, T, I, Ag, Dex, Int, WP, Fel), wounds, traits, and trained skills.
-
-**Validates: Requirements 1.5**
-
-### Property 8: No interactive elements in print output
-
-*For any* character, the rendered PrintLayout output SHALL contain zero interactive HTML elements (no `<button>`, `<input>`, `<select>`, `<textarea>`, or elements with `contenteditable`).
-
-**Validates: Requirements 9.3**
+**Validates: Requirements 4.3**
 
 ## Error Handling
 
-The PrintLayout component is a pure presentational component with no user interaction, network calls, or side effects. Error scenarios are minimal:
+The PrintLayout component is a pure renderer with no I/O operations, network calls, or user interaction. Error conditions are limited to malformed or missing data in the `Character` object.
 
-| Scenario | Handling |
-|----------|----------|
-| Missing characteristic key on a skill | Default to 0 via optional chaining: `chars[skill.c as CharacteristicKey]` returns undefined → total defaults to `skill.a` only |
-| Empty arrays (weapons, armour, trappings) | Render section with empty table body — shows column headers but no rows |
-| Undefined optional fields (e.g., `weapon.rangeReach`) | Use fallback: `w.rangeReach \|\| w.maxR \|\| ''` |
-| `NaN` from malformed enc values | `parseFloat(enc) \|\| 0` ensures numeric safety |
-| Companion with missing trained skills | Render `trained.join(', ')` — empty array produces empty string |
-| Character with no name | Display "Unnamed Character" as fallback |
+| Scenario | Handling Strategy |
+|----------|-------------------|
+| Optional arrays are `undefined` | Use nullish coalescing (`?? []`) before rendering. Already present as optional fields in the Character interface. |
+| Empty string fields (name, career, etc.) | Render the field container but display fallback text ("Unnamed Character", "—") |
+| Zero-value numerics (wounds, AP) | Render as `0` — these are valid game states |
+| Extremely long text (spell effects, notes) | CSS `word-break: break-word` and `overflow-wrap: break-word` prevent overflow; text truncation is NOT applied since all data should print |
+| Missing house rule flags | Default to `false` (matching `BLANK_CHARACTER` defaults), omitting gated sections |
+| Large data sets (many spells, many trappings) | Allow natural page overflow; `break-inside: avoid` on individual table rows; browser handles pagination |
 
-No error boundaries are needed within PrintLayout since it renders inside the app-level ErrorBoundary and produces no side effects.
+### Defensive Rendering Pattern
+
+```typescript
+// Example: safe optional section rendering
+{(character.enterprises?.length ?? 0) > 0 && character.houseRules.useEnterprises && (
+  <section className={styles.sectionBox} data-section="enterprises">
+    {/* ... */}
+  </section>
+)}
+```
 
 ## Testing Strategy
 
 ### Unit Tests (Example-Based)
 
-Unit tests verify specific rendering scenarios with concrete character data:
+Unit tests verify specific structural and styling requirements:
 
-1. **Page structure**: Verify page 1 contains identity/stats/skills/talents, page 2 contains combat/equipment
-2. **Section ordering**: Verify character name appears first on page 1
-3. **CSS class application**: Verify page-break class on page 1 container
-4. **Section headers**: Verify each section box has a labeled header element
-5. **AP summary table**: Verify all 7 hit locations with dice roll ranges
-6. **Empty state rendering**: Character with no spells/companions/ammo renders without those sections
-7. **Skill display structure**: Basic and advanced skills in separate labeled sections
+| Test | Validates |
+|------|-----------|
+| Full character renders all core sections | Req 1.1 |
+| Yenlui displays correct state value for each of 3 states | Req 1.5 |
+| Page wrapper has parchment background class | Req 2.1 |
+| Section headings use decorative font class | Req 2.3, 3.5 |
+| Corner ornament classes are present | Req 2.4 |
+| Heraldic element exists per page | Req 2.7 |
+| Skills grid has ≥ 2 columns | Req 6.1 |
+| Characteristics table has all 10 headers | Req 6.2 |
+| Weapons table has correct column headers | Req 6.5 |
+| No interactive elements (button, input) in output | Req 7.2 |
+| Tables have thead elements for browser header repetition | Req 4.4 |
 
-### Property-Based Tests
+### Property-Based Tests (fast-check)
 
-Property-based tests verify universal properties across randomized character data using `fast-check`.
+Each property-based test generates random `Character` objects (using custom arbitraries that produce valid combinations of data and house rules) and verifies universal invariants.
 
-Each property test runs a minimum of 100 iterations with generated Character data.
-
-**Library**: `fast-check` (already suitable for TypeScript/Vitest environment)
-
+**Library**: `fast-check` (already installed)
+**Minimum iterations**: 100 per property
 **Tag format**: `Feature: print-layout-redesign, Property {N}: {title}`
 
-Properties to implement:
-- Property 1: Conditional section omission
-- Property 2: Non-essential content exclusion
-- Property 3: Skill total calculation correctness
-- Property 4: Wound breakdown calculation correctness
-- Property 5: Weapon fields completeness
-- Property 6: Spell fields completeness
-- Property 7: Companion stat block completeness
-- Property 8: No interactive elements
+| Property Test | Covers |
+|---------------|--------|
+| Conditional section omission | Properties 1 (Req 5.1–5.11) |
+| Optional section data completeness | Property 2 (Req 1.2–1.8) |
+| Page footer contains character name | Property 3 (Req 4.6) |
+| Section boxes have break-inside class | Property 4 (Req 4.3) |
 
-**Generator strategy**: Build an `Arbitrary<Character>` generator that produces valid Character objects with randomized:
-- Characteristic values (i, a, b each 0-99)
-- Skill arrays with random advances (0-50) and valid linked characteristics
-- Weapon/armour/spell/ammo/companion arrays of random length (0-5)
-- Condition arrays with random levels (0-3)
-- Mutation arrays of random length (0-3)
+### Test Generators (fast-check Arbitraries)
 
-**Testing approach**: Render `PrintLayout` with `@testing-library/react`'s `render()`, then query the resulting DOM for structural assertions. Since this is a pure rendering component, no mocking of external services is needed.
+Key custom generators needed:
 
-### Integration / Visual Tests
+```typescript
+// Arbitrary for a minimal valid Character with controlled optional fields
+const arbCharacterWithSections = fc.record({
+  spells: fc.array(arbSpellItem, { minLength: 0, maxLength: 5 }),
+  companions: fc.array(arbCompanion, { minLength: 0, maxLength: 3 }),
+  enterprises: fc.array(arbEnterprise, { minLength: 0, maxLength: 2 }),
+  grudges: fc.array(arbGrudgeEntry, { minLength: 0, maxLength: 3 }),
+  psychologyTraits: fc.array(arbPsychologyTrait, { minLength: 0, maxLength: 4 }),
+  criticalWounds: fc.array(arbCriticalWound, { minLength: 0, maxLength: 3 }),
+  rituals: fc.array(arbRitualItem, { minLength: 0, maxLength: 3 }),
+  hirelings: fc.array(arbHireling, { minLength: 0, maxLength: 2 }),
+  houseRules: arbHouseRules,
+  // ... base character fields with sensible defaults
+});
+```
 
-- Manual print preview verification for A4 sizing, page breaks, and visual theming
-- Browser print-to-PDF for checking no content clipping
-- Verify `@media print` rules show/hide correct elements
+### Smoke Tests
+
+| Test | Validates |
+|------|-----------|
+| CSS module contains `@page` rule with A4 size | Req 4.1 |
+| CSS module contains `@page` rule or query for letter size | Req 4.5 |
+| Print-layout wrapper is hidden outside print media | Req 7.1, 7.3 |
+
+### Integration Tests
+
+| Test | Validates |
+|------|-----------|
+| Print preview renders complete output (manual / Playwright) | Req 7.4 |
+| Contrast ratio audit of CSS colour pairs | Req 3.3 |
 
