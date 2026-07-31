@@ -119,14 +119,14 @@
 /* ─── Characteristics Grid ─── */
 .charGrid {
   display: grid;
-  grid-template-columns: 1fr 1.4fr 1.4fr 1.2fr 0.8fr 1.2fr 0.8fr;
+  grid-template-columns: 1fr 1.4fr 1.4fr 1.2fr 0.8fr 1.2fr 36px;
   gap: 0;
   align-items: center;
   width: 100%;
 }
 
 .charGrid.hideTBonus {
-  grid-template-columns: 1fr 1.4fr 1.4fr 1.2fr 0.8fr 0.8fr;
+  grid-template-columns: 1fr 1.4fr 1.4fr 1.2fr 0.8fr 36px;
 }
 
 .charGridHeader {
@@ -188,7 +188,7 @@
 /* ─── Skills Grid ─── */
 .skillGrid {
   display: grid;
-  grid-template-columns: 3fr 1fr 1.2fr 1fr 0.8fr;
+  grid-template-columns: 3fr 1fr 1.2fr 1fr 36px;
   gap: 0;
   align-items: center;
   width: 100%;
@@ -197,7 +197,7 @@
 /* Advanced skills have an extra delete column */
 .skillGridAdvanced {
   display: grid;
-  grid-template-columns: 3fr 1fr 1.2fr 1fr 0.8fr 0.6fr;
+  grid-template-columns: 3fr 1fr 1.2fr 1fr 36px 32px;
   gap: 0;
   align-items: center;
   width: 100%;
@@ -879,11 +879,11 @@
 
   /* Compact grid columns on mobile */
   .charGrid {
-    grid-template-columns: 0.8fr 1.2fr 1.2fr 1fr 0.7fr 1fr 0.7fr;
+    grid-template-columns: 0.8fr 1.2fr 1.2fr 1fr 0.7fr 1fr 32px;
   }
 
   .charGrid.hideTBonus {
-    grid-template-columns: 0.8fr 1.2fr 1.2fr 1fr 0.7fr 0.7fr;
+    grid-template-columns: 0.8fr 1.2fr 1.2fr 1fr 0.7fr 32px;
   }
 }
 
