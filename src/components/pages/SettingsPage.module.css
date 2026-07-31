@@ -135,6 +135,13 @@
   margin-bottom: 4px;
 }
 
+.ruleLocation {
+  font-size: 11px;
+  color: var(--accent-gold);
+  margin-top: 2px;
+  font-style: italic;
+}
+
 /* Three-button selector (reuses theme button pattern) */
 .selectorRow {
   display: flex;

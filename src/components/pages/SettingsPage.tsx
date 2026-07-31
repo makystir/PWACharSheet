@@ -478,6 +478,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                   <div className={styles.ruleDesc} style={!character.houseRules.useYenlui ? { color: 'var(--text-muted)' } : undefined}>
                     Track Elven spiritual balance (High Elf Player's Guide)
                   </div>
+                  {character.houseRules.useYenlui && <div className={styles.ruleLocation}>Find it on: Character → Identity tab</div>}
                 </div>
                 <button
                   type="button"
@@ -497,6 +498,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                   <div className={styles.ruleDesc} style={!character.houseRules.useGrudgeBook ? { color: 'var(--text-muted)' } : undefined}>
                     Track Dwarf grudges for XP (Dwarf Player's Guide)
                   </div>
+                  {character.houseRules.useGrudgeBook && <div className={styles.ruleLocation}>Find it on: Character → Identity tab</div>}
                 </div>
                 <button
                   type="button"
@@ -516,6 +518,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                   <div className={styles.ruleDesc} style={!character.houseRules.usePsychologyTracker ? { color: 'var(--text-muted)' } : undefined}>
                     Track phobias, animosity, hatred, and trauma (Archives Vol. II)
                   </div>
+                  {character.houseRules.usePsychologyTracker && <div className={styles.ruleLocation}>Find it on: Character → Identity tab, and Notes tab</div>}
                 </div>
                 <button
                   type="button"
@@ -535,6 +538,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                   <div className={styles.ruleDesc} style={!character.houseRules.useCriticalDeflection ? { color: 'var(--text-muted)' } : undefined}>
                     Sacrifice 1 AP to ignore a Critical Wound (Archives Vol. III)
                   </div>
+                  {character.houseRules.useCriticalDeflection && <div className={styles.ruleLocation}>Find it on: Combat → Take Damage panel</div>}
                 </div>
                 <button
                   type="button"
@@ -554,6 +558,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                   <div className={styles.ruleDesc} style={!character.houseRules.useEnterprises ? { color: 'var(--text-muted)' } : undefined}>
                     Track business ventures and income sources (Archives Vol. III)
                   </div>
+                  {character.houseRules.useEnterprises && <div className={styles.ruleLocation}>Find it on: Estate → Enterprises tab</div>}
                 </div>
                 <button
                   type="button"
