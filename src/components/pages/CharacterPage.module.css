@@ -638,6 +638,80 @@
   height: 14px;
 }
 
+/* Trapping edit form */
+.trappingEditForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.trappingEditRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trappingEditInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.trappingEditInput:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.trappingEditInputSmall {
+  composes: trappingEditInput;
+  max-width: 70px;
+  text-align: center;
+}
+
+.trappingEditLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.trappingEditDoneBtn {
+  align-self: flex-end;
+  padding: 4px 12px;
+  background: rgba(90, 154, 90, 0.15);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trappingEditDoneBtn:hover {
+  background: rgba(90, 154, 90, 0.25);
+}
+
+.trappingEditBtn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.trappingEditBtn:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
 /* Trappings table — horse row highlight */
 .rowHorse {
   background: rgba(200, 168, 76, 0.05);

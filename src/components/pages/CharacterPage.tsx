@@ -205,6 +205,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const [showAdvSkillPicker, setShowAdvSkillPicker] = useState(false);
   const [showTalentPicker, setShowTalentPicker] = useState(false);
   const [showTrappingPicker, setShowTrappingPicker] = useState(false);
+  const [editingTrappingIndex, setEditingTrappingIndex] = useState<number | null>(null);
 
   // Responsive characteristics table: hide T. Bonus on mobile by default (Req 7.3)
   const [showTBonus, setShowTBonus] = useState(false);
@@ -1171,21 +1172,71 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           <div className={styles.trappingsGrid}>
             {character.trappings.map((t, i) => (
               <div key={i} className={t.storedOnHorse ? styles.trappingCardHorse : styles.trappingCard}>
-                <div className={styles.trappingActions}>
-                  <input
-                    type="checkbox"
-                    checked={!!t.storedOnHorse}
-                    onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)}
-                    title="Stored on horse"
-                    aria-label="Stored on horse"
-                    className={styles.trappingHorseCheckbox}
-                  />
-                  <button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn} aria-label="Remove trapping">✕</button>
-                </div>
-                <span className={styles.trappingName}>{t.name || '(unnamed)'}</span>
-                <span className={styles.trappingMeta}>
-                  Enc {t.enc || '0'} · Qty {t.quantity || 1}
-                </span>
+                {editingTrappingIndex === i ? (
+                  <div className={styles.trappingEditForm}>
+                    <input
+                      type="text"
+                      value={t.name}
+                      onChange={(e) => update(`trappings.${i}.name`, e.target.value)}
+                      placeholder="Trapping name"
+                      className={styles.trappingEditInput}
+                      aria-label="Trapping name"
+                    />
+                    <div className={styles.trappingEditRow}>
+                      <input
+                        type="text"
+                        value={t.enc}
+                        onChange={(e) => update(`trappings.${i}.enc`, e.target.value)}
+                        placeholder="Enc"
+                        className={styles.trappingEditInputSmall}
+                        aria-label="Encumbrance"
+                      />
+                      <input
+                        type="number"
+                        value={t.quantity || 1}
+                        onChange={(e) => update(`trappings.${i}.quantity`, Math.max(1, Number(e.target.value) || 1))}
+                        placeholder="Qty"
+                        className={styles.trappingEditInputSmall}
+                        aria-label="Quantity"
+                        min={1}
+                      />
+                    </div>
+                    <div className={styles.trappingEditRow}>
+                      <input
+                        type="checkbox"
+                        checked={!!t.storedOnHorse}
+                        onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)}
+                        className={styles.trappingHorseCheckbox}
+                        aria-label="Stored on horse"
+                      />
+                      <span className={styles.trappingEditLabel}>Stored on horse</span>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.trappingEditDoneBtn}
+                      onClick={() => setEditingTrappingIndex(null)}
+                    >Done</button>
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.trappingActions}>
+                      <input
+                        type="checkbox"
+                        checked={!!t.storedOnHorse}
+                        onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)}
+                        title="Stored on horse"
+                        aria-label="Stored on horse"
+                        className={styles.trappingHorseCheckbox}
+                      />
+                      <button type="button" onClick={() => setEditingTrappingIndex(i)} className={styles.trappingEditBtn} aria-label={`Edit ${t.name || 'trapping'}`}>✎</button>
+                      <button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn} aria-label="Remove trapping">✕</button>
+                    </div>
+                    <span className={styles.trappingName}>{t.name || '(unnamed)'}</span>
+                    <span className={styles.trappingMeta}>
+                      Enc {t.enc || '0'} · Qty {t.quantity || 1}
+                    </span>
+                  </>
+                )}
               </div>
             ))}
           </div>
