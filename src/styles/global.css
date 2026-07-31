@@ -69,6 +69,9 @@ input, select, textarea {
 /* Print styles */
 @media print {
   html, body {
+    height: auto !important;
+    overflow: visible !important;
+    max-width: none !important;
     background: #f5efe0 !important;
     color: #1a1510 !important;
     font-size: 9px;
@@ -79,6 +82,9 @@ input, select, textarea {
 
   #root {
     display: block;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   /* Hide navigation, buttons, interactive UI */
@@ -123,12 +129,6 @@ input, select, textarea {
   /* Ensure tables print well */
   table {
     page-break-inside: avoid;
-  }
-
-  /* Page margins */
-  @page {
-    margin: 1cm;
-    size: A4;
   }
 
   /* Hide screen-only elements */
