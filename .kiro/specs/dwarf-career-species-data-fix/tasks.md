@@ -1,0 +1,112 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Bug Condition** - Dwarf Career & Subrace Data Mismatch
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the data mismatches exist in careers.ts and species.ts
+  - **Scoped PBT Approach**: Use fast-check to generate selections from the affected entries (Runesmith levels 1-4, Runescribe levels 1-4, all 11 Dwarf subraces) and assert they match source-of-truth values
+  - Create test file `src/data/__tests__/dwarf-data-bugcondition.property.test.ts`
+  - Import career data for Runesmith and Runescribe from `src/data/careers.ts`
+  - Import species data for all Dwarf subraces from `src/data/species.ts`
+  - Define expected values from the design document (Bug Condition specification):
+    - Runesmith Level 1: status "Silver 2", skills include "Art (Sculpture or Engraving)", talents include "Detect Artefact"
+    - Runesmith Level 3: title "Runemaster", status "Gold 2"
+    - Runesmith Level 4: status "Gold 4"
+    - Runescribe Level 1: status "Brass 3"
+    - Runescribe Level 2: talents must NOT include "Rune Magic" or "Runesmithing"
+    - Runescribe Level 3: title "Lorekeeper", status "Silver 5"
+    - Runescribe Level 4: title "Loremaster", talents must NOT include "Master Rune Magic"
+    - Dwarfs (Barak Varr): talents include "Dealmaker or Strong-minded", no standalone "Ancestral Grudge"
+    - Dwarfs (Karak Kadrin): talents include "Iron Jaw or Read/Write", no "Fearless (Everything)"
+    - All Dwarf subraces: talents should have exactly 5 entries with proper "X or Y" choice format
+  - Use `fc.constantFrom(...)` to pick random affected entries, then assert field values match expected
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bug exists)
+  - Document counterexamples found (e.g., "Runesmith level 1 status is 'Brass 4' instead of 'Silver 2'")
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Non-Dwarf and Unaffected Data Unchanged
+  - **IMPORTANT**: Follow observation-first methodology
+  - Create test file `src/data/__tests__/dwarf-data-preservation.property.test.ts`
+  - Observe current behavior on UNFIXED code for non-buggy inputs:
+    - Observe: All non-Dwarf species (Human/Reiklander, Halfling, High Elf, Wood Elf, all High Elf subraces, Ogre) retain their current values
+    - Observe: Base "Dwarf" species entry retains correct values (already has "X or Y" format)
+    - Observe: Non-Runesmith/Runescribe careers retain their current values
+    - Observe: Dwarf subrace numeric fields (chars, move, fate, resilience, extraPoints) retain their current values
+  - Write property-based tests using fast-check:
+    - Property: for all non-Dwarf species entries selected via `fc.constantFrom(...)`, skills/talents/chars match current snapshot values
+    - Property: for all non-Runesmith/Runescribe careers selected via `fc.constantFrom(...)`, all level data matches current snapshot values
+    - Property: base "Dwarf" entry skills === current values, talents === current values
+    - Property: for all Dwarf subraces, numeric fields (chars: WS:30, BS:20, S:20, T:30, I:20, Ag:10, Dex:30, Int:20, WP:40, Fel:10, move:3, fate:0, resilience:2, extraPoints:2) are unchanged
+  - Verify all tests PASS on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [x] 3. Fix Dwarf career and species data
+
+  - [x] 3.1 Fix Runesmith career data in `src/data/careers.ts`
+    - Level 1 ("Apprentice Runesmith"): Change status "Brass 4" → "Silver 2". Replace skills with ["Art (Sculpture or Engraving)", "Cool", "Consume Alcohol", "Endurance", "Evaluate", "Intuition", "Lore (Runes)", "Runesmithing", "Melee (Basic or Two-handed)", "Trade (Smith)"]. Replace talents with ["Detect Artefact", "Magic Resistance", "Rune Magic (Rune of Striking)", "Strong Back"].
+    - Level 2 ("Runesmith"): Change status "Silver 3" → "Silver 5". Replace skills with ["Athletics", "Dodge", "Intimidate", "Lore (Geology or Metallurgy)", "Perception", "Stealth (Any One)"]. Replace talents with ["Forgefire", "Magic Defiance", "Magical Sense", "Rune Magic (All Forms)"].
+    - Level 3: Change title "Master Runesmith" → "Runemaster". Change status "Gold 1" → "Gold 2". Replace skills with ["Climb", "Navigation", "Pick Lock", "Set Trap"]. Replace talents with ["Acute Sense (Touch)", "Long Memory", "Master Rune Magic (All Forms)", "Tireless"].
+    - Level 4 ("Runelord"): Change status "Gold 3" → "Gold 4". Replace skills with ["Leadership", "Lore (Any)"]. Replace talents with ["Ancestral Grudge", "Iron Will", "Menacing", "Pure Soul"].
+    - _Bug_Condition: isBugCondition(entry) where entry.careerName == "Runesmith"_
+    - _Expected_Behavior: Each level's status, title, skills, and talents match docs/dwarfguide.md_
+    - _Preservation: Non-Runesmith careers remain unchanged_
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+  - [x] 3.2 Fix Runescribe career data in `src/data/careers.ts`
+    - Level 1 ("Apprentice Runescribe"): Change status "Brass 4" → "Brass 3". Replace characteristics with ["T", "Dex", "Int"]. Replace skills with ["Art (Writing)", "Consume Alcohol", "Entertain (Singing or Storytelling)", "Evaluate", "Gamble", "Haggle", "Language (Any One)", "Lore (Any One)", "Research", "Stealth (Any One)"]. Replace talents with ["Read/Write", "Speedreader", "Super Numerate", "Supportive"].
+    - Level 2 ("Runescribe"): Replace skills with ["Gossip", "Intuition", "Lore (Any One)", "Navigation", "Perception", "Trade (Any One)"]. Replace talents with ["Acute Sense (Touch)", "Bookish", "Lip Reading", "Long Memory"]. Remove all magical talents.
+    - Level 3: Change title "Master Runescribe" → "Lorekeeper". Change status "Silver 4" → "Silver 5". Replace skills with ["Heal", "Lore (Any One)", "Outdoor Survival", "Track"]. Replace talents with ["Ancestral Grudge", "Gregarious", "Linguistics", "Savant (Any One)"]. Remove all magical talents.
+    - Level 4: Change title "Runelord Scribe" → "Loremaster". Replace skills with ["Cool", "Lore (Any One)"]. Replace talents with ["Blather", "Detect Artefact", "Public Speaker", "Tireless"]. Remove all magical talents.
+    - _Bug_Condition: isBugCondition(entry) where entry.careerName == "Runescribe"_
+    - _Expected_Behavior: Each level's status, title, skills, and talents match docs/dwarfguide.md with NO magical talents_
+    - _Preservation: Non-Runescribe careers remain unchanged_
+    - _Requirements: 2.5, 2.6, 2.7, 2.8_
+
+  - [x] 3.3 Fix all 11 Dwarf subrace entries in `src/data/species.ts`
+    - Replace skills and talents arrays for each of:
+      - Dwarfs (Karaz-a-Karak): skills → ["Consume Alcohol", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Language (Khazalid)", "Leadership", "Lore (Dwarfs)", "Lore (Geology)", "Lore (Metallurgy)", "Melee (Basic)", "Trade (Any One)"], talents → ["Ancestral Grudge or Resolute", "Magic Resistance", "Night Vision", "Read/Write or Relentless", "Sturdy"]
+      - Dwarfs (Barak Varr): skills → ["Consume Alcohol", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Haggle", "Language (Khazalid)", "Lore (Dwarfs)", "Melee (Basic)", "Navigation", "Sail", "Trade (Any One)"], talents → ["Dealmaker or Strong-minded", "Magic Resistance", "Night Vision", "Read/Write or Resolute", "Sturdy"]
+      - Dwarfs (Karak Azul): skills → ["Climb", "Consume Alcohol", "Cool", "Endurance", "Evaluate", "Haggle", "Intimidate", "Language (Khazalid)", "Lore (Dwarfs)", "Lore (Metallurgy)", "Melee (Basic)", "Trade (Any One)"], talents → ["Hatred (Orcs and Goblins) or Resolute", "Magic Resistance", "Night Vision", "Read/Write or Relentless", "Sturdy"]
+      - Dwarfs (Karak Eight Peaks): skills → ["Consume Alcohol", "Cool", "Endurance", "Evaluate", "Intuition", "Language (Khazalid)", "Lore (Dwarfs)", "Lore (Geology)", "Lore (Warfare)", "Melee (Basic)", "Set Traps", "Trade (Any One)"], talents → ["Magic Resistance", "Night Vision", "Read/Write or Resolute", "Strong-minded or Tenacious", "Sturdy"]
+      - Dwarfs (Karak Kadrin): skills → ["Consume Alcohol", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Gamble", "Intimidate", "Language (Khazalid)", "Lore (Dwarfs)", "Lore (Metallurgy)", "Melee (Basic)", "Trade (Any One)"], talents → ["Iron Jaw or Read/Write", "Magic Resistance", "Night Vision", "Resolute or Strong-minded", "Sturdy"]
+      - Dwarfs (Zhufbar): skills → ["Consume Alcohol", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Language (Khazalid)", "Lore (Dwarfs)", "Lore (Engineering)", "Lore (Geology)", "Lore (Metallurgy)", "Melee (Basic)", "Trade (Any One)"], talents → ["Magic Resistance", "Night Vision", "Read/Write or Relentless", "Strong-minded or Tinker", "Sturdy"]
+      - Dwarfs (Karak Hirn/Black Mountains): skills → ["Consume Alcohol", "Climb", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Haggle", "Language (Khazalid)", "Lore (Dwarfs)", "Melee (Basic)", "Play (Horn)", "Trade (Any One)"], talents → ["Magic Resistance", "Night Vision", "Read/Write or Relentless", "Scale Sheer Surface or Strong-minded", "Sturdy"]
+      - Dwarfs (Karak Izor/The Vaults): skills → ["Consume Alcohol", "Climb", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Language (Khazalid)", "Lore (Dwarfs)", "Lore (Geology)", "Melee (Basic)", "Outdoor Survival", "Trade (Any One)"], talents → ["Enclosed Fighter or Resolute", "Magic Resistance", "Night Vision", "Read/Write or Relentless", "Sturdy"]
+      - Dwarfs (Karak Norn/Grey Mountains): skills → ["Consume Alcohol", "Climb", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Language (Khazalid)", "Lore (Dwarfs)", "Melee (Basic)", "Perception", "Ranged (Crossbow)", "Trade (Any One)"], talents → ["Magic Resistance", "Night Vision", "Read/Write or Relentless", "Resolute or Stone Soup", "Sturdy"]
+      - Dwarfs (Norse): skills → ["Climb", "Consume Alcohol", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Language (Khazalid)", "Language (Norse)", "Lore (Dwarfs)", "Melee (Basic)", "Sail", "Trade (Any One)"], talents → ["Carouser or Strong-minded", "Magic Resistance", "Night Vision", "Read/Write or Relentless", "Sturdy"]
+      - Dwarfs (Imperial): skills → ["Consume Alcohol", "Cool", "Endurance", "Entertain (Storytelling)", "Evaluate", "Intimidate", "Language (Khazalid)", "Lore (Dwarfs)", "Lore (Geology)", "Lore (Metallurgy)", "Melee (Basic)", "Trade (Any One)"], talents → ["Magic Resistance", "Night Vision", "Read/Write or Relentless", "Resolute or Strong-minded", "Sturdy"]
+    - Do NOT modify any numeric fields (chars, move, fate, resilience, extraPoints)
+    - _Bug_Condition: isBugCondition(entry) where entry.speciesName starts with "Dwarfs ("_
+    - _Expected_Behavior: Each subrace's skills and talents match docs/dwarfguide.md with proper "X or Y" choice format_
+    - _Preservation: Base "Dwarf" entry, non-Dwarf species, and all numeric fields remain unchanged_
+    - _Requirements: 2.9, 2.10, 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.30_
+
+  - [x] 3.4 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Dwarf Career & Subrace Data Matches Source of Truth
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior (correct statuses, titles, skills, talents)
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run `npx vitest --run src/data/__tests__/dwarf-data-bugcondition.property.test.ts`
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11, 2.12, 2.13, 2.14, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.30_
+
+  - [x] 3.5 Verify preservation tests still pass
+    - **Property 2: Preservation** - Non-Dwarf and Unaffected Data Unchanged
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run `npx vitest --run src/data/__tests__/dwarf-data-preservation.property.test.ts`
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm all preservation tests still pass after fix (no regressions)
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Run full test suite: `npx vitest --run`
+  - Ensure both property test files pass
+  - Ensure no other existing tests have broken
+  - Ensure TypeScript compiles without errors: `npx tsc --noEmit`
+  - Ask the user if questions arise
