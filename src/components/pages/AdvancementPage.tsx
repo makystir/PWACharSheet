@@ -539,7 +539,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             )}
             {inCareerSkills.map((entry) => {
               const charVal = character.chars[entry.skill.c as CharacteristicKey];
-              const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + entry.skill.a : entry.skill.a;
+              const total = charVal ? (charVal.i + charVal.a + charVal.b + entry.skill.a) : entry.skill.a;
               const cost = getAdvancementCost('skill', entry.skill.a, true);
               const canAfford = character.xpCur >= cost;
               return (
@@ -589,7 +589,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
               <tbody>
                 {outCareerSkills.map((entry) => {
                   const charVal = character.chars[entry.skill.c as CharacteristicKey];
-                  const total = charVal ? getBonus(charVal.i + charVal.a + charVal.b) + entry.skill.a : entry.skill.a;
+                  const total = charVal ? (charVal.i + charVal.a + charVal.b + entry.skill.a) : entry.skill.a;
                   const cost = getAdvancementCost('skill', entry.skill.a, false);
                   const canAfford = character.xpCur >= cost;
                   const futureLevel = getFutureCareerLevel(character.career, careerLevelNum, { type: 'skill', name: entry.skill.n });
