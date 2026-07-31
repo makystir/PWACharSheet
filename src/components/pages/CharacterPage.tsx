@@ -518,7 +518,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           {showTBonus ? 'Hide Details' : 'Show Details'}
         </button>
         <div className={styles.overflowAuto}>
-          <table className={`${styles.tableBase} ${showTBonus ? styles.tBonusVisible : ''}`}>
+          <table className={`${styles.tableBase} ${styles.charTable} ${showTBonus ? styles.tBonusVisible : ''}`}>
             <thead>
               <tr>
                 <th className={styles.thCenter} title="Characteristic">Char</th>
