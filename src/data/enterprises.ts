@@ -1,4 +1,4 @@
-import { EnterpriseCurrency, EnterpriseType } from '../types/character';
+import type { EnterpriseCurrency, EnterpriseType } from '../types/character';
 
 export interface EnterpriseTemplateIncomeSource {
   description: string;
