@@ -1390,7 +1390,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       </Card>
 
       {/* Psychology Traits */}
-      <PsychologyPanel character={character} updateCharacter={updateCharacter} />
+      {character.houseRules.usePsychologyTracker && (
+        <PsychologyPanel character={character} updateCharacter={updateCharacter} />
+      )}
 
       {/* Corruption & Mutation */}
       <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} />
