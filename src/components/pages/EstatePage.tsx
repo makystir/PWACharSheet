@@ -8,6 +8,7 @@ import { Home, Coins, ScrollText, Building } from 'lucide-react';
 import { computeHirelingUpkeep } from '../../logic/hirelings';
 import { SubTabBar } from '../shared/SubTabBar';
 import { useTabOrder } from '../../hooks/useTabOrder';
+import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { EmptyState } from '../shared/EmptyState';
 import { Toast } from '../shared/Toast';
 import { CurrencyInput } from '../shared/CurrencyInput';
@@ -65,35 +66,6 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
   const VALID_SUBTABS: EstateSubTab[] = useEnterprises
     ? ['estate', 'holdings', 'wealth', 'enterprises']
     : ['estate', 'holdings', 'wealth'];
-  const initialTab = (subTab && VALID_SUBTABS.includes(subTab as EstateSubTab)) ? subTab as EstateSubTab : 'wealth';
-  const [activeSubTab, setActiveSubTabInternal] = useState<EstateSubTab>(initialTab);
-
-  // Fall back to 'wealth' if the current active tab is no longer valid (e.g. enterprises toggled off)
-  useEffect(() => {
-    if (!VALID_SUBTABS.includes(activeSubTab)) {
-      setActiveSubTabInternal('wealth');
-      onSubTabChange?.('wealth');
-    }
-  }, [useEnterprises]);
-
-  // Sync from external subTab prop (e.g. URL hash changes)
-  // Falls back to default sub-tab if hash references a non-existent tab ID (Req 6.3)
-  useEffect(() => {
-    if (subTab) {
-      if (VALID_SUBTABS.includes(subTab as EstateSubTab)) {
-        setActiveSubTabInternal(subTab as EstateSubTab);
-      } else {
-        // Invalid tab ID in hash — fall back to default sub-tab
-        setActiveSubTabInternal('wealth');
-      }
-    }
-  }, [subTab]);
-
-  // Wrapper that notifies parent when sub-tab changes
-  const setActiveSubTab = (tab: EstateSubTab) => {
-    setActiveSubTabInternal(tab);
-    onSubTabChange?.(tab);
-  };
 
   // Tab reordering — conditionally include Enterprises tab
   const defaultTabsList = useMemo(() => {
@@ -112,6 +84,43 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
     pageKey: 'estate',
     defaultTabs: defaultTabsList,
   });
+
+  // Active sub-tab: use URL hash > last stored > first ordered tab
+  const resolveInitialTab = (): EstateSubTab => {
+    if (subTab && VALID_SUBTABS.includes(subTab as EstateSubTab)) return subTab as EstateSubTab;
+    const stored = loadLastSubTab('estate');
+    if (stored && VALID_SUBTABS.includes(stored as EstateSubTab)) return stored as EstateSubTab;
+    const firstOrdered = orderedTabs[0]?.id;
+    if (firstOrdered && VALID_SUBTABS.includes(firstOrdered as EstateSubTab)) return firstOrdered as EstateSubTab;
+    return 'wealth';
+  };
+  const [activeSubTab, setActiveSubTabInternal] = useState<EstateSubTab>(resolveInitialTab);
+
+  // Fall back if the current active tab is no longer valid (e.g. enterprises toggled off)
+  useEffect(() => {
+    if (!VALID_SUBTABS.includes(activeSubTab)) {
+      const fallback = (orderedTabs[0]?.id as EstateSubTab) || 'wealth';
+      setActiveSubTabInternal(fallback);
+      saveLastSubTab('estate', fallback);
+      onSubTabChange?.(fallback);
+    }
+  }, [useEnterprises]);
+
+  // Sync from external subTab prop (e.g. URL hash changes)
+  useEffect(() => {
+    if (subTab) {
+      if (VALID_SUBTABS.includes(subTab as EstateSubTab)) {
+        setActiveSubTabInternal(subTab as EstateSubTab);
+      }
+    }
+  }, [subTab]);
+
+  // Wrapper that notifies parent and persists selection
+  const setActiveSubTab = (tab: EstateSubTab) => {
+    setActiveSubTabInternal(tab);
+    saveLastSubTab('estate', tab);
+    onSubTabChange?.(tab);
+  };
 
   const [noteInput, setNoteInput] = useState('');
   const [treasuryError, setTreasuryError] = useState<string | null>(null);

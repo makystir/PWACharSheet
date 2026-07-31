@@ -7,24 +7,20 @@ export const VALID_PAGES = ['character', 'combat', 'retinue', 'estate', 'endeavo
 
 export type ValidPage = (typeof VALID_PAGES)[number];
 
-export const PAGE_DEFAULT_SUBTABS: Partial<Record<ValidPage, string>> = {
-  character: 'identity',
-  estate: 'wealth',
-  retinue: 'hirelings',
-};
+export const PAGE_DEFAULT_SUBTABS: Partial<Record<ValidPage, string>> = {};
 
 /**
  * Parse a URL hash string into page and sub-tab values.
  * - Returns the page and subTab if valid.
  * - Falls back to 'character' for invalid pages.
- * - Falls back to page's default sub-tab for invalid sub-tabs.
+ * - Returns null subTab when no sub-tab is specified (pages handle their own defaults).
  */
 export function parseHash(hash: string): { page: ValidPage; subTab: string | null } {
   // Remove leading '#' if present
   const stripped = hash.startsWith('#') ? hash.slice(1) : hash;
 
   if (!stripped) {
-    return { page: 'character', subTab: PAGE_DEFAULT_SUBTABS['character'] ?? null };
+    return { page: 'character', subTab: null };
   }
 
   const segments = stripped.split('/');
@@ -36,18 +32,13 @@ export function parseHash(hash: string): { page: ValidPage; subTab: string | nul
     ? (rawPage as ValidPage)
     : 'character';
 
-  // If page was invalid, use default sub-tab for character
+  // If page was invalid, return character with no sub-tab
   if (!VALID_PAGES.includes(rawPage as ValidPage)) {
-    return { page: 'character', subTab: PAGE_DEFAULT_SUBTABS['character'] ?? null };
+    return { page: 'character', subTab: null };
   }
 
-  // If no sub-tab provided, use page's default (or null if page has no default)
-  if (!rawSubTab) {
-    return { page, subTab: PAGE_DEFAULT_SUBTABS[page] ?? null };
-  }
-
-  // Return the sub-tab as provided (valid sub-tab string)
-  return { page, subTab: rawSubTab };
+  // Return sub-tab as provided (null if not in hash)
+  return { page, subTab: rawSubTab || null };
 }
 
 /**

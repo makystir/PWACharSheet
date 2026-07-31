@@ -49,6 +49,7 @@ import type { ProtectionItem, EngineeringItem } from '../../types/character';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { SubTabBar } from '../shared/SubTabBar';
 import { useTabOrder } from '../../hooks/useTabOrder';
+import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
 import { CurrencyInput } from '../shared/CurrencyInput';
@@ -89,27 +90,6 @@ type CharSubTab = 'identity' | 'abilities' | 'gear' | 'notes';
 
 export function CharacterPage({ character, characterId, update, updateCharacter, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
   const VALID_SUBTABS: CharSubTab[] = ['identity', 'abilities', 'gear', 'notes'];
-  const initialTab = (subTab && VALID_SUBTABS.includes(subTab as CharSubTab)) ? subTab as CharSubTab : 'identity';
-  const [activeSubTab, setActiveSubTabInternal] = useState<CharSubTab>(initialTab);
-
-  // Sync from external subTab prop (e.g. URL hash changes)
-  // Falls back to default sub-tab if hash references a non-existent tab ID (Req 6.3)
-  useEffect(() => {
-    if (subTab) {
-      if (VALID_SUBTABS.includes(subTab as CharSubTab)) {
-        setActiveSubTabInternal(subTab as CharSubTab);
-      } else {
-        // Invalid tab ID in hash — fall back to default sub-tab
-        setActiveSubTabInternal('identity');
-      }
-    }
-  }, [subTab]);
-
-  // Wrapper that notifies parent when sub-tab changes
-  const setActiveSubTab = (tab: CharSubTab) => {
-    setActiveSubTabInternal(tab);
-    onSubTabChange?.(tab);
-  };
 
   // Tab reordering
   const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
@@ -121,6 +101,33 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       { id: 'notes', label: 'Notes' },
     ],
   });
+
+  // Active sub-tab: use URL hash > last stored > first ordered tab
+  const resolveInitialTab = (): CharSubTab => {
+    if (subTab && VALID_SUBTABS.includes(subTab as CharSubTab)) return subTab as CharSubTab;
+    const stored = loadLastSubTab('character');
+    if (stored && VALID_SUBTABS.includes(stored as CharSubTab)) return stored as CharSubTab;
+    const firstOrdered = orderedTabs[0]?.id;
+    if (firstOrdered && VALID_SUBTABS.includes(firstOrdered as CharSubTab)) return firstOrdered as CharSubTab;
+    return 'identity';
+  };
+  const [activeSubTab, setActiveSubTabInternal] = useState<CharSubTab>(resolveInitialTab);
+
+  // Sync from external subTab prop (e.g. URL hash changes)
+  useEffect(() => {
+    if (subTab) {
+      if (VALID_SUBTABS.includes(subTab as CharSubTab)) {
+        setActiveSubTabInternal(subTab as CharSubTab);
+      }
+    }
+  }, [subTab]);
+
+  // Wrapper that notifies parent and persists selection
+  const setActiveSubTab = (tab: CharSubTab) => {
+    setActiveSubTabInternal(tab);
+    saveLastSubTab('character', tab);
+    onSubTabChange?.(tab);
+  };
 
   // ─── Portrait state (stored in IndexedDB, NOT localStorage) ─────────────────
   const [portraitURL, setPortraitURL] = useState<string>('');

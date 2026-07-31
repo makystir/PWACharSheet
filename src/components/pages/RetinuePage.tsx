@@ -14,6 +14,7 @@ import { ANIMAL_TEMPLATES, TRAINED_SKILLS } from '../../data/animals';
 import { Users, Plus, PawPrint } from 'lucide-react';
 import { SubTabBar } from '../shared/SubTabBar';
 import { useTabOrder } from '../../hooks/useTabOrder';
+import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { EmptyState } from '../shared/EmptyState';
 import styles from './RetinuePage.module.css';
 
@@ -29,27 +30,6 @@ type RetinueSubTab = 'hirelings' | 'companions';
 
 export function RetinuePage({ character, update, updateCharacter, subTab, onSubTabChange }: RetinuePageProps) {
   const VALID_SUBTABS: RetinueSubTab[] = ['hirelings', 'companions'];
-  const initialTab = (subTab && VALID_SUBTABS.includes(subTab as RetinueSubTab)) ? subTab as RetinueSubTab : 'hirelings';
-  const [activeSubTab, setActiveSubTabInternal] = useState<RetinueSubTab>(initialTab);
-
-  // Sync from external subTab prop (e.g. URL hash changes)
-  // Falls back to default sub-tab if hash references a non-existent tab ID (Req 6.3)
-  useEffect(() => {
-    if (subTab) {
-      if (VALID_SUBTABS.includes(subTab as RetinueSubTab)) {
-        setActiveSubTabInternal(subTab as RetinueSubTab);
-      } else {
-        // Invalid tab ID in hash — fall back to default sub-tab
-        setActiveSubTabInternal('hirelings');
-      }
-    }
-  }, [subTab]);
-
-  // Wrapper that notifies parent when sub-tab changes
-  const setActiveSubTab = (tab: RetinueSubTab) => {
-    setActiveSubTabInternal(tab);
-    onSubTabChange?.(tab);
-  };
 
   // Tab reordering
   const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
@@ -59,6 +39,33 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
       { id: 'companions', label: 'Animal Companions' },
     ],
   });
+
+  // Active sub-tab: use URL hash > last stored > first ordered tab
+  const resolveInitialTab = (): RetinueSubTab => {
+    if (subTab && VALID_SUBTABS.includes(subTab as RetinueSubTab)) return subTab as RetinueSubTab;
+    const stored = loadLastSubTab('retinue');
+    if (stored && VALID_SUBTABS.includes(stored as RetinueSubTab)) return stored as RetinueSubTab;
+    const firstOrdered = orderedTabs[0]?.id;
+    if (firstOrdered && VALID_SUBTABS.includes(firstOrdered as RetinueSubTab)) return firstOrdered as RetinueSubTab;
+    return 'hirelings';
+  };
+  const [activeSubTab, setActiveSubTabInternal] = useState<RetinueSubTab>(resolveInitialTab);
+
+  // Sync from external subTab prop (e.g. URL hash changes)
+  useEffect(() => {
+    if (subTab) {
+      if (VALID_SUBTABS.includes(subTab as RetinueSubTab)) {
+        setActiveSubTabInternal(subTab as RetinueSubTab);
+      }
+    }
+  }, [subTab]);
+
+  // Wrapper that notifies parent and persists selection
+  const setActiveSubTab = (tab: RetinueSubTab) => {
+    setActiveSubTabInternal(tab);
+    saveLastSubTab('retinue', tab);
+    onSubTabChange?.(tab);
+  };
 
   const [showCreationFlow, setShowCreationFlow] = useState(false);
   const [showAnimalPicker, setShowAnimalPicker] = useState(false);
