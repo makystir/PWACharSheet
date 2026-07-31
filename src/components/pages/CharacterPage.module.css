@@ -119,18 +119,21 @@
 /* ─── Characteristics Grid ─── */
 .charGrid {
   display: grid;
-  grid-template-columns: 1fr 1.4fr 1.4fr 1.2fr 0.8fr 1.2fr 36px;
+  grid-template-columns: 1fr 1.4fr 1.4fr 1.2fr 0.8fr 1.2fr 0.8fr;
   gap: 0;
   align-items: center;
   width: 100%;
 }
 
 .charGrid.hideTBonus {
-  grid-template-columns: 1fr 1.4fr 1.4fr 1.2fr 0.8fr 36px;
+  grid-template-columns: 1fr 1.4fr 1.4fr 1.2fr 0.8fr 0.8fr;
 }
 
 .charGridHeader {
-  display: contents;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  border-bottom: 1px solid var(--border);
 }
 
 .charGridHeader > span {
@@ -140,17 +143,18 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: center;
-  border-bottom: 1px solid var(--border);
   user-select: none;
 }
 
 .charGridRow {
-  display: contents;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.05));
 }
 
 .charGridRow > * {
   padding: 6px 4px;
-  border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.05));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -188,7 +192,7 @@
 /* ─── Skills Grid ─── */
 .skillGrid {
   display: grid;
-  grid-template-columns: 3fr 1fr 1.2fr 1fr 36px;
+  grid-template-columns: 3fr 1fr 1.2fr 1fr 0.8fr;
   gap: 0;
   align-items: center;
   width: 100%;
@@ -197,14 +201,17 @@
 /* Advanced skills have an extra delete column */
 .skillGridAdvanced {
   display: grid;
-  grid-template-columns: 3fr 1fr 1.2fr 1fr 36px 32px;
+  grid-template-columns: 3fr 1fr 1.2fr 1fr 0.8fr 0.6fr;
   gap: 0;
   align-items: center;
   width: 100%;
 }
 
 .skillGridHeader {
-  display: contents;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  border-bottom: 1px solid var(--border);
 }
 
 .skillGridHeader > span {
@@ -214,7 +221,6 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: center;
-  border-bottom: 1px solid var(--border);
   user-select: none;
 }
 
@@ -224,12 +230,14 @@
 }
 
 .skillGridRow {
-  display: contents;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.05));
 }
 
 .skillGridRow > * {
   padding: 4px 4px;
-  border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.05));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -241,17 +249,9 @@
   padding-left: 8px;
 }
 
-.skillGridRowCareer > * {
+.skillGridRowCareer {
   border-left: 3px solid var(--accent-gold);
   background: rgba(200, 168, 76, 0.04);
-}
-
-.skillGridRowCareer > *:first-child {
-  border-left: 3px solid var(--accent-gold);
-}
-
-.skillGridRowCareer > *:not(:first-child) {
-  border-left: none;
 }
 
 .skillGridName {
@@ -879,11 +879,11 @@
 
   /* Compact grid columns on mobile */
   .charGrid {
-    grid-template-columns: 0.8fr 1.2fr 1.2fr 1fr 0.7fr 1fr 32px;
+    grid-template-columns: 0.8fr 1.2fr 1.2fr 1fr 0.7fr 1fr 0.7fr;
   }
 
   .charGrid.hideTBonus {
-    grid-template-columns: 0.8fr 1.2fr 1.2fr 1fr 0.7fr 32px;
+    grid-template-columns: 0.8fr 1.2fr 1.2fr 1fr 0.7fr 0.7fr;
   }
 }
 
