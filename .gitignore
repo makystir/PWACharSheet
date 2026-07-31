@@ -37,11 +37,11 @@ dist-ssr
 # Rulebooks (copyrighted material - keep local only)
 *.pdf
 *.PDF
-WarhammerFantasyRoleplay4e.md
-highelfguide.md
-dwarfguide.md
-Up_In_Arms.md
-windsofmagic.md
-archivesoftheempire.md
-archivesoftheempire2.md
-archivesoftheempire3.md
+docs/WarhammerFantasyRoleplay4e.md
+docs/highelfguide.md
+docs/dwarfguide.md
+docs/Up_In_Arms.md
+docs/windsofmagic.md
+docs/archivesoftheempire.md
+docs/archivesoftheempire2.md
+docs/archivesoftheempire3.md

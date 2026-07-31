@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import fc from 'fast-check';
-import { render } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CharacterPage } from '../CharacterPage';
 import type { Character, CharacteristicKey, CharacteristicValue, ArmourPoints } from '../../../types/character';
@@ -60,16 +60,17 @@ const defaultProps = {
   rollHistory: [],
   addRoll: vi.fn(),
   clearHistory: vi.fn(),
+  subTab: 'identity' as const,
 };
 
 describe('Bug Condition: Characteristic Bonus Column Missing', () => {
   /**
    * Validates: Requirements 2.2
    *
-   * Property: The Characteristics table header MUST include a "CB" column.
+   * Property: The Characteristics grid header MUST include a "CB" column.
    * On unfixed code, this will FAIL because no CB column exists.
    */
-  it('Property 1.1: Characteristics table header includes a "CB" column', () => {
+  it('Property 1.1: Characteristics grid header includes a "CB" column', () => {
     fc.assert(
       fc.property(
         arbitraryCharacteristics,
@@ -77,22 +78,12 @@ describe('Bug Condition: Characteristic Bonus Column Missing', () => {
           const character = buildCharacter(chars);
           const { container } = render(<CharacterPage {...defaultProps} character={character} />);
 
-          // Find the characteristics table - it has columns Char, Initial, Advance, Current...
-          const tables = container.querySelectorAll('table');
-          let charsTable: Element | null = null;
-          for (const table of tables) {
-            const headers = table.querySelectorAll('th');
-            const headerTexts = Array.from(headers).map(h => h.textContent);
-            if (headerTexts.includes('Char') && headerTexts.includes('Initial') && headerTexts.includes('Current')) {
-              charsTable = table;
-              break;
-            }
-          }
+          // The characteristics section uses a CSS grid with div.charGridHeader > span children
+          const headerDiv = container.querySelector('[class*="charGridHeader"]');
+          expect(headerDiv).not.toBeNull();
 
-          expect(charsTable).not.toBeNull();
-
-          const headers = charsTable!.querySelectorAll('th');
-          const headerTexts = Array.from(headers).map(h => h.textContent);
+          const headerSpans = headerDiv!.querySelectorAll('span');
+          const headerTexts = Array.from(headerSpans).map(s => s.textContent);
 
           // Bug condition: there should be a "CB" column header
           expect(headerTexts).toContain('CB');
@@ -117,42 +108,18 @@ describe('Bug Condition: Characteristic Bonus Column Missing', () => {
           const character = buildCharacter(chars);
           const { container } = render(<CharacterPage {...defaultProps} character={character} />);
 
-          // Find the characteristics table
-          const tables = container.querySelectorAll('table');
-          let charsTable: Element | null = null;
-          for (const table of tables) {
-            const headers = table.querySelectorAll('th');
-            const headerTexts = Array.from(headers).map(h => h.textContent);
-            if (headerTexts.includes('Char') && headerTexts.includes('Initial') && headerTexts.includes('Current')) {
-              charsTable = table;
-              break;
-            }
-          }
-
-          expect(charsTable).not.toBeNull();
-
-          // Find the CB column index
-          const headers = charsTable!.querySelectorAll('th');
-          const headerTexts = Array.from(headers).map(h => h.textContent);
-          const cbIndex = headerTexts.indexOf('CB');
-
-          // CB column must exist
-          expect(cbIndex).toBeGreaterThanOrEqual(0);
+          // Find the CB cells - they have class containing "charGridCB"
+          const cbCells = container.querySelectorAll('[class*="charGridCB"]');
+          expect(cbCells.length).toBe(10); // 10 characteristics
 
           // Verify each row's CB value
-          const rows = charsTable!.querySelectorAll('tbody tr');
-          expect(rows.length).toBe(10); // 10 characteristics
-
           for (let rowIdx = 0; rowIdx < CHAR_KEYS.length; rowIdx++) {
             const key = CHAR_KEYS[rowIdx];
             const c = chars[key];
             const current = c.i + c.a + c.b;
             const expectedCB = Math.floor(current / 10);
 
-            const cells = rows[rowIdx].querySelectorAll('td');
-            const cbCell = cells[cbIndex];
-            expect(cbCell).toBeDefined();
-            expect(cbCell.textContent).toBe(String(expectedCB));
+            expect(cbCells[rowIdx].textContent).toBe(String(expectedCB));
           }
         }
       ),
@@ -175,24 +142,18 @@ describe('Bug Condition: Characteristic Bonus Column Missing', () => {
           const character = buildCharacter(chars);
           const { container } = render(<CharacterPage {...defaultProps} character={character} />);
 
-          // Find the characteristics table
-          const tables = container.querySelectorAll('table');
-          let charsTable: Element | null = null;
-          for (const table of tables) {
-            const headers = table.querySelectorAll('th');
-            const headerTexts = Array.from(headers).map(h => h.textContent);
-            if (headerTexts.includes('Char') && headerTexts.includes('Initial') && headerTexts.includes('Current')) {
-              charsTable = table;
-              break;
-            }
-          }
+          // Click "Show Details" to reveal the T. Bonus column
+          const showDetailsBtn = screen.getByText('Show Details');
+          fireEvent.click(showDetailsBtn);
 
-          expect(charsTable).not.toBeNull();
+          // Re-query the header after revealing details
+          const headerDiv = container.querySelector('[class*="charGridHeader"]');
+          expect(headerDiv).not.toBeNull();
 
-          const headers = charsTable!.querySelectorAll('th');
-          const headerTexts = Array.from(headers).map(h => h.textContent);
+          const headerSpans = headerDiv!.querySelectorAll('span');
+          const headerTexts = Array.from(headerSpans).map(s => s.textContent);
 
-          // The column with title="Talent Bonus" should NOT have bare text "Bonus"
+          // The column should NOT have bare text "Bonus"
           // It should read "T. Bonus" or "Talent Bonus" instead
           expect(headerTexts).not.toContain('Bonus');
           const hasTalentBonusLabel = headerTexts.includes('T. Bonus') || headerTexts.includes('Talent Bonus');

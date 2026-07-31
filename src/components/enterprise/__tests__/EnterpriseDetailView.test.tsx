@@ -45,8 +45,8 @@ describe('EnterpriseDetailView', () => {
     expect(nameInput).toBeInTheDocument();
     // Type badge
     expect(screen.getByText('Tavern')).toBeInTheDocument();
-    // Expansion level badge
-    expect(screen.getByText('Level 2')).toBeInTheDocument();
+    // Expansion level badge (may appear in both header and expansion panel)
+    expect(screen.getAllByText('Level 2').length).toBeGreaterThanOrEqual(1);
   });
 
   it('editing the name field and blurring calls updateCharacter with the new name', () => {
@@ -94,6 +94,6 @@ describe('EnterpriseDetailView', () => {
 
   it('shows "Level {N}" in the header area', () => {
     renderDetail();
-    expect(screen.getByText('Level 2')).toBeInTheDocument();
+    expect(screen.getAllByText('Level 2').length).toBeGreaterThanOrEqual(1);
   });
 });

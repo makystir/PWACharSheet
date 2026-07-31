@@ -84,7 +84,8 @@ describe('EnterpriseList', () => {
       // Detail view shows back button and enterprise type/level
       expect(screen.getByText('← Back')).toBeInTheDocument();
       expect(screen.getByText('Tavern')).toBeInTheDocument();
-      expect(screen.getByText('Level 2')).toBeInTheDocument();
+      // "Level 2" may appear in both header badge and expansion panel
+      expect(screen.getAllByText('Level 2').length).toBeGreaterThanOrEqual(1);
     });
 
     it('clicking back from detail view returns to summary list', () => {

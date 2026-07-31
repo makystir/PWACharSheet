@@ -176,6 +176,7 @@ describe('CharacterPage', () => {
           armourPoints={defaultAP}
           maxEncumbrance={5}
           coinWeight={0}
+          subTab="identity"
         />
       );
 
@@ -199,6 +200,7 @@ describe('CharacterPage', () => {
           armourPoints={defaultAP}
           maxEncumbrance={5}
           coinWeight={0}
+          subTab="identity"
         />
       );
 

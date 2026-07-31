@@ -139,7 +139,7 @@ export const SPECIES_DATA: Record<string, SpeciesData> = {
     resilience: 2,
     extraPoints: 3,
     woundsUseSB: false,
-    skills: ["Charm", "Consume Alcohol", "Dodge", "Gamble", "Gossip", "Haggle", "Intuition", "Language (Mootish)", "Lore (Reikland)", "Perception", "Sleight of Hand", "Stealth (Any)"],
+    skills: ["Charm", "Consume Alcohol", "Dodge", "Gamble", "Haggle", "Intuition", "Language (Mootish)", "Lore (Reikland)", "Perception", "Sleight of Hand", "Stealth (Any)", "Trade (Cook)"],
     talents: ["Acute Sense (Taste)", "Night Vision", "Resistance (Chaos)", "Small"],
     randomTalentSlots: 2,
   },
@@ -150,7 +150,7 @@ export const SPECIES_DATA: Record<string, SpeciesData> = {
     resilience: 0,
     extraPoints: 2,
     woundsUseSB: true,
-    skills: ["Cool", "Entertain (Sing)", "Evaluate", "Language (Eltharin)", "Leadership", "Melee (Basic)", "Navigation", "Perception", "Play (Any)", "Ranged (Bow)", "Research", "Sail"],
+    skills: ["Cool", "Entertain (Sing)", "Evaluate", "Language (Eltharin)", "Leadership", "Melee (Basic)", "Navigation", "Perception", "Play (Any)", "Ranged (Bow)", "Sail", "Swim"],
     talents: ["Acute Sense (Sight)", "Coolheaded or Savvy", "Night Vision", "Read/Write", "Second Sight or Sixth Sense"],
   },
   "Wood Elf": {
@@ -271,7 +271,7 @@ export const SPECIES_DATA: Record<string, SpeciesData> = {
     extraPoints: 2,
     woundsUseSB: true,
     skills: ["Cool", "Endurance", "Entertain (Singing)", "Evaluate", "Gossip", "Haggle", "Language (Eltharin)", "Language (Any)", "Melee (Basic)", "Navigation", "Sail", "Swim"],
-    talents: ["Acute Sense (Sight)", "Night Vision", "Old Salt or Strong Swimmer", "Orientation or Sixth Sense", "Read/Write"],
+    talents: ["Acute Sense (Sight)", "Night Vision", "Old Salt or Strong Swimmer", "Orientation or Sixth Sense", "Read/Write", "Uncouth Uranai"],
   },
   "Ogre": {
     chars: { WS: 20, BS: 10, S: 35, T: 35, I: 0, Ag: 15, Dex: 10, Int: 10, WP: 20, Fel: 10 } as Record<CharacteristicKey, number>,
