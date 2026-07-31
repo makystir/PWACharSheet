@@ -232,11 +232,11 @@ describe('Armour Data', () => {
     expect(lj!.ap).toBe(1);
   });
 
-  it('spot-check: Plate Breastplate has Impenetrable quality', () => {
-    const pb = ARMOURS.find(a => a.name === 'Plate Breastplate');
+  it('spot-check: Breastplate has Impenetrable quality', () => {
+    const pb = ARMOURS.find(a => a.name === 'Breastplate');
     expect(pb).toBeDefined();
     expect(pb!.qualities).toContain('Impenetrable');
-    expect(pb!.ap).toBe(2);
+    expect(pb!.ap).toBe(3);
   });
 
   it('covers all body locations', () => {

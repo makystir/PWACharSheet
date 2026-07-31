@@ -4,6 +4,9 @@ import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { AddButton } from '../shared/AddButton';
 import { getRuneQualities } from '../../logic/runes';
+import { QUALITY_DEFINITIONS } from '../../data/armourQualities';
+import { validateLayering, calculateEffectiveAP, isWeakpointsSuppressed } from '../../logic/armourLayering';
+import type { LocationKey as LayeringLocationKey } from '../../logic/armourLayering';
 import { Shield } from 'lucide-react';
 import styles from './ArmourMap.module.css';
 
@@ -13,7 +16,7 @@ export interface ArmourMapProps {
   weapons?: WeaponData[];
   toughnessBonus?: number;
   onDeleteArmour?: (armourIndex: number) => void;
-  onUpdateArmour?: (armourIndex: number, field: keyof ArmourItem, value: string | number) => void;
+  onUpdateArmour?: (armourIndex: number, field: keyof ArmourItem, value: string | number | boolean) => void;
   onOpenRuneManager?: (armourIndex: number) => void;
   onOpenArmourPicker?: () => void;
   onAddCustomArmour?: () => void;
@@ -58,6 +61,23 @@ const LOCATION_LABELS: Record<LocationKey, string> = {
   rLeg: 'R Leg',
 };
 
+/** Helmet special ability descriptions (when visor is closed or always) */
+const HELMET_ABILITIES: Record<string, string> = {
+  Bascinet: '+1 AP vs frontal missile',
+  Armet: 'Damage resistance (d10 table)',
+  Sallet: 'Critical Hits deal 1 less Wound',
+};
+
+/** Get the helmet special ability label for a named helmet item, if applicable */
+function getHelmetAbility(item: ArmourItem): string | null {
+  // If visor is open, hide the special ability (per Req 4.5)
+  if (item.visorOpen === true) return null;
+  for (const [helmetName, ability] of Object.entries(HELMET_ABILITIES)) {
+    if (item.name === helmetName) return ability;
+  }
+  return null;
+}
+
 /** Check if an armour item covers a given location key. */
 function coversLocation(item: ArmourItem, locKey: LocationKey): boolean {
   const locStr = item.locations.toLowerCase();
@@ -76,6 +96,67 @@ function coversLocation(item: ArmourItem, locKey: LocationKey): boolean {
   return false;
 }
 
+/** Abbreviated labels for quality/flaw badges */
+const QUALITY_ABBREV: Record<string, string> = {
+  Impenetrable: 'Imp',
+  Overcoat: 'OC',
+  Reinforced: 'Ref',
+  Visor: 'Vis',
+  Partial: 'Par',
+  'Requires Kit': 'RK',
+  Weakpoints: 'WP',
+};
+
+/** Known quality names (to determine badge styling) */
+const FLAW_NAMES: Set<string> = new Set(['Partial', 'Requires Kit', 'Weakpoints']);
+
+/** Parse quality/flaw names from the comma-separated qualities string */
+function parseQualities(qualitiesStr: string): string[] {
+  if (!qualitiesStr || qualitiesStr === '—') return [];
+  return qualitiesStr.split(',').map(q => q.trim()).filter(q => q && q !== '—');
+}
+
+/** Get the QualityDefinition for a given quality/flaw name */
+function getQualityDefinition(name: string) {
+  return QUALITY_DEFINITIONS.find(d => d.name === name);
+}
+
+/** Quality/Flaw badge component */
+function QualityBadge({ name, expandedQuality, onToggle }: {
+  name: string;
+  expandedQuality: string | null;
+  onToggle: (name: string) => void;
+}) {
+  const abbrev = QUALITY_ABBREV[name] || name.slice(0, 3);
+  const isFlaw = FLAW_NAMES.has(name);
+  const def = getQualityDefinition(name);
+  const isExpanded = expandedQuality === name;
+
+  return (
+    <span className={styles.qualityBadgeWrapper}>
+      <button
+        type="button"
+        className={isFlaw ? styles.flawBadge : styles.qualityBadge}
+        onClick={(e) => { e.stopPropagation(); onToggle(name); }}
+        aria-label={`${name}: ${def?.description || 'No description'}`}
+        aria-expanded={isExpanded}
+        title={def?.description || name}
+        data-testid={`quality-badge-${name.replace(/\s+/g, '-').toLowerCase()}`}
+      >
+        {abbrev}
+      </button>
+      {isExpanded && def && (
+        <span className={styles.qualityTooltip} data-testid={`quality-tooltip-${name.replace(/\s+/g, '-').toLowerCase()}`}>
+          <strong>{def.name}</strong>: {def.description}
+          {def.combatEffect && (
+            <span className={styles.combatEffect}> ({def.combatEffect})</span>
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function ArmourMap({
   armourPoints,
   armourList,
@@ -91,6 +172,12 @@ export function ArmourMap({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [expandedArmourIndex, setExpandedArmourIndex] = useState<number | null>(null);
   const [showAllArmour, setShowAllArmour] = useState(false);
+  const [expandedQuality, setExpandedQuality] = useState<string | null>(null);
+
+  const handleQualityToggle = useCallback((name: string) => {
+    setExpandedQuality(prev => prev === name ? null : name);
+  }, []);
+  const [showRepairInfo, setShowRepairInfo] = useState(false);
 
   const handleArmourItemToggle = useCallback((index: number) => {
     setExpandedArmourIndex(prev => prev === index ? null : index);
@@ -167,23 +254,94 @@ export function ArmourMap({
         </div>
       )}
 
+      {/* Stealth Penalty Badge — always visible when Chainmail or Plate is worn */}
+      {armourList.some(item => item.worn !== false && (item.armourType === 'Chainmail' || item.armourType === 'Plate')) && (
+        <div className={styles.stealthPenaltyBadge} data-testid="stealth-penalty-badge">
+          -10 Stealth
+        </div>
+      )}
+
       {/* Contributing armour items for selected location */}
       {selectedLocation && (
         <div className={styles.contributingSection} data-testid="contributing-armour">
           <div className={styles.contributingTitle}>
             {LOCATION_LABELS[selectedLocation]} — Contributing Armour
           </div>
+          {/* Total Effective AP */}
+          {contributingItems.length > 0 && (
+            <div className={styles.effectiveApNote} data-testid="effective-ap-note">
+              Total Effective AP: {calculateEffectiveAP(armourList, selectedLocation as LayeringLocationKey)}
+            </div>
+          )}
           {contributingItems.length === 0 && (
             <div className={styles.contributingEmpty}>
               No armour covers this location.
             </div>
           )}
-          {contributingItems.map((item, i) => (
-            <div key={i} className={styles.contributingItem}>
-              {item.name} — AP {item.ap}
-              {item.qualities && item.qualities !== '—' ? ` (${item.qualities})` : ''}
+          {contributingItems.map((item, i) => {
+            const qualities = parseQualities(item.qualities);
+            const currentAp = item.currentAp ?? item.ap;
+            const weakpointsSuppressed = isWeakpointsSuppressed(armourList, selectedLocation as LayeringLocationKey);
+            const displayQualities = weakpointsSuppressed
+              ? qualities.filter(q => q !== 'Weakpoints')
+              : qualities;
+            return (
+              <div key={i} className={styles.contributingItem}>
+                <span>
+                  {item.name} —{' '}
+                  {currentAp === 0 ? (
+                    <span className={styles.apDestroyed}>0/{item.ap}</span>
+                  ) : currentAp < item.ap ? (
+                    <span className={styles.apDamaged}>{currentAp}/{item.ap}</span>
+                  ) : (
+                    <>AP {item.ap}</>
+                  )}
+                </span>
+                {displayQualities.length > 0 && (
+                  <span className={styles.badgeRow} data-testid={`contributing-badges-${i}`}>
+                    {displayQualities.map(q => (
+                      <QualityBadge
+                        key={q}
+                        name={q}
+                        expandedQuality={expandedQuality}
+                        onToggle={handleQualityToggle}
+                      />
+                    ))}
+                  </span>
+                )}
+                {/* Visor open note in contributing view */}
+                {qualities.includes('Visor') && item.visorOpen && (
+                  <div className={styles.visorOpenNote} data-testid={`contributing-visor-note-${i}`}>
+                    Partial (visor open), -10 Perception
+                  </div>
+                )}
+                {/* Helmet special ability label in contributing view */}
+                {getHelmetAbility(item) && (
+                  <span className={styles.helmetAbilityLabel} data-testid={`contributing-helmet-ability-${i}`}>
+                    {getHelmetAbility(item)}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+          {/* Weakpoints suppressed note */}
+          {isWeakpointsSuppressed(armourList, selectedLocation as LayeringLocationKey) && (
+            <div className={styles.suppressedNote} data-testid="weakpoints-suppressed-note">
+              (Weakpoints suppressed by Reinforced Kit)
             </div>
-          ))}
+          )}
+          {/* Layering validation warnings */}
+          {(() => {
+            const result = validateLayering(armourList, selectedLocation as LayeringLocationKey);
+            if (result.warnings.length === 0) return null;
+            return (
+              <div className={styles.layeringWarning} data-testid="layering-warnings">
+                {result.warnings.map((warning, idx) => (
+                  <div key={idx}>{warning}</div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -263,28 +421,119 @@ export function ArmourMap({
                     ) : (
                       <div
                         className={styles.armourInfo}
-                        onClick={() => hasQualities && handleArmourItemToggle(i)}
-                        role={hasQualities ? 'button' : undefined}
-                        tabIndex={hasQualities ? 0 : undefined}
-                        onKeyDown={hasQualities ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleArmourItemToggle(i); } } : undefined}
-                        aria-expanded={hasQualities ? isExpanded : undefined}
-                        aria-label={hasQualities ? `${item.name || 'Unnamed'} — tap to show details` : undefined}
+                        onClick={() => handleArmourItemToggle(i)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleArmourItemToggle(i); } }}
+                        aria-expanded={isExpanded}
+                        aria-label={`${item.name || 'Unnamed'} — tap to show details`}
                       >
                         <div className={styles.armourCompactRow}>
                           <span className={styles.armourName} title={item.name}>{item.name || 'Unnamed'}</span>
-                          <span className={styles.armourAP}>AP {item.ap}</span>
+                          {(() => {
+                            const currentAp = item.currentAp ?? item.ap;
+                            if (currentAp === 0) {
+                              return (
+                                <span className={`${styles.armourAP} ${styles.apDestroyed}`} data-testid={`armour-ap-destroyed-${i}`}>
+                                  0/{item.ap}
+                                </span>
+                              );
+                            } else if (currentAp < item.ap) {
+                              return (
+                                <span className={`${styles.armourAP} ${styles.apDamaged}`} data-testid={`armour-ap-damaged-${i}`}>
+                                  {currentAp}/{item.ap}
+                                </span>
+                              );
+                            } else {
+                              return (
+                                <span className={styles.armourAP}>AP {item.ap}</span>
+                              );
+                            }
+                          })()}
                           <span className={styles.armourLocations}>{item.locations}</span>
                         </div>
-                        {isExpanded && hasQualities && (
+                        {isExpanded && (
                           <div className={styles.armourSecondary}>
                             {item.qualities && item.qualities !== '—' && (
-                              <span className={styles.qualitiesText}>{item.qualities}</span>
+                              <span className={styles.badgeRow} data-testid={`armour-badges-${i}`}>
+                                {parseQualities(item.qualities).map(q => (
+                                  <QualityBadge
+                                    key={q}
+                                    name={q}
+                                    expandedQuality={expandedQuality}
+                                    onToggle={handleQualityToggle}
+                                  />
+                                ))}
+                                {/* Visor toggle button */}
+                                {parseQualities(item.qualities).includes('Visor') && onUpdateArmour && (
+                                  <button
+                                    type="button"
+                                    className={styles.visorToggle}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onUpdateArmour(i, 'visorOpen', !item.visorOpen);
+                                    }}
+                                    aria-label={`Visor: ${item.visorOpen ? 'Open' : 'Closed'}. Click to ${item.visorOpen ? 'close' : 'open'}.`}
+                                    data-testid={`visor-toggle-${i}`}
+                                  >
+                                    {item.visorOpen ? 'Open' : 'Closed'}
+                                  </button>
+                                )}
+                              </span>
+                            )}
+                            {/* Visor open: show Partial note and -10 Perception */}
+                            {parseQualities(item.qualities).includes('Visor') && item.visorOpen && (
+                              <div className={styles.visorOpenNote} data-testid={`visor-open-note-${i}`}>
+                                Partial (visor open), -10 Perception
+                              </div>
+                            )}
+                            {/* Helmet special ability label */}
+                            {getHelmetAbility(item) && (
+                              <span className={styles.helmetAbilityLabel} data-testid={`helmet-ability-${i}`}>
+                                {getHelmetAbility(item)}
+                              </span>
                             )}
                             {runeQualities.length > 0 && (
                               <span className={styles.runeQualitiesText}>
-                                {item.qualities && item.qualities !== '—' ? ', ' : ''}
+                                {item.qualities && item.qualities !== '—' ? ' ' : ''}
                                 +{runeQualities.join(', ')}
                               </span>
+                            )}
+                            {/* AP +/- controls (only shown when expanded) */}
+                            {onUpdateArmour && (
+                              <div className={styles.apControls} data-testid={`armour-ap-controls-${i}`}>
+                                <button
+                                  type="button"
+                                  className={styles.apControlBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const currentAp = item.currentAp ?? item.ap;
+                                    onUpdateArmour(i, 'currentAp', Math.max(0, currentAp - 1));
+                                  }}
+                                  disabled={(item.currentAp ?? item.ap) <= 0}
+                                  aria-label={`Reduce AP for ${item.name}`}
+                                  data-testid={`armour-ap-minus-${i}`}
+                                >
+                                  −
+                                </button>
+                                <span className={styles.apControlValue}>
+                                  {item.currentAp ?? item.ap} / {item.ap}
+                                </span>
+                                <button
+                                  type="button"
+                                  className={styles.apControlBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const currentAp = item.currentAp ?? item.ap;
+                                    onUpdateArmour(i, 'currentAp', Math.min(item.ap, currentAp + 1));
+                                  }}
+                                  disabled={(item.currentAp ?? item.ap) >= item.ap}
+                                  aria-label={`Restore AP for ${item.name}`}
+                                  data-testid={`armour-ap-plus-${i}`}
+                                >
+                                  +
+                                </button>
+                              </div>
                             )}
                           </div>
                         )}
@@ -339,6 +588,60 @@ export function ArmourMap({
           );
         })()}
       </div>
+
+      {/* Repair Info expandable section */}
+      <button
+        type="button"
+        className={styles.repairInfoToggle}
+        onClick={() => setShowRepairInfo(prev => !prev)}
+        aria-expanded={showRepairInfo}
+        data-testid="repair-info-toggle"
+      >
+        Repair Info {showRepairInfo ? '▼' : '▶'}
+      </button>
+      {showRepairInfo && (
+        <div className={styles.repairInfoContent} data-testid="repair-info-content">
+          <table className={styles.repairTable}>
+            <thead>
+              <tr>
+                <th>Armour Type</th>
+                <th>Trade Skill</th>
+                <th>SLs per AP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Boiled Leather</td>
+                <td>Trade (Tailor)</td>
+                <td>5</td>
+              </tr>
+              <tr>
+                <td>Brigandine</td>
+                <td>Trade (Tailor)</td>
+                <td>7</td>
+              </tr>
+              <tr>
+                <td>Chainmail</td>
+                <td>Trade (Smith)</td>
+                <td>10</td>
+              </tr>
+              <tr>
+                <td>Reinforced Soft Kit</td>
+                <td>Trade (Smith)</td>
+                <td>10</td>
+              </tr>
+              <tr>
+                <td>Plate</td>
+                <td>Trade (Smith)</td>
+                <td>15</td>
+              </tr>
+            </tbody>
+          </table>
+          <div className={styles.repairNote}>
+            NPC Repair Cost: 10% of base price per AP lost; 30% if section completely broken.
+          </div>
+        </div>
+      )}
 
     </Card>
   );

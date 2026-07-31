@@ -154,7 +154,125 @@
   margin-top: 10px;
 }
 
+/* ─── Critical Deflection ───────────────────────────────────────────────────── */
+
+.deflectBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 20px;
+  background: rgba(80, 160, 200, 0.2);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  width: 100%;
+  margin-bottom: 10px;
+  animation: deflectPulse 1.5s ease-in-out infinite;
+}
+
+.deflectBtn:hover {
+  background: rgba(80, 160, 200, 0.35);
+  border-color: var(--accent-gold);
+}
+
+.deflectBtn:active {
+  transform: scale(0.98);
+}
+
+@keyframes deflectPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--accent-gold-rgb, 212, 175, 55), 0.4); }
+  50% { box-shadow: 0 0 8px 2px rgba(var(--accent-gold-rgb, 212, 175, 55), 0.2); }
+}
+
+.deflectedNote {
+  padding: 8px 14px;
+  background: rgba(80, 200, 120, 0.15);
+  border: 1px solid var(--success, #4caf50);
+  border-radius: var(--radius-sm);
+  color: var(--success, #4caf50);
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
 /* ─── Mobile Overrides ──────────────────────────────────────────────────────── */
+
+.armourNotesBox {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.armourNote {
+  font-size: 12px;
+  color: var(--danger, #c85050);
+  font-weight: 600;
+}
+
+.armourNotePositive {
+  font-size: 12px;
+  color: var(--accent-gold, #c89b3c);
+  font-weight: 600;
+}
+
+.helmetNotesBox {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: rgba(200, 155, 60, 0.08);
+  border: 1px solid var(--accent-gold, #c89b3c);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.radioGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.radioLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.radioInput {
+  accent-color: var(--accent-gold);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.checkboxInput {
+  accent-color: var(--accent-gold);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
 
 @media (max-width: 767px) {
   /* Req 10.1: Damage input 48×48px minimum, font 18px */

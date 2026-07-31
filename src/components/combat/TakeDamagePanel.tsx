@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import type { ArmourPoints } from '../../types/character';
+import { useState, useMemo } from 'react';
+import type { ArmourItem, ArmourPoints } from '../../types/character';
 import type { HitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { ShieldAlert } from 'lucide-react';
+import { resolveArmourCombatEffects, canDeflectCritical, applyDeflection } from '../../logic/armourCombat';
+import type { CombatArmourContext } from '../../logic/armourCombat';
+import { coversLocation, type LocationKey } from '../../logic/armourLayering';
 import styles from './TakeDamagePanel.module.css';
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -11,6 +14,9 @@ import styles from './TakeDamagePanel.module.css';
 export interface TakeDamagePanelProps {
   toughnessBonus: number;
   armourPoints: ArmourPoints;
+  armourList?: ArmourItem[];
+  useCriticalDeflection?: boolean;
+  onArmourUpdate?: (updatedItem: ArmourItem, index: number) => void;
   wCur: number;
   totalWounds: number;
   onApplyWounds: (woundsToApply: number) => void;
@@ -63,6 +69,9 @@ export function calculateNetWounds(
 export function TakeDamagePanel({
   toughnessBonus,
   armourPoints,
+  armourList = [],
+  useCriticalDeflection = false,
+  onArmourUpdate,
   wCur,
   totalWounds: _totalWounds,
   onApplyWounds,
@@ -77,9 +86,83 @@ export function TakeDamagePanel({
   const [collapsed, setCollapsed] = useState(false);
   const [showDownAlert, setShowDownAlert] = useState(false);
 
+  // Expanded armour system: to-hit roll parity and Impale quality (task 7.1)
+  const [toHitRollEven, setToHitRollEven] = useState(false); // false = Odd (safe default)
+  const [attackerHasImpale, setAttackerHasImpale] = useState(false);
+
+  // Critical Deflection state (task 7.3)
+  const [criticalDeflected, setCriticalDeflected] = useState(false);
+
+  // Helmet special abilities: frontal missile toggle for Bascinet (task 7.4)
+  const [isMissileFrontal, setIsMissileFrontal] = useState(false);
+
   // Look up AP at the selected location
   const selectedLocationOption = HIT_LOCATIONS.find(l => l.label === selectedLocation)!;
   const apAtLocation = armourPoints[selectedLocationOption.apKey];
+
+  // ─── Armour combat effects integration ───────────────────────────────────────
+  // Filter worn armour items covering the selected hit location
+  const locationKey = selectedLocationOption.apKey as LocationKey;
+  const armourAtLocation = useMemo(() => {
+    return armourList.filter(
+      (item) => item.worn !== false && coversLocation(item, locationKey),
+    );
+  }, [armourList, locationKey]);
+
+  // ─── Helmet special ability detection (task 7.4) ─────────────────────────────
+  const isHeadLocation = selectedLocation === 'Head';
+
+  const bascinetAtLocation = useMemo(() => {
+    if (!isHeadLocation) return null;
+    return armourAtLocation.find(
+      (item) => item.name.toLowerCase().includes('bascinet') && item.visorOpen !== true,
+    ) ?? null;
+  }, [armourAtLocation, isHeadLocation]);
+
+  const armetAtLocation = useMemo(() => {
+    if (!isHeadLocation) return null;
+    return armourAtLocation.find(
+      (item) => item.name.toLowerCase().includes('armet'),
+    ) ?? null;
+  }, [armourAtLocation, isHeadLocation]);
+
+  const salletAtLocation = useMemo(() => {
+    if (!isHeadLocation) return null;
+    return armourAtLocation.find(
+      (item) => item.name.toLowerCase().includes('sallet') && item.visorOpen !== true,
+    ) ?? null;
+  }, [armourAtLocation, isHeadLocation]);
+
+  // Determine if this is a critical hit (wounds would reduce character to 0 or below)
+  // We compute this based on current damage inputs with the raw AP to check threshold
+  const totalIncomingRaw = incomingDamage + sl;
+  const rawReduction = apAtLocation + toughnessBonus;
+  const rawNetWounds = Math.max(0, totalIncomingRaw - rawReduction);
+  const wouldCauseCritical = rawNetWounds > 0 && wCur - rawNetWounds <= 0;
+
+  // Resolve armour combat effects (Partial, Impenetrable, Weakpoints)
+  const armourCombatResult = useMemo(() => {
+    if (armourAtLocation.length === 0) {
+      return {
+        effectiveAP: apAtLocation,
+        partialBypassed: false,
+        impenetrableNegatesCrit: false,
+        weakpointsBypassed: false,
+        notes: [] as string[],
+      };
+    }
+    const context: CombatArmourContext = {
+      armourItems: armourAtLocation,
+      toHitRollEven,
+      isCriticalHit: wouldCauseCritical,
+      attackerHasImpale,
+      isMissileFrontal: bascinetAtLocation ? isMissileFrontal : undefined,
+    };
+    return resolveArmourCombatEffects(context);
+  }, [armourAtLocation, toHitRollEven, wouldCauseCritical, attackerHasImpale, apAtLocation, bascinetAtLocation, isMissileFrontal]);
+
+  // Use effective AP from combat effects (uses currentAp values, handles Partial/Weakpoints bypasses)
+  const effectiveAP = armourAtLocation.length > 0 ? armourCombatResult.effectiveAP : apAtLocation;
 
   // Calculate net wounds using the combat damage formula (weaponDamage + SL - AP - TB)
   // The min-1-wound rule only applies when incoming damage exceeds reduction (TB+AP);
@@ -87,13 +170,43 @@ export function TakeDamagePanel({
   const netWounds = (() => {
     if (incomingDamage <= 0 && sl === 0) return 0;
     const totalIncoming = incomingDamage + sl;
-    const reduction = apAtLocation + toughnessBonus;
+    const reduction = effectiveAP + toughnessBonus;
     const raw = totalIncoming - reduction;
     if (raw >= 1) return raw;
     // Min-1-wound rule: if totalIncoming > reduction → at least 1 wound
     if (min1Wound && totalIncoming > reduction && raw < 1) return 1;
     return Math.max(0, raw);
   })();
+
+  // ─── Critical Deflection availability (task 7.3, Req 6.4, 6.8, 6.9) ─────────
+  // Critical Wound triggers when net wounds exceeds remaining wounds (character goes to 0 or below)
+  const criticalWoundTriggered = netWounds > 0 && netWounds >= wCur;
+  const deflectionAvailable =
+    !criticalDeflected &&
+    criticalWoundTriggered &&
+    canDeflectCritical(armourAtLocation, locationKey, useCriticalDeflection);
+
+  function handleDeflectCritical() {
+    if (!deflectionAvailable || !onArmourUpdate) return;
+
+    // Find the first armour item at the location with currentAp > 0
+    const deflectableItem = armourAtLocation.find((item) => {
+      const currentAp = item.currentAp ?? item.ap;
+      return currentAp > 0;
+    });
+    if (!deflectableItem) return;
+
+    // Find the index of this item in the full armourList
+    const itemIndex = armourList.indexOf(deflectableItem);
+    if (itemIndex === -1) return;
+
+    // Apply deflection (reduce AP by 1) and update
+    const updatedItem = applyDeflection(deflectableItem);
+    onArmourUpdate(updatedItem, itemIndex);
+
+    // Mark as deflected — cancels the Critical Wound
+    setCriticalDeflected(true);
+  }
 
   function handleApplyWounds() {
     if (netWounds <= 0) return;
@@ -112,23 +225,27 @@ export function TakeDamagePanel({
     // Reset damage input but retain location selection (8.9)
     setIncomingDamage(0);
     setSl(0);
+    setCriticalDeflected(false);
   }
 
   function handleDamageChange(value: string) {
     const num = Math.max(0, Number(value) || 0);
     setIncomingDamage(num);
     setShowDownAlert(false);
+    setCriticalDeflected(false);
   }
 
   function handleSlChange(value: string) {
     const num = Number(value) || 0;
     setSl(num);
     setShowDownAlert(false);
+    setCriticalDeflected(false);
   }
 
   function handleLocationChange(value: string) {
     setSelectedLocation(value as HitLocation);
     setShowDownAlert(false);
+    setCriticalDeflected(false);
   }
 
   return (
@@ -198,17 +315,117 @@ export function TakeDamagePanel({
             </select>
           </div>
 
+          {/* To-hit roll parity selector (Req 11.3, 12.3) */}
+          <div className={styles.formRow}>
+            <span className={styles.label}>To-Hit Roll:</span>
+            <div className={styles.radioGroup} role="radiogroup" aria-label="To-hit roll parity">
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="toHitParity"
+                  value="odd"
+                  checked={!toHitRollEven}
+                  onChange={() => setToHitRollEven(false)}
+                  className={styles.radioInput}
+                />
+                Odd
+              </label>
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="toHitParity"
+                  value="even"
+                  checked={toHitRollEven}
+                  onChange={() => setToHitRollEven(true)}
+                  className={styles.radioInput}
+                />
+                Even
+              </label>
+            </div>
+          </div>
+
+          {/* Impale weapon quality toggle (Req 13.2) */}
+          <div className={styles.formRow}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={attackerHasImpale}
+                onChange={(e) => setAttackerHasImpale(e.target.checked)}
+                className={styles.checkboxInput}
+              />
+              Impale
+            </label>
+          </div>
+
+          {/* Bascinet frontal missile toggle (Req 7.1, task 7.4) */}
+          {bascinetAtLocation && (
+            <div className={styles.formRow}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={isMissileFrontal}
+                  onChange={(e) => setIsMissileFrontal(e.target.checked)}
+                  className={styles.checkboxInput}
+                  data-testid="frontal-missile-toggle"
+                />
+                Frontal Missile?
+              </label>
+            </div>
+          )}
+
           {/* 8.4 & 8.5: AP at location and Toughness Bonus display */}
           <div className={styles.formRow}>
             <div className={styles.statChip}>
               <span className={styles.statChipLabel}>AP</span>
-              <span className={styles.statChipValue} data-testid="ap-at-location">{apAtLocation}</span>
+              <span className={styles.statChipValue} data-testid="ap-at-location">{effectiveAP}</span>
             </div>
             <div className={styles.statChip}>
               <span className={styles.statChipLabel}>TB</span>
               <span className={styles.statChipValue} data-testid="toughness-bonus">{toughnessBonus}</span>
             </div>
           </div>
+
+          {/* Armour combat effect indicators (Req 11.1, 11.2, 12.1, 12.2, 13.1) */}
+          {armourCombatResult.notes.length > 0 && (
+            <div className={styles.armourNotesBox} data-testid="armour-combat-notes">
+              {armourCombatResult.partialBypassed && (
+                <div className={styles.armourNote} data-testid="partial-bypass-indicator">
+                  ⚠ Partial: AP bypassed
+                </div>
+              )}
+              {armourCombatResult.impenetrableNegatesCrit && (
+                <div className={styles.armourNotePositive} data-testid="impenetrable-negate-indicator">
+                  🛡 Impenetrable: Critical negated
+                </div>
+              )}
+              {armourCombatResult.weakpointsBypassed && (
+                <div className={styles.armourNote} data-testid="weakpoints-bypass-indicator">
+                  ⚠ Weakpoints: All AP ignored
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Helmet special ability notes (Req 7.1–7.5, task 7.4) */}
+          {isHeadLocation && (bascinetAtLocation || armetAtLocation || salletAtLocation) && (
+            <div className={styles.helmetNotesBox} data-testid="helmet-special-notes">
+              {bascinetAtLocation && isMissileFrontal && (
+                <div className={styles.armourNotePositive} data-testid="bascinet-missile-note">
+                  🛡 Bascinet: +1 AP (frontal missile)
+                </div>
+              )}
+              {armetAtLocation && netWounds > 0 && (
+                <div className={styles.armourNotePositive} data-testid="armet-damage-note">
+                  🎲 Armet: Roll d10 — 1-5: damaged normally, 6-9: not damaged, 10: not damaged but visor jams
+                </div>
+              )}
+              {salletAtLocation && wouldCauseCritical && (
+                <div className={styles.armourNotePositive} data-testid="sallet-critical-note">
+                  🛡 Sallet: Critical Hit deals 1 less Wound
+                </div>
+              )}
+            </div>
+          )}
 
           {/* 8.6: Net wounds calculation */}
           <div className={styles.netWoundsBox}>
@@ -217,12 +434,31 @@ export function TakeDamagePanel({
               <span className={styles.netWoundsValue} data-testid="net-wounds">{netWounds}</span>
             </div>
             <div className={styles.breakdownText}>
-              {incomingDamage} + {sl} (SL) − {toughnessBonus} (TB) − {apAtLocation} (AP) = {incomingDamage + sl - toughnessBonus - apAtLocation}
-              {netWounds === 1 && incomingDamage + sl - toughnessBonus - apAtLocation < 1 && min1Wound && incomingDamage + sl > apAtLocation + toughnessBonus
+              {incomingDamage} + {sl} (SL) − {toughnessBonus} (TB) − {effectiveAP} (AP) = {incomingDamage + sl - toughnessBonus - effectiveAP}
+              {netWounds === 1 && incomingDamage + sl - toughnessBonus - effectiveAP < 1 && min1Wound && incomingDamage + sl > effectiveAP + toughnessBonus
                 ? ' → min 1 wound'
                 : ''}
             </div>
           </div>
+
+          {/* Critical Deflection button (Req 6.4, 6.5, 6.6, 6.8, 6.9 — task 7.3) */}
+          {deflectionAvailable && (
+            <button
+              type="button"
+              className={styles.deflectBtn}
+              onClick={handleDeflectCritical}
+              data-testid="deflect-critical-btn"
+              aria-label="Deflect Critical"
+            >
+              🛡 Deflect Critical — Sacrifice 1 AP to ignore Critical Wound
+            </button>
+          )}
+
+          {criticalDeflected && (
+            <div className={styles.deflectedNote} role="status" data-testid="critical-deflected-note">
+              ✓ Critical Wound deflected! Armour AP reduced by 1.
+            </div>
+          )}
 
           {/* 8.7: Apply Wounds button */}
           <button
@@ -238,7 +474,7 @@ export function TakeDamagePanel({
           {/* 8.8: Down alert */}
           {showDownAlert && (
             <div className={styles.alertBox} role="alert" data-testid="down-alert">
-              💀 Character is Down! May take a Critical Wound.
+              💀 Character is Down!{criticalDeflected ? ' Critical Wound deflected.' : ' May take a Critical Wound.'}
             </div>
           )}
         </div>

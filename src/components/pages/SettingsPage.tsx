@@ -526,6 +526,25 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                 </button>
               </div>
             </div>
+
+            {/* Critical Deflection */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Critical Deflection</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.useCriticalDeflection ? { color: 'var(--text-muted)' } : undefined}>
+                    Sacrifice 1 AP to ignore a Critical Wound (Archives Vol. III)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.useCriticalDeflection', !character.houseRules.useCriticalDeflection)}
+                  className={character.houseRules.useCriticalDeflection ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.useCriticalDeflection ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
           </div>
         </CollapsibleSection>
       </Card>

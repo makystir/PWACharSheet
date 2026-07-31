@@ -13,6 +13,7 @@ import {
 import { evaluateFatiguedThreshold } from '../logic/conditions';
 import { syncTalentBonuses } from '../logic/talents';
 import { SPECIES_DATA } from '../data/species';
+import { migrateCharacterArmour } from '../logic/armourMigration';
 
 export interface UseCharacterResult {
   character: Character;
@@ -83,6 +84,11 @@ export function backfillCharacter(char: Character, weaponsRef?: WeaponData[]): C
   } else {
     // Merge defaults for any newly-added houseRules fields (backward compatibility)
     patched.houseRules = { ...structuredClone(BLANK_CHARACTER.houseRules), ...patched.houseRules };
+  }
+
+  // Migrate armour items to expanded format (defaults currentAp, visorOpen, armourType; renames old entries)
+  if (patched.armour && patched.armour.length > 0) {
+    patched.armour = migrateCharacterArmour(patched.armour);
   }
 
   // Fix weapon damage formulas from old exports that had incorrect values

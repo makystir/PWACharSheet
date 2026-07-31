@@ -409,3 +409,343 @@
 .editDoneBtn:hover {
   background: rgba(200, 168, 76, 0.35);
 }
+
+/* Repair Info expandable section */
+.repairInfoToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s;
+  min-height: 36px;
+}
+
+.repairInfoToggle:hover {
+  background: rgba(200, 168, 76, 0.1);
+}
+
+.repairInfoContent {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.repairTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.repairTable th {
+  text-align: left;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.repairTable td {
+  padding: 4px 6px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.repairTable tr:last-child td {
+  border-bottom: none;
+}
+
+.repairNote {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .repairInfoToggle {
+    min-height: 44px;
+  }
+}
+
+/* Stealth Penalty Badge */
+.stealthPenaltyBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e8a84f;
+  background: rgba(220, 140, 60, 0.15);
+  border: 1px solid rgba(220, 140, 60, 0.4);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+
+/* Helmet Special Ability Label */
+.helmetAbilityLabel {
+  display: block;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--accent-gold);
+  margin-top: 2px;
+}
+
+/* Quality/Flaw badge styles */
+.badgeRow {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: 6px;
+  align-items: center;
+}
+
+.qualityBadgeWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.qualityBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid rgba(100, 180, 200, 0.4);
+  background: rgba(100, 180, 200, 0.15);
+  color: #8fd4e8;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1.4;
+  min-height: 18px;
+}
+
+.qualityBadge:hover {
+  background: rgba(100, 180, 200, 0.3);
+  border-color: rgba(100, 180, 200, 0.6);
+}
+
+.flawBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid rgba(220, 140, 60, 0.4);
+  background: rgba(220, 140, 60, 0.15);
+  color: #e8a84f;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1.4;
+  min-height: 18px;
+}
+
+.flawBadge:hover {
+  background: rgba(220, 140, 60, 0.3);
+  border-color: rgba(220, 140, 60, 0.6);
+}
+
+.qualityTooltip {
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  margin-top: 4px;
+  padding: 6px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: normal;
+  min-width: 180px;
+  max-width: 260px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  line-height: 1.4;
+}
+
+.qualityTooltip strong {
+  color: var(--parchment);
+}
+
+.combatEffect {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Layering warning styles */
+.layeringWarning {
+  margin-top: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #e8a84f;
+  background: rgba(220, 140, 60, 0.08);
+  border: 1px solid rgba(220, 140, 60, 0.25);
+  border-radius: var(--radius-sm);
+  line-height: 1.5;
+}
+
+/* Effective AP note */
+.effectiveApNote {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+  padding: 4px 0;
+}
+
+/* Weakpoints suppressed note */
+.suppressedNote {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #8fd4e8;
+  font-style: italic;
+}
+
+/* Mobile overrides for badges */
+@media (max-width: 767px) {
+  .qualityBadge,
+  .flawBadge {
+    min-height: 22px;
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+
+  .qualityTooltip {
+    min-width: 160px;
+    max-width: 220px;
+    font-size: 11px;
+  }
+}
+
+/* Visor toggle button */
+.visorToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid rgba(160, 120, 220, 0.5);
+  background: rgba(160, 120, 220, 0.15);
+  color: #c8a0f0;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1.4;
+  min-height: 18px;
+}
+
+.visorToggle:hover {
+  background: rgba(160, 120, 220, 0.3);
+  border-color: rgba(160, 120, 220, 0.7);
+}
+
+/* Visor open note (Partial + Perception penalty) */
+.visorOpenNote {
+  margin-top: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e8a84f;
+  background: rgba(220, 140, 60, 0.1);
+  border: 1px solid rgba(220, 140, 60, 0.3);
+  border-radius: 3px;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .visorToggle {
+    min-height: 22px;
+    padding: 2px 8px;
+  }
+}
+
+/* Armour damage display styles */
+.apDamaged {
+  color: #e8c84f !important;
+}
+
+.apDestroyed {
+  color: #d44 !important;
+  text-decoration: line-through;
+}
+
+/* AP +/- control styles */
+.apControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 4px;
+}
+
+.apControlBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-gold-dark);
+  background: rgba(200, 168, 76, 0.15);
+  color: var(--accent-gold);
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.apControlBtn:hover:not(:disabled) {
+  background: rgba(200, 168, 76, 0.3);
+}
+
+.apControlBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.apControlValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  min-width: 36px;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .apControlBtn {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+}

@@ -3,6 +3,7 @@ import { BLANK_CHARACTER } from '../types/character';
 import { getPortraitStore } from './portrait-store';
 import { blobToBase64, base64ToBlob, isValidPortraitDataUrl } from './portrait-codec';
 import { createCharacter, saveCharacter } from './character-manager';
+import { migrateCharacterArmour } from '../logic/armourMigration';
 
 const CURRENT_VERSION = 7;
 
@@ -83,6 +84,11 @@ export function importFromJSON(json: string): { success: boolean; character?: Ch
     data,
   );
   character._v = 7;
+
+  // Migrate armour items to expanded format (defaults currentAp, visorOpen, armourType; renames old entries)
+  if (character.armour && character.armour.length > 0) {
+    character.armour = migrateCharacterArmour(character.armour);
+  }
 
   return { success: true, character };
 }

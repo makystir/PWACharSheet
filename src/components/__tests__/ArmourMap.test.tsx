@@ -182,10 +182,10 @@ describe('ArmourMap — worn armour list', () => {
     expect(item).toHaveTextContent('Head');
     expect(item).toHaveTextContent('AP 1');
     // Qualities are hidden by default (progressive disclosure)
-    expect(item).not.toHaveTextContent('Partial');
+    expect(screen.queryByTestId('armour-badges-0')).not.toBeInTheDocument();
     // Tap to reveal qualities
     fireEvent.click(item.querySelector('[role="button"]')!);
-    expect(item).toHaveTextContent('Partial');
+    expect(screen.getByTestId('quality-badge-partial')).toBeInTheDocument();
   });
 
   it('renders multiple armour items', () => {
@@ -346,9 +346,9 @@ describe('ArmourMap — compact list with overflow toggle', () => {
 
     const item = screen.getByTestId('armour-item-0');
     // Qualities not visible initially
-    expect(item).not.toHaveTextContent('Fine, Flexible');
+    expect(screen.queryByTestId('armour-badges-0')).not.toBeInTheDocument();
     // Tap to expand
     fireEvent.click(item.querySelector('[role="button"]')!);
-    expect(item).toHaveTextContent('Fine, Flexible');
+    expect(screen.getByTestId('armour-badges-0')).toBeInTheDocument();
   });
 });

@@ -147,7 +147,15 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                 <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
               </CollapsibleSection>
               <CollapsibleSection title="Take Damage" storageKey={`collapsible-take-damage-${characterId}`} defaultExpanded={false}>
-                <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} wCur={character.wCur} totalWounds={totalWounds}
+                <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} armourList={character.armour} wCur={character.wCur} totalWounds={totalWounds}
+                  useCriticalDeflection={character.houseRules?.useCriticalDeflection ?? false}
+                  onArmourUpdate={(updatedItem, index) => {
+                    updateCharacter((c) => {
+                      const newArmour = [...c.armour];
+                      newArmour[index] = updatedItem;
+                      return { ...c, armour: newArmour };
+                    });
+                  }}
                   onApplyWounds={(w) => update('wCur', Math.max(0, character.wCur - w))} min1Wound={character.houseRules.min1Wound}
                   onDown={(location) => setDownLocation(location)} />
               </CollapsibleSection>

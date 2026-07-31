@@ -36,6 +36,8 @@ export interface CharacteristicValue {
   b: number;  // Bonus (from talents)
 }
 
+export type ArmourType = 'SoftKit' | 'BoiledLeather' | 'Chainmail' | 'Brigandine' | 'Plate';
+
 export interface ArmourItem {
   name: string;
   locations: string;
@@ -44,6 +46,9 @@ export interface ArmourItem {
   qualities: string;
   worn?: boolean;
   runes?: string[];
+  armourType?: ArmourType;
+  currentAp?: number;
+  visorOpen?: boolean;
 }
 
 export interface ArmourPoints {
@@ -93,6 +98,7 @@ export interface ArmourData {
   enc: string;
   ap: number;
   qualities: string;
+  armourType: ArmourType;
 }
 
 export interface SpellData {
@@ -494,6 +500,7 @@ export interface HouseRules {
   useYenlui: boolean;
   useGrudgeBook: boolean;
   usePsychologyTracker: boolean;
+  useCriticalDeflection: boolean;
 }
 
 export interface Character {
@@ -748,6 +755,7 @@ export const BLANK_CHARACTER: Character = {
     useYenlui: false,
     useGrudgeBook: false,
     usePsychologyTracker: false,
+    useCriticalDeflection: false,
   },
   knownRunes: [],
   learnedTechniques: [],
