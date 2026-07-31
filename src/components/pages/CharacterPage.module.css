@@ -53,11 +53,6 @@
   margin: 0 auto;
 }
 
-/* Constrain columns that contain numInputs or dice buttons */
-.skillTableCompact .tdCenter {
-  width: 60px;
-}
-
 /* Dice roll button */
 .diceBtn {
   background: none;
@@ -121,80 +116,159 @@
   cursor: pointer;
 }
 
-/* Characteristics table */
-.overflowAuto {
-  overflow-x: auto;
+/* ─── Characteristics Grid ─── */
+.charGrid {
+  display: grid;
+  grid-template-columns: 50px 70px 70px 60px 40px 60px 40px;
+  gap: 0;
+  align-items: center;
 }
 
-.charTable {
-  table-layout: fixed;
+.charGrid.hideTBonus {
+  grid-template-columns: 50px 70px 70px 60px 40px 40px;
 }
 
-/* Force narrow columns to stay compact */
-.charTable .thCenter,
-.charTable .tdCenter {
-  width: 70px;
+.charGridHeader {
+  display: contents;
 }
 
-.skillCharCol {
-  composes: td from '../shared/styles/shared.module.css';
-  text-align: center;
-  width: 50px;
+.charGridHeader > span {
+  padding: 6px 4px;
+  font-size: 10px;
   color: var(--text-muted);
-}
-
-.skillTotalCol {
-  composes: td from '../shared/styles/shared.module.css';
-  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   text-align: center;
-  width: 55px;
+  border-bottom: 1px solid var(--border);
+  user-select: none;
 }
 
-.charKey {
-  composes: td from '../shared/styles/shared.module.css';
+.charGridRow {
+  display: contents;
+}
+
+.charGridRow > * {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.05));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+}
+
+.charGridKey {
   font-weight: 600;
   color: var(--accent-gold);
-  text-align: center;
-  width: 60px;
+  font-size: 14px;
 }
 
-.charCurrent {
-  composes: td from '../shared/styles/shared.module.css';
+.charGridCurrent {
   color: var(--parchment);
   font-weight: 700;
   font-size: 18px;
-  text-align: center;
-  width: 60px;
 }
 
-.thCB {
-  composes: th from '../shared/styles/shared.module.css';
-  text-align: center;
-}
-
-.charCB {
-  composes: td from '../shared/styles/shared.module.css';
+.charGridCB {
   color: var(--accent-gold);
   font-weight: 700;
-  font-size: 18px;
-  text-align: center;
-  width: 40px;
+  font-size: 16px;
 }
 
-.charBonusActive {
-  composes: td from '../shared/styles/shared.module.css';
+.charGridBonusActive {
   color: var(--success);
-  font-size: 12px;
-  text-align: center;
-  width: 50px;
+  font-size: 13px;
 }
 
-.charBonusInactive {
-  composes: td from '../shared/styles/shared.module.css';
+.charGridBonusInactive {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
+}
+
+/* ─── Skills Grid ─── */
+.skillGrid {
+  display: grid;
+  grid-template-columns: 1fr 44px 64px 54px 40px;
+  gap: 0;
+  align-items: center;
+}
+
+/* Advanced skills have an extra delete column */
+.skillGridAdvanced {
+  display: grid;
+  grid-template-columns: 1fr 44px 64px 54px 40px 32px;
+  gap: 0;
+  align-items: center;
+}
+
+.skillGridHeader {
+  display: contents;
+}
+
+.skillGridHeader > span {
+  padding: 6px 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   text-align: center;
-  width: 50px;
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+
+.skillGridHeader > span:first-child {
+  text-align: left;
+  padding-left: 8px;
+}
+
+.skillGridRow {
+  display: contents;
+}
+
+.skillGridRow > * {
+  padding: 4px 4px;
+  border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.05));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+}
+
+.skillGridRow > *:first-child {
+  justify-content: flex-start;
+  padding-left: 8px;
+}
+
+.skillGridRowCareer > * {
+  border-left: 3px solid var(--accent-gold);
+  background: rgba(200, 168, 76, 0.04);
+}
+
+.skillGridRowCareer > *:first-child {
+  border-left: 3px solid var(--accent-gold);
+}
+
+.skillGridRowCareer > *:not(:first-child) {
+  border-left: none;
+}
+
+.skillGridName {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.skillGridChar {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.skillGridTotal {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.overflowAuto {
+  overflow-x: auto;
 }
 
 /* Movement + Fortune grid */
@@ -301,10 +375,6 @@
 .skillTableCompact td,
 .skillTableCompact th {
   padding: 6px 8px;
-}
-
-.skillTableCompact .thCenter {
-  width: 60px;
 }
 
 /* Add dropdown button */
@@ -787,33 +857,34 @@
 
 @media (max-width: 767px) {
   /* Req 6.1: Characteristic abbreviations at minimum 13px bold */
-  .charKey {
+  .charGridKey {
     font-size: 13px;
     font-weight: 700;
   }
 
   /* Req 6.2: Current characteristic total at 15px with high contrast */
-  .charCurrent {
+  .charGridCurrent {
     font-size: 15px;
     color: var(--parchment);
     font-weight: 700;
   }
 
   /* CB column at 15px on mobile for consistent sizing */
-  .charCB {
+  .charGridCB {
     font-size: 15px;
+  }
+
+  /* Compact grid columns on mobile */
+  .charGrid {
+    grid-template-columns: 40px 60px 60px 50px 36px 50px 36px;
+  }
+
+  .charGrid.hideTBonus {
+    grid-template-columns: 40px 60px 60px 50px 36px 36px;
   }
 }
 
-/* Req 6.3: Hide Bonus and CB columns below 360px */
-@media (max-width: 359px) {
-  .charBonusActive,
-  .charBonusInactive,
-  .charCB,
-  .thCB {
-    display: none;
-  }
-}
+/* Req 6.3: Hide Bonus and CB columns below 360px — handled by "Show Details" toggle */
 
 /* ─── Responsive T. Bonus column toggle (Req 7.3) ─── */
 
@@ -822,10 +893,7 @@
   display: none;
 }
 
-/* T. Bonus column — visible by default on desktop */
-.tBonusCol {
-  /* no-op on desktop, styled via mobile media query below */
-}
+/* T. Bonus column — handled via conditional rendering in JSX (grid layout) */
 
 /* On mobile: hide T. Bonus column and show toggle */
 @media (max-width: 767px) {
@@ -848,15 +916,7 @@
     color: var(--text-primary);
   }
 
-  /* Hide T. Bonus column by default on mobile */
-  .tBonusCol {
-    display: none;
-  }
-
-  /* When parent table has .tBonusVisible, show the column */
-  .tBonusVisible .tBonusCol {
-    display: table-cell;
-  }
+  /* T. Bonus handled by conditional render in grid layout */
 }
 
 
@@ -911,11 +971,11 @@
   /* Req 5.2: Table cell minimum font size 13px */
   .td,
   .tdCenter,
-  .charKey,
-  .charBonusActive,
-  .charBonusInactive,
-  .skillCharCol,
-  .skillTotalCol {
+  .charGridKey,
+  .charGridBonusActive,
+  .charGridBonusInactive,
+  .skillGridChar,
+  .skillGridTotal {
     font-size: 13px;
   }
 

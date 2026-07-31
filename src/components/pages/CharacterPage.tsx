@@ -518,42 +518,40 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           {showTBonus ? 'Hide Details' : 'Show Details'}
         </button>
         <div className={styles.overflowAuto}>
-          <table className={`${styles.tableBase} ${styles.charTable} ${showTBonus ? styles.tBonusVisible : ''}`}>
-            <thead>
-              <tr>
-                <th className={styles.thCenter} title="Characteristic">Char</th>
-                <th className={styles.thCenter}>Initial</th>
-                <th className={styles.thCenter} title="Advances">Advance</th>
-                <th className={styles.thCenter}>Current</th>
-                <th className={styles.thCB} title="Characteristic Bonus">CB</th>
-                <th className={`${styles.thCenter} ${styles.tBonusCol}`} title="Talent Bonus">T. Bonus</th>
-                <th className={styles.th}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {CHAR_KEYS.map((key) => {
-                const c = character.chars[key];
-                const current = c.i + c.a + c.b;
-                return (
-                  <tr key={key}>
-                    <td className={styles.charKey} title={CHAR_FULL_NAMES[key]}>{key}</td>
-                    <td className={styles.tdCenter}>
-                      <input type="number" value={c.i} onChange={(e) => update(`chars.${key}.i`, Number(e.target.value) || 0)} className={styles.numInput} />
-                    </td>
-                    <td className={styles.tdCenter}>
-                      <input type="number" value={c.a} onChange={(e) => update(`chars.${key}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
-                    </td>
-                    <td className={styles.charCurrent}>{current}</td>
-                    <td className={styles.charCB}>{getBonus(current)}</td>
-                    <td className={`${c.b > 0 ? styles.charBonusActive : styles.charBonusInactive} ${styles.tBonusCol}`}>{c.b || '—'}</td>
-                    <td className={styles.tdCenter}>
-                      <button type="button" className={styles.diceBtn} onClick={() => openCharacteristicRoll(key)} title={`Roll ${CHAR_FULL_NAMES[key]}`} aria-label={`Roll ${CHAR_FULL_NAMES[key]}`}>🎲</button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className={`${styles.charGrid}${showTBonus ? '' : ` ${styles.hideTBonus}`}`}>
+            {/* Header */}
+            <div className={styles.charGridHeader}>
+              <span>Char</span>
+              <span>Initial</span>
+              <span>Advance</span>
+              <span>Current</span>
+              <span>CB</span>
+              {showTBonus && <span>T. Bonus</span>}
+              <span></span>
+            </div>
+            {/* Rows */}
+            {CHAR_KEYS.map((key) => {
+              const c = character.chars[key];
+              const current = c.i + c.a + c.b;
+              return (
+                <div key={key} className={styles.charGridRow}>
+                  <div className={styles.charGridKey} title={CHAR_FULL_NAMES[key]}>{key}</div>
+                  <div>
+                    <input type="number" value={c.i} onChange={(e) => update(`chars.${key}.i`, Number(e.target.value) || 0)} className={styles.numInput} />
+                  </div>
+                  <div>
+                    <input type="number" value={c.a} onChange={(e) => update(`chars.${key}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
+                  </div>
+                  <div className={styles.charGridCurrent}>{current}</div>
+                  <div className={styles.charGridCB}>{getBonus(current)}</div>
+                  {showTBonus && <div className={c.b > 0 ? styles.charGridBonusActive : styles.charGridBonusInactive}>{c.b || '—'}</div>}
+                  <div>
+                    <button type="button" className={styles.diceBtn} onClick={() => openCharacteristicRoll(key)} title={`Roll ${CHAR_FULL_NAMES[key]}`} aria-label={`Roll ${CHAR_FULL_NAMES[key]}`}>🎲</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </Card>
 
@@ -677,59 +675,54 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {/* Basic Skills */}
       <Card>
         <SectionHeader icon={BookOpen} title="Basic Skills" />
-        <table className={`${styles.tableBase} ${styles.skillTableCompact}`}>
-          <thead>
-            <tr>
-              <th className={styles.th}>Skill</th>
-              <th className={styles.thCenter} title="Linked Characteristic">Char</th>
-              <th className={styles.thCenter} title="Advances">Adv</th>
-              <th className={styles.thCenter} title="Characteristic + Advances">Total</th>
-              <th className={styles.th}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filterSkills(character.bSkills, { searchText: skillSearchText, trainedOnly: skillTrainedOnly }).map((skill) => {
-              const i = character.bSkills.indexOf(skill);
-              const charVal = character.chars[skill.c as CharacteristicKey];
-              const total = charVal ? (charVal.i + charVal.a + charVal.b + skill.a) : skill.a;
-              const isCareerSkill = careerSkillSet.has(skill.n);
-              const rowClass = isCareerSkill
-                ? `${i % 2 === 0 ? styles.rowEven : styles.rowOdd} ${styles.careerSkillRow}`
-                : (i % 2 === 0 ? styles.rowEven : styles.rowOdd);
-              return (
-                <tr key={i} className={rowClass}>
-                  <td className={styles.td}>
-                    <button
-                      type="button"
-                      className={styles.tooltipTriggerBtn}
-                      aria-describedby={tooltip?.type === 'skill' && tooltip.index === i ? `tooltip-skill-${i}` : undefined}
-                      onClick={(e) => {
-                        if (tooltip?.type === 'skill' && tooltip.index === i) {
-                          setTooltip(null);
-                          return;
-                        }
-                        const content = resolveSkillTooltip(skill.n, skill.c);
-                        if (content) {
-                          setTooltip({ type: 'skill', index: i, anchorEl: e.currentTarget });
-                        }
-                      }}
-                    >
-                      {skill.n}
-                    </button>
-                  </td>
-                  <td className={styles.skillCharCol} title={CHAR_FULL_NAMES[skill.c as CharacteristicKey] || skill.c}>{skill.c}</td>
-                  <td className={styles.tdCenter}>
-                    <input type="number" value={skill.a} onChange={(e) => update(`bSkills.${i}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
-                  </td>
-                  <td className={styles.skillTotalCol}>{total}</td>
-                  <td className={styles.tdCenter}>
-                    <button type="button" className={styles.diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className={styles.skillGrid}>
+          {/* Header */}
+          <div className={styles.skillGridHeader}>
+            <span>Skill</span>
+            <span>Char</span>
+            <span>Adv</span>
+            <span>Total</span>
+            <span></span>
+          </div>
+          {/* Rows */}
+          {filterSkills(character.bSkills, { searchText: skillSearchText, trainedOnly: skillTrainedOnly }).map((skill) => {
+            const i = character.bSkills.indexOf(skill);
+            const charVal = character.chars[skill.c as CharacteristicKey];
+            const total = charVal ? (charVal.i + charVal.a + charVal.b + skill.a) : skill.a;
+            const isCareerSkill = careerSkillSet.has(skill.n);
+            return (
+              <div key={i} className={`${styles.skillGridRow}${isCareerSkill ? ` ${styles.skillGridRowCareer}` : ''}`}>
+                <div className={styles.skillGridName}>
+                  <button
+                    type="button"
+                    className={styles.tooltipTriggerBtn}
+                    aria-describedby={tooltip?.type === 'skill' && tooltip.index === i ? `tooltip-skill-${i}` : undefined}
+                    onClick={(e) => {
+                      if (tooltip?.type === 'skill' && tooltip.index === i) {
+                        setTooltip(null);
+                        return;
+                      }
+                      const content = resolveSkillTooltip(skill.n, skill.c);
+                      if (content) {
+                        setTooltip({ type: 'skill', index: i, anchorEl: e.currentTarget });
+                      }
+                    }}
+                  >
+                    {skill.n}
+                  </button>
+                </div>
+                <div className={styles.skillGridChar} title={CHAR_FULL_NAMES[skill.c as CharacteristicKey] || skill.c}>{skill.c}</div>
+                <div>
+                  <input type="number" value={skill.a} onChange={(e) => update(`bSkills.${i}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
+                </div>
+                <div className={styles.skillGridTotal}>{total}</div>
+                <div>
+                  <button type="button" className={styles.diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </Card>
 
       {/* Advanced Skills */}
@@ -755,70 +748,65 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             )}
           </div>
         } />
-        <table className={`${styles.tableBase} ${styles.skillTableCompact}`}>
-          <thead>
-            <tr>
-              <th className={styles.th}>Skill</th>
-              <th className={styles.thCenter} title="Linked Characteristic">Char</th>
-              <th className={styles.thCenter} title="Advances">Adv</th>
-              <th className={styles.thCenter} title="Characteristic + Advances">Total</th>
-              <th className={styles.th}></th>
-              <th className={styles.th}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filterSkills(character.aSkills, { searchText: skillSearchText, trainedOnly: skillTrainedOnly }).map((skill) => {
-              const i = character.aSkills.indexOf(skill);
-              const charVal = character.chars[skill.c as CharacteristicKey];
-              const total = charVal ? (charVal.i + charVal.a + charVal.b + skill.a) : skill.a;
-              const isCareerSkill = careerSkillSet.has(skill.n);
-              const rowClass = isCareerSkill
-                ? `${i % 2 === 0 ? styles.rowEven : styles.rowOdd} ${styles.careerSkillRow}`
-                : (i % 2 === 0 ? styles.rowEven : styles.rowOdd);
-              return (
-                <tr key={i} className={rowClass}>
-                  <td className={styles.td}>
-                    <div className={styles.inlineRow}>
-                      <button
-                        type="button"
-                        className={styles.infoBtn}
-                        aria-describedby={tooltip?.type === 'skill' && tooltip.index === character.bSkills.length + i ? `tooltip-skill-${character.bSkills.length + i}` : undefined}
-                        aria-label={`Info for ${skill.n}`}
-                        onClick={(e) => {
-                          const idx = character.bSkills.length + i;
-                          if (tooltip?.type === 'skill' && tooltip.index === idx) {
-                            setTooltip(null);
-                            return;
-                          }
-                          const content = resolveSkillTooltip(skill.n, skill.c);
-                          if (content) {
-                            setTooltip({ type: 'skill', index: idx, anchorEl: e.currentTarget });
-                          }
-                        }}
-                      >
-                        ℹ
-                      </button>
-                      <EditableField label="" value={skill.n} onSave={(v) => updateAdvancedSkill(i, 'n', String(v))} />
-                    </div>
-                  </td>
-                  <td className={styles.tdCenter}>
-                    <EditableField label="" value={skill.c} onSave={(v) => updateAdvancedSkill(i, 'c', String(v))} />
-                  </td>
-                  <td className={styles.tdCenter}>
-                    <input type="number" value={skill.a} onChange={(e) => updateAdvancedSkill(i, 'a', Number(e.target.value) || 0)} className={styles.numInput} />
-                  </td>
-                  <td className={styles.skillTotalCol}>{total}</td>
-                  <td className={styles.tdCenter}>
-                    <button type="button" className={styles.diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
-                  </td>
-                  <td className={styles.tdCenter}>
-                    <button type="button" onClick={() => setDeleteTarget({ type: 'aSkill', index: i })} className={styles.deleteBtn}>✕</button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className={styles.skillGridAdvanced}>
+          {/* Header */}
+          <div className={styles.skillGridHeader}>
+            <span>Skill</span>
+            <span>Char</span>
+            <span>Adv</span>
+            <span>Total</span>
+            <span></span>
+            <span></span>
+          </div>
+          {/* Rows */}
+          {filterSkills(character.aSkills, { searchText: skillSearchText, trainedOnly: skillTrainedOnly }).map((skill) => {
+            const i = character.aSkills.indexOf(skill);
+            const charVal = character.chars[skill.c as CharacteristicKey];
+            const total = charVal ? (charVal.i + charVal.a + charVal.b + skill.a) : skill.a;
+            const isCareerSkill = careerSkillSet.has(skill.n);
+            return (
+              <div key={i} className={`${styles.skillGridRow}${isCareerSkill ? ` ${styles.skillGridRowCareer}` : ''}`}>
+                <div className={styles.skillGridName}>
+                  <div className={styles.inlineRow}>
+                    <button
+                      type="button"
+                      className={styles.infoBtn}
+                      aria-describedby={tooltip?.type === 'skill' && tooltip.index === character.bSkills.length + i ? `tooltip-skill-${character.bSkills.length + i}` : undefined}
+                      aria-label={`Info for ${skill.n}`}
+                      onClick={(e) => {
+                        const idx = character.bSkills.length + i;
+                        if (tooltip?.type === 'skill' && tooltip.index === idx) {
+                          setTooltip(null);
+                          return;
+                        }
+                        const content = resolveSkillTooltip(skill.n, skill.c);
+                        if (content) {
+                          setTooltip({ type: 'skill', index: idx, anchorEl: e.currentTarget });
+                        }
+                      }}
+                    >
+                      ℹ
+                    </button>
+                    <EditableField label="" value={skill.n} onSave={(v) => updateAdvancedSkill(i, 'n', String(v))} />
+                  </div>
+                </div>
+                <div className={styles.skillGridChar}>
+                  <EditableField label="" value={skill.c} onSave={(v) => updateAdvancedSkill(i, 'c', String(v))} />
+                </div>
+                <div>
+                  <input type="number" value={skill.a} onChange={(e) => updateAdvancedSkill(i, 'a', Number(e.target.value) || 0)} className={styles.numInput} />
+                </div>
+                <div className={styles.skillGridTotal}>{total}</div>
+                <div>
+                  <button type="button" className={styles.diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
+                </div>
+                <div>
+                  <button type="button" onClick={() => setDeleteTarget({ type: 'aSkill', index: i })} className={styles.deleteBtn}>✕</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </Card>
 
       {/* Talents */}
