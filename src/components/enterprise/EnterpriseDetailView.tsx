@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import type { Character, Enterprise } from '../../types/character';
-import { parseMonetaryInput, clampMonetary } from '../../logic/enterprise-utils';
+import type { EnterpriseEventResult } from '../../data/enterprise-events';
+import { parseMonetaryInput, clampMonetary, expandEnterprise } from '../../logic/enterprise-utils';
+import { ENTERPRISE_TEMPLATE_MAP } from '../../data/enterprises';
+import { IncomeSourceEditor } from './IncomeSourceEditor';
+import { StringListEditor } from './StringListEditor';
+import { ExpansionPanel } from './ExpansionPanel';
+import { EnterpriseEventRoller } from './EnterpriseEventRoller';
 import styles from './EnterpriseDetailView.module.css';
 
 interface EnterpriseDetailViewProps {
@@ -38,6 +44,7 @@ export function EnterpriseDetailView({
   const [interestD, setInterestD] = useState(String(enterprise.interestPayment.d));
   const [notes, setNotes] = useState(enterprise.notes);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [lastEventResult, setLastEventResult] = useState<EnterpriseEventResult | null>(null);
 
   const commitName = () => {
     const trimmed = name.slice(0, 100);
@@ -252,12 +259,48 @@ export function EnterpriseDetailView({
         </div>
       </div>
 
-      {/* Placeholders for future task components */}
-      <div className={styles.placeholder}>Income Sources editor — coming soon</div>
-      <div className={styles.placeholder}>Trappings editor — coming soon</div>
-      <div className={styles.placeholder}>Special Rules editor — coming soon</div>
-      <div className={styles.placeholder}>Expansion Panel — coming soon</div>
-      <div className={styles.placeholder}>Event Roller — coming soon</div>
+      {/* Income Sources */}
+      <IncomeSourceEditor
+        incomeSources={enterprise.incomeSources}
+        onChange={(updated) => updateEnterprise(updateCharacter, enterpriseIndex, (ent) => ({ ...ent, incomeSources: updated }))}
+      />
+
+      {/* Trappings */}
+      <StringListEditor
+        label="Trappings"
+        items={enterprise.trappings}
+        onChange={(updated) => updateEnterprise(updateCharacter, enterpriseIndex, (ent) => ({ ...ent, trappings: updated }))}
+        maxItems={50}
+        maxLength={200}
+        placeholder="Enter trapping..."
+      />
+
+      {/* Special Rules */}
+      <StringListEditor
+        label="Special Rules"
+        items={enterprise.specialRules}
+        onChange={(updated) => updateEnterprise(updateCharacter, enterpriseIndex, (ent) => ({ ...ent, specialRules: updated }))}
+        maxItems={20}
+        maxLength={500}
+        placeholder="Enter special rule..."
+      />
+
+      {/* Expansion Panel */}
+      <ExpansionPanel
+        enterprise={enterprise}
+        onExpand={() => {
+          const template = ENTERPRISE_TEMPLATE_MAP[enterprise.type];
+          updateEnterprise(updateCharacter, enterpriseIndex, (ent) => expandEnterprise(ent, template));
+        }}
+      />
+
+      {/* Event Roller */}
+      <EnterpriseEventRoller
+        enterprise={enterprise}
+        onRoll={(result) => setLastEventResult(result)}
+        lastResult={lastEventResult}
+        onDismiss={() => setLastEventResult(null)}
+      />
 
       {/* Delete Enterprise */}
       {!showDeleteConfirm ? (
