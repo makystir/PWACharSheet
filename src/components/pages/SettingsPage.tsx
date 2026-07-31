@@ -545,6 +545,25 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                 </button>
               </div>
             </div>
+
+            {/* Enterprises */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Enterprises</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.useEnterprises ? { color: 'var(--text-muted)' } : undefined}>
+                    Track business ventures and income sources (Archives Vol. III)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.useEnterprises', !character.houseRules.useEnterprises)}
+                  className={character.houseRules.useEnterprises ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.useEnterprises ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
           </div>
         </CollapsibleSection>
       </Card>

@@ -1,0 +1,106 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.field:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.fieldDescription {
+  flex: 2;
+}
+
+.fieldSkill {
+  flex: 1.5;
+}
+
+.fieldStatus {
+  flex: 1;
+}
+
+.removeBtn {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+
+.removeBtn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: rgba(220, 53, 69, 0.1);
+}
+
+.addBtn {
+  align-self: flex-start;
+  padding: 4px 10px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.addBtn:hover {
+  background: rgba(201, 168, 76, 0.2);
+}
+
+.addBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.addBtn:disabled:hover {
+  background: rgba(201, 168, 76, 0.1);
+}

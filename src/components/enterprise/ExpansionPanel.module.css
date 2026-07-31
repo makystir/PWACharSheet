@@ -1,0 +1,123 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.currentLevel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.maxReached {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.nextLevelInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.nextLevelTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  margin-bottom: 2px;
+}
+
+.infoRow {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.infoValue {
+  color: var(--text-primary);
+}
+
+.benefits {
+  font-size: 11px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.listSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.listTitle {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.listItem {
+  font-size: 11px;
+  color: var(--text-primary);
+  padding-left: 8px;
+}
+
+.listItem::before {
+  content: '• ';
+  color: var(--text-muted);
+}
+
+.expandButton {
+  align-self: flex-start;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--accent-gold);
+  border-radius: 4px;
+  background: rgba(201, 168, 76, 0.1);
+  color: var(--accent-gold);
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.expandButton:hover:not(:disabled) {
+  background: rgba(201, 168, 76, 0.25);
+}
+
+.expandButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--border);
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.debtWarning {
+  font-size: 11px;
+  color: var(--danger);
+  font-style: italic;
+}

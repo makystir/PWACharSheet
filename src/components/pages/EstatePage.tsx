@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Character, Holding, Estate, Hireling } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -12,6 +12,7 @@ import { EmptyState } from '../shared/EmptyState';
 import { Toast } from '../shared/Toast';
 import { CurrencyInput } from '../shared/CurrencyInput';
 import { LedgerPanel } from '../shared/LedgerPanel';
+import { EnterpriseList } from '../enterprise/EnterpriseList';
 import { validateTreasuryDelta, applyCurrencyDelta, type CurrencyDelta } from '../../logic/currency';
 import styles from './EstatePage.module.css';
 
@@ -56,12 +57,24 @@ interface EstatePageProps {
   onSubTabChange?: (tab: string) => void;
 }
 
-type EstateSubTab = 'estate' | 'holdings' | 'wealth';
+type EstateSubTab = 'estate' | 'holdings' | 'wealth' | 'enterprises';
 
 export function EstatePage({ character, update, updateCharacter, subTab, onSubTabChange }: EstatePageProps) {
-  const VALID_SUBTABS: EstateSubTab[] = ['estate', 'holdings', 'wealth'];
+  const useEnterprises = character.houseRules.useEnterprises === true;
+
+  const VALID_SUBTABS: EstateSubTab[] = useEnterprises
+    ? ['estate', 'holdings', 'wealth', 'enterprises']
+    : ['estate', 'holdings', 'wealth'];
   const initialTab = (subTab && VALID_SUBTABS.includes(subTab as EstateSubTab)) ? subTab as EstateSubTab : 'wealth';
   const [activeSubTab, setActiveSubTabInternal] = useState<EstateSubTab>(initialTab);
+
+  // Fall back to 'wealth' if the current active tab is no longer valid (e.g. enterprises toggled off)
+  useEffect(() => {
+    if (!VALID_SUBTABS.includes(activeSubTab)) {
+      setActiveSubTabInternal('wealth');
+      onSubTabChange?.('wealth');
+    }
+  }, [useEnterprises]);
 
   // Sync from external subTab prop (e.g. URL hash changes)
   // Falls back to default sub-tab if hash references a non-existent tab ID (Req 6.3)
@@ -82,14 +95,22 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
     onSubTabChange?.(tab);
   };
 
-  // Tab reordering
-  const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
-    pageKey: 'estate',
-    defaultTabs: [
+  // Tab reordering — conditionally include Enterprises tab
+  const defaultTabsList = useMemo(() => {
+    const tabs = [
       { id: 'wealth', label: 'Wealth & Finances' },
       { id: 'estate', label: 'Estate' },
       { id: 'holdings', label: 'Holdings' },
-    ],
+    ];
+    if (useEnterprises) {
+      tabs.push({ id: 'enterprises', label: 'Enterprises' });
+    }
+    return tabs;
+  }, [useEnterprises]);
+
+  const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
+    pageKey: 'estate',
+    defaultTabs: defaultTabsList,
   });
 
   const [noteInput, setNoteInput] = useState('');
@@ -372,7 +393,9 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
       </Card>
       )}
 
-
+      {activeSubTab === 'enterprises' && useEnterprises && (
+        <EnterpriseList character={character} updateCharacter={updateCharacter} />
+      )}
 
       {activeSubTab === 'estate' && (
       <Card>

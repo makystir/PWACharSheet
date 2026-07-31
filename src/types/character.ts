@@ -466,6 +466,46 @@ export interface Estate {
   properties?: Holding[];
 }
 
+// Enterprise types (Archives of the Empire Vol. III)
+export type EnterpriseType =
+  | 'Courier Service'
+  | 'Crafting Workshop'
+  | 'Criminal Gang'
+  | 'Holy Temple'
+  | 'Knightly Order'
+  | 'Tavern'
+  | 'Market Parlour'
+  | 'Noble Estate'
+  | 'Performance Troupe'
+  | 'Publishing House';
+
+export interface EnterpriseIncomeSource {
+  id: string;
+  description: string;      // max 200 characters
+  earningSkill: string;     // max 100 characters
+  effectiveStatus: string;  // max 50 characters, e.g. "Silver 2"
+}
+
+export interface EnterpriseCurrency {
+  gc: number;  // gold crowns (0-999)
+  ss: number;  // silver shillings (0-999)
+  d: number;   // brass pennies (0-999)
+}
+
+export interface Enterprise {
+  id: string;                          // crypto.randomUUID()
+  name: string;                        // max 100 characters
+  type: EnterpriseType;
+  expansionLevel: number;              // 1-4
+  debt: EnterpriseCurrency;
+  creditorName: string;                // max 100 characters
+  interestPayment: EnterpriseCurrency;
+  incomeSources: EnterpriseIncomeSource[];  // max 20
+  trappings: string[];                 // max 50 entries, each max 200 chars
+  specialRules: string[];              // max 20 entries, each max 500 chars
+  notes: string;                       // max 2000 characters
+}
+
 export type GrudgeType = 'standard' | 'blood';
 export type GrudgeStatus = 'outstanding' | 'satisfied';
 
@@ -501,6 +541,7 @@ export interface HouseRules {
   useGrudgeBook: boolean;
   usePsychologyTracker: boolean;
   useCriticalDeflection: boolean;
+  useEnterprises: boolean;
 }
 
 export interface Character {
@@ -591,6 +632,7 @@ export interface Character {
   magicalBurnout?: MagicalBurnout;
   consumables?: Consumable[];
   psychologyTraits?: PsychologyTrait[];
+  enterprises?: Enterprise[];
   brokenTally?: number;
   rituals?: RitualItem[];
   arcaneMarks?: string[];
@@ -756,6 +798,7 @@ export const BLANK_CHARACTER: Character = {
     useGrudgeBook: false,
     usePsychologyTracker: false,
     useCriticalDeflection: false,
+    useEnterprises: false,
   },
   knownRunes: [],
   learnedTechniques: [],
