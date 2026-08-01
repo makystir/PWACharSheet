@@ -63,24 +63,6 @@ describe('UnifiedPsychologyPanel visibility and integration (Req 6.1, 6.2, 6.3, 
     expect(screen.queryByLabelText('Unified Psychology Panel')).not.toBeInTheDocument();
   });
 
-  // ─── Requirement 6.3: Freeform psych textarea on Notes tab regardless of toggle ───
-
-  it('shows freeform psych textarea on Notes tab when usePsychologyTracker is true', () => {
-    renderCharPage(
-      { houseRules: { ...BLANK_CHARACTER.houseRules, usePsychologyTracker: true } },
-      'notes',
-    );
-    expect(screen.getByPlaceholderText('Phobias, animosities...')).toBeInTheDocument();
-  });
-
-  it('shows freeform psych textarea on Notes tab when usePsychologyTracker is false', () => {
-    renderCharPage(
-      { houseRules: { ...BLANK_CHARACTER.houseRules, usePsychologyTracker: false } },
-      'notes',
-    );
-    expect(screen.getByPlaceholderText('Phobias, animosities...')).toBeInTheDocument();
-  });
-
   // ─── Requirement 7.3: Existing traits display correctly (data compatibility) ───
 
   it('displays existing psychology traits correctly in the unified panel', () => {

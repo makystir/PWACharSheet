@@ -27,7 +27,7 @@ import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, calc
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../logic/tooltip-content';
 import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
-import { User, Swords, BookOpen, Sparkles, Wand2, Brain, Package, Coins, Scale, Footprints, Hammer, Lock, Heart, Shield, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { User, Swords, BookOpen, Sparkles, Wand2, Package, Coins, Scale, Footprints, Hammer, Lock, Heart, Shield, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { CorruptionCard } from '../shared/CorruptionCard';
 import { DiseasePanel } from '../shared/DiseasePanel';
 import { EmptyState } from '../shared/EmptyState';
@@ -1391,12 +1391,6 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             <EditableField label="Members" value={character.partyM} onSave={(v) => update('partyM', v)} />
           </div>
         </div>
-      </Card>
-
-      {/* Psychology */}
-      <Card>
-        <SectionHeader icon={Brain} title="Psychology" />
-        <textarea value={character.psych} onChange={(e) => update('psych', e.target.value)} placeholder="Phobias, animosities..." className={styles.textarea} />
       </Card>
 
       {/* Corruption & Mutation */}
