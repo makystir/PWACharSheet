@@ -1,8 +1,96 @@
-/* PsychologyPanel — co-located CSS Module */
+/* UnifiedPsychologyPanel — consolidated Psychology component */
 
-/* ── Panel Container ── */
+/* ── Container ── */
 .container {
-  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Summary Bar ── */
+.summaryBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+}
+
+.summaryLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.summaryValue {
+  font-size: 18px;
+  font-weight: 900;
+  font-family: var(--font-heading);
+  color: var(--text-primary);
+}
+
+.summaryValueDanger {
+  font-size: 18px;
+  font-weight: 900;
+  font-family: var(--font-heading);
+  color: var(--danger);
+}
+
+/* ── Broken Tally Controls ── */
+.tallyControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.incrementBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.incrementBtn:hover {
+  background: rgba(201, 168, 76, 0.25);
+}
+
+/* ── Alert Banner ── */
+.alertBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(200, 80, 80, 0.15);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.alertIcon {
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 /* ── Trait List ── */
@@ -10,10 +98,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 12px;
 }
 
-/* ── Trait Item ── */
 .traitItem {
   display: flex;
   flex-direction: column;
@@ -71,7 +157,7 @@
   margin-top: 6px;
 }
 
-.deleteBtn {
+.removeBtn {
   min-width: 44px;
   min-height: 44px;
   padding: 6px 12px;
@@ -88,7 +174,7 @@
   gap: 4px;
 }
 
-.deleteBtn:hover {
+.removeBtn:hover {
   background: rgba(200, 80, 80, 0.1);
   border-color: var(--danger);
 }
@@ -111,7 +197,6 @@
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  margin-top: 12px;
 }
 
 .formField {
@@ -248,7 +333,6 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 12px;
 }
 
 .addToggleBtn:hover {
@@ -266,6 +350,11 @@
     overflow-x: hidden;
   }
 
+  .summaryBar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .traitItem {
     padding: 10px;
   }
@@ -277,7 +366,7 @@
   }
 
   /* Ensure all interactive elements meet 44×44 touch targets */
-  .deleteBtn,
+  .removeBtn,
   .submitBtn,
   .cancelBtn,
   .addToggleBtn {
@@ -295,7 +384,7 @@
     width: 100%;
   }
 
-  .deleteBtn {
+  .removeBtn {
     flex: 1;
   }
 

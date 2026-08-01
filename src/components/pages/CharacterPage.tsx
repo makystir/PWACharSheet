@@ -54,8 +54,7 @@ import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
 import { CurrencyInput } from '../shared/CurrencyInput';
 import { ConsumablesPanel } from '../shared/ConsumablesPanel';
-import { PsychologyPanel } from '../shared/PsychologyPanel';
-import { PsychologyTracker } from './PsychologyTracker';
+import { UnifiedPsychologyPanel } from './UnifiedPsychologyPanel';
 import { SessionNotesPanel } from '../shared/SessionNotesPanel';
 import { applyCurrencyDelta } from '../../logic/currency';
 import { filterSkills } from '../../logic/skill-filter';
@@ -629,7 +628,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {/* Psychology Tracker (Archives Vol. II) — only when enabled */}
       {character.houseRules.usePsychologyTracker && (
       <CollapsibleSection title="Psychology Tracker" storageKey="collapsible-psychology-tracker" defaultExpanded={true}>
-        <PsychologyTracker
+        <UnifiedPsychologyPanel
           psychologyTraits={character.psychologyTraits ?? []}
           brokenTally={character.brokenTally ?? 0}
           wpValue={character.chars.WP.i + character.chars.WP.a + character.chars.WP.b}
@@ -1383,11 +1382,6 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         <SectionHeader icon={Brain} title="Psychology" />
         <textarea value={character.psych} onChange={(e) => update('psych', e.target.value)} placeholder="Phobias, animosities..." className={styles.textarea} />
       </Card>
-
-      {/* Psychology Traits */}
-      {character.houseRules.usePsychologyTracker && (
-        <PsychologyPanel character={character} updateCharacter={updateCharacter} />
-      )}
 
       {/* Corruption & Mutation */}
       <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} />

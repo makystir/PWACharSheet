@@ -281,3 +281,69 @@ describe('Feature: archives-vol2-integration, Property 6: Broken tally threshold
     );
   });
 });
+
+// Feature: unified-psychology-panel, Property 3: Phobia alert biconditional
+describe('Feature: unified-psychology-panel, Property 3: Phobia alert biconditional', () => {
+  /**
+   * **Validates: Requirements 3.3, 3.4**
+   *
+   * For any non-negative brokenTally and positive wpValue,
+   * isPhobiaAlertActive(brokenTally, wpValue) SHALL return true
+   * if and only if brokenTally >= wpValue.
+   */
+
+  it('returns true iff brokenTally >= wpValue for arbitrary non-negative tally and positive WP', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 0, max: 10000 }),
+        fc.integer({ min: 1, max: 10000 }),
+        (brokenTally, wpValue) => {
+          const result = isPhobiaAlertActive(brokenTally, wpValue);
+          const expected = brokenTally >= wpValue;
+          expect(result).toBe(expected);
+        }
+      ),
+      { numRuns: 200 }
+    );
+  });
+
+  it('alert is inactive when brokenTally is strictly less than wpValue', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 10000 }),
+        (wpValue) => {
+          // brokenTally is always less than wpValue
+          const brokenTally = fc.sample(fc.integer({ min: 0, max: wpValue - 1 }), 1)[0];
+          expect(isPhobiaAlertActive(brokenTally, wpValue)).toBe(false);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('alert is active when brokenTally equals wpValue (boundary)', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 10000 }),
+        (wpValue) => {
+          expect(isPhobiaAlertActive(wpValue, wpValue)).toBe(true);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('alert is active when brokenTally exceeds wpValue', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 10000 }),
+        fc.integer({ min: 1, max: 10000 }),
+        (wpValue, excess) => {
+          const brokenTally = wpValue + excess;
+          expect(isPhobiaAlertActive(brokenTally, wpValue)).toBe(true);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
