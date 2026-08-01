@@ -1377,21 +1377,6 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
       {/* ═══ NOTES TAB ═══ */}
       {activeSubTab === 'notes' && (<>
-      {/* Psychology */}
-      <Card>
-        <SectionHeader icon={Brain} title="Psychology" />
-        <textarea value={character.psych} onChange={(e) => update('psych', e.target.value)} placeholder="Phobias, animosities..." className={styles.textarea} />
-      </Card>
-
-      {/* Corruption & Mutation */}
-      <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} />
-
-      {/* Diseases */}
-      <DiseasePanel character={character} updateCharacter={updateCharacter} />
-
-      {/* Session Notes */}
-      <SessionNotesPanel character={character} updateCharacter={updateCharacter} />
-
       {/* Ambitions & Party */}
       <Card>
         <div className={styles.ambitionsGrid}>
@@ -1407,6 +1392,21 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           </div>
         </div>
       </Card>
+
+      {/* Psychology */}
+      <Card>
+        <SectionHeader icon={Brain} title="Psychology" />
+        <textarea value={character.psych} onChange={(e) => update('psych', e.target.value)} placeholder="Phobias, animosities..." className={styles.textarea} />
+      </Card>
+
+      {/* Corruption & Mutation */}
+      <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} />
+
+      {/* Diseases */}
+      <DiseasePanel character={character} updateCharacter={updateCharacter} />
+
+      {/* Session Notes */}
+      <SessionNotesPanel character={character} updateCharacter={updateCharacter} />
       </>)}
 
       {/* Pickers */}
