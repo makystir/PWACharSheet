@@ -518,7 +518,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                   <div className={styles.ruleDesc} style={!character.houseRules.usePsychologyTracker ? { color: 'var(--text-muted)' } : undefined}>
                     Track phobias, animosity, hatred, and trauma (Archives Vol. II)
                   </div>
-                  {character.houseRules.usePsychologyTracker && <div className={styles.ruleLocation}>Find it on: Character page → Identity tab, and Character page → Notes tab</div>}
+                  {character.houseRules.usePsychologyTracker && <div className={styles.ruleLocation}>Find it on: Character page → Identity tab → Psychology Tracker panel</div>}
                 </div>
                 <button
                   type="button"
