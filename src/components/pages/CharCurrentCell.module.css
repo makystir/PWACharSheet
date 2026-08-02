@@ -1,0 +1,16 @@
+/* CharCurrentCell styles — interactive current value cell with tooltip trigger */
+
+.cell {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+}
+
+.cell:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}

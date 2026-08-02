@@ -26,6 +26,23 @@ export function computeTalentBonuses(
 }
 
 /**
+ * Reverse-lookup TALENT_BONUS_MAP to find which talent (if any) contributes
+ * a bonus to the given characteristic key and exists in the character's talents.
+ * Returns the talent name or null if no match.
+ */
+export function getContributingTalent(
+  talents: Talent[],
+  charKey: CharacteristicKey
+): string | null {
+  for (const [talentName, entry] of Object.entries(TALENT_BONUS_MAP)) {
+    if (entry.char === charKey && talents.some(t => t.n === talentName)) {
+      return talentName;
+    }
+  }
+  return null;
+}
+
+/**
  * Apply computed talent bonuses to character.chars[key].b fields.
  * Returns a new character with updated bonus values.
  */

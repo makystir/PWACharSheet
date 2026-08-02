@@ -59,6 +59,9 @@ import { SessionNotesPanel } from '../shared/SessionNotesPanel';
 import { applyCurrencyDelta } from '../../logic/currency';
 import { filterSkills } from '../../logic/skill-filter';
 import { SkillFilter } from '../shared/SkillFilter';
+import { CharCurrentCell } from './CharCurrentCell';
+import { CharBreakdownContent } from './CharBreakdownContent';
+import { getContributingTalent } from '../../logic/talents';
 import styles from './CharacterPage.module.css';
 
 interface CharacterPageProps {
@@ -221,6 +224,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const [rollDialogState, setRollDialogState] = useState<{ name: string; baseTarget: number } | null>(null);
   const [rollResultState, setRollResultState] = useState<RollResult | null>(null);
   const [tooltip, setTooltip] = useState<{ type: 'skill' | 'talent'; index: number; anchorEl: HTMLElement } | null>(null);
+  const [charTooltip, setCharTooltip] = useState<{ key: CharacteristicKey; anchorEl: HTMLElement } | null>(null);
 
   // Add dropdown menu state for Abilities tab (Req 9.4)
   const [addDropdown, setAddDropdown] = useState<string | null>(null);
@@ -541,7 +545,13 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                   <div>
                     <input type="number" value={c.a} onChange={(e) => update(`chars.${key}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
                   </div>
-                  <div className={styles.charGridCurrent}>{current}</div>
+                  <CharCurrentCell
+                    charKey={key}
+                    current={current}
+                    isTooltipOpen={charTooltip?.key === key}
+                    onOpen={(k, el) => setCharTooltip({ key: k, anchorEl: el })}
+                    onClose={() => setCharTooltip(null)}
+                  />
                   <div className={styles.charGridCB}>{getBonus(current)}</div>
                   {showTBonus && <div className={c.b > 0 ? styles.charGridBonusActive : styles.charGridBonusInactive}>{c.b || '—'}</div>}
                   <div>
@@ -1492,6 +1502,30 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 <div>{s.text}</div>
               </div>
             ))}
+          </Tooltip>
+        );
+      })()}
+
+      {/* Characteristic Breakdown Tooltip */}
+      {charTooltip && (() => {
+        const c = character.chars[charTooltip.key];
+        const current = c.i + c.a + c.b;
+        const contributingTalentName = getContributingTalent(character.talents, charTooltip.key);
+        return (
+          <Tooltip
+            anchorEl={charTooltip.anchorEl}
+            title={CHAR_FULL_NAMES[charTooltip.key]}
+            onClose={() => setCharTooltip(null)}
+            id={`tooltip-char-${charTooltip.key}`}
+          >
+            <CharBreakdownContent
+              charKey={charTooltip.key}
+              initial={c.i}
+              advances={c.a}
+              talentBonus={c.b}
+              current={current}
+              contributingTalentName={contributingTalentName}
+            />
           </Tooltip>
         );
       })()}
