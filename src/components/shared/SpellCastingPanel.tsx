@@ -18,6 +18,9 @@ import { SectionHeader } from '../shared/SectionHeader';
 import { RollDialog } from '../shared/RollDialog';
 import { CastResultDisplay } from './CastResultDisplay';
 import { EmptyState } from '../shared/EmptyState';
+import { CantPanel } from '../shared/CantPanel';
+import { COLOUR_LORES } from '../../data/cants';
+import { SPELL_LIST } from '../../data/spells';
 import { Sparkles, Settings } from 'lucide-react';
 import styles from './SpellCastingPanel.module.css';
 
@@ -164,6 +167,15 @@ interface RollDialogInfo {
   baseTarget: number;
   spell: SpellItem;
   isChannelling: boolean;
+}
+
+/** Check if a character has at least one colour magic spell (matched against the static catalogue) */
+function hasColourMagicSpell(character: Character): boolean {
+  const colourLoreSet = new Set<string>(COLOUR_LORES);
+  const colourSpellNames = new Set(
+    SPELL_LIST.filter((s) => colourLoreSet.has(s.lore)).map((s) => s.name)
+  );
+  return character.spells.some((s) => colourSpellNames.has(s.name));
 }
 
 export function SpellCastingPanel({ character, update: _update, updateCharacter, addRoll }: SpellCastingPanelProps) {
@@ -450,6 +462,15 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
               );
             })}
           </div>
+        )}
+
+        {/* Alternative Channelling Cants panel — shown when enabled and character has colour magic spells */}
+        {character.houseRules.useCants && hasColourMagicSpell(character) && (
+          <CantPanel
+            character={character}
+            updateCharacter={updateCharacter}
+            currentRound={character.combatState.currentRound}
+          />
         )}
 
         {/* Expandable memorization section (only when talent is present) */}

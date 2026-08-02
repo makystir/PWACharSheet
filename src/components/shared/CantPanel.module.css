@@ -1,0 +1,200 @@
+/* CantPanel — co-located CSS Module */
+
+.violationBanner {
+  padding: 8px 12px;
+  background: var(--danger-bg, rgba(220, 53, 69, 0.1));
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: 12px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.violationBanner p {
+  margin: 2px 0;
+}
+
+.loreGroup {
+  margin-bottom: 16px;
+}
+
+.loreHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+
+.loreName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.loreMeta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.slBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  font-size: 11px;
+}
+
+.slotsBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.cantRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.cantRowLearned {
+  composes: cantRow;
+  border-left: 3px solid var(--success);
+}
+
+.cantRowAvailable {
+  composes: cantRow;
+  border-left: 3px solid var(--accent-gold);
+}
+
+.cantRowLocked {
+  composes: cantRow;
+  opacity: 0.55;
+}
+
+.cantInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cantName {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.cantCost {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.cantEffect {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.cantActions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.learnBtn {
+  padding: 3px 8px;
+  background: none;
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.learnBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.unlearnBtn {
+  padding: 3px 8px;
+  background: none;
+  border: 1px solid var(--text-muted);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.activateBtn {
+  padding: 3px 8px;
+  background: none;
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.activateBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.lockedMessage {
+  color: var(--danger);
+  font-size: 10px;
+  text-align: right;
+}
+
+.slRequirement {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-align: right;
+}
+
+.confirmation {
+  padding: 8px 12px;
+  background: var(--success-bg, rgba(40, 167, 69, 0.1));
+  border: 1px solid var(--success);
+  border-radius: var(--radius-sm);
+  color: var(--success);
+  font-size: 12px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 4px 8px 2px;
+}

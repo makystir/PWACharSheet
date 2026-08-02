@@ -4,6 +4,8 @@ import { getItem, setItem, removeItem } from './local-storage';
 import type { StorageWriteResult } from './local-storage';
 import { migrateCorruptionData } from '../logic/corruption';
 import { ensureCareerSkillsExist } from '../logic/advancement';
+import { validateLearnedCants } from '../logic/cants';
+import { CANT_CATALOGUE } from '../data/cants';
 import { CAREER_SCHEMES } from '../data/careers';
 import type { CareerLevel, CareerScheme } from '../types/character';
 import { getPortraitStore } from './portrait-store';
@@ -80,6 +82,9 @@ export function loadCharacter(id: string): Character | null {
     // Merge with BLANK_CHARACTER to fill in any fields added after the character was saved
     const merged = { ...structuredClone(BLANK_CHARACTER), ...parsed };
     const migrated = migrateCorruptionData(merged);
+
+    // Validate learnedCants to filter out invalid entries referencing removed/renamed catalogue items
+    migrated.learnedCants = validateLearnedCants(migrated.learnedCants ?? [], [...CANT_CATALOGUE]);
 
     // Retroactively ensure career skills exist for the current career level
     if (migrated.career && migrated.careerLevel) {

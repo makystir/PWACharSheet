@@ -40,6 +40,7 @@ const RAW_DEFAULTS = {
   usePsychologyTracker: false,
   useCriticalDeflection: false,
   useEnterprises: false,
+  useCants: false,
 };
 
 /** Create a character missing the houseRules field (simulates pre-feature data). */
@@ -86,6 +87,7 @@ describe('Backfill — character loaded without houseRules', () => {
       usePsychologyTracker: false,
       useCriticalDeflection: false,
       useEnterprises: false,
+      useCants: false,
     });
   });
 });
@@ -135,6 +137,7 @@ describe('Import — character imported with custom houseRules', () => {
       usePsychologyTracker: false,
       useCriticalDeflection: false,
       useEnterprises: false,
+      useCants: false,
     };
     const importData = {
       _v: 6,
@@ -205,6 +208,7 @@ describe('Import — character imported with custom houseRules', () => {
       usePsychologyTracker: false,
       useCriticalDeflection: false,
       useEnterprises: false,
+      useCants: false,
     };
 
     const json = exportToJSON(original);

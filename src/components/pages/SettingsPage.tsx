@@ -569,6 +569,26 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                 </button>
               </div>
             </div>
+
+            {/* Alternative Channelling Cants */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Alternative Channelling Cants</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.useCants ? { color: 'var(--text-muted)' } : undefined}>
+                    Expend gathered channelling SL for minor magical effects (Archives Vol. III)
+                  </div>
+                  {character.houseRules.useCants && <div className={styles.ruleLocation}>Find it on: Magic → Spell Casting panel</div>}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.useCants', !character.houseRules.useCants)}
+                  className={character.houseRules.useCants ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.useCants ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
           </div>
         </CollapsibleSection>
       </Card>

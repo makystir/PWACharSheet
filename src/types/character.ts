@@ -529,6 +529,11 @@ export interface MagicalBurnout {
   startedAt: number;        // Timestamp when burnout started
 }
 
+export interface LearnedCant {
+  lore: string;
+  cantName: string;
+}
+
 export type YenluiState = 'light' | 'balanced' | 'dark';
 
 export interface HouseRules {
@@ -542,6 +547,7 @@ export interface HouseRules {
   usePsychologyTracker: boolean;
   useCriticalDeflection: boolean;
   useEnterprises: boolean;
+  useCants: boolean;
 }
 
 export interface Character {
@@ -621,6 +627,7 @@ export interface Character {
   patronDeity?: AncestorGod;
   knownRunes?: string[];
   learnedTechniques?: string[];  // Array of technique ids
+  learnedCants?: LearnedCant[];
   protectionItems?: ProtectionItem[];
   engineeringItems?: EngineeringItem[];
   doomRuneActivations?: DoomRuneActivation[];
@@ -799,9 +806,11 @@ export const BLANK_CHARACTER: Character = {
     usePsychologyTracker: false,
     useCriticalDeflection: false,
     useEnterprises: false,
+    useCants: false,
   },
   knownRunes: [],
   learnedTechniques: [],
+  learnedCants: [],
   protectionItems: [],
   engineeringItems: [],
   doomRuneActivations: [],
