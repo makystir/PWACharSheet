@@ -429,8 +429,10 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
           <EmptyState
             icon={Sparkles}
             heading="No Spells"
-            description="No spells memorized — tap Manage Spells to add some."
-            action={canCastSpells ? { label: 'Manage Spells', onClick: () => setShowManageSpells(true) } : undefined}
+            description={character.spells.length === 0
+              ? "No spells on character sheet — add spells on the Character page (Abilities tab), then return here to memorize and cast them."
+              : "No spells memorized — tap Manage Spells to toggle memorization."}
+            action={character.spells.length > 0 && canCastSpells ? { label: 'Manage Spells', onClick: () => setShowManageSpells(true) } : undefined}
           />
         ) : (
           <div className={styles.compactSpellList}>
