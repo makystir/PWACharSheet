@@ -62,6 +62,22 @@ import { SkillFilter } from '../shared/SkillFilter';
 import { CharCurrentCell } from './CharCurrentCell';
 import { CharBreakdownContent } from './CharBreakdownContent';
 import { getContributingTalent } from '../../logic/talents';
+import { PersonalDetailField } from '../shared/PersonalDetailField';
+import { AgeTierSelector } from '../shared/AgeTierSelector';
+import { DwarfAlternateRoll } from '../shared/DwarfAlternateRoll';
+import {
+  getSpeciesGroup,
+  generateAge,
+  generateHeight,
+  humanHeightNeedsBonus,
+  lookupEyeColour,
+  lookupHairColour,
+  getEyeColourOptions,
+  getHairColourOptions,
+  formatVariegatedEyes,
+} from '../../logic/personal-details';
+import type { HighElfAgeTier } from '../../data/personal-details';
+import { AGE_FORMULAS, HEIGHT_FORMULAS } from '../../data/personal-details';
 import styles from './CharacterPage.module.css';
 
 interface CharacterPageProps {
@@ -210,6 +226,26 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     setSkillTrainedOnly(enabled);
     try { localStorage.setItem('wfrp-hideUntrainedSkills', String(enabled)); } catch { /* ignore */ }
   };
+
+  // Personal details: species group + state for random generation
+  const speciesGroup = getSpeciesGroup(character.species);
+  const [selectedAgeTier, setSelectedAgeTier] = useState<HighElfAgeTier | undefined>(undefined);
+  const [firstEyeColour, setFirstEyeColour] = useState<string | null>(null);
+  const [showSecondEyeRoll, setShowSecondEyeRoll] = useState(false);
+
+  // Reset personal detail generation state when species changes (Req 9.6, 9.7, 12.4)
+  // Dropdown options update automatically since they're derived from speciesGroup.
+  // Free-text values (age, height, hair, eyes) are retained — not cleared here.
+  const prevSpeciesRef = useRef(character.species);
+  useEffect(() => {
+    if (prevSpeciesRef.current !== character.species) {
+      prevSpeciesRef.current = character.species;
+      setFirstEyeColour(null);
+      setShowSecondEyeRoll(false);
+      setSelectedAgeTier(undefined);
+    }
+  }, [character.species]);
+
   const [showSpellPicker, setShowSpellPicker] = useState(false);
   const [showAdvSkillPicker, setShowAdvSkillPicker] = useState(false);
   const [showTalentPicker, setShowTalentPicker] = useState(false);
@@ -470,10 +506,120 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
               <HelpPopover concept="status-tier">{getHelpContent('status-tier')}</HelpPopover>
             </div>
-            <EditableField label="Age" value={character.age} onSave={(v) => update('age', v)} />
-            <EditableField label="Height" value={character.height} onSave={(v) => update('height', v)} />
-            <EditableField label="Hair" value={character.hair} onSave={(v) => update('hair', v)} />
-            <EditableField label="Eyes" value={character.eyes} onSave={(v) => update('eyes', v)} />
+            <div>
+              <PersonalDetailField
+                label="Age"
+                value={character.age}
+                onSave={(v) => update('age', v)}
+                onRoll={() => {
+                  if (!speciesGroup) return;
+                  const tier = speciesGroup === 'High_Elf' ? selectedAgeTier : undefined;
+                  const diceCount = tier ? tier.diceCount : AGE_FORMULAS[speciesGroup].diceCount;
+                  const dice = Array.from({ length: diceCount }, () => Math.floor(Math.random() * 10) + 1);
+                  const age = generateAge(speciesGroup, dice, tier);
+                  update('age', String(age));
+                }}
+                disabled={!character.species}
+              />
+              {speciesGroup === 'High_Elf' && (
+                <AgeTierSelector onTierChange={(tier) => setSelectedAgeTier(tier)} />
+              )}
+            </div>
+            <PersonalDetailField
+              label="Height"
+              value={character.height}
+              onSave={(v) => update('height', v)}
+              onRoll={() => {
+                if (!speciesGroup) return;
+                const diceCount = HEIGHT_FORMULAS[speciesGroup].diceCount;
+                const dice = Array.from({ length: diceCount }, () => Math.floor(Math.random() * 10) + 1);
+                if (speciesGroup === 'Human') {
+                  const needsBonus = humanHeightNeedsBonus(dice as [number, number]);
+                  if (needsBonus) {
+                    const bonusDie = Math.floor(Math.random() * 10) + 1;
+                    const height = generateHeight(speciesGroup, dice, bonusDie);
+                    update('height', height);
+                  } else {
+                    const height = generateHeight(speciesGroup, dice);
+                    update('height', height);
+                  }
+                } else {
+                  const height = generateHeight(speciesGroup, dice);
+                  update('height', height);
+                }
+              }}
+              disabled={!character.species}
+            />
+            <PersonalDetailField
+              label="Hair"
+              value={character.hair}
+              onSave={(v) => update('hair', v)}
+              onRoll={() => {
+                if (!speciesGroup) return;
+                const dice = Array.from({ length: 2 }, () => Math.floor(Math.random() * 10) + 1);
+                const roll = dice[0] + dice[1];
+                const hair = lookupHairColour(speciesGroup, roll);
+                update('hair', hair);
+              }}
+              dropdownOptions={speciesGroup ? getHairColourOptions(speciesGroup) : undefined}
+              onDropdownSelect={(v) => update('hair', v)}
+              disabled={!character.species}
+            />
+            <div>
+              <PersonalDetailField
+                label="Eyes"
+                value={character.eyes}
+                onSave={(v) => update('eyes', v)}
+                onRoll={() => {
+                  if (!speciesGroup) return;
+                  const dice = Array.from({ length: 2 }, () => Math.floor(Math.random() * 10) + 1);
+                  const roll = dice[0] + dice[1];
+                  const eyeColour = lookupEyeColour(speciesGroup, roll);
+                  update('eyes', eyeColour);
+                  // For Elf species, enable variegated second roll
+                  if (speciesGroup === 'High_Elf' || speciesGroup === 'Wood_Elf') {
+                    setFirstEyeColour(eyeColour);
+                    setShowSecondEyeRoll(true);
+                  } else {
+                    setFirstEyeColour(null);
+                    setShowSecondEyeRoll(false);
+                  }
+                }}
+                dropdownOptions={speciesGroup ? getEyeColourOptions(speciesGroup) : undefined}
+                onDropdownSelect={(v) => {
+                  update('eyes', v);
+                  setFirstEyeColour(null);
+                  setShowSecondEyeRoll(false);
+                }}
+                disabled={!character.species}
+              />
+              {showSecondEyeRoll && firstEyeColour && (speciesGroup === 'High_Elf' || speciesGroup === 'Wood_Elf') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const dice = Array.from({ length: 2 }, () => Math.floor(Math.random() * 10) + 1);
+                    const roll = dice[0] + dice[1];
+                    const secondColour = lookupEyeColour(speciesGroup, roll);
+                    const result = formatVariegatedEyes(firstEyeColour, secondColour);
+                    update('eyes', result);
+                    setFirstEyeColour(null);
+                    setShowSecondEyeRoll(false);
+                  }}
+                  aria-label="Roll Second Colour"
+                >
+                  🎲 Roll Second Colour
+                </button>
+              )}
+            </div>
+            {speciesGroup === 'Dwarf' && (
+              <DwarfAlternateRoll
+                variant={character.species.replace(/^dwarfs?\s*/i, '').replace(/^\(|\)$/g, '')}
+                onHairUpdate={(hair) => update('hair', hair)}
+                onEyesUpdate={(eyes) => update('eyes', eyes)}
+                onFeatureUpdate={(feature) => update('distinguishingFeature', feature)}
+                disabled={!character.species}
+              />
+            )}
           </div>
         </Card>
       </div>

@@ -1,0 +1,52 @@
+.container {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+}
+
+.rollButton {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.rollButton:hover:not(.disabled) {
+  border-color: var(--accent-gold);
+}
+
+.dropdown {
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+  min-height: 28px;
+  cursor: pointer;
+  max-width: 120px;
+}
+
+.dropdown:focus:not(.disabled) {
+  border-color: var(--accent-gold);
+  outline: none;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
