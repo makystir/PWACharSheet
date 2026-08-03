@@ -229,6 +229,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
   // Personal details: species group + state for random generation
   const speciesGroup = getSpeciesGroup(character.species);
+  const allDetailsFilled = !!(character.age && character.height && character.hair && character.eyes);
   const [selectedAgeTier, setSelectedAgeTier] = useState<HighElfAgeTier | undefined>(undefined);
   const [firstEyeColour, setFirstEyeColour] = useState<string | null>(null);
   const [showSecondEyeRoll, setShowSecondEyeRoll] = useState(false);
@@ -520,8 +521,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                   update('age', String(age));
                 }}
                 disabled={!character.species}
+                hideControls={allDetailsFilled}
               />
-              {speciesGroup === 'High_Elf' && (
+              {!allDetailsFilled && speciesGroup === 'High_Elf' && (
                 <AgeTierSelector onTierChange={(tier) => setSelectedAgeTier(tier)} />
               )}
             </div>
@@ -549,6 +551,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 }
               }}
               disabled={!character.species}
+              hideControls={allDetailsFilled}
             />
             <PersonalDetailField
               label="Hair"
@@ -564,6 +567,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               dropdownOptions={speciesGroup ? getHairColourOptions(speciesGroup) : undefined}
               onDropdownSelect={(v) => update('hair', v)}
               disabled={!character.species}
+              hideControls={allDetailsFilled}
             />
             <div>
               <PersonalDetailField
@@ -592,8 +596,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                   setShowSecondEyeRoll(false);
                 }}
                 disabled={!character.species}
+                hideControls={allDetailsFilled}
               />
-              {showSecondEyeRoll && firstEyeColour && (speciesGroup === 'High_Elf' || speciesGroup === 'Wood_Elf') && (
+              {!allDetailsFilled && showSecondEyeRoll && firstEyeColour && (speciesGroup === 'High_Elf' || speciesGroup === 'Wood_Elf') && (
                 <button
                   type="button"
                   onClick={() => {
@@ -611,7 +616,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 </button>
               )}
             </div>
-            {speciesGroup === 'Dwarf' && (
+            {!allDetailsFilled && speciesGroup === 'Dwarf' && (
               <DwarfAlternateRoll
                 variant={character.species.replace(/^dwarfs?\s*/i, '').replace(/^\(|\)$/g, '')}
                 onHairUpdate={(hair) => update('hair', hair)}

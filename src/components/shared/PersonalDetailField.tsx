@@ -9,6 +9,8 @@ interface PersonalDetailFieldProps {
   dropdownOptions?: string[];
   onDropdownSelect?: (value: string) => void;
   disabled?: boolean;
+  /** When true, the roll button and dropdown are hidden (field remains editable). */
+  hideControls?: boolean;
 }
 
 export function PersonalDetailField({
@@ -19,6 +21,7 @@ export function PersonalDetailField({
   dropdownOptions,
   onDropdownSelect,
   disabled = false,
+  hideControls = false,
 }: PersonalDetailFieldProps) {
   const handleRollClick = () => {
     if (!disabled) {
@@ -47,17 +50,19 @@ export function PersonalDetailField({
         />
       </div>
 
-      <button
-        type="button"
-        className={`${styles.rollButton}${disabled ? ` ${styles.disabled}` : ''}`}
-        onClick={handleRollClick}
-        aria-disabled={disabled ? 'true' : undefined}
-        aria-label={`Roll ${label}`}
-      >
-        🎲
-      </button>
+      {!hideControls && (
+        <button
+          type="button"
+          className={`${styles.rollButton}${disabled ? ` ${styles.disabled}` : ''}`}
+          onClick={handleRollClick}
+          aria-disabled={disabled ? 'true' : undefined}
+          aria-label={`Roll ${label}`}
+        >
+          🎲
+        </button>
+      )}
 
-      {dropdownOptions && dropdownOptions.length > 0 && (
+      {!hideControls && dropdownOptions && dropdownOptions.length > 0 && (
         <select
           className={`${styles.dropdown}${disabled ? ` ${styles.disabled}` : ''}`}
           onChange={handleDropdownChange}
