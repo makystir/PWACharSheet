@@ -281,6 +281,73 @@
   gap: 12px;
 }
 
+/* Generate Personal Details panel */
+.generateDetailsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.generateRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.generateLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 50px;
+}
+
+.generateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  min-height: 28px;
+}
+
+.generateBtn:hover:not(:disabled) {
+  border-color: var(--accent-gold);
+}
+
+.generateBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.generateSelect {
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 12px;
+  min-height: 28px;
+  cursor: pointer;
+}
+
+.generateSelect:focus {
+  border-color: var(--accent-gold);
+  outline: none;
+}
+
+.generateSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .movementFields {
   display: flex;
   flex-direction: column;

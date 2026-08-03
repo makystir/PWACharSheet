@@ -318,10 +318,10 @@ describe('PersonalDetails integration — Disabled state', () => {
       const hairRoll = screen.getByRole('button', { name: 'Roll Hair' });
       const eyesRoll = screen.getByRole('button', { name: 'Roll Eyes' });
 
-      expect(ageRoll).toHaveAttribute('aria-disabled', 'true');
-      expect(heightRoll).toHaveAttribute('aria-disabled', 'true');
-      expect(hairRoll).toHaveAttribute('aria-disabled', 'true');
-      expect(eyesRoll).toHaveAttribute('aria-disabled', 'true');
+      expect(ageRoll).toBeDisabled();
+      expect(heightRoll).toBeDisabled();
+      expect(hairRoll).toBeDisabled();
+      expect(eyesRoll).toBeDisabled();
     });
 
     it('roll buttons do not trigger update when species is empty', () => {
@@ -345,17 +345,17 @@ describe('PersonalDetails integration — Disabled state', () => {
       const hairRoll = screen.getByRole('button', { name: 'Roll Hair' });
       const eyesRoll = screen.getByRole('button', { name: 'Roll Eyes' });
 
-      expect(ageRoll).not.toHaveAttribute('aria-disabled');
-      expect(heightRoll).not.toHaveAttribute('aria-disabled');
-      expect(hairRoll).not.toHaveAttribute('aria-disabled');
-      expect(eyesRoll).not.toHaveAttribute('aria-disabled');
+      expect(ageRoll).not.toBeDisabled();
+      expect(heightRoll).not.toBeDisabled();
+      expect(hairRoll).not.toBeDisabled();
+      expect(eyesRoll).not.toBeDisabled();
     });
 
     it('hair dropdown is enabled when species is set', () => {
       renderCharPage({ character: { species: 'Human / Reiklander' } });
 
       const dropdown = screen.getByRole('combobox', { name: 'Select Hair' });
-      expect(dropdown).not.toHaveAttribute('aria-disabled');
+      expect(dropdown).not.toBeDisabled();
     });
   });
 });
