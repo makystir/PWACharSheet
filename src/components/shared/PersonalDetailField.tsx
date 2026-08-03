@@ -51,34 +51,36 @@ export function PersonalDetailField({
       </div>
 
       {!hideControls && (
-        <button
-          type="button"
-          className={`${styles.rollButton}${disabled ? ` ${styles.disabled}` : ''}`}
-          onClick={handleRollClick}
-          aria-disabled={disabled ? 'true' : undefined}
-          aria-label={`Roll ${label}`}
-        >
-          🎲
-        </button>
-      )}
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={`${styles.rollButton}${disabled ? ` ${styles.disabled}` : ''}`}
+            onClick={handleRollClick}
+            aria-disabled={disabled ? 'true' : undefined}
+            aria-label={`Roll ${label}`}
+          >
+            🎲
+          </button>
 
-      {!hideControls && dropdownOptions && dropdownOptions.length > 0 && (
-        <select
-          className={`${styles.dropdown}${disabled ? ` ${styles.disabled}` : ''}`}
-          onChange={handleDropdownChange}
-          aria-disabled={disabled ? 'true' : undefined}
-          aria-label={`Select ${label}`}
-          defaultValue=""
-        >
-          <option value="" disabled>
-            Select…
-          </option>
-          {dropdownOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+          {dropdownOptions && dropdownOptions.length > 0 && (
+            <select
+              className={`${styles.dropdown}${disabled ? ` ${styles.disabled}` : ''}`}
+              onChange={handleDropdownChange}
+              aria-disabled={disabled ? 'true' : undefined}
+              aria-label={`Select ${label}`}
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Select…
+              </option>
+              {dropdownOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       )}
     </div>
   );
