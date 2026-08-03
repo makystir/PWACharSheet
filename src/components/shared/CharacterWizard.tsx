@@ -8,6 +8,19 @@ import { ADV_SKILL_DB } from '../../data/advanced-skills';
 import { rollRandomTalent } from '../../data/randomTalents';
 import { ensureCareerSkillsExist } from '../../logic/advancement';
 import { getEligibleCareers } from '../../logic/career-eligibility';
+import { AGE_FORMULAS, HEIGHT_FORMULAS } from '../../data/personal-details';
+import type { HighElfAgeTier } from '../../data/personal-details';
+import {
+  getSpeciesGroup,
+  generateAge,
+  generateHeight,
+  humanHeightNeedsBonus,
+  lookupEyeColour,
+  lookupHairColour,
+  getEyeColourOptions,
+  getHairColourOptions,
+  formatVariegatedEyes,
+} from '../../logic/personal-details';
 import styles from './CharacterWizard.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -1012,19 +1025,71 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
           <div className={styles.detailsGrid}>
             <div>
               <label className={styles.label}>Age</label>
-              <input className={styles.input} type="text" placeholder="e.g. 25" value={age} onChange={e => setAge(e.target.value)} />
+              <div className={styles.detailRow}>
+                <input className={styles.input} type="text" placeholder="e.g. 25" value={age} onChange={e => setAge(e.target.value)} />
+                <button type="button" className={styles.btnMini} disabled={!species} title="Roll Age" onClick={() => {
+                  const sg = getSpeciesGroup(species);
+                  if (!sg) return;
+                  const formula = AGE_FORMULAS[sg];
+                  const dice = Array.from({ length: formula.diceCount }, () => Math.floor(Math.random() * 10) + 1);
+                  setAge(String(generateAge(sg, dice)));
+                }}>🎲</button>
+              </div>
             </div>
             <div>
               <label className={styles.label}>Height</label>
-              <input className={styles.input} type="text" placeholder={`e.g. 5'10"`} value={height} onChange={e => setHeight(e.target.value)} />
+              <div className={styles.detailRow}>
+                <input className={styles.input} type="text" placeholder={`e.g. 5'10"`} value={height} onChange={e => setHeight(e.target.value)} />
+                <button type="button" className={styles.btnMini} disabled={!species} title="Roll Height" onClick={() => {
+                  const sg = getSpeciesGroup(species);
+                  if (!sg) return;
+                  const formula = HEIGHT_FORMULAS[sg];
+                  const dice = Array.from({ length: formula.diceCount }, () => Math.floor(Math.random() * 10) + 1);
+                  if (sg === 'Human') {
+                    const needsBonus = humanHeightNeedsBonus(dice as [number, number]);
+                    const bonusDie = needsBonus ? Math.floor(Math.random() * 10) + 1 : undefined;
+                    setHeight(generateHeight(sg, dice, bonusDie));
+                  } else {
+                    setHeight(generateHeight(sg, dice));
+                  }
+                }}>🎲</button>
+              </div>
             </div>
             <div>
               <label className={styles.label}>Hair</label>
-              <input className={styles.input} type="text" placeholder="e.g. Dark Brown" value={hair} onChange={e => setHair(e.target.value)} />
+              <div className={styles.detailRow}>
+                <input className={styles.input} type="text" placeholder="e.g. Dark Brown" value={hair} onChange={e => setHair(e.target.value)} />
+                <button type="button" className={styles.btnMini} disabled={!species} title="Roll Hair" onClick={() => {
+                  const sg = getSpeciesGroup(species);
+                  if (!sg) return;
+                  const dice = Array.from({ length: 2 }, () => Math.floor(Math.random() * 10) + 1);
+                  setHair(lookupHairColour(sg, dice[0] + dice[1]));
+                }}>🎲</button>
+                {species && getSpeciesGroup(species) && (
+                  <select className={styles.selectSmall} value="" onChange={e => { if (e.target.value) setHair(e.target.value); }}>
+                    <option value="">Pick…</option>
+                    {getHairColourOptions(getSpeciesGroup(species)!).map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                )}
+              </div>
             </div>
             <div>
               <label className={styles.label}>Eyes</label>
-              <input className={styles.input} type="text" placeholder="e.g. Green" value={eyes} onChange={e => setEyes(e.target.value)} />
+              <div className={styles.detailRow}>
+                <input className={styles.input} type="text" placeholder="e.g. Green" value={eyes} onChange={e => setEyes(e.target.value)} />
+                <button type="button" className={styles.btnMini} disabled={!species} title="Roll Eyes" onClick={() => {
+                  const sg = getSpeciesGroup(species);
+                  if (!sg) return;
+                  const dice = Array.from({ length: 2 }, () => Math.floor(Math.random() * 10) + 1);
+                  setEyes(lookupEyeColour(sg, dice[0] + dice[1]));
+                }}>🎲</button>
+                {species && getSpeciesGroup(species) && (
+                  <select className={styles.selectSmall} value="" onChange={e => { if (e.target.value) setEyes(e.target.value); }}>
+                    <option value="">Pick…</option>
+                    {getEyeColourOptions(getSpeciesGroup(species)!).map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                )}
+              </div>
             </div>
           </div>
           <div className={styles.marginBottom12}>

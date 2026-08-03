@@ -560,6 +560,34 @@
   margin-bottom: 12px;
 }
 
+.detailRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.detailRow .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.selectSmall {
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 12px;
+  height: 30px;
+  cursor: pointer;
+  max-width: 90px;
+}
+
+.selectSmall:focus {
+  border-color: var(--accent-gold);
+  outline: none;
+}
+
 /* ─── Inline text styles ───────────────────────────────────────────────────── */
 
 .textMuted11 {
