@@ -11,7 +11,7 @@
 
 .rollButton {
   min-width: 28px;
-  min-height: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -21,8 +21,10 @@
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
+  flex-shrink: 0;
+  margin-bottom: 1px;
 }
 
 .rollButton:hover:not(.disabled) {
@@ -35,10 +37,12 @@
   border: 1px solid var(--border);
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-size: 12px;
-  min-height: 28px;
+  font-size: 11px;
+  height: 28px;
   cursor: pointer;
-  max-width: 100px;
+  max-width: 90px;
+  flex-shrink: 0;
+  margin-bottom: 1px;
 }
 
 .dropdown:focus:not(.disabled) {
