@@ -99,9 +99,9 @@ export const WEAPONS: WeaponData[] = [
   {name:"Sling",group:"Sling",enc:"0",damage:"+6",maxR:"60",optR:"20",rangeMod:"4",qualities:"—"},
   // RANGED — BOW
   {name:"Short Bow",group:"Bow",enc:"1",damage:"+SB+2",maxR:"60",optR:"20",rangeMod:"4",qualities:"Impale"},
-  {name:"Bow",group:"Bow",enc:"1",damage:"+SB+3",maxR:"150",optR:"50",rangeMod:"10",qualities:"Impale"},
-  {name:"(2H) Longbow",group:"Bow",enc:"2",damage:"+SB+4",maxR:"300",optR:"100",rangeMod:"20",qualities:"Damaging, Impale"},
-  {name:"(2H) Elfbow",group:"Bow",enc:"1",damage:"+SB+4",maxR:"450",optR:"150",rangeMod:"30",qualities:"Damaging, Precise, Impale"},
+  {name:"Bow",group:"Bow",enc:"2",damage:"+SB+3",maxR:"150",optR:"50",rangeMod:"10",qualities:"Impale"},
+  {name:"(2H) Longbow",group:"Bow",enc:"3",damage:"+SB+4",maxR:"300",optR:"100",rangeMod:"20",qualities:"Damaging, Impale"},
+  {name:"(2H) Elfbow",group:"Bow",enc:"2",damage:"+SB+4",maxR:"450",optR:"150",rangeMod:"30",qualities:"Damaging, Precise, Impale"},
   // RANGED — CROSSBOW
   {name:"Crossbow Pistol",group:"Crossbow",enc:"0",damage:"+7",maxR:"30",optR:"10",rangeMod:"2",qualities:"Pistol, Impale"},
   {name:"Crossbow",group:"Crossbow",enc:"2",damage:"+9",maxR:"180",optR:"60",rangeMod:"12",reload:"1",qualities:"Impale"},

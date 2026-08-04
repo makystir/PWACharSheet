@@ -1,5 +1,6 @@
 import type { Character, ArmourItem, SpellItem } from '../types/character';
 import type { RollResult } from './dice-roller';
+import { tensDigit } from './dice-roller';
 import { getBonus, computeAPByLocation } from './calculators';
 import {
   MINOR_MISCAST_TABLE,
@@ -452,15 +453,27 @@ export function resolveCastingResult(
   // Cast success: SL >= CN, or Total Power override
   const castSuccess = totalPower || slAchieved >= cn;
 
-  const surplusSL = Math.max(0, slAchieved - cn);
-  const overcastSlots = computeOvercastSlots(slAchieved, cn);
+  // Surplus SL for overcasting.
+  // Total Power (Winds of Magic p.19): "The caster may add the tens digit of their casting roll
+  // to their SL for the purpose of Overcasting."
+  const overcastSL = totalPower
+    ? slAchieved + tensDigit(rollResult.roll)
+    : slAchieved;
+  const surplusSL = Math.max(0, overcastSL - cn);
+  const overcastSlots = computeOvercastSlots(overcastSL, cn);
 
   const isCriticalCast = rollResult.isCritical;
   const isFumbledCast = rollResult.isFumble;
 
   // Miscast triggers
+  // - Critical Cast (doubles + success): Minor Miscast unless Instinctive Diction
+  // - Fumbled Cast (doubles + failure): Minor Miscast
+  // - Channelled cast failure (Winds of Magic p.20): mandatory Minor Miscast
+  //   "If the Casting Test fails, the stored energy is lost and the spellcaster must roll on the Minor Miscast Table."
+  const isChannelledCast = options?.channelledCN !== undefined;
+  const channelledCastFailed = isChannelledCast && !castSuccess;
   const triggerMinorMiscast =
-    (isCriticalCast && !hasInstinctiveDiction(character)) || isFumbledCast;
+    (isCriticalCast && !hasInstinctiveDiction(character)) || isFumbledCast || channelledCastFailed;
   const triggerMajorMiscast = false; // Set later by UI for cascading chaos
 
   const spellIsMagicMissile = isMagicMissile(spell);

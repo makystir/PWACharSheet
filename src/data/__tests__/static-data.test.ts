@@ -1059,7 +1059,7 @@ describe('High Elf Players Guide — Non-Regression', () => {
     const elfbow = WEAPONS.find(w => w.name === '(2H) Elfbow');
     expect(elfbow).toBeDefined();
     expect(elfbow!.group).toBe('Bow');
-    expect(elfbow!.enc).toBe('1');
+    expect(elfbow!.enc).toBe('2');
     expect(elfbow!.damage).toBe('+SB+4');
     expect(elfbow!.maxR).toBe('450');
     expect(elfbow!.optR).toBe('150');
