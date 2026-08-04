@@ -48,92 +48,147 @@ function makeTestCharacter(overrides: Partial<Character> = {}): Character {
 // Validates: Requirements 6.3
 
 describe('getAdvancementCost — Property 13', () => {
-  it('characteristic advances 0-5: in-career costs 25, out-of-career costs 50', () => {
+  it('characteristic advances 0-4: in-career costs 25, out-of-career costs 50', () => {
     expect(getAdvancementCost('characteristic', 0, true)).toBe(25);
     expect(getAdvancementCost('characteristic', 0, false)).toBe(50);
-    expect(getAdvancementCost('characteristic', 5, true)).toBe(25);
-    expect(getAdvancementCost('characteristic', 5, false)).toBe(50);
+    expect(getAdvancementCost('characteristic', 4, true)).toBe(25);
+    expect(getAdvancementCost('characteristic', 4, false)).toBe(50);
   });
 
-  it('skill advances 0-5: in-career costs 10, out-of-career costs 20', () => {
+  it('characteristic at 5 advances: next costs 30 (enters 6-10 tier)', () => {
+    expect(getAdvancementCost('characteristic', 5, true)).toBe(30);
+    expect(getAdvancementCost('characteristic', 5, false)).toBe(60);
+  });
+
+  it('skill advances 0-4: in-career costs 10, out-of-career costs 20', () => {
     expect(getAdvancementCost('skill', 0, true)).toBe(10);
     expect(getAdvancementCost('skill', 0, false)).toBe(20);
-    expect(getAdvancementCost('skill', 5, true)).toBe(10);
-    expect(getAdvancementCost('skill', 5, false)).toBe(20);
+    expect(getAdvancementCost('skill', 4, true)).toBe(10);
+    expect(getAdvancementCost('skill', 4, false)).toBe(20);
   });
 
-  it('skill advances 6-10: in-career costs 15, out-of-career costs 30', () => {
-    expect(getAdvancementCost('skill', 6, true)).toBe(15);
-    expect(getAdvancementCost('skill', 6, false)).toBe(30);
-    expect(getAdvancementCost('skill', 10, true)).toBe(15);
-    expect(getAdvancementCost('skill', 10, false)).toBe(30);
+  it('skill at 5 advances: next costs 15 (enters 6-10 tier)', () => {
+    expect(getAdvancementCost('skill', 5, true)).toBe(15);
+    expect(getAdvancementCost('skill', 5, false)).toBe(30);
   });
 
-  it('characteristic advances 10: in-career costs 30 (still in 6-10 tier)', () => {
-    expect(getAdvancementCost('characteristic', 10, true)).toBe(30);
-    expect(getAdvancementCost('characteristic', 10, false)).toBe(60);
+  it('skill advances 5-9: in-career costs 15, out-of-career costs 30', () => {
+    expect(getAdvancementCost('skill', 5, true)).toBe(15);
+    expect(getAdvancementCost('skill', 5, false)).toBe(30);
+    expect(getAdvancementCost('skill', 9, true)).toBe(15);
+    expect(getAdvancementCost('skill', 9, false)).toBe(30);
   });
 
-  it('characteristic advances 11-15: in-career costs 40', () => {
-    expect(getAdvancementCost('characteristic', 11, true)).toBe(40);
-    expect(getAdvancementCost('characteristic', 15, true)).toBe(40);
-    expect(getAdvancementCost('characteristic', 15, false)).toBe(80);
+  it('skill at 10 advances: next costs 20 (enters 11-15 tier)', () => {
+    expect(getAdvancementCost('skill', 10, true)).toBe(20);
+    expect(getAdvancementCost('skill', 10, false)).toBe(40);
   });
 
-  it('characteristic advances 16-20: in-career costs 50', () => {
-    expect(getAdvancementCost('characteristic', 16, true)).toBe(50);
-    expect(getAdvancementCost('characteristic', 20, true)).toBe(50);
-    expect(getAdvancementCost('characteristic', 20, false)).toBe(100);
+  it('characteristic at 10 advances: next costs 40 (enters 11-15 tier)', () => {
+    expect(getAdvancementCost('characteristic', 10, true)).toBe(40);
+    expect(getAdvancementCost('characteristic', 10, false)).toBe(80);
   });
 
-  it('characteristic advances 21-25: in-career costs 70', () => {
-    expect(getAdvancementCost('characteristic', 21, true)).toBe(70);
-    expect(getAdvancementCost('characteristic', 25, true)).toBe(70);
-    expect(getAdvancementCost('characteristic', 25, false)).toBe(140);
+  it('characteristic advances 10-14: in-career costs 40', () => {
+    expect(getAdvancementCost('characteristic', 10, true)).toBe(40);
+    expect(getAdvancementCost('characteristic', 14, true)).toBe(40);
+    expect(getAdvancementCost('characteristic', 14, false)).toBe(80);
   });
 
-  it('characteristic advances 26-30: in-career costs 90', () => {
-    expect(getAdvancementCost('characteristic', 26, true)).toBe(90);
-    expect(getAdvancementCost('characteristic', 30, true)).toBe(90);
-    expect(getAdvancementCost('characteristic', 30, false)).toBe(180);
+  it('characteristic at 15 advances: next costs 50 (enters 16-20 tier)', () => {
+    expect(getAdvancementCost('characteristic', 15, true)).toBe(50);
+    expect(getAdvancementCost('characteristic', 15, false)).toBe(100);
   });
 
-  it('characteristic advances 31-35: in-career costs 120', () => {
-    expect(getAdvancementCost('characteristic', 31, true)).toBe(120);
-    expect(getAdvancementCost('characteristic', 35, true)).toBe(120);
-    expect(getAdvancementCost('characteristic', 35, false)).toBe(240);
+  it('characteristic advances 15-19: in-career costs 50', () => {
+    expect(getAdvancementCost('characteristic', 15, true)).toBe(50);
+    expect(getAdvancementCost('characteristic', 19, true)).toBe(50);
+    expect(getAdvancementCost('characteristic', 19, false)).toBe(100);
   });
 
-  it('characteristic advances 36-40: in-career costs 150', () => {
-    expect(getAdvancementCost('characteristic', 36, true)).toBe(150);
-    expect(getAdvancementCost('characteristic', 40, true)).toBe(150);
-    expect(getAdvancementCost('characteristic', 40, false)).toBe(300);
+  it('characteristic at 20 advances: next costs 70 (enters 21-25 tier)', () => {
+    expect(getAdvancementCost('characteristic', 20, true)).toBe(70);
+    expect(getAdvancementCost('characteristic', 20, false)).toBe(140);
   });
 
-  it('characteristic advances 41-45: in-career costs 190', () => {
-    expect(getAdvancementCost('characteristic', 41, true)).toBe(190);
-    expect(getAdvancementCost('characteristic', 45, true)).toBe(190);
-    expect(getAdvancementCost('characteristic', 45, false)).toBe(380);
+  it('characteristic advances 20-24: in-career costs 70', () => {
+    expect(getAdvancementCost('characteristic', 20, true)).toBe(70);
+    expect(getAdvancementCost('characteristic', 24, true)).toBe(70);
+    expect(getAdvancementCost('characteristic', 24, false)).toBe(140);
   });
 
-  it('characteristic advances 46-50: in-career costs 230', () => {
-    expect(getAdvancementCost('characteristic', 46, true)).toBe(230);
-    expect(getAdvancementCost('characteristic', 50, true)).toBe(230);
-    expect(getAdvancementCost('characteristic', 50, false)).toBe(460);
+  it('characteristic at 25 advances: next costs 90 (enters 26-30 tier)', () => {
+    expect(getAdvancementCost('characteristic', 25, true)).toBe(90);
+    expect(getAdvancementCost('characteristic', 25, false)).toBe(180);
   });
 
-  it('characteristic advances 51-55: in-career costs 280', () => {
-    expect(getAdvancementCost('characteristic', 51, true)).toBe(280);
-    expect(getAdvancementCost('characteristic', 55, true)).toBe(280);
+  it('characteristic advances 25-29: in-career costs 90', () => {
+    expect(getAdvancementCost('characteristic', 25, true)).toBe(90);
+    expect(getAdvancementCost('characteristic', 29, true)).toBe(90);
+    expect(getAdvancementCost('characteristic', 29, false)).toBe(180);
+  });
+
+  it('characteristic at 30 advances: next costs 120 (enters 31-35 tier)', () => {
+    expect(getAdvancementCost('characteristic', 30, true)).toBe(120);
+    expect(getAdvancementCost('characteristic', 30, false)).toBe(240);
+  });
+
+  it('characteristic advances 30-34: in-career costs 120', () => {
+    expect(getAdvancementCost('characteristic', 30, true)).toBe(120);
+    expect(getAdvancementCost('characteristic', 34, true)).toBe(120);
+    expect(getAdvancementCost('characteristic', 34, false)).toBe(240);
+  });
+
+  it('characteristic at 35 advances: next costs 150 (enters 36-40 tier)', () => {
+    expect(getAdvancementCost('characteristic', 35, true)).toBe(150);
+    expect(getAdvancementCost('characteristic', 35, false)).toBe(300);
+  });
+
+  it('characteristic advances 35-39: in-career costs 150', () => {
+    expect(getAdvancementCost('characteristic', 35, true)).toBe(150);
+    expect(getAdvancementCost('characteristic', 39, true)).toBe(150);
+    expect(getAdvancementCost('characteristic', 39, false)).toBe(300);
+  });
+
+  it('characteristic at 40 advances: next costs 190 (enters 41-45 tier)', () => {
+    expect(getAdvancementCost('characteristic', 40, true)).toBe(190);
+    expect(getAdvancementCost('characteristic', 40, false)).toBe(380);
+  });
+
+  it('characteristic advances 40-44: in-career costs 190', () => {
+    expect(getAdvancementCost('characteristic', 40, true)).toBe(190);
+    expect(getAdvancementCost('characteristic', 44, true)).toBe(190);
+    expect(getAdvancementCost('characteristic', 44, false)).toBe(380);
+  });
+
+  it('characteristic at 45 advances: next costs 230 (enters 46-50 tier)', () => {
+    expect(getAdvancementCost('characteristic', 45, true)).toBe(230);
+    expect(getAdvancementCost('characteristic', 45, false)).toBe(460);
+  });
+
+  it('characteristic advances 45-49: in-career costs 230', () => {
+    expect(getAdvancementCost('characteristic', 45, true)).toBe(230);
+    expect(getAdvancementCost('characteristic', 49, true)).toBe(230);
+    expect(getAdvancementCost('characteristic', 49, false)).toBe(460);
+  });
+
+  it('characteristic at 50 advances: next costs 280 (enters 51-55 tier)', () => {
+    expect(getAdvancementCost('characteristic', 50, true)).toBe(280);
+    expect(getAdvancementCost('characteristic', 50, false)).toBe(560);
+  });
+
+  it('characteristic advances 50-54: in-career costs 280', () => {
+    expect(getAdvancementCost('characteristic', 50, true)).toBe(280);
+    expect(getAdvancementCost('characteristic', 54, true)).toBe(280);
   });
 
   it('characteristic advances 70+: in-career costs 520', () => {
-    expect(getAdvancementCost('characteristic', 71, true)).toBe(520);
+    expect(getAdvancementCost('characteristic', 70, true)).toBe(520);
     expect(getAdvancementCost('characteristic', 100, true)).toBe(520);
   });
 
   it('skill advances 70+: in-career costs 440', () => {
-    expect(getAdvancementCost('skill', 71, true)).toBe(440);
+    expect(getAdvancementCost('skill', 70, true)).toBe(440);
     expect(getAdvancementCost('skill', 100, true)).toBe(440);
   });
 
@@ -147,7 +202,7 @@ describe('getAdvancementCost — Property 13', () => {
   });
 
   it('out-of-career is always exactly 2x in-career for any advance count', () => {
-    for (const advances of [0, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60]) {
+    for (const advances of [0, 3, 4, 5, 9, 10, 14, 15, 19, 20, 24, 25, 29, 30, 34, 35, 39, 40, 44, 45, 49, 50, 60]) {
       const inCareer = getAdvancementCost('characteristic', advances, true);
       const outCareer = getAdvancementCost('characteristic', advances, false);
       expect(outCareer).toBe(inCareer * 2);
@@ -178,11 +233,11 @@ describe('calculateBulkAdvancement — Property 14', () => {
   });
 
   it('handles crossing cost tiers', () => {
-    // Start at 4 advances: cost 25 for advance 5, then 30 for advances 5-9
+    // Start at 4 advances: cost 25 for advance 4→5 (still in 0-4 tier), then 30 for advance 5→6 (enters 5-9 tier)
     const result = calculateBulkAdvancement('characteristic', 4, 55, true, 10);
-    // advance 4→5: 25, advance 5→6: 25 (still in <=5 tier) = 50
+    // advance 4→5: 25, advance 5→6: 30 = 55
     expect(result.count).toBe(2);
-    expect(result.totalCost).toBe(50);
+    expect(result.totalCost).toBe(55);
   });
 
   it('returns 0 count when budget is insufficient', () => {
@@ -277,10 +332,10 @@ describe('advanceSkill — Property 15', () => {
 
   it('deducts correct XP for skill with existing advances', () => {
     const char = makeTestCharacter();
-    // Cool has 5 advances → next advance costs 10 (skill tier: <=5 = 10 XP)
+    // Cool has 5 advances → next advance costs 15 (skill tier: 5-9 = 15 XP)
     const result = advanceSkill(char, 1, true, true);
-    expect(result.advancementLog[0].xpCost).toBe(10);
-    expect(result.xpCur).toBe(990);
+    expect(result.advancementLog[0].xpCost).toBe(15);
+    expect(result.xpCur).toBe(985);
   });
 });
 

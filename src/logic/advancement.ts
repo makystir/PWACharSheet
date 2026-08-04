@@ -165,7 +165,7 @@ export function getAdvancementCost(
   if (type === 'characteristic') {
     baseCost = CHAR_MAX_COST;
     for (const [threshold, cost] of CHAR_COST_TABLE) {
-      if (currentAdvances <= threshold) {
+      if (currentAdvances < threshold) {
         baseCost = cost;
         break;
       }
@@ -173,7 +173,7 @@ export function getAdvancementCost(
   } else if (type === 'skill') {
     baseCost = SKILL_MAX_COST;
     for (const [threshold, cost] of SKILL_COST_TABLE) {
-      if (currentAdvances <= threshold) {
+      if (currentAdvances < threshold) {
         baseCost = cost;
         break;
       }
