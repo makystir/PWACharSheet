@@ -3,6 +3,10 @@ import type { ArmourPoints, ArmourItem, WeaponData } from '../../types/character
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { AddButton } from '../shared/AddButton';
+import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
+import { Tooltip } from '../shared/Tooltip';
+import { APBreakdownContent } from '../pages/APBreakdownContent';
+import { getAPBreakdown } from '../../logic/breakdown-helpers';
 import { getRuneQualities } from '../../logic/runes';
 import { QUALITY_DEFINITIONS } from '../../data/armourQualities';
 import { validateLayering, calculateEffectiveAP, isWeakpointsSuppressed } from '../../logic/armourLayering';
@@ -173,6 +177,7 @@ export function ArmourMap({
   const [expandedArmourIndex, setExpandedArmourIndex] = useState<number | null>(null);
   const [showAllArmour, setShowAllArmour] = useState(false);
   const [expandedQuality, setExpandedQuality] = useState<string | null>(null);
+  const [apTooltip, setApTooltip] = useState<{ location: LocationKey; anchorEl: HTMLElement } | null>(null);
 
   const handleQualityToggle = useCallback((name: string) => {
     setExpandedQuality(prev => prev === name ? null : name);
@@ -186,6 +191,15 @@ export function ArmourMap({
   const handleLocationTap = (key: LocationKey) => {
     setSelectedLocation(prev => prev === key ? null : key);
   };
+
+  const handleApTooltipOpen = useCallback((location: LocationKey, anchorEl: HTMLElement) => {
+    // Setting a new tooltip automatically replaces any previous one (single-tooltip-at-a-time)
+    setApTooltip({ location, anchorEl });
+  }, []);
+
+  const handleApTooltipClose = useCallback(() => {
+    setApTooltip(null);
+  }, []);
 
   // Get armour items that contribute to the selected location
   const contributingItems = selectedLocation
@@ -212,10 +226,10 @@ export function ArmourMap({
       <div className={styles.bodyGrid} data-testid="armour-body-map">
         {LOCATIONS.map(loc => {
           const selected = selectedLocation === loc.key;
+          const isTooltipOpen = apTooltip?.location === loc.key;
           return (
-            <button
+            <div
               key={loc.key}
-              type="button"
               className={selected ? styles.locationCellSelected : styles.locationCell}
               style={{
                 gridColumn: loc.gridColumn,
@@ -224,13 +238,20 @@ export function ArmourMap({
                 minHeight: '44px',
               }}
               onClick={() => handleLocationTap(loc.key)}
-              aria-label={`${loc.label} AP ${armourPoints[loc.key]}`}
               aria-pressed={selected}
               data-testid={`location-${loc.key}`}
             >
               <span className={styles.locationLabel}>{loc.label}</span>
-              <span className={styles.apValue}>{armourPoints[loc.key]}</span>
-            </button>
+              <TooltipTriggerCell
+                tooltipId={`tooltip-ap-${loc.key}`}
+                displayValue={armourPoints[loc.key]}
+                isTooltipOpen={isTooltipOpen}
+                onOpen={(anchorEl) => handleApTooltipOpen(loc.key, anchorEl)}
+                onClose={handleApTooltipClose}
+                className={styles.apValue}
+                ariaLabel={`${loc.label} AP ${armourPoints[loc.key]}`}
+              />
+            </div>
           );
         })}
       </div>
@@ -642,6 +663,21 @@ export function ArmourMap({
           </div>
         </div>
       )}
+
+      {/* AP Breakdown Tooltip */}
+      {apTooltip && (() => {
+        const breakdown = getAPBreakdown(armourList, apTooltip.location, LOCATION_LABELS[apTooltip.location]);
+        return (
+          <Tooltip
+            anchorEl={apTooltip.anchorEl}
+            title={`${LOCATION_LABELS[apTooltip.location]} AP`}
+            onClose={handleApTooltipClose}
+            id={`tooltip-ap-${apTooltip.location}`}
+          >
+            <APBreakdownContent {...breakdown} />
+          </Tooltip>
+        );
+      })()}
 
     </Card>
   );

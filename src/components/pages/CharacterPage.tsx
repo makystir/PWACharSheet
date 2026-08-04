@@ -61,6 +61,12 @@ import { filterSkills } from '../../logic/skill-filter';
 import { SkillFilter } from '../shared/SkillFilter';
 import { CharCurrentCell } from './CharCurrentCell';
 import { CharBreakdownContent } from './CharBreakdownContent';
+import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
+import { SkillBreakdownContent } from './SkillBreakdownContent';
+import { CBBreakdownContent } from './CBBreakdownContent';
+import { EncumbranceBreakdownContent } from './EncumbranceBreakdownContent';
+import { CoinWeightBreakdownContent } from './CoinWeightBreakdownContent';
+import { getSkillBreakdown, getCBBreakdown, getEncumbranceBreakdown, getCoinWeightBreakdown } from '../../logic/breakdown-helpers';
 import { getContributingTalent } from '../../logic/talents';
 import { AgeTierSelector } from '../shared/AgeTierSelector';
 import { DwarfAlternateRoll } from '../shared/DwarfAlternateRoll';
@@ -78,6 +84,14 @@ import {
 import type { HighElfAgeTier } from '../../data/personal-details';
 import { AGE_FORMULAS, HEIGHT_FORMULAS } from '../../data/personal-details';
 import styles from './CharacterPage.module.css';
+
+/** Discriminated union for breakdown tooltips — only one open at a time. */
+export type BreakdownTooltipState =
+  | null
+  | { type: 'skill'; index: number; anchorEl: HTMLElement }
+  | { type: 'cb'; key: CharacteristicKey; anchorEl: HTMLElement }
+  | { type: 'encumbrance'; anchorEl: HTMLElement }
+  | { type: 'coinWeight'; anchorEl: HTMLElement };
 
 interface CharacterPageProps {
   character: Character;
@@ -261,6 +275,20 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const [rollResultState, setRollResultState] = useState<RollResult | null>(null);
   const [tooltip, setTooltip] = useState<{ type: 'skill' | 'talent'; index: number; anchorEl: HTMLElement } | null>(null);
   const [charTooltip, setCharTooltip] = useState<{ key: CharacteristicKey; anchorEl: HTMLElement } | null>(null);
+
+  // Breakdown tooltip state — single-tooltip-at-a-time (Req 6.3)
+  const [breakdownTooltip, setBreakdownTooltip] = useState<BreakdownTooltipState>(null);
+
+  /** Open a breakdown tooltip, replacing any currently open one and dismissing the char current tooltip. */
+  const openBreakdownTooltip = useCallback((state: NonNullable<BreakdownTooltipState>) => {
+    setBreakdownTooltip(state);
+    setCharTooltip(null);
+  }, []);
+
+  /** Close the active breakdown tooltip. */
+  const closeBreakdownTooltip = useCallback(() => {
+    setBreakdownTooltip(null);
+  }, []);
 
   // Add dropdown menu state for Abilities tab (Req 9.4)
   const [addDropdown, setAddDropdown] = useState<string | null>(null);
@@ -746,10 +774,18 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                     charKey={key}
                     current={current}
                     isTooltipOpen={charTooltip?.key === key}
-                    onOpen={(k, el) => setCharTooltip({ key: k, anchorEl: el })}
+                    onOpen={(k, el) => { setCharTooltip({ key: k, anchorEl: el }); setBreakdownTooltip(null); }}
                     onClose={() => setCharTooltip(null)}
                   />
-                  <div className={styles.charGridCB}>{getBonus(current)}</div>
+                  <TooltipTriggerCell
+                    tooltipId={`tooltip-breakdown-cb-${key}`}
+                    displayValue={getBonus(current)}
+                    isTooltipOpen={breakdownTooltip?.type === 'cb' && breakdownTooltip.key === key}
+                    onOpen={(anchorEl) => openBreakdownTooltip({ type: 'cb', key, anchorEl })}
+                    onClose={closeBreakdownTooltip}
+                    className={styles.charGridCB}
+                    ariaLabel={`CB breakdown for ${CHAR_FULL_NAMES[key]}`}
+                  />
                   {showTBonus && <div className={c.b > 0 ? styles.charGridBonusActive : styles.charGridBonusInactive}>{c.b || '—'}</div>}
                   <div>
                     <button type="button" className={styles.diceBtn} onClick={() => openCharacteristicRoll(key)} title={`Roll ${CHAR_FULL_NAMES[key]}`} aria-label={`Roll ${CHAR_FULL_NAMES[key]}`}>🎲</button>
@@ -899,29 +935,41 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             return (
               <div key={i} className={`${styles.skillGridRow}${isCareerSkill ? ` ${styles.skillGridRowCareer}` : ''}`}>
                 <div className={styles.skillGridName}>
-                  <button
-                    type="button"
-                    className={styles.tooltipTriggerBtn}
-                    aria-describedby={tooltip?.type === 'skill' && tooltip.index === i ? `tooltip-skill-${i}` : undefined}
-                    onClick={(e) => {
-                      if (tooltip?.type === 'skill' && tooltip.index === i) {
-                        setTooltip(null);
-                        return;
-                      }
-                      const content = resolveSkillTooltip(skill.n, skill.c);
-                      if (content) {
-                        setTooltip({ type: 'skill', index: i, anchorEl: e.currentTarget });
-                      }
-                    }}
-                  >
-                    {skill.n}
-                  </button>
+                  <div className={styles.inlineRow}>
+                    <button
+                      type="button"
+                      className={styles.infoBtn}
+                      aria-describedby={tooltip?.type === 'skill' && tooltip.index === i ? `tooltip-skill-${i}` : undefined}
+                      aria-label={`Info for ${skill.n}`}
+                      onClick={(e) => {
+                        if (tooltip?.type === 'skill' && tooltip.index === i) {
+                          setTooltip(null);
+                          return;
+                        }
+                        const content = resolveSkillTooltip(skill.n, skill.c);
+                        if (content) {
+                          setTooltip({ type: 'skill', index: i, anchorEl: e.currentTarget });
+                        }
+                      }}
+                    >
+                      ℹ
+                    </button>
+                    <span className={styles.skillNameText}>{skill.n}</span>
+                  </div>
                 </div>
                 <div className={styles.skillGridChar} title={CHAR_FULL_NAMES[skill.c as CharacteristicKey] || skill.c}>{skill.c}</div>
                 <div>
                   <input type="number" value={skill.a} onChange={(e) => update(`bSkills.${i}.a`, Number(e.target.value) || 0)} className={styles.numInput} />
                 </div>
-                <div className={styles.skillGridTotal}>{total}</div>
+                <TooltipTriggerCell
+                  tooltipId={`tooltip-breakdown-skill-${i}`}
+                  displayValue={total}
+                  isTooltipOpen={breakdownTooltip?.type === 'skill' && breakdownTooltip.index === i}
+                  onOpen={(anchorEl) => openBreakdownTooltip({ type: 'skill', index: i, anchorEl })}
+                  onClose={closeBreakdownTooltip}
+                  className={styles.skillGridTotal}
+                  ariaLabel={`Skill total breakdown for ${skill.n}`}
+                />
                 <div>
                   <button type="button" className={styles.diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
                 </div>
@@ -1002,7 +1050,15 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 <div>
                   <input type="number" value={skill.a} onChange={(e) => updateAdvancedSkill(i, 'a', Number(e.target.value) || 0)} className={styles.numInput} />
                 </div>
-                <div className={styles.skillGridTotal}>{total}</div>
+                <TooltipTriggerCell
+                  tooltipId={`tooltip-breakdown-skill-${character.bSkills.length + i}`}
+                  displayValue={total}
+                  isTooltipOpen={breakdownTooltip?.type === 'skill' && breakdownTooltip.index === character.bSkills.length + i}
+                  onOpen={(anchorEl) => openBreakdownTooltip({ type: 'skill', index: character.bSkills.length + i, anchorEl })}
+                  onClose={closeBreakdownTooltip}
+                  className={styles.skillGridTotal}
+                  ariaLabel={`Skill total breakdown for ${skill.n}`}
+                />
                 <div>
                   <button type="button" className={styles.diceBtn} onClick={() => openSkillRoll(skill)} title={`Roll ${skill.n}`} aria-label={`Roll ${skill.n}`}>🎲</button>
                 </div>
@@ -1552,16 +1608,37 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
               const eTotal = eW + eA + eT + eCoin;
               const maxEnc = calculateMaxEncumbrance(character.chars, 0);
+              const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
+              const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
+              const sturdyTalent = character.talents.find(t => t.n === 'Sturdy');
+              const sturdyLevel = sturdyTalent ? sturdyTalent.lvl : 0;
               const over = eTotal > maxEnc;
               return (
                 <div className={styles.encBreakdown}>
                   <div className={styles.encRow}><span className={styles.encLabel}>Weapons</span><span>{eW}</span></div>
                   <div className={styles.encRow}><span className={styles.encLabel}>Armour</span><span>{eA}</span></div>
                   <div className={styles.encRow}><span className={styles.encLabel}>Trappings</span><span>{eT}</span></div>
-                  <div className={styles.encRow}><span className={styles.encLabel}>Coins</span><span>{eCoin}</span></div>
+                  <div className={styles.encRow}>
+                    <span className={styles.encLabel}>Coins</span>
+                    <TooltipTriggerCell
+                      tooltipId="tooltip-breakdown-coinWeight"
+                      displayValue={eCoin}
+                      isTooltipOpen={breakdownTooltip?.type === 'coinWeight'}
+                      onOpen={(anchorEl) => openBreakdownTooltip({ type: 'coinWeight', anchorEl })}
+                      onClose={closeBreakdownTooltip}
+                      ariaLabel="Coin weight breakdown"
+                    />
+                  </div>
                   <div className={styles.encTotalRow}>
                     <span className={over ? styles.encTotalOver : styles.encTotalNormal}>Total</span>
-                    <span className={over ? styles.encTotalValueOver : styles.encTotalValueNormal}>{eTotal} / {maxEnc}</span>
+                    <span className={over ? styles.encTotalValueOver : styles.encTotalValueNormal}>{eTotal} / <TooltipTriggerCell
+                      tooltipId="tooltip-breakdown-encumbrance"
+                      displayValue={maxEnc}
+                      isTooltipOpen={breakdownTooltip?.type === 'encumbrance'}
+                      onOpen={(anchorEl) => openBreakdownTooltip({ type: 'encumbrance', anchorEl })}
+                      onClose={closeBreakdownTooltip}
+                      ariaLabel="Max encumbrance breakdown"
+                    /></span>
                   </div>
                   {over && <div className={styles.overburdenedMsg}>⚠ Overburdened</div>}
                   {eHorse > 0 && (() => {
@@ -1723,6 +1800,72 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               current={current}
               contributingTalentName={contributingTalentName}
             />
+          </Tooltip>
+        );
+      })()}
+
+      {/* Breakdown Tooltips (Skill, CB, Encumbrance, Coin Weight) */}
+      {breakdownTooltip?.type === 'skill' && (() => {
+        const isAdvanced = breakdownTooltip.index >= character.bSkills.length;
+        const skill = isAdvanced
+          ? character.aSkills[breakdownTooltip.index - character.bSkills.length]
+          : character.bSkills[breakdownTooltip.index];
+        if (!skill) return null;
+        const breakdown = getSkillBreakdown(skill.c as CharacteristicKey, character.chars, skill.a);
+        return (
+          <Tooltip
+            anchorEl={breakdownTooltip.anchorEl}
+            title={`${skill.n} Breakdown`}
+            onClose={closeBreakdownTooltip}
+            id={`tooltip-breakdown-skill-${breakdownTooltip.index}`}
+          >
+            <SkillBreakdownContent {...breakdown} />
+          </Tooltip>
+        );
+      })()}
+
+      {breakdownTooltip?.type === 'cb' && (() => {
+        const breakdown = getCBBreakdown(breakdownTooltip.key, character.chars);
+        return (
+          <Tooltip
+            anchorEl={breakdownTooltip.anchorEl}
+            title={`${CHAR_FULL_NAMES[breakdownTooltip.key]} CB`}
+            onClose={closeBreakdownTooltip}
+            id={`tooltip-breakdown-cb-${breakdownTooltip.key}`}
+          >
+            <CBBreakdownContent {...breakdown} />
+          </Tooltip>
+        );
+      })()}
+
+      {breakdownTooltip?.type === 'encumbrance' && (() => {
+        const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
+        const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
+        const sturdyTalent = character.talents.find(t => t.n === 'Sturdy');
+        const sturdyLevel = sturdyTalent ? sturdyTalent.lvl : 0;
+        const breakdown = getEncumbranceBreakdown(character.chars, strongBackLevel, sturdyLevel);
+        return (
+          <Tooltip
+            anchorEl={breakdownTooltip.anchorEl}
+            title="Max Encumbrance Breakdown"
+            onClose={closeBreakdownTooltip}
+            id="tooltip-breakdown-encumbrance"
+          >
+            <EncumbranceBreakdownContent {...breakdown} />
+          </Tooltip>
+        );
+      })()}
+
+      {breakdownTooltip?.type === 'coinWeight' && (() => {
+        const breakdown = getCoinWeightBreakdown(character.wGC || 0, character.wSS || 0, character.wD || 0);
+        return (
+          <Tooltip
+            anchorEl={breakdownTooltip.anchorEl}
+            title="Coin Weight Breakdown"
+            onClose={closeBreakdownTooltip}
+            id="tooltip-breakdown-coinWeight"
+          >
+            <CoinWeightBreakdownContent {...breakdown} />
           </Tooltip>
         );
       })()}

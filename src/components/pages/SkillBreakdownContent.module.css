@@ -1,0 +1,28 @@
+/* SkillBreakdownContent styles — tooltip body for skill total breakdown */
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.label {
+  color: var(--text-secondary);
+}
+
+.value {
+  font-weight: 500;
+}
+
+.separator {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 6px 0;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-weight: 600;
+}

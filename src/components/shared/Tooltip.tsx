@@ -37,9 +37,9 @@ function computePosition(anchorEl: HTMLElement): { top: number; left: number } {
 
 export function Tooltip({ anchorEl, title, children, onClose, id }: TooltipProps) {
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [position, setPosition] = useState<{ top: number; left: number }>(() => computePosition(anchorEl));
 
-  // Compute position on mount and when anchor changes
+  // Recompute position when anchor changes
   useEffect(() => {
     setPosition(computePosition(anchorEl));
   }, [anchorEl]);

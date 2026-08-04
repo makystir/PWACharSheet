@@ -84,6 +84,11 @@
   flex-shrink: 0;
 }
 
+.skillNameText {
+  font: inherit;
+  color: inherit;
+}
+
 /* Identity tab */
 .identityRow {
   display: flex;
