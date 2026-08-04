@@ -240,8 +240,8 @@ describe('Skill tooltips', () => {
     renderCharPage();
     // Navigate to the Abilities tab where basic skills are rendered
     fireEvent.click(screen.getByText('Abilities'));
-    // "Athletics" is a basic skill with a known description
-    const athleticsBtn = screen.getByRole('button', { name: 'Athletics' });
+    // "Athletics" is a basic skill with a known description — click the info button
+    const athleticsBtn = screen.getByRole('button', { name: 'Info for Athletics' });
     fireEvent.click(athleticsBtn);
 
     const tooltip = screen.getByRole('tooltip');
@@ -255,11 +255,11 @@ describe('Skill tooltips', () => {
     // Navigate to the Abilities tab where basic skills are rendered
     fireEvent.click(screen.getByText('Abilities'));
     // Open tooltip for Athletics
-    fireEvent.click(screen.getByRole('button', { name: 'Athletics' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Info for Athletics' }));
     expect(screen.getByRole('tooltip')).toHaveTextContent('Athletics');
 
     // Click a different skill — Dodge
-    fireEvent.click(screen.getByRole('button', { name: 'Dodge' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Info for Dodge' }));
     const tooltip = screen.getByRole('tooltip');
     expect(tooltip).toHaveTextContent('Dodge');
     // Only one tooltip should be visible
@@ -270,7 +270,7 @@ describe('Skill tooltips', () => {
     renderCharPage();
     // Navigate to the Abilities tab where basic skills are rendered
     fireEvent.click(screen.getByText('Abilities'));
-    fireEvent.click(screen.getByRole('button', { name: 'Athletics' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Info for Athletics' }));
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
     fireEvent.keyDown(document, { key: 'Escape' });
