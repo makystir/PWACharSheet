@@ -367,11 +367,15 @@ export function lookupMiscast(
 // ─── Task 3.2: Casting Resolution and Overcast Logic ──────────────────────────
 
 /**
- * Compute the number of overcast slots from surplus SL.
- * Returns floor(max(0, sl - cn) / 2).
+ * Compute the surplus SL available for overcasting (Winds of Magic rules).
+ * Returns max(0, sl - cn) — the full surplus is the budget to distribute
+ * among overcast columns via the Fibonacci threshold table.
+ *
+ * Note: The Core Rulebook's old "+2 SL per overcast" rule is superseded by
+ * the Winds of Magic overcast table (thresholds 1, 2, 3, 5, 8, 13, 21).
  */
 export function computeOvercastSlots(sl: number, cn: number): number {
-  return Math.floor(Math.max(0, sl - cn) / 2);
+  return Math.max(0, sl - cn);
 }
 
 /**

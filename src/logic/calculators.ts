@@ -50,8 +50,8 @@ function calculateWoundsCore(
 /**
  * Calculates total wounds using the WFRP 4e formula:
  * ((SB if woundsUseSB) + 2×TB + WPB) × multiplier + Hardy×TB
- * - Humans/Dwarves (woundsUseSB=true, multiplier=1): SB + 2×TB + WPB + Hardy×TB
- * - Halflings/Elves (woundsUseSB=false, multiplier=1): 2×TB + WPB + Hardy×TB
+ * - Humans/Dwarves/Elves (woundsUseSB=true, multiplier=1): SB + 2×TB + WPB + Hardy×TB
+ * - Halflings (woundsUseSB=false, multiplier=1): 2×TB + WPB + Hardy×TB
  * - Ogres (woundsUseSB=true, multiplier=2): (SB + 2×TB + WPB) × 2 + Hardy×TB
  * Result is always a non-negative integer.
  */

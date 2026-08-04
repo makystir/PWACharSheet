@@ -1607,11 +1607,11 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               const eHorse = character.trappings.filter(t => t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
               const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
               const eTotal = eW + eA + eT + eCoin;
-              const maxEnc = calculateMaxEncumbrance(character.chars, 0);
               const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
               const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
               const sturdyTalent = character.talents.find(t => t.n === 'Sturdy');
               const sturdyLevel = sturdyTalent ? sturdyTalent.lvl : 0;
+              const maxEnc = calculateMaxEncumbrance(character.chars, strongBackLevel);
               const over = eTotal > maxEnc;
               return (
                 <div className={styles.encBreakdown}>

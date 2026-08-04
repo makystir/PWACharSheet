@@ -293,19 +293,26 @@ export function getSpellLearningCost(
   spellsCurrentlyKnown: number,
   characteristicBonus: number
 ): number {
+  const bonus = Math.max(characteristicBonus, 1);
   switch (spellType) {
     case 'petty': {
-      // 50 XP per tier (WP Bonus spells per tier)
-      const tier = Math.floor(spellsCurrentlyKnown / Math.max(characteristicBonus, 1)) + 1;
+      // Core Rulebook p.141: "Up to WP Bonus × 1: 50 XP; Up to WP Bonus × 2: 100 XP"
+      // When currently known ≤ WPB, you're in tier 1 (50 XP). Tier increases each WPB spells.
+      // Example: WPB=3, have 3 known → still tier 1 (50). Have 4 known → tier 2 (100).
+      const tier = spellsCurrentlyKnown > 0
+        ? Math.ceil(spellsCurrentlyKnown / bonus)
+        : 1;
       return tier * 50;
     }
     case 'arcane': {
-      // 100 XP per tier (Int Bonus spells per tier)
-      const tier = Math.floor(spellsCurrentlyKnown / Math.max(characteristicBonus, 1)) + 1;
+      // Same tier logic as petty but with Int Bonus and 100 XP base.
+      const tier = spellsCurrentlyKnown > 0
+        ? Math.ceil(spellsCurrentlyKnown / bonus)
+        : 1;
       return tier * 100;
     }
     case 'miracle': {
-      // 100 XP × miracles currently known
+      // 100 XP × miracles currently known (minimum 100 for first)
       return 100 * Math.max(spellsCurrentlyKnown, 1);
     }
     case 'chaos': {

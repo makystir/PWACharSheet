@@ -47,13 +47,15 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
 
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
 
-  // Check if character has the Dual Wielder talent
-  const hasDualWielder = character.talents.some(
-    (t) => t.n.toLowerCase() === 'dual wielder'
+  // Check Ambidextrous talent level for off-hand penalty reduction (Core Rulebook p.132)
+  // Level 1: -10, Level 2: no penalty. Dual Wielder does NOT reduce the penalty.
+  const ambidextrousTalent = character.talents.find(
+    (t) => t.n.toLowerCase() === 'ambidextrous'
   );
+  const ambidextrousLevel = ambidextrousTalent ? ambidextrousTalent.lvl : 0;
 
-  // Off-hand penalty: −20 without Dual Wielder, −0 with it
-  const offHandPenalty = offHand ? (hasDualWielder ? 0 : -20) : 0;
+  // Off-hand penalty: -20 base, -10 with Ambidextrous 1, 0 with Ambidextrous 2
+  const offHandPenalty = offHand ? computeOffHandTarget(0, true, ambidextrousLevel) : 0;
 
   // ── Derived state for selected weapon ──
   const selectedWeapon = selectedWeaponIndex !== null ? weapons[selectedWeaponIndex] : null;
@@ -264,11 +266,14 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
           >
             🗡️ Off-Hand
           </button>
-          {offHand && !hasDualWielder && (
-            <span className={styles.penaltyReminder}>−20 penalty (no Dual Wielder talent)</span>
+          {offHand && ambidextrousLevel === 0 && (
+            <span className={styles.penaltyReminder}>−20 penalty (no Ambidextrous talent)</span>
           )}
-          {offHand && hasDualWielder && (
-            <span className={styles.dualWielderNote}>No penalty (Dual Wielder)</span>
+          {offHand && ambidextrousLevel === 1 && (
+            <span className={styles.penaltyReminder}>−10 penalty (Ambidextrous 1)</span>
+          )}
+          {offHand && ambidextrousLevel >= 2 && (
+            <span className={styles.dualWielderNote}>No penalty (Ambidextrous 2)</span>
           )}
         </div>
 

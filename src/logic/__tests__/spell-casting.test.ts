@@ -279,18 +279,18 @@ describe('resolveCastingResult — Property 5: Critical cast triggers Minor Misc
 // **Validates: Requirements 4.1**
 describe('computeOvercastSlots — Property 6: Overcast slot computation', () => {
   it.each([
-    { sl: 4, cn: 4, expected: 0, label: 'surplus 0 → 0 slots' },
-    { sl: 5, cn: 4, expected: 0, label: 'surplus 1 → 0 slots' },
-    { sl: 6, cn: 4, expected: 1, label: 'surplus 2 → 1 slot' },
-    { sl: 7, cn: 4, expected: 1, label: 'surplus 3 → 1 slot' },
-    { sl: 8, cn: 4, expected: 2, label: 'surplus 4 → 2 slots' },
-    { sl: 9, cn: 4, expected: 2, label: 'surplus 5 → 2 slots' },
-    { sl: 14, cn: 4, expected: 5, label: 'surplus 10 → 5 slots' },
+    { sl: 4, cn: 4, expected: 0, label: 'surplus 0 → 0 SL available' },
+    { sl: 5, cn: 4, expected: 1, label: 'surplus 1 → 1 SL available' },
+    { sl: 6, cn: 4, expected: 2, label: 'surplus 2 → 2 SL available' },
+    { sl: 7, cn: 4, expected: 3, label: 'surplus 3 → 3 SL available' },
+    { sl: 8, cn: 4, expected: 4, label: 'surplus 4 → 4 SL available' },
+    { sl: 9, cn: 4, expected: 5, label: 'surplus 5 → 5 SL available' },
+    { sl: 14, cn: 4, expected: 10, label: 'surplus 10 → 10 SL available' },
   ])('$label (SL=$sl, CN=$cn)', ({ sl, cn, expected }) => {
     expect(computeOvercastSlots(sl, cn)).toBe(expected);
   });
 
-  it('SL below CN → 0 slots', () => {
+  it('SL below CN → 0 SL available', () => {
     expect(computeOvercastSlots(2, 6)).toBe(0);
   });
 });

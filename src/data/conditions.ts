@@ -23,10 +23,10 @@ export const CONDITIONS: ConditionData[] = [
     name: "Blinded",
     stackable: true,
     maxLevel: 10,
-    description: "You cannot see. All Tests relying on vision fail automatically. Opponents gain +20 to hit you in melee, +40 at range.",
-    effects: "Vision-based tests auto-fail; opponents gain +20 melee, +40 ranged to hit",
-    defaultDuration: "Until condition removed",
-    removedBy: "Varies by source (temporary blindness ends after duration, permanent requires healing)"
+    description: "You suffer a -10 penalty to all Tests involving sight per level of Blinded. Opponents gain +10 to hit you in melee combat per level. One Blinded Condition is removed at the end of every other Round.",
+    effects: "-10 to all sight-based Tests per level; opponents gain +10 melee to hit per level",
+    defaultDuration: "Until condition removed (one level removed every other Round)",
+    removedBy: "Automatically removed 1 level per 2 Rounds, or magical healing"
   },
   {
     name: "Broken",
@@ -77,8 +77,8 @@ export const CONDITIONS: ConditionData[] = [
     name: "Prone",
     stackable: false,
     maxLevel: 1,
-    description: "You are lying on the ground. Ranged attacks against you suffer -20 to hit. Melee attacks against you gain +20 to hit. You must use Move action to stand.",
-    effects: "Ranged attacks at -20; melee attacks at +20 to hit you",
+    description: "You are lying on the ground. Opponents gain +20 to hit you in melee combat. You suffer -20 to all Tests involving movement. You must use a Move action to stand.",
+    effects: "Opponents gain +20 melee to hit; -20 to movement-based Tests",
     defaultDuration: "Until you stand",
     removedBy: "Use Move action to stand (or Jump Up talent for Free Action)"
   },
@@ -86,8 +86,8 @@ export const CONDITIONS: ConditionData[] = [
     name: "Stunned",
     stackable: true,
     maxLevel: 10,
-    description: "Dazed and reeling. Only Move action on your turn. Opponents gain +20 to hit. At end of each round, attempt Challenging (+0) Endurance Test to remove; each SL removes an extra Stunned Condition.",
-    effects: "Can only take Move action; opponents gain +20 to hit; Endurance Test to remove",
+    description: "Dazed and reeling. You suffer -10 to all Tests per level of Stunned. On your turn you may only take a single Move or Action (not both). Any opponent striking you in melee gains +1 Advantage before rolling. At end of each Round, attempt Challenging (+0) Endurance Test to remove; each SL removes an extra Stunned Condition.",
+    effects: "-10 to all Tests per level; only Move OR Action per turn; opponents gain +1 Advantage before melee attacks",
     defaultDuration: "Until removed by Endurance Test",
     removedBy: "Challenging (+0) Endurance Test at end of each round (each SL removes extra)"
   },

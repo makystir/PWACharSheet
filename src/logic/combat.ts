@@ -3,16 +3,32 @@ import { CONDITIONS } from '../data/conditions';
 
 /**
  * Calculate damage dealt.
- * Formula: weaponDamage + SL - (AP + TB), minimum 1 wound per RAW.
+ * Formula: weaponDamage + SL - (effectiveAP + TB), minimum 1 wound per RAW.
  * weaponDamage is pre-computed (includes SB per weapon formula via calcWeaponDamage).
+ *
+ * When the weapon has the Undamaging quality (Core Rulebook p.299):
+ * - All APs are doubled before subtraction
+ * - The minimum 1 wound guarantee is removed (damage can be 0)
+ *
+ * @param robustLevel - Robust talent level: reduces all incoming damage by 1 per level
+ *                      (minimum 1 wound from any source still applies, Core Rulebook p.143)
  */
 export function calculateDamage(
   weaponDamage: number,
   sl: number,
   targetAP: number,
-  targetTB: number
+  targetTB: number,
+  options?: { undamaging?: boolean; robustLevel?: number }
 ): number {
-  const raw = weaponDamage + sl - (targetAP + targetTB);
+  const undamaging = options?.undamaging ?? false;
+  const robustLevel = options?.robustLevel ?? 0;
+  const effectiveAP = undamaging ? targetAP * 2 : targetAP;
+  const raw = weaponDamage + sl - (effectiveAP + targetTB + robustLevel);
+
+  if (undamaging) {
+    // Undamaging weapons remove the minimum 1 wound guarantee
+    return Math.max(0, raw);
+  }
   return Math.max(1, raw);
 }
 
@@ -66,16 +82,15 @@ export function removeCondition(
 
 /**
  * Process end-of-round condition effects.
- * Currently returns a copy of conditions (specific end-of-round logic
- * like auto-removing Surprised/Stunned can be added here).
+ * Removes Surprised (auto-removed at end of round per Core Rulebook p.169).
+ * Note: Stunned is NOT auto-removed — it requires a Challenging (+0) Endurance
+ * Test at end of round per Core Rulebook p.169. The UI should prompt for this test.
  */
 export function processEndOfRoundConditions(conditions: Condition[]): Condition[] {
   return conditions
     .filter(c => {
       // Surprised is removed at end of round
       if (c.name === 'Surprised') return false;
-      // Stunned is removed at end of round
-      if (c.name === 'Stunned') return false;
       return true;
     })
     .map(c => ({ ...c }));
@@ -83,13 +98,18 @@ export function processEndOfRoundConditions(conditions: Condition[]): Condition[
 
 /**
  * Compute the modified target number for an off-hand attack.
- * Without the Dual Wielder talent: modified target = baseTarget - 20.
- * With the Dual Wielder talent: modified target = baseTarget (no penalty).
+ * Per Core Rulebook p.132 (Ambidextrous) and p.134 (Dual Wielder):
+ * - Base off-hand penalty: -20
+ * - Ambidextrous level 1: reduces penalty to -10
+ * - Ambidextrous level 2: removes penalty entirely
+ * - Dual Wielder allows attacking with both weapons but does NOT reduce the penalty.
  * When offHand is false, returns baseTarget unchanged.
  */
-export function computeOffHandTarget(baseTarget: number, offHand: boolean, hasDualWielder: boolean): number {
+export function computeOffHandTarget(baseTarget: number, offHand: boolean, ambidextrousLevel: number): number {
   if (!offHand) return baseTarget;
-  return hasDualWielder ? baseTarget : baseTarget - 20;
+  if (ambidextrousLevel >= 2) return baseTarget;
+  if (ambidextrousLevel === 1) return baseTarget - 10;
+  return baseTarget - 20;
 }
 
 /**

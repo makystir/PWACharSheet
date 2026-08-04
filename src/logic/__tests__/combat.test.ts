@@ -118,13 +118,14 @@ describe('processEndOfRoundConditions', () => {
     expect(result.find(c => c.name === 'Ablaze')).toBeDefined();
   });
 
-  it('removes Stunned condition', () => {
+  it('preserves Stunned condition (requires Endurance Test per RAW p.169)', () => {
     const conditions: Condition[] = [
       { name: 'Stunned', level: 1 },
       { name: 'Bleeding', level: 3 },
     ];
     const result = processEndOfRoundConditions(conditions);
-    expect(result.find(c => c.name === 'Stunned')).toBeUndefined();
+    // Stunned should NOT be auto-removed — it requires a Challenging (+0) Endurance Test
+    expect(result.find(c => c.name === 'Stunned')).toBeDefined();
     expect(result.find(c => c.name === 'Bleeding')).toBeDefined();
   });
 
@@ -274,5 +275,35 @@ describe('calculateDamage — Property 9 (updated: weaponDamage + SL - AP - TB, 
   it('all zeros still returns minimum 1', () => {
     // weaponDmg 0, SL 0, AP 0, TB 0 → 0 → min 1
     expect(calculateDamage(0, 0, 0, 0)).toBe(1);
+  });
+
+  it('Undamaging: doubles AP before subtraction (Core Rulebook p.299)', () => {
+    // weaponDmg 5, SL 3, AP 2 (doubled to 4), TB 3 → 5 + 3 - (4 + 3) = 1
+    expect(calculateDamage(5, 3, 2, 3, { undamaging: true })).toBe(1);
+  });
+
+  it('Undamaging: removes minimum 1 wound guarantee (can be 0)', () => {
+    // weaponDmg 2, SL 1, AP 3 (doubled to 6), TB 2 → 2 + 1 - (6 + 2) = -5 → 0
+    expect(calculateDamage(2, 1, 3, 2, { undamaging: true })).toBe(0);
+  });
+
+  it('Undamaging: can still deal damage when strong enough', () => {
+    // weaponDmg 10, SL 4, AP 2 (doubled to 4), TB 3 → 10 + 4 - (4 + 3) = 7
+    expect(calculateDamage(10, 4, 2, 3, { undamaging: true })).toBe(7);
+  });
+
+  it('Robust: reduces damage by talent level (Core Rulebook p.143)', () => {
+    // weaponDmg 7, SL 3, AP 1, TB 2, Robust 2 → 7 + 3 - (1 + 2 + 2) = 5
+    expect(calculateDamage(7, 3, 1, 2, { robustLevel: 2 })).toBe(5);
+  });
+
+  it('Robust: minimum 1 wound still applies', () => {
+    // weaponDmg 3, SL 1, AP 2, TB 2, Robust 3 → 3 + 1 - (2 + 2 + 3) = -3 → min 1
+    expect(calculateDamage(3, 1, 2, 2, { robustLevel: 3 })).toBe(1);
+  });
+
+  it('Undamaging + Robust: both apply, no minimum 1', () => {
+    // weaponDmg 5, SL 2, AP 2 (doubled to 4), TB 2, Robust 1 → 5 + 2 - (4 + 2 + 1) = 0
+    expect(calculateDamage(5, 2, 2, 2, { undamaging: true, robustLevel: 1 })).toBe(0);
   });
 });

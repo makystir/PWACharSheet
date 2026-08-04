@@ -87,7 +87,7 @@ describe('resolveConditionTooltip', () => {
     const result = resolveConditionTooltip('Stunned');
     expect(result).not.toBeNull();
     expect(result!.title).toBe('Stunned');
-    expect(result!.sections[1].text).toContain('Move action');
+    expect(result!.sections[1].text).toContain('Move OR Action');
   });
 });
 

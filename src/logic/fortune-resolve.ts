@@ -30,12 +30,13 @@ export function spendResolve(_resilience: number, resolve: number): number | nul
 
 /**
  * Permanently burn 1 Fate. Returns null if fate is 0.
- * Clamps fortune to the new fate value if fortune exceeds it.
+ * Clamps fortune to the new max (fate + luckLevel) if fortune exceeds it.
  */
-export function burnFate(fate: number, fortune: number): { fate: number; fortune: number } | null {
+export function burnFate(fate: number, fortune: number, luckLevel: number = 0): { fate: number; fortune: number } | null {
   if (fate <= 0) return null;
   const newFate = fate - 1;
-  return { fate: newFate, fortune: Math.min(fortune, newFate) };
+  const newMax = newFate + luckLevel;
+  return { fate: newFate, fortune: Math.min(fortune, newMax) };
 }
 
 /**
@@ -49,21 +50,24 @@ export function burnResilience(resilience: number, resolve: number): { resilienc
 }
 
 /**
- * Session reset: set fortune = fate, resolve = resilience.
+ * Session reset: set fortune = fate + luckLevel, resolve = resilience.
+ * The Luck talent (Core Rulebook p.138) increases max Fortune by 1 per level.
  */
-export function sessionReset(fate: number, resilience: number): { fortune: number; resolve: number } {
-  return { fortune: fate, resolve: resilience };
+export function sessionReset(fate: number, resilience: number, luckLevel: number = 0): { fortune: number; resolve: number } {
+  return { fortune: fate + luckLevel, resolve: resilience };
 }
 
 /**
- * Validate that all values are >= 0 and spendable pools don't exceed base.
+ * Validate that all values are >= 0 and spendable pools don't exceed base + Luck.
+ * Fortune max = fate + luckLevel per the Luck talent (Core Rulebook p.138).
  */
 export function validateFortuneResolve(
   fate: number,
   fortune: number,
   resilience: number,
-  resolve: number
+  resolve: number,
+  luckLevel: number = 0
 ): boolean {
   return fate >= 0 && fortune >= 0 && resilience >= 0 && resolve >= 0
-    && fortune <= fate && resolve <= resilience;
+    && fortune <= fate + luckLevel && resolve <= resilience;
 }
