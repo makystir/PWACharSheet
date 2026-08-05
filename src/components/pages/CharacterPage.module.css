@@ -47,22 +47,6 @@
     grid-template-columns: 1fr 1fr;
     gap: 24px;
   }
-
-  /* On desktop, always show both columns and sections regardless of active tab */
-  .mobileHidden {
-    display: flex;
-  }
-
-  .desktopGridLeft.mobileHidden,
-  .desktopGridRight.mobileHidden {
-    display: flex;
-  }
-
-  /* On desktop, always show both sections in the right column */
-  .abilitiesSection.mobileHidden,
-  .gearSection.mobileHidden {
-    display: contents;
-  }
 }
 
 /* Inline field with help popover */

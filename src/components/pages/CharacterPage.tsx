@@ -49,6 +49,7 @@ import type { ProtectionItem, EngineeringItem } from '../../types/character';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { SubTabBar } from '../shared/SubTabBar';
 import { useTabOrder } from '../../hooks/useTabOrder';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
@@ -159,6 +160,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     saveLastSubTab('character', tab);
     onSubTabChange?.(tab);
   };
+
+  // Desktop detection — on desktop (≥1025px) both columns show simultaneously, tabs don't hide content
+  const isDesktop = useMediaQuery('(min-width: 1025px)');
 
   // ─── Portrait state (stored in IndexedDB, NOT localStorage) ─────────────────
   const [portraitURL, setPortraitURL] = useState<string>('');
@@ -490,7 +494,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {/* ═══ TWO-COLUMN DESKTOP GRID (Req 22.1–22.5) ═══ */}
       <div className={styles.desktopGrid}>
       {/* ─── LEFT COLUMN: Characteristics + Biographical/Identity ─── */}
-      <div className={`${styles.desktopGridLeft}${activeSubTab !== 'identity' ? ` ${styles.mobileHidden}` : ''}`}>
+      <div className={`${styles.desktopGridLeft}${!isDesktop && activeSubTab !== 'identity' ? ` ${styles.mobileHidden}` : ''}`}>
       {/* Portrait + Personal Details row */}
       <div className={styles.identityRow}>
         <CharacterPortrait
@@ -907,9 +911,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       </div>{/* end desktopGridLeft */}
 
       {/* ─── RIGHT COLUMN: Skills, Talents, Gear ─── */}
-      <div className={`${styles.desktopGridRight}${activeSubTab !== 'abilities' && activeSubTab !== 'gear' ? ` ${styles.mobileHidden}` : ''}`}>
+      <div className={`${styles.desktopGridRight}${!isDesktop && activeSubTab !== 'abilities' && activeSubTab !== 'gear' ? ` ${styles.mobileHidden}` : ''}`}>
       {/* ═══ ABILITIES SECTION ═══ */}
-      <div className={`${styles.abilitiesSection}${activeSubTab !== 'abilities' ? ` ${styles.mobileHidden}` : ''}`}>
+      <div className={`${styles.abilitiesSection}${!isDesktop && activeSubTab !== 'abilities' ? ` ${styles.mobileHidden}` : ''}`}>
       {/* Skill Filter */}
       <SkillFilter
         searchText={skillSearchText}
@@ -1413,7 +1417,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       </div>{/* end abilitiesSection */}
 
       {/* ═══ GEAR & WEALTH ═══ */}
-      <div className={`${styles.gearSection}${activeSubTab !== 'gear' ? ` ${styles.mobileHidden}` : ''}`}>
+      <div className={`${styles.gearSection}${!isDesktop && activeSubTab !== 'gear' ? ` ${styles.mobileHidden}` : ''}`}>
       {/* Trappings */}
       <Card>
         <SectionHeader icon={Package} title="Trappings" action={
