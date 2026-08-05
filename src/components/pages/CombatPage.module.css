@@ -5,6 +5,45 @@
   composes: sectionGap from '../shared/styles/shared.module.css';
 }
 
+/* ── Segmented Control ── */
+.segmentedControl {
+  display: flex;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  gap: 4px;
+}
+
+.segment {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+
+.segment:hover {
+  background: var(--bg-tertiary);
+}
+
+.segmentActive {
+  composes: segment;
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  font-weight: 600;
+}
+
+.segmentActive:hover {
+  background: var(--accent-gold);
+}
+
 /* Combat toggle button base */
 .combatBtn {
   padding: 12px;
@@ -40,13 +79,38 @@
   display: block;
 }
 
+.combatLeftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap, 16px);
+}
+
+.combatRightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap, 16px);
+}
+
 @media (min-width: 1025px) {
   .combatTwoColumn {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: 320px 1fr;
+    gap: var(--card-gap, 16px);
     align-items: start;
   }
+
+  .combatLeftColumn {
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+}
+
+/* ── Compact sticky dashboard (mobile/tablet) ── */
+.compactDashboardSticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 /* ── Mobile overrides ── */

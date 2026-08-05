@@ -39,11 +39,14 @@ function renderCombatPage(overrides: Partial<Character> = {}) {
 
 describe('CombatPage condition tooltips', () => {
   it('clicking the info button on an active condition badge opens a tooltip', () => {
-    // Conditions are shown as badges in the CombatDashboard when active
+    // Conditions are shown as badges in the CombatDashboard when in Status mode
     renderCombatPage({
       conditions: [{ name: 'Bleeding', level: 1 }],
       combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
     });
+
+    // Switch to Status mode to see the CombatDashboard
+    fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
 
     const infoBtn = screen.getByRole('button', { name: 'Info for Bleeding' });
     fireEvent.click(infoBtn);
@@ -65,6 +68,9 @@ describe('CombatPage condition tooltips', () => {
       combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
     });
 
+    // Switch to Status mode to see the CombatDashboard
+    fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
+
     const removeBtn = screen.getByRole('button', { name: 'Remove Bleeding' });
     fireEvent.click(removeBtn);
 
@@ -76,6 +82,9 @@ describe('CombatPage condition tooltips', () => {
       conditions: [{ name: 'Bleeding', level: 1 }, { name: 'Stunned', level: 1 }],
       combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
     });
+
+    // Switch to Status mode to see the CombatDashboard
+    fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Info for Bleeding' }));
     expect(screen.getByRole('tooltip')).toHaveTextContent('Bleeding');
@@ -91,6 +100,9 @@ describe('CombatPage condition tooltips', () => {
       conditions: [{ name: 'Ablaze', level: 1 }],
       combatState: { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false },
     });
+
+    // Switch to Status mode to see the CombatDashboard
+    fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Info for Ablaze' }));
     expect(screen.getByRole('tooltip')).toBeInTheDocument();

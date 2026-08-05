@@ -1,9 +1,17 @@
 .card {
+  composes: animateEnter from './styles/micro-interactions.module.css';
   background: var(--card-bg);
-  border: 1px solid color-mix(in srgb, var(--card-border) 50%, transparent);
   border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: 0 1px 3px var(--shadow);
+  box-shadow: var(--elevation-1);
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+  }
 }
 
 .card + .card {

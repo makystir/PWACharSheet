@@ -57,14 +57,14 @@ describe('Navigation mobile touch targets and height', () => {
     expect(nav.className).toContain('sidebar');
   });
 
-  it('renders 6 visible tab buttons on mobile: 4 primary + Search + More (Req 2.1)', () => {
+  it('renders all nav items plus Search in scrollable row on mobile', () => {
     renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     const navButtons = screen.getAllByRole('button').filter(
       (btn) => btn.getAttribute('data-section') !== null
     );
-    // 4 primary tabs (Character, Combat, Retinue, Settings) + Search + 1 More button
-    expect(navButtons).toHaveLength(6);
+    // 7 nav items (Character, Combat, Retinue, Holdings & Wealth, Endeavours, Advancement, Settings) + Search = 8
+    expect(navButtons).toHaveLength(8);
   });
 
   it('nav items have min-height for 48px touch targets via CSS class (Req 1.1)', () => {
@@ -102,8 +102,8 @@ describe('Navigation mobile touch targets and height', () => {
   it('renders label text in span elements for each visible nav item (Req 1.3)', () => {
     renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
-    // Mobile shows primary tabs + Search + More button (overflow tabs are hidden until popover opens)
-    const expectedLabels = ['Character', 'Combat', 'Retinue', 'Settings', 'Search', 'More'];
+    // Mobile scrollable bar shows all nav items + Search
+    const expectedLabels = ['Character', 'Combat', 'Retinue', 'Holdings & Wealth', 'Endeavours', 'Advancement', 'Settings', 'Search'];
 
     expectedLabels.forEach((label) => {
       const labelElement = screen.getByText(label);

@@ -32,6 +32,12 @@
   position: relative;
 }
 
+@media (min-width: 1025px) {
+  .modal {
+    max-width: 800px;
+  }
+}
+
 @media (max-width: 767px) {
   .modal {
     max-width: 100%;

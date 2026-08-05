@@ -302,7 +302,7 @@ export function TakeDamagePanel({
       </div>
 
       {!collapsed && (
-        <div>
+        <div className={styles.defenseTint}>
           {/* 8.2: Incoming damage input */}
           <div className={styles.formRow}>
             <label htmlFor="incoming-damage" className={styles.label}>Damage:</label>

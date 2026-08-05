@@ -380,6 +380,10 @@
   margin-top: 8px;
 }
 
+.damageTint {
+  background: color-mix(in srgb, var(--combat-damage) 10%, var(--bg-tertiary));
+}
+
 /* ─── Mobile Overrides ─────────────────────────────────────────────────────── */
 
 @media (max-width: 767px) {

@@ -5,6 +5,63 @@
   composes: sectionGap from '../shared/styles/shared.module.css';
 }
 
+/* ─── Desktop Two-Column Grid (Req 22.1–22.5) ─── */
+.desktopGrid {
+  display: contents;
+}
+
+.desktopGridLeft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap, 24px);
+}
+
+.desktopGridRight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap, 24px);
+}
+
+/* Below 1025px: columns act as stacked blocks; visibility controlled by tab state */
+.desktopGridLeft.mobileHidden,
+.desktopGridRight.mobileHidden {
+  display: none;
+}
+
+/* Within the right column, separate visibility for abilities vs gear on mobile */
+.abilitiesSection {
+  display: contents;
+}
+
+.gearSection {
+  display: contents;
+}
+
+.abilitiesSection.mobileHidden,
+.gearSection.mobileHidden {
+  display: none;
+}
+
+@media (min-width: 1025px) {
+  .desktopGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  /* On desktop, always show both columns regardless of active tab */
+  .desktopGridLeft.mobileHidden,
+  .desktopGridRight.mobileHidden {
+    display: flex;
+  }
+
+  /* On desktop, always show both sections in the right column */
+  .abilitiesSection.mobileHidden,
+  .gearSection.mobileHidden {
+    display: contents;
+  }
+}
+
 /* Inline field with help popover */
 .fieldWithHelp {
   display: flex;
@@ -174,13 +231,13 @@
 
 .charGridCurrent {
   color: var(--parchment);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 18px;
 }
 
 .charGridCB {
   color: var(--accent-gold);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 16px;
 }
 

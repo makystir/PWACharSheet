@@ -1,5 +1,10 @@
 /* ArmourMap component styles */
 
+.defenseTint {
+  background: color-mix(in srgb, var(--combat-defense) 10%, transparent);
+  border-radius: var(--radius-md);
+}
+
 .bodyGrid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -18,15 +23,24 @@
   min-width: 44px;
   min-height: 44px;
   background: var(--bg-tertiary);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.locationCell:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 .locationCellSelected {
   composes: locationCell;
-  background: rgba(200, 168, 76, 0.2);
+  background: rgba(200, 168, 76, 0.15);
   border: 2px solid var(--accent-gold);
 }
 
@@ -35,12 +49,13 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 400;
   margin-bottom: 2px;
 }
 
 .apValue {
   font-size: 22px;
-  font-weight: 900;
+  font-weight: 600;
   color: var(--accent-gold);
   font-family: var(--font-heading);
 }
@@ -135,7 +150,7 @@
 
 .armourAP {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--accent-gold);
   font-family: var(--font-heading);
   white-space: nowrap;
@@ -303,13 +318,13 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-muted);
 }
 
 .damageReductionValue {
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 600;
   font-family: var(--font-heading);
   color: var(--accent-gold);
 }
@@ -733,7 +748,7 @@
 
 .apControlValue {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-secondary);
   font-family: var(--font-heading);
   min-width: 36px;

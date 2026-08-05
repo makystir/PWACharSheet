@@ -25,6 +25,7 @@ import type { QuickAction } from './components/shared/QuickActionBar';
 import { RollDialog } from './components/shared/RollDialog';
 import { RollResultDisplay } from './components/shared/RollResultDisplay';
 import { Toast } from './components/shared/Toast';
+import { WhatsNewPanel, shouldShowWhatsNew } from './components/shared/WhatsNewPanel';
 import { computeSkillTarget } from './logic/dice-roller';
 import type { RollResult } from './logic/dice-roller';
 import { useCharacterManager } from './hooks/useCharacterManager';
@@ -44,6 +45,16 @@ import { UpdateBanner } from './components/shared/UpdateBanner';
 import { CommandPaletteProvider } from './components/command-palette/CommandPaletteContext';
 import { useCommandPalette } from './components/command-palette/useCommandPalette';
 import { CommandPalette } from './components/command-palette/CommandPalette';
+
+const APP_VERSION = '2.0.0';
+
+const CHANGELOG_ENTRIES = [
+  { title: 'Modernised UI', description: 'New card elevations, smoother animations, and improved spacing across all pages.' },
+  { title: 'Combat Overhaul', description: 'Progressive disclosure with Attack/Defend/Status modes, sticky dashboard, and step indicators.' },
+  { title: 'Desktop Layouts', description: 'Two-column layouts for Character and Combat pages on larger screens.' },
+  { title: 'Navigation Upgrade', description: 'Scrollable mobile tabs, collapsible desktop sidebar, and badge indicators.' },
+  { title: 'Accessibility Improvements', description: 'Better contrast ratios, reduced-motion support, and improved touch targets.' },
+];
 
 // Simple error boundary
 interface ErrorBoundaryProps {
@@ -93,6 +104,7 @@ function AppContent() {
   const manager = useCharacterManager();
   const { page, subTab, navigate } = useHashRoute();
   const { message: storageErrorMessage } = useStorageErrorToast();
+  const [showWhatsNew, setShowWhatsNew] = useState(() => shouldShowWhatsNew(APP_VERSION));
 
   // If no characters exist, show welcome screen
   if (manager.characters.length === 0 || !manager.activeCharacter) {
@@ -113,6 +125,13 @@ function AppContent() {
         />
         <Toast message={storageErrorMessage} duration={5000} />
         <CommandPalette />
+        {showWhatsNew && (
+          <WhatsNewPanel
+            version={APP_VERSION}
+            entries={CHANGELOG_ENTRIES}
+            onDismiss={() => setShowWhatsNew(false)}
+          />
+        )}
       </>
     );
   }
@@ -127,6 +146,13 @@ function AppContent() {
       />
       <Toast message={storageErrorMessage} duration={5000} />
       <CommandPalette />
+      {showWhatsNew && (
+        <WhatsNewPanel
+          version={APP_VERSION}
+          entries={CHANGELOG_ENTRIES}
+          onDismiss={() => setShowWhatsNew(false)}
+        />
+      )}
     </>
   );
 }
@@ -211,6 +237,15 @@ function AppWithCharacter({
 
   const pageProps = { character, update, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight };
 
+  const getDomain = (): 'combat' | 'character' | 'advancement' | undefined => {
+    switch (page) {
+      case 'combat': return 'combat';
+      case 'advancement': return 'advancement';
+      case 'character': return 'character';
+      default: return undefined;
+    }
+  };
+
   const renderPage = () => {
     switch (page) {
       case 'character':
@@ -246,11 +281,14 @@ function AppWithCharacter({
           onRenameCharacter={(id, name) => { manager.renameCharacter(id, name); manager.refresh(); }}
           onDuplicateCharacter={(id) => { manager.duplicateCharacter(id); manager.refresh(); }}
           onDeleteCharacter={(id) => { manager.deleteCharacter(id); manager.refresh(); }}
+          showAdvancementBadge={character.xpCur > 0}
+          showEndeavoursBadge={character.endeavours.some(period => period.entries.some(e => e.status === 'pending' || e.status === 'in_progress'))}
         />
         <PageContainer
           characterName={character.name}
           onOpenCharacterSheet={() => setShowCharSheet(true)}
           headerRef={charHeaderRef}
+          domain={getDomain()}
         >
           <ErrorBoundary>
             {renderPage()}

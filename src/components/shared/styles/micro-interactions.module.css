@@ -1,0 +1,112 @@
+/* Micro-interactions — shared CSS animation classes */
+
+/* Entrance animation: fade-in + slide-up */
+@keyframes animate-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Wound flash: red background pulse (damage taken) */
+@keyframes wound-flash-red {
+  0% {
+    background-color: transparent;
+  }
+  30% {
+    background-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Wound flash: green background pulse (healing) */
+@keyframes wound-flash-green {
+  0% {
+    background-color: transparent;
+  }
+  30% {
+    background-color: color-mix(in srgb, var(--success) 30%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Advantage pulse: scale bounce with gold text flash */
+@keyframes advantage-pulse {
+  0% {
+    transform: scale(1);
+    color: inherit;
+  }
+  50% {
+    transform: scale(1.2);
+    color: var(--accent-gold);
+  }
+  100% {
+    transform: scale(1);
+    color: inherit;
+  }
+}
+
+/* Dice roll: cycling number spin */
+@keyframes dice-roll {
+  0% {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: rotateX(90deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: rotateX(180deg);
+    opacity: 1;
+  }
+  75% {
+    transform: rotateX(270deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotateX(360deg);
+    opacity: 1;
+  }
+}
+
+/* Exported animation classes */
+
+.animateEnter {
+  animation: animate-enter 150ms ease-out both;
+}
+
+.woundFlashRed {
+  animation: wound-flash-red 400ms ease-out both;
+}
+
+.woundFlashGreen {
+  animation: wound-flash-green 400ms ease-out both;
+}
+
+.advantagePulse {
+  animation: advantage-pulse 300ms ease-in-out both;
+}
+
+.diceRoll {
+  animation: dice-roll 300ms linear infinite;
+}
+
+/* Accessibility: suppress all animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animateEnter,
+  .woundFlashRed,
+  .woundFlashGreen,
+  .advantagePulse,
+  .diceRoll {
+    animation: none;
+  }
+}

@@ -142,6 +142,10 @@ describe('CharacterPage contextual visibility', () => {
   });
 
   // ─── Requirement 14.4: Wound Maximum Card only on Identity tab ───
+  // With the desktop two-column layout (Req 22.1–22.5), the left column
+  // (Identity content including Wound Maximum) is always rendered in the DOM
+  // but hidden via CSS (mobileHidden class) on viewports below 1025px.
+  // On desktop, both columns are always visible.
 
   describe('Wound Maximum Card sub-tab visibility (Req 14.4)', () => {
     it('renders Wound Maximum section on the Identity sub-tab', () => {
@@ -150,19 +154,30 @@ describe('CharacterPage contextual visibility', () => {
       expect(screen.getAllByText('Wound Maximum').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('does not render Wound Maximum on the Abilities sub-tab', () => {
+    it('left column is hidden via CSS on the Abilities sub-tab (mobile)', () => {
       renderCharPage({ species: 'Human' }, 'abilities');
-      expect(screen.queryAllByText('Wound Maximum')).toHaveLength(0);
+      // Wound Maximum is in the DOM (for desktop two-column layout) but its parent column has mobileHidden class
+      const woundMaxElements = screen.queryAllByText('Wound Maximum');
+      expect(woundMaxElements.length).toBeGreaterThanOrEqual(1);
+      // The left column container has the mobileHidden class applied
+      const leftColumn = woundMaxElements[0].closest('[class*="desktopGridLeft"]');
+      expect(leftColumn?.className).toMatch(/mobileHidden/);
     });
 
-    it('does not render Wound Maximum on the Gear sub-tab', () => {
+    it('left column is hidden via CSS on the Gear sub-tab (mobile)', () => {
       renderCharPage({ species: 'Human' }, 'gear');
-      expect(screen.queryAllByText('Wound Maximum')).toHaveLength(0);
+      const woundMaxElements = screen.queryAllByText('Wound Maximum');
+      expect(woundMaxElements.length).toBeGreaterThanOrEqual(1);
+      const leftColumn = woundMaxElements[0].closest('[class*="desktopGridLeft"]');
+      expect(leftColumn?.className).toMatch(/mobileHidden/);
     });
 
-    it('does not render Wound Maximum on the Notes sub-tab', () => {
+    it('left column is hidden via CSS on the Notes sub-tab (mobile)', () => {
       renderCharPage({ species: 'Human' }, 'notes');
-      expect(screen.queryAllByText('Wound Maximum')).toHaveLength(0);
+      const woundMaxElements = screen.queryAllByText('Wound Maximum');
+      expect(woundMaxElements.length).toBeGreaterThanOrEqual(1);
+      const leftColumn = woundMaxElements[0].closest('[class*="desktopGridLeft"]');
+      expect(leftColumn?.className).toMatch(/mobileHidden/);
     });
   });
 });

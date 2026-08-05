@@ -6,6 +6,29 @@
   margin: 0 auto;
   overflow-y: auto;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+}
+
+/* Domain background tints */
+.container[data-domain="combat"] {
+  background-color: var(--domain-combat);
+}
+
+.container[data-domain="advancement"] {
+  background-color: var(--domain-advancement);
+}
+
+.container[data-domain="character"] {
+  background-color: var(--domain-character);
+}
+
+/* Desktop max-width increase for large viewports */
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1200px;
+  }
 }
 
 .offlineWrapper {

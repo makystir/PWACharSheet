@@ -1,5 +1,25 @@
 /* Navigation component styles */
 
+/* Icon wrapper for relative positioning of badge dots */
+.iconWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Badge dot indicator — 8px gold circle at top-right of icon */
+.badgeDot {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-gold);
+  pointer-events: none;
+}
+
 .sidebar {
   width: var(--nav-width, 220px);
   background: var(--bg-secondary);
@@ -8,6 +28,11 @@
   flex-direction: column;
   padding: 16px 0;
   flex-shrink: 0;
+  transition: width 200ms ease;
+}
+
+.sidebarCollapsed {
+  width: 56px;
 }
 
 .appTitle {
@@ -24,6 +49,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .searchBtn {
@@ -237,6 +264,74 @@
   border-left: 3px solid var(--accent-gold);
 }
 
+/* Collapsed nav item: icon-only, centered */
+.navItemCollapsed {
+  justify-content: center;
+  padding: 10px 0;
+  gap: 0;
+  position: relative;
+}
+
+.navItemCollapsed span {
+  display: none;
+}
+
+/* Tooltip on hover when collapsed (desktop only) */
+@media (min-width: 768px) {
+  .navItemCollapsed::after {
+    content: attr(title);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 8px;
+    padding: 4px 10px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 12px;
+    border-radius: var(--radius-sm, 4px);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 150ms ease;
+    z-index: 200;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .navItemCollapsed:hover::after {
+    opacity: 1;
+  }
+}
+
+/* Collapse toggle button */
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.1s, background 0.1s;
+  border-radius: var(--radius-sm, 4px);
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.collapseToggle:hover {
+  color: var(--accent-gold);
+  background: var(--bg-tertiary);
+}
+
+/* Mobile scrollable tab bar (non-mobile: not rendered, but define for CSS Modules export) */
+.mobileScrollRow {
+  display: flex;
+  flex-direction: row;
+}
+
 /* Mobile responsive layout */
 @media (max-width: 767px) {
   .sidebar {
@@ -254,6 +349,15 @@
     padding: 0;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 100;
+    transition: none;
+  }
+
+  .sidebarCollapsed {
+    width: 100%;
+  }
+
+  .collapseToggle {
+    display: none;
   }
 
   .appTitle {
@@ -264,18 +368,35 @@
     display: none;
   }
 
+  /* Mobile scrollable tab bar container */
+  .mobileScrollRow {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .mobileScrollRow::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+
   .navItem,
   .navItemActive {
-    flex: 1;
+    flex: 0 0 auto;
     flex-direction: column;
     gap: 1px;
-    padding: 4px 4px;
+    padding: 4px 12px;
     font-size: 10px;
     min-height: 44px;
+    min-width: 44px;
     justify-content: center;
     align-items: center;
     border-left: none;
-    padding-left: 4px;
+    padding-left: 12px;
+    width: auto;
   }
 
   /* Icon sizing - compact for 48px bar */
@@ -300,54 +421,6 @@
     color: var(--text-secondary);
     padding-top: 2px; /* match active state spacing */
   }
-}
-
-/* Overflow popover (positioned above mobile nav bar) */
-.overflowPopover {
-  position: absolute;
-  bottom: calc(var(--nav-height-mobile, 48px) + env(safe-area-inset-bottom, 0px));
-  right: 0;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md, 8px);
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  padding: 4px 8px;
-  gap: 2px;
-  z-index: 101;
-  min-width: 160px;
-}
-
-.overflowItem,
-.overflowItemActive {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 14px;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  border-radius: var(--radius-sm, 4px);
-  min-height: 44px;
-  min-width: 44px;
-  transition: background 0.1s, color 0.1s;
-}
-
-.overflowItem:hover {
-  background: var(--bg-tertiary);
-}
-
-.overflowItemActive {
-  color: var(--accent-gold);
-  background: var(--bg-tertiary);
-}
-
-.overflowItemActive:hover {
-  background: var(--bg-tertiary);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════

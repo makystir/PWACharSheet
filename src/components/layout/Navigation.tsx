@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { User, Swords, Users, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown, MoreHorizontal, Search } from 'lucide-react';
+import { User, Swords, Users, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown, Search, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { CharacterSummary } from '../../types/character';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
@@ -20,6 +20,10 @@ interface NavigationProps {
   onRenameCharacter?: (id: string, name: string) => void;
   onDuplicateCharacter?: (id: string) => void;
   onDeleteCharacter?: (id: string) => void;
+  /** Whether badge dot should show on Advancement nav item (unspent XP > 0) */
+  showAdvancementBadge?: boolean;
+  /** Whether badge dot should show on Endeavours nav item (active endeavours exist) */
+  showEndeavoursBadge?: boolean;
 }
 
 interface NavItem {
@@ -39,57 +43,52 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'settings', label: 'Settings', icon: Settings, shortcut: '7' },
 ];
 
-/** Primary tabs shown directly in mobile bottom bar */
-const PRIMARY_MOBILE_ITEMS: NavItem[] = NAV_ITEMS.filter(item =>
-  ['character', 'combat', 'retinue', 'settings'].includes(item.id)
-);
+function getInitialCollapsed(): boolean {
+  try {
+    return localStorage.getItem('nav-collapsed') === 'true';
+  } catch {
+    return false;
+  }
+}
 
-/** Overflow tabs grouped behind the "More" button on mobile */
-const OVERFLOW_ITEMS: NavItem[] = NAV_ITEMS.filter(item =>
-  ['estate', 'endeavours', 'advancement'].includes(item.id)
-);
-
-/** Set of overflow page IDs for quick lookup */
-const OVERFLOW_PAGE_IDS = new Set(OVERFLOW_ITEMS.map(item => item.id));
-
-export function Navigation({ activePage, onPageChange, characterName, characters, activeId, onSwitchCharacter, onCreateCharacter, onRenameCharacter, onDuplicateCharacter, onDeleteCharacter }: NavigationProps) {
+export function Navigation({ activePage, onPageChange, characterName, characters, activeId, onSwitchCharacter, onCreateCharacter, onRenameCharacter, onDuplicateCharacter, onDeleteCharacter, showAdvancementBadge, showEndeavoursBadge }: NavigationProps) {
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState('');
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [showOverflow, setShowOverflow] = useState(false);
+  const [collapsed, setCollapsed] = useState(getInitialCollapsed);
 
   const { open } = useCommandPaletteContext();
   const isMobile = useMediaQuery('(max-width: 767px)');
-  const overflowRef = useRef<HTMLDivElement>(null);
-  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const activeItemRef = useRef<HTMLButtonElement>(null);
 
-  // Whether the currently active page is in the overflow group
-  const isOverflowPageActive = OVERFLOW_PAGE_IDS.has(activePage);
-
-  // Get the icon for the active overflow page (for showing on the More button)
-  const activeOverflowItem = isOverflowPageActive
-    ? OVERFLOW_ITEMS.find(item => item.id === activePage)
-    : null;
-
-  // Close overflow on outside tap
-  const handleOutsideClick = useCallback((e: MouseEvent) => {
-    if (
-      overflowRef.current &&
-      !overflowRef.current.contains(e.target as Node) &&
-      moreButtonRef.current &&
-      !moreButtonRef.current.contains(e.target as Node)
-    ) {
-      setShowOverflow(false);
-    }
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('nav-collapsed', String(next));
+      } catch {
+        // Private browsing or storage full — ignore
+      }
+      return next;
+    });
   }, []);
 
+  // Determine which nav items should show a badge dot
+  const badgeItems: Partial<Record<PageSection, boolean>> = {
+    advancement: !!showAdvancementBadge,
+    endeavours: !!showEndeavoursBadge,
+  };
+
+  // Auto-scroll active item into view on mount (mobile scrollable bar)
   useEffect(() => {
-    if (showOverflow) {
-      document.addEventListener('mousedown', handleOutsideClick);
-      return () => document.removeEventListener('mousedown', handleOutsideClick);
+    if (isMobile && activeItemRef.current) {
+      const el = activeItemRef.current;
+      if (typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' });
+      }
     }
-  }, [showOverflow, handleOutsideClick]);
+  }, [isMobile, activePage]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -107,27 +106,27 @@ export function Navigation({ activePage, onPageChange, characterName, characters
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onPageChange]);
 
-  const handleOverflowSelect = (page: PageSection) => {
-    onPageChange(page);
-    setShowOverflow(false);
-  };
-
-  // Render mobile bottom bar tabs
+  // Render mobile scrollable tab bar — all items in a single horizontal row
   const renderMobileNav = () => (
-    <>
-      {PRIMARY_MOBILE_ITEMS.map((item) => {
+    <div className={styles.mobileScrollRow}>
+      {NAV_ITEMS.map((item) => {
         const isActive = activePage === item.id;
         const Icon = item.icon;
+        const hasBadge = badgeItems[item.id];
         return (
           <button
             key={item.id}
+            ref={isActive ? activeItemRef : undefined}
             type="button"
             className={isActive ? styles.navItemActive : styles.navItem}
             onClick={() => onPageChange(item.id)}
             aria-current={isActive ? 'page' : undefined}
             data-section={item.id}
           >
-            <Icon size={18} />
+            <span className={styles.iconWrapper}>
+              <Icon size={18} />
+              {hasBadge && <span className={styles.badgeDot} aria-label="has updates" />}
+            </span>
             <span>{item.label}</span>
           </button>
         );
@@ -144,46 +143,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
         <Search size={18} />
         <span>Search</span>
       </button>
-
-      {/* More button */}
-      <button
-        ref={moreButtonRef}
-        type="button"
-        className={isOverflowPageActive ? styles.navItemActive : styles.navItem}
-        onClick={() => setShowOverflow(!showOverflow)}
-        aria-expanded={showOverflow}
-        aria-haspopup="true"
-        data-section="more"
-      >
-        {activeOverflowItem ? (
-          <activeOverflowItem.icon size={18} />
-        ) : (
-          <MoreHorizontal size={18} />
-        )}
-        <span>{activeOverflowItem ? activeOverflowItem.label : 'More'}</span>
-      </button>
-
-      {/* Overflow popover */}
-      {showOverflow && (
-        <div ref={overflowRef} className={styles.overflowPopover} role="menu">
-          {OVERFLOW_ITEMS.map((item) => {
-            const isActive = activePage === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={isActive ? styles.overflowItemActive : styles.overflowItem}
-                onClick={() => handleOverflowSelect(item.id)}
-                role="menuitem"
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </>
+    </div>
   );
 
   // Render desktop sidebar tabs
@@ -192,17 +152,23 @@ export function Navigation({ activePage, onPageChange, characterName, characters
       {NAV_ITEMS.map((item) => {
         const isActive = activePage === item.id;
         const Icon = item.icon;
+        const hasBadge = badgeItems[item.id];
         return (
           <button
             key={item.id}
             type="button"
-            className={isActive ? styles.navItemActive : styles.navItem}
+            className={`${isActive ? styles.navItemActive : styles.navItem} ${collapsed ? styles.navItemCollapsed : ''}`}
             onClick={() => onPageChange(item.id)}
             aria-current={isActive ? 'page' : undefined}
+            aria-label={collapsed ? item.label : undefined}
+            title={collapsed ? item.label : undefined}
             data-section={item.id}
           >
-            <Icon size={18} />
-            <span>{item.label}</span>
+            <span className={styles.iconWrapper}>
+              <Icon size={18} />
+              {hasBadge && <span className={styles.badgeDot} aria-label="has updates" />}
+            </span>
+            {!collapsed && <span>{item.label}</span>}
           </button>
         );
       })}
@@ -212,21 +178,36 @@ export function Navigation({ activePage, onPageChange, characterName, characters
   return (
     <>
       {/* Navigation (sidebar on desktop, bottom bar on mobile) */}
-      <nav className={styles.sidebar} aria-label="Main navigation">
+      <nav className={`${styles.sidebar} ${!isMobile && collapsed ? styles.sidebarCollapsed : ''}`} aria-label="Main navigation">
         {!isMobile && (
           <>
             <div className={styles.appTitle}>
-              ⚔ WFRP 4e
-              <button
-                type="button"
-                className={styles.searchBtn}
-                onClick={() => open()}
-                aria-label="Search game reference"
-              >
-                <Search size={14} />
-              </button>
+              {!collapsed && (
+                <>
+                  ⚔ WFRP 4e
+                  <button
+                    type="button"
+                    className={styles.searchBtn}
+                    onClick={() => open()}
+                    aria-label="Search game reference"
+                  >
+                    <Search size={14} />
+                  </button>
+                </>
+              )}
+              {collapsed && (
+                <button
+                  type="button"
+                  className={styles.searchBtn}
+                  onClick={() => open()}
+                  aria-label="Search game reference"
+                  title="Search"
+                >
+                  <Search size={14} />
+                </button>
+              )}
             </div>
-            {characterName && (
+            {!collapsed && characterName && (
               <div className={styles.charName}>
                 <div className={styles.charNameRow}>
                   <button
@@ -281,6 +262,19 @@ export function Navigation({ activePage, onPageChange, characterName, characters
         )}
 
         {isMobile ? renderMobileNav() : renderDesktopNav()}
+
+        {/* Collapse toggle button (desktop only) */}
+        {!isMobile && (
+          <button
+            type="button"
+            className={styles.collapseToggle}
+            onClick={toggleCollapsed}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
+        )}
       </nav>
 
       {pendingDeleteId && (() => {

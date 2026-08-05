@@ -487,8 +487,10 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         }}
       />
 
-      {/* ═══ IDENTITY TAB ═══ */}
-      {activeSubTab === 'identity' && (<>
+      {/* ═══ TWO-COLUMN DESKTOP GRID (Req 22.1–22.5) ═══ */}
+      <div className={styles.desktopGrid}>
+      {/* ─── LEFT COLUMN: Characteristics + Biographical/Identity ─── */}
+      <div className={`${styles.desktopGridLeft}${activeSubTab !== 'identity' ? ` ${styles.mobileHidden}` : ''}`}>
       {/* Portrait + Personal Details row */}
       <div className={styles.identityRow}>
         <CharacterPortrait
@@ -902,10 +904,12 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         />
       </CollapsibleSection>
       )}
-      </>)}
+      </div>{/* end desktopGridLeft */}
 
-      {/* ═══ ABILITIES TAB ═══ */}
-      {activeSubTab === 'abilities' && (<>
+      {/* ─── RIGHT COLUMN: Skills, Talents, Gear ─── */}
+      <div className={`${styles.desktopGridRight}${activeSubTab !== 'abilities' && activeSubTab !== 'gear' ? ` ${styles.mobileHidden}` : ''}`}>
+      {/* ═══ ABILITIES SECTION ═══ */}
+      <div className={`${styles.abilitiesSection}${activeSubTab !== 'abilities' ? ` ${styles.mobileHidden}` : ''}`}>
       {/* Skill Filter */}
       <SkillFilter
         searchText={skillSearchText}
@@ -1406,10 +1410,10 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         />
       </Card>
       )}
-      </>)}
+      </div>{/* end abilitiesSection */}
 
-      {/* ═══ GEAR & WEALTH TAB ═══ */}
-      {activeSubTab === 'gear' && (<>
+      {/* ═══ GEAR & WEALTH ═══ */}
+      <div className={`${styles.gearSection}${activeSubTab !== 'gear' ? ` ${styles.mobileHidden}` : ''}`}>
       {/* Trappings */}
       <Card>
         <SectionHeader icon={Package} title="Trappings" action={
@@ -1657,7 +1661,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           </div>
         </div>
       </Card>
-      </>)}
+      </div>{/* end gearSection */}
+      </div>{/* end desktopGridRight */}
+      </div>{/* end desktopGrid */}
 
       {/* ═══ NOTES TAB ═══ */}
       {activeSubTab === 'notes' && (<>

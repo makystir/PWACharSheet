@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   type RollResult,
   type OpposedResult,
   calculateOpposedResult,
 } from '../../logic/dice-roller';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import styles from './RollResultDisplay.module.css';
+import microStyles from './styles/micro-interactions.module.css';
 
 interface RollResultDisplayProps {
   result: RollResult;
@@ -29,6 +31,17 @@ function getWinnerClass(winner: OpposedResult['winner']): string {
 
 export function RollResultDisplay({ result, onClose }: RollResultDisplayProps) {
   const [opposedInput, setOpposedInput] = useState('');
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const [rolling, setRolling] = useState(!prefersReducedMotion);
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setRolling(false);
+      return;
+    }
+    const timer = setTimeout(() => setRolling(false), 300);
+    return () => clearTimeout(timer);
+  }, [prefersReducedMotion]);
 
   const opposedSL = opposedInput !== '' ? parseInt(opposedInput, 10) : null;
   const opposedResult =
@@ -51,7 +64,9 @@ export function RollResultDisplay({ result, onClose }: RollResultDisplayProps) {
         <div className={styles.title}>{result.skillOrCharName}</div>
 
         {/* d100 roll value — large and prominent */}
-        <div className={`${styles.rollValue} ${colorClass} ${animClass}`.trim()}>{result.roll}</div>
+        <div className={`${styles.rollValue} ${rolling ? microStyles.diceRoll : colorClass} ${!rolling ? animClass : ''}`.trim()}>
+          {rolling ? '...' : result.roll}
+        </div>
 
         {/* Target number */}
         <div className={styles.target}>Target: {result.targetNumber}</div>

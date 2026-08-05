@@ -26,6 +26,14 @@
   margin: 0;
 }
 
+.tip {
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 320px;
+  margin: 0;
+  font-style: italic;
+}
+
 .actionButton {
   margin-top: 4px;
   padding: 8px 16px;

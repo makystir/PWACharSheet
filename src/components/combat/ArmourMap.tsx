@@ -24,6 +24,10 @@ export interface ArmourMapProps {
   onOpenRuneManager?: (armourIndex: number) => void;
   onOpenArmourPicker?: () => void;
   onAddCustomArmour?: () => void;
+  /** Externally controlled selected location (for communication with TakeDamagePanel) */
+  selectedLocation?: LocationKey | null;
+  /** Callback when a hit location is selected/deselected */
+  onSelectLocation?: (location: LocationKey | null) => void;
 }
 
 /** Extract the Shield rating from a weapon's qualities string (e.g. "Shield 2, Defensive" → 2) */
@@ -39,6 +43,7 @@ function getShieldRating(weapons: WeaponData[]): number {
 }
 
 type LocationKey = 'head' | 'lArm' | 'rArm' | 'body' | 'lLeg' | 'rLeg';
+export type { LocationKey as ArmourLocationKey };
 
 interface LocationDef {
   key: LocationKey;
@@ -171,13 +176,18 @@ export function ArmourMap({
   onOpenRuneManager,
   onOpenArmourPicker,
   onAddCustomArmour,
+  selectedLocation: externalSelectedLocation,
+  onSelectLocation,
 }: ArmourMapProps) {
-  const [selectedLocation, setSelectedLocation] = useState<LocationKey | null>(null);
+  const [internalSelectedLocation, setInternalSelectedLocation] = useState<LocationKey | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [expandedArmourIndex, setExpandedArmourIndex] = useState<number | null>(null);
   const [showAllArmour, setShowAllArmour] = useState(false);
   const [expandedQuality, setExpandedQuality] = useState<string | null>(null);
   const [apTooltip, setApTooltip] = useState<{ location: LocationKey; anchorEl: HTMLElement } | null>(null);
+
+  // Use external prop if provided, otherwise use internal state
+  const selectedLocation = externalSelectedLocation !== undefined ? externalSelectedLocation : internalSelectedLocation;
 
   const handleQualityToggle = useCallback((name: string) => {
     setExpandedQuality(prev => prev === name ? null : name);
@@ -189,7 +199,12 @@ export function ArmourMap({
   }, []);
 
   const handleLocationTap = (key: LocationKey) => {
-    setSelectedLocation(prev => prev === key ? null : key);
+    const newValue = selectedLocation === key ? null : key;
+    if (onSelectLocation) {
+      onSelectLocation(newValue);
+    } else {
+      setInternalSelectedLocation(newValue);
+    }
   };
 
   const handleApTooltipOpen = useCallback((location: LocationKey, anchorEl: HTMLElement) => {
@@ -223,22 +238,22 @@ export function ArmourMap({
       } />
 
       {/* Body Map Grid */}
-      <div className={styles.bodyGrid} data-testid="armour-body-map">
+      <div className={`${styles.bodyGrid} ${styles.defenseTint}`} data-testid="armour-body-map">
         {LOCATIONS.map(loc => {
           const selected = selectedLocation === loc.key;
           const isTooltipOpen = apTooltip?.location === loc.key;
           return (
-            <div
+            <button
               key={loc.key}
+              type="button"
               className={selected ? styles.locationCellSelected : styles.locationCell}
               style={{
                 gridColumn: loc.gridColumn,
                 gridRow: loc.gridRow,
-                minWidth: '44px',
-                minHeight: '44px',
               }}
               onClick={() => handleLocationTap(loc.key)}
               aria-pressed={selected}
+              aria-label={`Select ${loc.label} location`}
               data-testid={`location-${loc.key}`}
             >
               <span className={styles.locationLabel}>{loc.label}</span>
@@ -251,7 +266,7 @@ export function ArmourMap({
                 className={styles.apValue}
                 ariaLabel={`${loc.label} AP ${armourPoints[loc.key]}`}
               />
-            </div>
+            </button>
           );
         })}
       </div>

@@ -11,9 +11,10 @@ interface PageContainerProps {
   characterName?: string;
   onOpenCharacterSheet?: () => void;
   headerRef?: RefObject<HTMLButtonElement | null>;
+  domain?: 'combat' | 'character' | 'advancement';
 }
 
-export function PageContainer({ children, characterName, onOpenCharacterSheet, headerRef }: PageContainerProps) {
+export function PageContainer({ children, characterName, onOpenCharacterSheet, headerRef, domain }: PageContainerProps) {
   const ref = useRef<HTMLElement>(null);
   const [showScroll, setShowScroll] = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
@@ -36,7 +37,7 @@ export function PageContainer({ children, characterName, onOpenCharacterSheet, h
   };
 
   return (
-    <main ref={ref} id="main-content" className={styles.container}>
+    <main ref={ref} id="main-content" className={styles.container} {...(domain ? { 'data-domain': domain } : {})}>
       <div className={styles.offlineWrapper}>
         <OfflineIndicator />
       </div>

@@ -1,5 +1,10 @@
 /* TakeDamagePanel component styles */
 
+.defenseTint {
+  background: color-mix(in srgb, var(--combat-defense) 10%, transparent);
+  border-radius: var(--radius-sm);
+}
+
 .panelHeader {
   display: flex;
   align-items: center;

@@ -113,3 +113,11 @@
   height: 100vh;
   background: var(--bg-primary);
 }
+
+.dataValue {
+  font-weight: 600;
+}
+
+.dataLabel {
+  font-weight: 400;
+}

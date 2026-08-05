@@ -5,6 +5,7 @@
 }
 
 .modal {
+  composes: animateEnter from '../shared/styles/micro-interactions.module.css';
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);

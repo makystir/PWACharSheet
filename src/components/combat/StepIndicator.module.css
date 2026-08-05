@@ -1,0 +1,102 @@
+/* StepIndicator component styles */
+
+.container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 4px;
+  position: relative;
+}
+
+.segment {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  transition: background-color 300ms ease;
+}
+
+.segment.completed {
+  background-color: var(--success);
+}
+
+.segment.current {
+  background-color: var(--accent-gold);
+}
+
+.segment.upcoming {
+  background-color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: background-color 300ms ease, transform 300ms ease;
+  z-index: 1;
+}
+
+.dot.completed {
+  background-color: var(--success);
+}
+
+.dot.current {
+  background-color: var(--accent-gold);
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.dot.upcoming {
+  background-color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.label {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  transition: color 300ms ease;
+}
+
+.label.completed {
+  color: var(--success);
+}
+
+.label.current {
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.label.upcoming {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+/* Gate animations behind prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .segment,
+  .dot,
+  .label {
+    transition: none;
+  }
+}

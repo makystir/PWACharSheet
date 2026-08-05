@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CombatPage } from '../../pages/CombatPage';
 import { BLANK_CHARACTER } from '../../../types/character';
@@ -99,6 +99,8 @@ describe('CombatPage contextual visibility - Ammo Tracker', () => {
       ammo: [{ name: 'Arrows', quantity: 12, max: 12, enc: '0', qualities: '' }],
       combatState: COMBAT_ACTIVE,
     });
+    // Ammo Tracker is in Status mode
+    fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
     expect(screen.getByText('Ammo Tracker')).toBeInTheDocument();
   });
 });
@@ -130,6 +132,8 @@ describe('CombatPage contextual visibility - Roll History', () => {
         clearHistory: vi.fn(),
       },
     );
+    // Roll History is in Status mode
+    fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
     expect(screen.getByText('Roll History')).toBeInTheDocument();
   });
 });
@@ -139,6 +143,8 @@ describe('CombatPage contextual visibility - Roll History', () => {
 describe('CombatPage contextual visibility - Fortune/Resolve Panel', () => {
   it('renders Fortune & Resolve as a collapsed section (dashboard shows compact version)', () => {
     const { container } = renderCombatPage({ combatState: COMBAT_ACTIVE });
+    // Fortune & Resolve is in Status mode
+    fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
     // The Fortune & Resolve section is wrapped in a CollapsibleSection that is collapsed by default
     const fortuneHeader = screen.getByText('Fortune & Resolve');
     expect(fortuneHeader).toBeInTheDocument();

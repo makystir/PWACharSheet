@@ -14,6 +14,7 @@ import { Heart, Zap, Star, Shield, AlertTriangle, Skull, Droplets, ArrowDown, Fl
 import { applyCondition } from '../../logic/combat';
 import styles from './CombatDashboard.module.css';
 import pressableStyles from '../../styles/micro-interactions.module.css';
+import microStyles from '../shared/styles/micro-interactions.module.css';
 
 // ─── Quick Condition Buttons (Req 5) ─────────────────────────────────────────
 
@@ -65,6 +66,7 @@ export interface CombatDashboardProps {
   resilience: number;
   inCombat: boolean;
   useGroupAdvantage?: boolean;
+  compact?: boolean;
   character?: Character;
   updateCharacter?: (mutator: (char: Character) => Character) => void;
   onUpdateWounds: (delta: number) => void;
@@ -147,12 +149,49 @@ export function CombatDashboard(props: CombatDashboardProps) {
   const {
     wCur, totalWounds, advantage, combatState, conditions,
     fortune, fate, resolve, resilience, inCombat, useGroupAdvantage,
-    character, updateCharacter,
+    compact, character, updateCharacter,
     onUpdateWounds, onUpdateAdvantage, onUpdateRound,
     onToggleEngaged, onRemoveCondition,
     onSpendFortune, onSpendResolve, onOpenConditionPicker,
     onEndTurn,
   } = props;
+
+  // ── Compact Sticky Strip Mode (Requirement 9) ──
+  if (compact) {
+    const activeConditionCount = conditions.length;
+    const compactWoundColor = getWoundColor(wCur, totalWounds);
+    return (
+      <div
+        className={styles.compactDashboard}
+        data-testid="combat-dashboard-compact"
+        aria-label="Combat status summary"
+      >
+        <div className={styles.compactItem}>
+          <Heart size={14} color={compactWoundColor} aria-hidden="true" />
+          <span className={styles.compactValue} style={{ color: compactWoundColor }}>
+            {wCur}
+          </span>
+          <span className={styles.compactSeparator}>/</span>
+          <span className={styles.compactMax}>{totalWounds}</span>
+        </div>
+        <div className={styles.compactItem}>
+          <Zap size={14} color="var(--accent-gold)" aria-hidden="true" />
+          <span className={styles.compactValue} style={{ color: 'var(--accent-gold)' }}>
+            {advantage}
+          </span>
+        </div>
+        {activeConditionCount > 0 && (
+          <div className={styles.compactItem}>
+            <AlertTriangle size={14} color="var(--text-muted)" aria-hidden="true" />
+            <span className={styles.compactValue}>{activeConditionCount}</span>
+            <span className={styles.compactLabel}>
+              {activeConditionCount === 1 ? 'condition' : 'conditions'}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const [conditionTooltip, setConditionTooltip] = useState<{ name: string; anchorEl: HTMLElement } | null>(null);
   const [showFortunePopover, setShowFortunePopover] = useState(false);
@@ -167,26 +206,40 @@ export function CombatDashboard(props: CombatDashboardProps) {
   const prevAdvantageRef = useRef(advantage);
   const prevConditionNamesRef = useRef<Set<string>>(new Set(conditions.map((c) => c.name)));
   const [woundBump, setWoundBump] = useState(false);
+  const [woundFlashClass, setWoundFlashClass] = useState<string | null>(null);
   const [advantageBump, setAdvantageBump] = useState(false);
   const [enteringConditions, setEnteringConditions] = useState<Set<string>>(new Set());
   const [exitingConditions, setExitingConditions] = useState<Condition[]>([]);
 
-  // Detect wound changes and trigger bump animation
+  // Detect wound changes and trigger bump + flash animation
   useEffect(() => {
     if (prevWoundsRef.current !== wCur) {
+      const prevVal = prevWoundsRef.current;
       prevWoundsRef.current = wCur;
       setWoundBump(true);
-      const timer = setTimeout(() => setWoundBump(false), 250);
-      return () => clearTimeout(timer);
+
+      // Determine flash direction: decrease → red (damage), increase → green (healing)
+      if (wCur < prevVal) {
+        setWoundFlashClass(microStyles.woundFlashRed);
+      } else {
+        setWoundFlashClass(microStyles.woundFlashGreen);
+      }
+
+      const bumpTimer = setTimeout(() => setWoundBump(false), 250);
+      const flashTimer = setTimeout(() => setWoundFlashClass(null), 400);
+      return () => {
+        clearTimeout(bumpTimer);
+        clearTimeout(flashTimer);
+      };
     }
   }, [wCur]);
 
-  // Detect advantage changes and trigger bump animation
+  // Detect advantage changes and trigger pulse animation (Req 16.1, 16.2, 16.3)
   useEffect(() => {
     if (prevAdvantageRef.current !== advantage) {
       prevAdvantageRef.current = advantage;
       setAdvantageBump(true);
-      const timer = setTimeout(() => setAdvantageBump(false), 250);
+      const timer = setTimeout(() => setAdvantageBump(false), 300);
       return () => clearTimeout(timer);
     }
   }, [advantage]);
@@ -360,7 +413,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
                 )}
                 <span className={styles.label}>Wounds</span>
               </div>
-              <div className={styles.woundNumbers}>
+              <div className={`${styles.woundNumbers}${woundFlashClass ? ` ${woundFlashClass}` : ''}${woundFlashClass === microStyles.woundFlashGreen ? ` ${styles.healingTint}` : ''}`}>
                 <span className={`${styles.bigNumber} ${woundClass} ${styles.numberTransition}${woundBump ? ` ${styles.numberBump}` : ''}`}>{wCur}</span>
                 <span className={styles.woundTotal}>/ {totalWounds}</span>
               </div>
@@ -403,7 +456,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
                   <Zap size={14} color="var(--accent-gold)" aria-hidden="true" />
                   <span className={styles.label}>{useGroupAdvantage ? 'Group Advantage' : 'Advantage'}</span>
                 </div>
-                <span className={`${styles.bigNumber} ${styles.accentGold} ${styles.numberTransition}${advantageBump ? ` ${styles.numberBump}` : ''}`}>{advantage}</span>
+                <span className={`${styles.bigNumber} ${styles.accentGold} ${styles.numberTransition}${advantageBump ? ` ${styles.numberBump} ${microStyles.advantagePulse}` : ''}`}>{advantage}</span>
                 <div className={styles.buttonBar}>
                   <button
                     type="button"

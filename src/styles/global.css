@@ -8,7 +8,7 @@
   --parchment-dark: #a8884e;
   --text-primary: #d4c4a0;
   --text-secondary: #a89878;
-  --text-muted: #706858;
+  --text-muted: #908070;
   --accent: #c85050;
   --accent-gold: #c8a84c;
   --accent-gold-dark: #a08030;
@@ -27,6 +27,28 @@
   --radius-lg: 12px;
   --nav-width: 220px;
   --nav-height-mobile: 60px;
+
+  /* Spacing tokens */
+  --section-gap: 24px;
+  --card-gap: 16px;
+
+  /* Elevation tokens */
+  --elevation-0: none;
+  --elevation-1: 0 2px 8px var(--shadow);
+  --elevation-2: 0 1px 3px var(--shadow);
+
+  /* Semantic combat colors */
+  --combat-damage: var(--danger);
+  --combat-defense: var(--accent-gold);
+  --combat-healing: var(--success);
+
+  /* Success accent (WCAG AA 4.5:1 against --card-bg) */
+  --accent-success: #4caf50;
+
+  /* Domain background tints */
+  --domain-combat: rgba(200, 80, 80, 0.03);
+  --domain-character: transparent;
+  --domain-advancement: rgba(76, 120, 200, 0.03);
 }
 
 *, *::before, *::after {
@@ -51,8 +73,14 @@ html, body {
   display: flex;
 }
 
-h1, h2, h3, h4 {
+h1 {
   font-family: var(--font-heading);
+  color: var(--parchment);
+}
+
+h2, h3, h4 {
+  font-family: var(--font-body);
+  font-weight: 600;
   color: var(--parchment);
 }
 
@@ -185,6 +213,24 @@ textarea:focus {
   outline-offset: -1px;
 }
 
+/* Input focus animation: box-shadow ring + subtle scale */
+input[type="text"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-gold);
+  transform: scale(1.02);
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+
+/* Gate scale transform for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  input[type="text"]:focus,
+  input[type="number"]:focus {
+    transform: none;
+    transition: box-shadow 150ms ease;
+  }
+}
+
 a:focus-visible {
   outline: 2px solid var(--accent-gold);
   outline-offset: 2px;
@@ -196,7 +242,7 @@ input,
 select,
 textarea,
 a {
-  transition: filter 0.08s ease, box-shadow 0.08s ease, outline 0.08s ease;
+  transition: filter 0.08s ease, box-shadow 150ms ease, outline 0.08s ease, transform 150ms ease;
 }
 
 /* ===== Responsive: Mobile (< 768px) ===== */
@@ -331,6 +377,11 @@ input[type="number"] {
   color: var(--text-primary);
 }
 
+/* ===== Minimum body text font-size ===== */
+td, th, label {
+  font-size: max(14px, inherit);
+}
+
 /* ===== Theme Variants ===== */
 
 /* Light theme */
@@ -342,7 +393,7 @@ input[type="number"] {
   --parchment-dark: #3a2a10;
   --text-primary: #2a2010;
   --text-secondary: #5a4a30;
-  --text-muted: #8a7a60;
+  --text-muted: #6b5c44;
   --accent: #b03030;
   --accent-gold: #8a6a20;
   --accent-gold-dark: #6a5010;
@@ -354,6 +405,28 @@ input[type="number"] {
   --card-bg: #f0e8d4;
   --card-border: #c8bca0;
   --shadow: rgba(0, 0, 0, 0.15);
+
+  /* Spacing tokens */
+  --section-gap: 24px;
+  --card-gap: 16px;
+
+  /* Elevation tokens */
+  --elevation-0: none;
+  --elevation-1: 0 2px 8px var(--shadow);
+  --elevation-2: 0 1px 3px var(--shadow);
+
+  /* Semantic combat colors */
+  --combat-damage: var(--danger);
+  --combat-defense: var(--accent-gold);
+  --combat-healing: var(--success);
+
+  /* Success accent (WCAG AA 4.5:1 against --card-bg #f0e8d4) */
+  --accent-success: #2e7d32;
+
+  /* Domain background tints */
+  --domain-combat: rgba(176, 48, 48, 0.03);
+  --domain-character: transparent;
+  --domain-advancement: rgba(48, 80, 160, 0.03);
 }
 
 /* High contrast theme */
@@ -377,6 +450,28 @@ input[type="number"] {
   --card-bg: #0a0a0a;
   --card-border: #555555;
   --shadow: rgba(255, 255, 255, 0.1);
+
+  /* Spacing tokens */
+  --section-gap: 24px;
+  --card-gap: 16px;
+
+  /* Elevation tokens */
+  --elevation-0: none;
+  --elevation-1: 0 2px 8px var(--shadow);
+  --elevation-2: 0 1px 3px var(--shadow);
+
+  /* Semantic combat colors */
+  --combat-damage: var(--danger);
+  --combat-defense: var(--accent-gold);
+  --combat-healing: var(--success);
+
+  /* Success accent (WCAG AA 4.5:1 against --card-bg #0a0a0a) */
+  --accent-success: #44dd44;
+
+  /* Domain background tints — transparent for maximum contrast */
+  --domain-combat: transparent;
+  --domain-character: transparent;
+  --domain-advancement: transparent;
 }
 
 /* Old guy mode — scales everything up uniformly via zoom */
@@ -388,7 +483,7 @@ input[type="number"] {
   --parchment-dark: #b89858;
   --text-primary: #e0d0b0;
   --text-secondary: #b8a888;
-  --text-muted: #887868;
+  --text-muted: #9a8a7a;
   --accent: #c85050;
   --accent-gold: #d4b85c;
   --accent-gold-dark: #b09040;
@@ -400,6 +495,28 @@ input[type="number"] {
   --card-bg: #1e1e1e;
   --card-border: #333333;
   --shadow: rgba(0, 0, 0, 0.5);
+
+  /* Spacing tokens */
+  --section-gap: 24px;
+  --card-gap: 16px;
+
+  /* Elevation tokens */
+  --elevation-0: none;
+  --elevation-1: 0 2px 8px var(--shadow);
+  --elevation-2: 0 1px 3px var(--shadow);
+
+  /* Semantic combat colors */
+  --combat-damage: var(--danger);
+  --combat-defense: var(--accent-gold);
+  --combat-healing: var(--success);
+
+  /* Success accent (WCAG AA 4.5:1 against --card-bg #1e1e1e) */
+  --accent-success: #4caf50;
+
+  /* Domain background tints */
+  --domain-combat: rgba(208, 96, 96, 0.03);
+  --domain-character: transparent;
+  --domain-advancement: rgba(76, 120, 200, 0.03);
 }
 
 [data-theme="old-guy"] #root {

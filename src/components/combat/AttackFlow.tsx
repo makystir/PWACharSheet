@@ -8,6 +8,7 @@ import { computeOffHandTarget, calculateDamage, calculateDamagingSL } from '../.
 import { getHitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
+import { StepIndicator } from './StepIndicator';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { Crosshair } from 'lucide-react';
 import styles from './AttackFlow.module.css';
@@ -485,7 +486,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
       </div>
     );
 
-    return <div className={styles.stepContainer}>{content}</div>;
+    return <div className={`${styles.stepContainer} ${styles.damageTint}`}>{content}</div>;
   }
 
   function renderCollapsibleStep(step: number, title: string, content: React.ReactNode) {
@@ -535,12 +536,18 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
       </div>
 
       {!collapsed && (
-        <div className={styles.stepsWrapper}>
-          {renderStep1()}
-          {renderStep2()}
-          {renderStep3()}
-          {renderStep4()}
-        </div>
+        <>
+          <StepIndicator
+            steps={['Weapon', 'Roll', 'Damage', 'Result']}
+            currentStep={currentStep - 1}
+          />
+          <div className={styles.stepsWrapper}>
+            {renderStep1()}
+            {renderStep2()}
+            {renderStep3()}
+            {renderStep4()}
+          </div>
+        </>
       )}
     </Card>
   );
