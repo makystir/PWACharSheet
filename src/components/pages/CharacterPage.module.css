@@ -22,9 +22,8 @@
   gap: var(--section-gap, 24px);
 }
 
-/* Below 1025px: columns act as stacked blocks; visibility controlled by tab state */
-.desktopGridLeft.mobileHidden,
-.desktopGridRight.mobileHidden {
+/* Standalone class needed for CSS Modules export */
+.mobileHidden {
   display: none;
 }
 
@@ -49,7 +48,11 @@
     gap: 24px;
   }
 
-  /* On desktop, always show both columns regardless of active tab */
+  /* On desktop, always show both columns and sections regardless of active tab */
+  .mobileHidden {
+    display: flex;
+  }
+
   .desktopGridLeft.mobileHidden,
   .desktopGridRight.mobileHidden {
     display: flex;
