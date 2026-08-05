@@ -9,7 +9,7 @@ import { Tooltip } from '../shared/Tooltip';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents } from '../../logic/advancement';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
 import { SPELL_LIST } from '../../data/spells';
@@ -163,7 +163,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const allSkills = [...character.bSkills, ...character.aSkills];
   const skillsWithAdvances = careerSkills.filter(sn => allSkills.some(s => careerSkillMatches(sn, s.n) && s.a >= completionThreshold));
   const skillsMet = skillsWithAdvances.length >= Math.min(8, careerSkills.length);
-  const talentsOwned = careerTalents.filter(tn => character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' (')));
+  const talentsOwned = getCurrentLevelTalents(character.career, careerLevelNum).filter(tn => character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' (')));
   const talentsMet = talentsOwned.length >= 1;
   const readyToProgress = charsMet && skillsMet && talentsMet;
   const advanceLevelCost = readyToProgress ? 100 : 200;

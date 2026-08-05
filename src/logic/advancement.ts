@@ -296,12 +296,11 @@ export function getSpellLearningCost(
   const bonus = Math.max(characteristicBonus, 1);
   switch (spellType) {
     case 'petty': {
-      // Core Rulebook p.141: "Up to WP Bonus × 1: 50 XP; Up to WP Bonus × 2: 100 XP"
-      // When currently known ≤ WPB, you're in tier 1 (50 XP). Tier increases each WPB spells.
-      // Example: WPB=3, have 3 known → still tier 1 (50). Have 4 known → tier 2 (100).
-      const tier = spellsCurrentlyKnown > 0
-        ? Math.ceil(spellsCurrentlyKnown / bonus)
-        : 1;
+      // Core Rulebook p.142: Petty Magic talent grants WPB petty spells for free.
+      // "Up to WP Bonus × 1: 50 XP; Up to WP Bonus × 2: 100 XP"
+      // The initial WPB spells are free (cost 0). After that, the tier cost applies.
+      if (spellsCurrentlyKnown < bonus) return 0; // Free initial spells from Petty Magic talent
+      const tier = Math.ceil(spellsCurrentlyKnown / bonus);
       return tier * 50;
     }
     case 'arcane': {
