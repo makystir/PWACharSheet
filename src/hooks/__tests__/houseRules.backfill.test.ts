@@ -31,7 +31,7 @@ vi.mock('../../logic/calculators', () => ({
 
 const RAW_DEFAULTS = {
   rangedDamageSBMode: 'none' as const,
-  impaleCritsOnTens: false,
+  impaleCritsOnTens: true,
   min1Wound: true,
   advantageCap: 10,
   useGroupAdvantage: false,

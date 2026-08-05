@@ -4,6 +4,18 @@ import { getRuneDamageBonus } from './runes';
 export const RANGED_GROUPS = ['Bow', 'Blackpowder', 'Crossbow', 'Sling', 'Throwing', 'Entangling', 'Explosives'];
 
 /**
+ * Check if a weapon has a specific quality (case-insensitive).
+ * Parses the weapon's comma-separated qualities string.
+ */
+export function hasWeaponQuality(weapon: WeaponItem, quality: string): boolean {
+  if (!weapon.qualities) return false;
+  const qualityLower = quality.toLowerCase();
+  return weapon.qualities
+    .split(',')
+    .some(q => q.trim().toLowerCase() === qualityLower);
+}
+
+/**
  * Match a weapon to the best skill the character has.
  * Engineering weapons are special: classified by maxR presence (ranged if maxR defined, melee otherwise).
  * Ranged weapons → Ranged(<group>).

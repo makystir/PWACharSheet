@@ -2,9 +2,9 @@ import { useState } from 'react';
 import type { Character, WeaponItem, ArmourPoints, CharacteristicKey } from '../../types/character';
 import type { RollResult, DifficultyLevel } from '../../logic/dice-roller';
 import { performRoll, applyDifficulty, computeSkillTarget, DIFFICULTY_MODIFIERS } from '../../logic/dice-roller';
-import { findSkillForWeapon, calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
+import { findSkillForWeapon, calcWeaponDamage, RANGED_GROUPS, hasWeaponQuality } from '../../logic/weapons';
 import { getBonus } from '../../logic/calculators';
-import { computeOffHandTarget, calculateDamage } from '../../logic/combat';
+import { computeOffHandTarget, calculateDamage, calculateDamagingSL } from '../../logic/combat';
 import { getHitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -44,6 +44,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
   const [offHand, setOffHand] = useState(false);
   const [isSecondAttack, setIsSecondAttack] = useState(false);
   const [firstAttackCompleted, setFirstAttackCompleted] = useState(false);
+  const [targetEngagedInMelee, setTargetEngagedInMelee] = useState(false);
 
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
 
@@ -78,7 +79,8 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
     return skill.a;
   })();
 
-  const modifiedTarget = applyDifficulty(baseTarget, difficulty) + offHandPenalty;
+  const rangedIntoMeleePenalty = (isRanged && targetEngagedInMelee) ? -20 : 0;
+  const modifiedTarget = applyDifficulty(baseTarget, difficulty) + offHandPenalty + rangedIntoMeleePenalty;
 
   // ── Handlers ──
 
@@ -90,9 +92,14 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
     setOpponentAP(0);
     setOffHand(isSecondAttack); // Second attack defaults to off-hand
 
-    // Determine default difficulty
+    // Reset target-engaged toggle when weapon changes to non-ranged
     const weapon = weapons[index];
     const weaponIsRanged = RANGED_GROUPS.includes(weapon.group);
+    if (!weaponIsRanged) {
+      setTargetEngagedInMelee(false);
+    }
+
+    // Determine default difficulty
     if (character.combatState.engaged && weaponIsRanged && weapon.group !== 'Blackpowder') {
       setDifficulty('Hard');
     } else {
@@ -102,7 +109,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
 
   function handleRollToHit() {
     const rollValue = Math.floor(Math.random() * 100) + 1;
-    const result = performRoll(baseTarget + offHandPenalty, difficulty, skillName, rollValue);
+    const result = performRoll(baseTarget + offHandPenalty + rangedIntoMeleePenalty, difficulty, skillName, rollValue);
 
     // Impale Crits on Tens: if enabled, weapon has Impale, roll is a multiple of 10 (not 100), and attack is a success
     if (
@@ -132,6 +139,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
     setOffHand(false);
     setIsSecondAttack(false);
     setFirstAttackCompleted(false);
+    setTargetEngagedInMelee(false);
   }
 
   function handleSecondAttack() {
@@ -159,7 +167,15 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
     : { num: null, breakdown: '' };
 
   const sl = lastRollResult?.sl ?? 0;
-  const totalDamage = (weaponDamage.num ?? 0) + sl;
+
+  // Damaging quality: use max(units digit, SL) as effective SL
+  const isDamaging = selectedWeapon ? hasWeaponQuality(selectedWeapon, 'Damaging') : false;
+  const damagingResult = isDamaging && lastRollResult && lastRollResult.passed
+    ? calculateDamagingSL(lastRollResult.roll, sl)
+    : null;
+  const effectiveSL = damagingResult ? damagingResult.effectiveSL : sl;
+
+  const totalDamage = (weaponDamage.num ?? 0) + effectiveSL;
   const netWounds = Math.max(0, totalDamage - opponentTB - opponentAP);
   const effectiveWounds = (() => {
     if (character.houseRules.min1Wound && totalDamage > opponentTB + opponentAP) {
@@ -277,6 +293,25 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
           )}
         </div>
 
+        {/* Target Engaged in Melee toggle for ranged attacks */}
+        {isRanged && (
+          <div className={styles.infoRow}>
+            <button
+              type="button"
+              data-testid="target-engaged-in-melee-toggle"
+              className={targetEngagedInMelee ? styles.offHandBtnActive : styles.offHandBtn}
+              onClick={() => setTargetEngagedInMelee(!targetEngagedInMelee)}
+              aria-pressed={targetEngagedInMelee}
+              aria-label="Target Engaged in Melee"
+            >
+              🎯 Target Engaged in Melee
+            </button>
+            {targetEngagedInMelee && (
+              <span className={styles.penaltyReminder}>Target Engaged in Melee (−20)</span>
+            )}
+          </div>
+        )}
+
         {!lastRollResult && (
           <button
             type="button"
@@ -382,7 +417,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
           <span className={styles.operatorSymbol}>+</span>
           <div className={styles.statChip}>
             <span className={styles.statChipLabel}>SL</span>
-            <span className={styles.statChipValue}>{sl >= 0 ? '+' : ''}{sl}</span>
+            <span className={styles.statChipValue}>{effectiveSL >= 0 ? '+' : ''}{effectiveSL}</span>
           </div>
           <span className={styles.operatorSymbol}>=</span>
           <div className={styles.statChip}>
@@ -390,6 +425,12 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
             <span className={styles.bigDamage}>{totalDamage}</span>
           </div>
         </div>
+
+        {damagingResult && (
+          <div className={styles.breakdownText} data-testid="damaging-breakdown">
+            Damaging: Units digit ({damagingResult.unitsDigit}) vs SL ({damagingResult.originalSL}) → using {damagingResult.effectiveSL}
+          </div>
+        )}
 
         {weaponDamage.breakdown && (
           <div className={styles.breakdownText}>

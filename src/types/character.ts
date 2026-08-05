@@ -797,7 +797,7 @@ export const BLANK_CHARACTER: Character = {
   portrait: '',
   houseRules: {
     rangedDamageSBMode: 'none',
-    impaleCritsOnTens: false,
+    impaleCritsOnTens: true,
     min1Wound: true,
     advantageCap: 10,
     useGroupAdvantage: false,

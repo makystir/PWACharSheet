@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findSkillForWeapon, calcWeaponDamage, RANGED_GROUPS } from '../weapons';
+import { findSkillForWeapon, calcWeaponDamage, hasWeaponQuality, RANGED_GROUPS } from '../weapons';
 import { WEAPONS } from '../../data/weapons';
 import type { WeaponItem, Talent } from '../../types/character';
 
@@ -788,5 +788,60 @@ describe('Engineering weapon damage calculation', () => {
     // SB(4) + 7 = 11, unchanged by mode since it's melee
     expect(result.num).toBe(11);
     expect(result.breakdown).toContain('SB(4)');
+  });
+});
+
+
+// ─── hasWeaponQuality ────────────────────────────────────────────────────────
+
+describe('hasWeaponQuality', () => {
+  function weapon(qualities: string): WeaponItem {
+    return {
+      name: 'Test Weapon',
+      group: 'Basic',
+      enc: '1',
+      damage: '+SB+4',
+      qualities,
+    };
+  }
+
+  it('returns true for exact match in single quality', () => {
+    expect(hasWeaponQuality(weapon('Damaging'), 'Damaging')).toBe(true);
+  });
+
+  it('returns true for match in comma-separated list', () => {
+    expect(hasWeaponQuality(weapon('Damaging, Impale, Fast'), 'Impale')).toBe(true);
+  });
+
+  it('performs case-insensitive match', () => {
+    expect(hasWeaponQuality(weapon('Damaging, Impale'), 'damaging')).toBe(true);
+    expect(hasWeaponQuality(weapon('damaging, impale'), 'DAMAGING')).toBe(true);
+  });
+
+  it('returns false when quality is not present', () => {
+    expect(hasWeaponQuality(weapon('Impale, Fast'), 'Damaging')).toBe(false);
+  });
+
+  it('does not match partial quality names', () => {
+    expect(hasWeaponQuality(weapon('Damaging'), 'Damage')).toBe(false);
+    expect(hasWeaponQuality(weapon('Shield Rating 2'), 'Shield')).toBe(false);
+  });
+
+  it('handles empty qualities string', () => {
+    expect(hasWeaponQuality(weapon(''), 'Damaging')).toBe(false);
+  });
+
+  it('handles "—" qualities string', () => {
+    expect(hasWeaponQuality(weapon('—'), 'Damaging')).toBe(false);
+  });
+
+  it('trims whitespace around qualities', () => {
+    expect(hasWeaponQuality(weapon('  Damaging , Impale  '), 'Damaging')).toBe(true);
+    expect(hasWeaponQuality(weapon('  Damaging , Impale  '), 'Impale')).toBe(true);
+  });
+
+  it('handles undefined/null-like qualities gracefully', () => {
+    const w = { name: 'Test', group: 'Basic', enc: '1', damage: '+SB+4', qualities: '' };
+    expect(hasWeaponQuality(w, 'Damaging')).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import type { Condition } from '../types/character';
+import type { Condition, WeaponItem } from '../types/character';
 import { CONDITIONS } from '../data/conditions';
 
 /**
@@ -127,4 +127,106 @@ export function incrementAdvantage(current: number, cap?: number): number {
  */
 export function decrementAdvantage(current: number): number {
   return Math.max(0, current - 1);
+}
+
+/**
+ * Calculate effective SL for a Damaging weapon.
+ * Returns max(unitsDigit, sl) per Core Rulebook p.297.
+ *
+ * The units digit is the ones place of the d100 roll (roll % 10).
+ * The effective SL is whichever is higher: the units digit or the standard SL.
+ */
+export function calculateDamagingSL(roll: number, sl: number): {
+  effectiveSL: number;
+  unitsDigit: number;
+  originalSL: number;
+  used: 'units' | 'sl';
+} {
+  const unitsDigit = roll % 10;
+  const effectiveSL = Math.max(unitsDigit, sl);
+  const used: 'units' | 'sl' = unitsDigit > sl ? 'units' : 'sl';
+
+  return {
+    effectiveSL,
+    unitsDigit,
+    originalSL: sl,
+    used,
+  };
+}
+
+
+/**
+ * Parse Shield Rating from a shield weapon's qualities string.
+ * Looks for "Shield Rating X" or "Rating X" pattern.
+ * Returns the numeric rating, or 0 if not found.
+ */
+export function parseShieldRating(weapon: WeaponItem): number {
+  const qualities = weapon.qualities ?? '';
+  // Try "Shield Rating X" first, then fallback to "Rating X"
+  const shieldRatingMatch = qualities.match(/Shield\s+Rating\s+(\d+)/i);
+  if (shieldRatingMatch) {
+    return parseInt(shieldRatingMatch[1], 10);
+  }
+  const ratingMatch = qualities.match(/Rating\s+(\d+)/i);
+  if (ratingMatch) {
+    return parseInt(ratingMatch[1], 10);
+  }
+  return 0;
+}
+
+/**
+ * Find the equipped shield weapon from the character's weapon list.
+ * A shield is a weapon with "Shield" in its group field.
+ * Multiple shields equipped → returns the first one found.
+ */
+export function findEquippedShield(weapons: WeaponItem[]): WeaponItem | null {
+  return weapons.find(w => w.group.toLowerCase().includes('shield')) ?? null;
+}
+
+
+export interface CriticalWoundModifier {
+  excessDamage: number;
+  toughnessBonus: number;
+  modifier: -20 | 0;
+  description: string;
+}
+
+/**
+ * Calculate the Critical Wound table roll modifier based on excess damage vs TB.
+ * Per Core Rulebook p.172:
+ * - If excess damage < TB: -20 modifier to the Critical table roll
+ * - If excess damage >= TB: no modifier applies
+ *
+ * A Critical Wound is triggered when netWounds exceeds the character's currentWounds,
+ * reducing them to 0 or below. The excess damage is netWounds - currentWounds.
+ *
+ * Edge cases:
+ * - netWounds exactly equals currentWounds → character at exactly 0 wounds →
+ *   critical IS triggered, excess = 0, modifier = -20 (since 0 < TB for any TB > 0)
+ * - TB is 0 and excess is 0 → excess (0) >= TB (0), so modifier = 0
+ */
+export function calculateCriticalModifier(
+  netWounds: number,
+  currentWounds: number,
+  toughnessBonus: number,
+): CriticalWoundModifier | null {
+  // No critical wound if net wounds does not reach or exceed current wounds
+  if (netWounds < currentWounds) {
+    return null;
+  }
+
+  const excessDamage = netWounds - currentWounds;
+  const modifier: -20 | 0 = excessDamage < toughnessBonus ? -20 : 0;
+
+  const description =
+    modifier === -20
+      ? `Excess damage (${excessDamage}) is less than TB (${toughnessBonus}): -20 modifier to Critical table roll`
+      : `Excess damage (${excessDamage}) meets or exceeds TB (${toughnessBonus}): no modifier to Critical table roll`;
+
+  return {
+    excessDamage,
+    toughnessBonus,
+    modifier,
+    description,
+  };
 }

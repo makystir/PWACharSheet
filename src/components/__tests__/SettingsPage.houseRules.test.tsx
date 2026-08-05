@@ -133,37 +133,37 @@ function findToggleButton(labelText: string): HTMLButtonElement {
 }
 
 describe('SettingsPage — Impale Crits on 10s toggle', () => {
-  it('shows OFF when impaleCritsOnTens is false (default)', () => {
+  it('shows ON when impaleCritsOnTens is true (default RAW)', () => {
     render(<SettingsPage {...makeProps()} />);
-    const impaleToggle = findToggleButton('Impale Crits on 10s');
-    expect(impaleToggle).toHaveTextContent('OFF');
-  });
-
-  it('shows ON when impaleCritsOnTens is true', () => {
-    const character = structuredClone(BLANK_CHARACTER);
-    character.houseRules.impaleCritsOnTens = true;
-    render(<SettingsPage {...makeProps({ character })} />);
     const impaleToggle = findToggleButton('Impale Crits on 10s');
     expect(impaleToggle).toHaveTextContent('ON');
   });
 
-  it('clicking toggle calls update to enable impaleCritsOnTens', () => {
-    const update = vi.fn();
-    render(<SettingsPage {...makeProps({ update })} />);
-    // Default is false, so clicking should call update with true
+  it('shows OFF when impaleCritsOnTens is false', () => {
+    const character = structuredClone(BLANK_CHARACTER);
+    character.houseRules.impaleCritsOnTens = false;
+    render(<SettingsPage {...makeProps({ character })} />);
     const impaleToggle = findToggleButton('Impale Crits on 10s');
-    fireEvent.click(impaleToggle);
-    expect(update).toHaveBeenCalledWith('houseRules.impaleCritsOnTens', true);
+    expect(impaleToggle).toHaveTextContent('OFF');
   });
 
   it('clicking toggle calls update to disable impaleCritsOnTens', () => {
     const update = vi.fn();
-    const character = structuredClone(BLANK_CHARACTER);
-    character.houseRules.impaleCritsOnTens = true;
-    render(<SettingsPage {...makeProps({ update, character })} />);
+    render(<SettingsPage {...makeProps({ update })} />);
+    // Default is true (RAW), so clicking should call update with false
     const impaleToggle = findToggleButton('Impale Crits on 10s');
     fireEvent.click(impaleToggle);
     expect(update).toHaveBeenCalledWith('houseRules.impaleCritsOnTens', false);
+  });
+
+  it('clicking toggle calls update to enable impaleCritsOnTens', () => {
+    const update = vi.fn();
+    const character = structuredClone(BLANK_CHARACTER);
+    character.houseRules.impaleCritsOnTens = false;
+    render(<SettingsPage {...makeProps({ update, character })} />);
+    const impaleToggle = findToggleButton('Impale Crits on 10s');
+    fireEvent.click(impaleToggle);
+    expect(update).toHaveBeenCalledWith('houseRules.impaleCritsOnTens', true);
   });
 });
 
@@ -323,9 +323,9 @@ describe('SettingsPage — RAW default labels', () => {
     expect(screen.getByText('Max advantage (0 = uncapped). RAW: IB')).toBeInTheDocument();
   });
 
-  it('Impale Crits on 10s defaults to OFF (RAW is no impale crits on 10s)', () => {
+  it('Impale Crits on 10s defaults to ON (RAW per Core Rulebook p.298)', () => {
     render(<SettingsPage {...makeProps()} />);
     const impaleToggle = findToggleButton('Impale Crits on 10s');
-    expect(impaleToggle).toHaveTextContent('OFF');
+    expect(impaleToggle).toHaveTextContent('ON');
   });
 });

@@ -976,6 +976,43 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
+   Movement Display (Requirement 5 — Combat Rules Compliance)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.movementRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.movementItem {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 13px;
+  font-family: var(--font-heading);
+}
+
+.movementLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.movementValue {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@media (max-width: 767px) {
+  .movementRow {
+    gap: 8px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
    End Turn Button & Summary (Requirement 8)
    ══════════════════════════════════════════════════════════════════════════════ */
 

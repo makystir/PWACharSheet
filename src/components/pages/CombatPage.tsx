@@ -113,7 +113,15 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
             useGroupAdvantage={character.houseRules?.useGroupAdvantage ?? false}
             character={character}
             updateCharacter={updateCharacter}
-            onUpdateWounds={(d) => update('wCur', Math.max(0, Math.min(totalWounds, character.wCur + d)))}
+            onUpdateWounds={(d) => {
+              const newWounds = Math.max(0, Math.min(totalWounds, character.wCur + d));
+              if (d < 0 && inCombat && character.advantage > 0) {
+                // Core Rulebook p.164: "lose any Wounds, you automatically lose all Advantage"
+                updateCharacter((c) => ({ ...c, wCur: newWounds, advantage: 0 }));
+              } else {
+                update('wCur', newWounds);
+              }
+            }}
             onUpdateAdvantage={(d) => update('advantage', d < 0 ? decrementAdvantage(character.advantage) : d === -character.advantage ? 0 : incrementAdvantage(character.advantage, character.houseRules.advantageCap))}
             onUpdateRound={(d) => update('combatState.currentRound', Math.max(0, character.combatState.currentRound + d))}
             onToggleEngaged={() => update('combatState.engaged', !character.combatState.engaged)}
@@ -147,7 +155,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                 <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
               </CollapsibleSection>
               <CollapsibleSection title="Take Damage" storageKey={`collapsible-take-damage-${characterId}`} defaultExpanded={false}>
-                <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} armourList={character.armour} wCur={character.wCur} totalWounds={totalWounds}
+                <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} armourList={character.armour} weapons={character.weapons} wCur={character.wCur} totalWounds={totalWounds}
                   useCriticalDeflection={character.houseRules?.useCriticalDeflection ?? false}
                   onArmourUpdate={(updatedItem, index) => {
                     updateCharacter((c) => {
@@ -289,7 +297,12 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
       {/* ── Modals ── */}
       {showConditionPicker && (
         <ConditionPicker conditions={character.conditions}
-          onApply={(name) => updateCharacter((c) => ({ ...c, conditions: applyCondition(c.conditions, name) }))}
+          onApply={(name) => updateCharacter((c) => ({
+            ...c,
+            conditions: applyCondition(c.conditions, name),
+            // Core Rulebook p.164: "suffer any Conditions, you automatically lose all Advantage"
+            advantage: inCombat ? 0 : c.advantage,
+          }))}
           onRemove={(name) => updateCharacter((c) => ({ ...c, conditions: removeCondition(c.conditions, name) }))}
           onClose={() => setShowConditionPicker(false)} />
       )}

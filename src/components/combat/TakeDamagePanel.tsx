@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import type { ArmourItem, ArmourPoints } from '../../types/character';
+import type { ArmourItem, ArmourPoints, WeaponItem } from '../../types/character';
 import type { HitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { ShieldAlert } from 'lucide-react';
-import { resolveArmourCombatEffects, canDeflectCritical, applyDeflection } from '../../logic/armourCombat';
+import { resolveArmourCombatEffects, canDeflectCritical, applyDeflection, resolvePenetratingEffect } from '../../logic/armourCombat';
+import { calculateCriticalModifier, parseShieldRating, findEquippedShield } from '../../logic/combat';
 import type { CombatArmourContext } from '../../logic/armourCombat';
 import { coversLocation, type LocationKey } from '../../logic/armourLayering';
 import styles from './TakeDamagePanel.module.css';
@@ -15,6 +16,7 @@ export interface TakeDamagePanelProps {
   toughnessBonus: number;
   armourPoints: ArmourPoints;
   armourList?: ArmourItem[];
+  weapons?: WeaponItem[];
   useCriticalDeflection?: boolean;
   onArmourUpdate?: (updatedItem: ArmourItem, index: number) => void;
   wCur: number;
@@ -70,6 +72,7 @@ export function TakeDamagePanel({
   toughnessBonus,
   armourPoints,
   armourList = [],
+  weapons = [],
   useCriticalDeflection = false,
   onArmourUpdate,
   wCur,
@@ -92,6 +95,16 @@ export function TakeDamagePanel({
 
   // Critical Deflection state (task 7.3)
   const [criticalDeflected, setCriticalDeflected] = useState(false);
+
+  // Penetrating weapon quality toggle (Req 1.6)
+  const [penetratingEnabled, setPenetratingEnabled] = useState(false);
+
+  // Shield defence toggle (Req 3.1–3.6)
+  const [defendedWithShield, setDefendedWithShield] = useState(false);
+
+  // Detect equipped shield from character weapons
+  const equippedShield = useMemo(() => findEquippedShield(weapons), [weapons]);
+  const shieldRating = useMemo(() => equippedShield ? parseShieldRating(equippedShield) : 0, [equippedShield]);
 
   // Helmet special abilities: frontal missile toggle for Bascinet (task 7.4)
   const [isMissileFrontal, setIsMissileFrontal] = useState(false);
@@ -162,7 +175,18 @@ export function TakeDamagePanel({
   }, [armourAtLocation, toHitRollEven, wouldCauseCritical, attackerHasImpale, apAtLocation, bascinetAtLocation, isMissileFrontal]);
 
   // Use effective AP from combat effects (uses currentAp values, handles Partial/Weakpoints bypasses)
-  const effectiveAP = armourAtLocation.length > 0 ? armourCombatResult.effectiveAP : apAtLocation;
+  const effectiveAPBeforePenetrating = armourAtLocation.length > 0 ? armourCombatResult.effectiveAP : apAtLocation;
+
+  // Apply Penetrating weapon quality after standard armour combat effects (Req 1.1–1.5)
+  const penetratingResult = useMemo(() => {
+    return resolvePenetratingEffect(armourAtLocation, effectiveAPBeforePenetrating, penetratingEnabled);
+  }, [armourAtLocation, effectiveAPBeforePenetrating, penetratingEnabled]);
+
+  const effectiveAPBeforeShield = penetratingEnabled ? penetratingResult.effectiveAP : effectiveAPBeforePenetrating;
+
+  // Add Shield Rating to effective AP when "Defended with Shield" is enabled (Req 3.2, 3.5)
+  const shieldAPContribution = (defendedWithShield && equippedShield) ? shieldRating : 0;
+  const effectiveAP = effectiveAPBeforeShield + shieldAPContribution;
 
   // Calculate net wounds using the combat damage formula (weaponDamage + SL - AP - TB)
   // The min-1-wound rule only applies when incoming damage exceeds reduction (TB+AP);
@@ -177,6 +201,13 @@ export function TakeDamagePanel({
     if (min1Wound && totalIncoming > reduction && raw < 1) return 1;
     return Math.max(0, raw);
   })();
+
+  // ─── Critical Wound Modifier (Req 6.1–6.5) ───────────────────────────────────
+  // Calculate critical wound modifier when net wounds would reduce character to 0 or below
+  const criticalModifierResult = useMemo(() => {
+    if (netWounds <= 0) return null;
+    return calculateCriticalModifier(netWounds, wCur, toughnessBonus);
+  }, [netWounds, wCur, toughnessBonus]);
 
   // ─── Critical Deflection availability (task 7.3, Req 6.4, 6.8, 6.9) ─────────
   // Critical Wound triggers when net wounds exceeds remaining wounds (character goes to 0 or below)
@@ -357,6 +388,20 @@ export function TakeDamagePanel({
             </label>
           </div>
 
+          {/* Penetrating weapon quality toggle (Req 1.6) */}
+          <div className={styles.formRow}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={penetratingEnabled}
+                onChange={(e) => setPenetratingEnabled(e.target.checked)}
+                className={styles.checkboxInput}
+                data-testid="penetrating-toggle"
+              />
+              Penetrating
+            </label>
+          </div>
+
           {/* Bascinet frontal missile toggle (Req 7.1, task 7.4) */}
           {bascinetAtLocation && (
             <div className={styles.formRow}>
@@ -369,6 +414,22 @@ export function TakeDamagePanel({
                   data-testid="frontal-missile-toggle"
                 />
                 Frontal Missile?
+              </label>
+            </div>
+          )}
+
+          {/* Defended with Shield toggle (Req 3.1, 3.4) — only shown when shield is equipped */}
+          {equippedShield && (
+            <div className={styles.formRow}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={defendedWithShield}
+                  onChange={(e) => setDefendedWithShield(e.target.checked)}
+                  className={styles.checkboxInput}
+                  data-testid="defended-with-shield-toggle"
+                />
+                Defended with Shield
               </label>
             </div>
           )}
@@ -403,6 +464,26 @@ export function TakeDamagePanel({
                   ⚠ Weakpoints: All AP ignored
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Shield AP contribution display (Req 3.6) */}
+          {defendedWithShield && shieldAPContribution > 0 && (
+            <div className={styles.armourNotesBox} data-testid="shield-ap-note">
+              <div className={styles.armourNotePositive}>
+                🛡 Shield: +{shieldAPContribution} AP
+              </div>
+            </div>
+          )}
+
+          {/* Penetrating weapon quality notes (Req 1.7) */}
+          {penetratingEnabled && penetratingResult.notes.length > 0 && (
+            <div className={styles.armourNotesBox} data-testid="penetrating-notes">
+              {penetratingResult.notes.map((note, idx) => (
+                <div key={idx} className={styles.armourNote}>
+                  ⚔ {note}
+                </div>
+              ))}
             </div>
           )}
 
@@ -457,6 +538,24 @@ export function TakeDamagePanel({
           {criticalDeflected && (
             <div className={styles.deflectedNote} role="status" data-testid="critical-deflected-note">
               ✓ Critical Wound deflected! Armour AP reduced by 1.
+            </div>
+          )}
+
+          {/* Critical Wound Modifier Notification (Req 6.1–6.5) */}
+          {criticalModifierResult && !criticalDeflected && (
+            <div className={styles.criticalWoundNotification} role="status" data-testid="critical-wound-notification">
+              <div className={styles.criticalWoundTitle}>⚠ Critical Wound</div>
+              <div className={styles.criticalWoundDetail}>
+                Excess Damage: {criticalModifierResult.excessDamage} | TB: {criticalModifierResult.toughnessBonus}
+              </div>
+              <div className={styles.criticalWoundModifier}>
+                {criticalModifierResult.modifier === -20
+                  ? '→ Critical table roll modifier: -20'
+                  : '→ No modifier to Critical table roll'}
+              </div>
+              <div className={styles.criticalWoundDesc}>
+                {criticalModifierResult.description}
+              </div>
             </div>
           )}
 

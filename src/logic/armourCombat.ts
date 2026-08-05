@@ -1,4 +1,4 @@
-import type { ArmourItem } from '../types/character';
+import type { ArmourItem, ArmourType } from '../types/character';
 import { type LocationKey, coversLocation, isWeakpointsSuppressed } from './armourLayering';
 
 export interface CombatArmourContext {
@@ -201,4 +201,67 @@ export function applyDeflection(item: ArmourItem): ArmourItem {
     ...item,
     currentAp: newAp,
   };
+}
+
+
+// ─── Penetrating Quality ─────────────────────────────────────────────────────
+
+export interface PenetratingResult {
+  effectiveAP: number;
+  notes: string[];
+}
+
+const METALLIC_ARMOUR_TYPES: ArmourType[] = ['Chainmail', 'Brigandine', 'Plate'];
+
+/**
+ * Classify whether an armour type is metallic.
+ * - Metallic: Chainmail, Brigandine, Plate
+ * - Non-metallic: SoftKit, BoiledLeather
+ * - Undefined armourType → treat as non-metallic (conservative)
+ */
+export function isMetallicArmour(armourType: ArmourType | undefined): boolean {
+  if (armourType === undefined) return false;
+  return METALLIC_ARMOUR_TYPES.includes(armourType);
+}
+
+/**
+ * Apply Penetrating weapon quality to armour items at a hit location.
+ * - Non-metallic (SoftKit, BoiledLeather, undefined): AP set to 0
+ * - Metallic (Chainmail, Brigandine, Plate): AP reduced by 1 (min 0 per item)
+ *
+ * When disabled, returns baseEffectiveAP unchanged.
+ */
+export function resolvePenetratingEffect(
+  armourItems: ArmourItem[],
+  baseEffectiveAP: number,
+  penetratingEnabled: boolean,
+): PenetratingResult {
+  if (!penetratingEnabled) {
+    return { effectiveAP: baseEffectiveAP, notes: [] };
+  }
+
+  let effectiveAP = 0;
+  const notes: string[] = [];
+
+  for (const item of armourItems) {
+    const itemAP = item.currentAp ?? item.ap;
+    const metallic = isMetallicArmour(item.armourType);
+
+    if (!metallic) {
+      // Non-metallic: AP set to 0
+      if (itemAP > 0) {
+        notes.push(`Penetrating: ${item.name} ignored (non-metallic)`);
+      }
+      // contributes 0
+    } else {
+      // Metallic: AP reduced by 1 (min 0)
+      const reduced = Math.max(0, itemAP - 1);
+      effectiveAP += reduced;
+      if (itemAP > 0) {
+        notes.push(`Penetrating: ${item.name} AP ${itemAP} → ${reduced} (metallic)`);
+      }
+    }
+  }
+
+  return { effectiveAP, notes };
 }

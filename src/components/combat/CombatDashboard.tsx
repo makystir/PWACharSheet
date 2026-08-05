@@ -637,6 +637,8 @@ export function CombatDashboard(props: CombatDashboardProps) {
                   updateCharacter((char) => ({
                     ...char,
                     conditions: applyCondition(char.conditions, config.name),
+                    // Core Rulebook p.164: "suffer any Conditions, you automatically lose all Advantage"
+                    advantage: inCombat ? 0 : char.advantage,
                   }));
                 }}
               />
@@ -689,6 +691,20 @@ export function CombatDashboard(props: CombatDashboardProps) {
                 {combatState.engaged ? '⚔ Engaged' : 'Not Engaged'}
               </button>
             </div>
+
+            {/* ── Movement Display (Req 5.1–5.5) ── */}
+            {character && (
+              <div className={styles.movementRow} data-testid="movement-display">
+                <div className={styles.movementItem}>
+                  <span className={styles.movementLabel}>Walk</span>
+                  <span className={styles.movementValue}>{(character.move?.m ?? 0) * 2} yds</span>
+                </div>
+                <div className={styles.movementItem}>
+                  <span className={styles.movementLabel}>Run</span>
+                  <span className={styles.movementValue}>{(character.move?.m ?? 0) * 4} yds</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>{/* End dashboardGroups */}
