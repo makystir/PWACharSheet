@@ -312,8 +312,11 @@ export function getSpellLearningCost(
       return tier * 100;
     }
     case 'miracle': {
-      // 100 XP × miracles currently known (minimum 100 for first)
-      return 100 * Math.max(spellsCurrentlyKnown, 1);
+      // Core Rulebook p.140: Invoke talent grants 1 miracle free.
+      // Extra miracles cost "100 XP per miracle you currently know."
+      // So: 1st miracle = free (0 XP), 2nd = 100 XP (know 1), 3rd = 200 XP (know 2), etc.
+      if (spellsCurrentlyKnown === 0) return 0;
+      return 100 * spellsCurrentlyKnown;
     }
     case 'chaos': {
       // Always 100 XP
@@ -532,14 +535,46 @@ export function careerSkillMatches(careerSkillName: string, characterSkillName: 
 }
 
 /**
+ * Get the talents that are NEW at a specific career level (not inherited from lower levels).
+ * Per Core Rulebook p.47: "Talents are only available when you are in the level of the Career
+ * that lists them." This means only the talents unique to the CURRENT level are purchasable.
+ *
+ * Computes the difference between the current level's talent list and the previous level's.
+ */
+export function getCurrentLevelTalents(
+  careerName: string,
+  level: number,
+): string[] {
+  const scheme = CAREER_SCHEMES[careerName];
+  if (!scheme) return [];
+
+  const careerLevel = scheme[`level${level}` as keyof typeof scheme] as CareerLevel | undefined;
+  if (!careerLevel) return [];
+
+  // Level 1 has no previous level — all talents are new
+  if (level <= 1) return careerLevel.talents;
+
+  // Get previous level's cumulative talents
+  const prevLevel = scheme[`level${level - 1}` as keyof typeof scheme] as CareerLevel | undefined;
+  const prevTalents = prevLevel ? prevLevel.talents : [];
+
+  // Return only talents that are NOT in the previous level's list
+  return careerLevel.talents.filter(t => !prevTalents.includes(t));
+}
+
+/**
  * Check if a career level is complete per WFRP 4e rules (p.48).
  *
  * To complete a career level, you must have:
  * - The level's required advances (5/10/15/20) in ALL career level characteristics
  * - The level's required advances in at least 8 of the career level's available skills
- * - At least 1 talent from the current career level
+ * - At least 1 talent from the CURRENT career level (NOT lower levels)
  *
- * Skills and talents gained from prior careers count towards completion.
+ * Per Core Rulebook p.47: "Talents are only available when you are in the level of the Career
+ * that lists them." The completion check enforces this by requiring a talent that is NEW at
+ * the current level.
+ *
+ * Skills and characteristics gained from prior careers count towards completion.
  */
 export function isCareerLevelComplete(
   character: Character,
@@ -572,8 +607,10 @@ export function isCareerLevelComplete(
     }
   }
 
-  // Check talents: at least 1 from current career level
-  const hasTalent = careerLevel.talents.some(tn =>
+  // Check talents: at least 1 from CURRENT career level only (not cumulative lower levels)
+  // Per Core Rulebook p.47: "Talents are only available when you are in the level of the Career that lists them."
+  const currentLevelTalents = getCurrentLevelTalents(careerName, level);
+  const hasTalent = currentLevelTalents.some(tn =>
     character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' ('))
   );
 
