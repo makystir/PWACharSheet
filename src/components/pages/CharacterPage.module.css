@@ -7,7 +7,9 @@
 
 /* ─── Desktop Two-Column Grid (Req 22.1–22.5) ─── */
 .desktopGrid {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap, 24px);
 }
 
 .desktopGridLeft {
@@ -22,12 +24,12 @@
   gap: var(--section-gap, 24px);
 }
 
-/* Standalone class needed for CSS Modules export */
+/* Hide sections when not on their tab */
 .mobileHidden {
   display: none;
 }
 
-/* Within the right column, separate visibility for abilities vs gear on mobile */
+/* Within the right column, separate visibility for abilities vs gear */
 .abilitiesSection {
   display: contents;
 }
@@ -39,14 +41,6 @@
 .abilitiesSection.mobileHidden,
 .gearSection.mobileHidden {
   display: none;
-}
-
-@media (min-width: 1025px) {
-  .desktopGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
 }
 
 /* Inline field with help popover */
