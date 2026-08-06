@@ -228,6 +228,27 @@
   text-decoration: line-through;
 }
 
+/* Editable type input */
+.entryTypeInput {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--parchment);
+  min-width: 100px;
+  width: 110px;
+  max-width: 110px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
+.entryTypeInputCompleted {
+  composes: entryTypeInput;
+  text-decoration: line-through;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
 /* Notes input */
 .notesInput {
   flex: 1;

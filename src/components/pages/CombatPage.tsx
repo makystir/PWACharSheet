@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { Character, ArmourPoints } from '../../types/character';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import styles from './CombatPage.module.css';
@@ -9,6 +9,7 @@ import { Toast } from '../shared/Toast';
 import { RollDialog } from '../shared/RollDialog';
 import { useUndoToast } from '../../hooks/useUndoToast';
 import { removeAtIndex, restoreAtIndex } from '../../logic/undo';
+import { reorderArray } from '../../logic/reorder';
 import { RollResultDisplay } from '../shared/RollResultDisplay';
 import { FortuneResolvePanel } from '../shared/FortuneResolvePanel';
 import { SpellCastingPanel } from '../shared/SpellCastingPanel';
@@ -26,6 +27,7 @@ import { AmmoTracker } from '../combat/AmmoTracker';
 import { CriticalWoundsPanel } from '../combat/CriticalWoundsPanel';
 import { ConditionPicker } from '../combat/ConditionPicker';
 import { HirelingCombatPanel } from '../retinue/HirelingCombatPanel';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { WEAPONS } from '../../data/weapons';
 import { ARMOURS } from '../../data/armour';
 import { applyCondition, removeCondition, incrementAdvantage, decrementAdvantage } from '../../logic/combat';
@@ -33,6 +35,7 @@ import { recordCriticalWound, healCriticalWound } from '../../logic/critical-wou
 import { getBonus } from '../../logic/calculators';
 import { findSkillForWeapon, RANGED_GROUPS } from '../../logic/weapons';
 import { computeSkillTarget, type RollResult, type DifficultyLevel } from '../../logic/dice-roller';
+import { decrementConditionDurations } from '../../logic/condition-duration';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
 import type { CharacteristicKey } from '../../types/character';
 import type { HitLocation } from '../combat/hitLocationTable';
@@ -67,11 +70,47 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
   const [showConditionPicker, setShowConditionPicker] = useState(false);
   const [downLocation, setDownLocation] = useState<HitLocation | undefined>(undefined);
   const [combatMode, setCombatMode] = useState<CombatMode>('attack');
+  const [expiredConditionQueue, setExpiredConditionQueue] = useState<string[]>([]);
 
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isDesktop = useMediaQuery('(min-width: 1025px)');
   const inCombat = character.combatState.inCombat;
   const TB = getBonus(character.chars.T.i + character.chars.T.a + character.chars.T.b);
+
+  /* ── Condition duration decrement on round advance ── */
+  const handleRoundAdvanceWithDecrement = useCallback((delta: number) => {
+    if (delta <= 0) {
+      // Only decrement conditions when round advances forward
+      update('combatState.currentRound', Math.max(0, character.combatState.currentRound + delta));
+      return;
+    }
+
+    const { conditions: decremented, expiredNames } = decrementConditionDurations(character.conditions);
+    updateCharacter((c) => ({
+      ...c,
+      conditions: decremented,
+      combatState: { ...c.combatState, currentRound: c.combatState.currentRound + delta },
+    }));
+
+    if (expiredNames.length > 0) {
+      setExpiredConditionQueue(expiredNames);
+    }
+  }, [character.conditions, character.combatState.currentRound, update, updateCharacter]);
+
+  /* ── Expired condition prompt handlers ── */
+  const handleConfirmRemoveExpired = useCallback(() => {
+    const conditionName = expiredConditionQueue[0];
+    updateCharacter((c) => ({
+      ...c,
+      conditions: c.conditions.filter((cond) => cond.name !== conditionName),
+    }));
+    setExpiredConditionQueue((q) => q.slice(1));
+  }, [expiredConditionQueue, updateCharacter]);
+
+  const handleDeclineRemoveExpired = useCallback(() => {
+    // Keep the condition with duration "0" (already set by decrementConditionDurations)
+    setExpiredConditionQueue((q) => q.slice(1));
+  }, []);
 
   /* ── Weapon roll callback (used by WeaponCards) ── */
   const openWeaponRoll = (weapon: typeof character.weapons[number]) => {
@@ -157,7 +196,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
               }
             }}
             onUpdateAdvantage={(d) => update('advantage', d < 0 ? decrementAdvantage(character.advantage) : d === -character.advantage ? 0 : incrementAdvantage(character.advantage, character.houseRules.advantageCap))}
-            onUpdateRound={(d) => update('combatState.currentRound', Math.max(0, character.combatState.currentRound + d))}
+            onUpdateRound={handleRoundAdvanceWithDecrement}
             onToggleEngaged={() => update('combatState.engaged', !character.combatState.engaged)}
             onRemoveCondition={(name) => updateCharacter((c) => ({ ...c, conditions: removeCondition(c.conditions, name) }))}
             onSpendFortune={() => updateCharacter((c) => ({ ...c, fortune: Math.max(0, c.fortune - 1) }))}
@@ -169,10 +208,14 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                 for (const name of result.removedConditions) {
                   newConditions = removeCondition(newConditions, name);
                 }
+                const { conditions: decremented, expiredNames } = decrementConditionDurations(newConditions);
+                if (expiredNames.length > 0) {
+                  setExpiredConditionQueue(expiredNames);
+                }
                 return {
                   ...c,
                   wCur: result.newWounds,
-                  conditions: newConditions,
+                  conditions: decremented,
                   combatState: { ...c.combatState, currentRound: result.roundAdvanced },
                 };
               });
@@ -203,7 +246,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                 }
               }}
               onUpdateAdvantage={(d) => update('advantage', d < 0 ? decrementAdvantage(character.advantage) : d === -character.advantage ? 0 : incrementAdvantage(character.advantage, character.houseRules.advantageCap))}
-              onUpdateRound={(d) => update('combatState.currentRound', Math.max(0, character.combatState.currentRound + d))}
+              onUpdateRound={handleRoundAdvanceWithDecrement}
               onToggleEngaged={() => update('combatState.engaged', !character.combatState.engaged)}
               onRemoveCondition={(name) => updateCharacter((c) => ({ ...c, conditions: removeCondition(c.conditions, name) }))}
               onSpendFortune={() => updateCharacter((c) => ({ ...c, fortune: Math.max(0, c.fortune - 1) }))}
@@ -215,10 +258,14 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                   for (const name of result.removedConditions) {
                     newConditions = removeCondition(newConditions, name);
                   }
+                  const { conditions: decremented, expiredNames } = decrementConditionDurations(newConditions);
+                  if (expiredNames.length > 0) {
+                    setExpiredConditionQueue(expiredNames);
+                  }
                   return {
                     ...c,
                     wCur: result.newWounds,
-                    conditions: newConditions,
+                    conditions: decremented,
                     combatState: { ...c.combatState, currentRound: result.roundAdvanced },
                   };
                 });
@@ -248,7 +295,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                 }
               }}
               onUpdateAdvantage={(d) => update('advantage', d < 0 ? decrementAdvantage(character.advantage) : d === -character.advantage ? 0 : incrementAdvantage(character.advantage, character.houseRules.advantageCap))}
-              onUpdateRound={(d) => update('combatState.currentRound', Math.max(0, character.combatState.currentRound + d))}
+              onUpdateRound={handleRoundAdvanceWithDecrement}
               onToggleEngaged={() => update('combatState.engaged', !character.combatState.engaged)}
               onRemoveCondition={(name) => updateCharacter((c) => ({ ...c, conditions: removeCondition(c.conditions, name) }))}
               onSpendFortune={() => updateCharacter((c) => ({ ...c, fortune: Math.max(0, c.fortune - 1) }))}
@@ -260,10 +307,14 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                   for (const name of result.removedConditions) {
                     newConditions = removeCondition(newConditions, name);
                   }
+                  const { conditions: decremented, expiredNames } = decrementConditionDurations(newConditions);
+                  if (expiredNames.length > 0) {
+                    setExpiredConditionQueue(expiredNames);
+                  }
                   return {
                     ...c,
                     wCur: result.newWounds,
-                    conditions: newConditions,
+                    conditions: decremented,
                     combatState: { ...c.combatState, currentRound: result.roundAdvanced },
                   };
                 });
@@ -353,6 +404,9 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                         weapons[i] = { ...weapons[i], [field]: value };
                         return { ...c, weapons };
                       });
+                    }}
+                    onReorderWeapon={(fromIndex, toIndex) => {
+                      updateCharacter((c) => ({ ...c, weapons: reorderArray(c.weapons, fromIndex, toIndex) }));
                     }}
                     onOpenRuneManager={(i) => setRuneManagerTarget({ type: 'weapon', index: i })}
                     onOpenWeaponPicker={() => setShowWeaponPicker(true)}
@@ -492,6 +546,16 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
         duration={5000}
         action={undoToast.pending ? { label: 'Undo', onAction: undoToast.undo } : undefined}
       />
+      {/* ── Expired Condition Prompt ── */}
+      {expiredConditionQueue.length > 0 && (
+        <ConfirmDialog
+          message={`Remove ${expiredConditionQueue[0]}? Its duration has expired.`}
+          onConfirm={handleConfirmRemoveExpired}
+          onCancel={handleDeclineRemoveExpired}
+          confirmLabel="Remove"
+          cancelLabel="Keep"
+        />
+      )}
     </div>
   );
 }

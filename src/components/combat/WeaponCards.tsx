@@ -5,6 +5,7 @@ import { SectionHeader } from '../shared/SectionHeader';
 import { AddButton } from '../shared/AddButton';
 import { EmptyState } from '../shared/EmptyState';
 import { HelpPopover } from '../shared/HelpPopover';
+import { DragHandle } from '../shared/DragHandle';
 import { calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
 import { getRuneQualities } from '../../logic/runes';
 import { getBonus } from '../../logic/calculators';
@@ -20,6 +21,7 @@ export interface WeaponCardsProps {
   onOpenRuneManager?: (weaponIndex: number) => void;
   onOpenWeaponPicker?: () => void;
   onAddCustomWeapon?: () => void;
+  onReorderWeapon?: (fromIndex: number, toIndex: number) => void;
 }
 
 export function WeaponCards({
@@ -31,6 +33,7 @@ export function WeaponCards({
   onOpenRuneManager,
   onOpenWeaponPicker,
   onAddCustomWeapon,
+  onReorderWeapon,
 }: WeaponCardsProps) {
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -144,6 +147,15 @@ export function WeaponCards({
                 <>
                 {/* Primary row: name + damage + range/reach + roll */}
                 <div className={styles.primaryRow}>
+                  {onReorderWeapon && (
+                    <DragHandle
+                      onMoveUp={() => onReorderWeapon(i, i - 1)}
+                      onMoveDown={() => onReorderWeapon(i, i + 1)}
+                      isFirst={i === 0}
+                      isLast={i === weapons.length - 1}
+                      itemLabel={w.name || 'weapon'}
+                    />
+                  )}
                   <div className={styles.weaponName} title={w.name}>{w.name || 'Unnamed'}</div>
                   <div className={styles.primaryStats}>
                     <div className={styles.statChip}>

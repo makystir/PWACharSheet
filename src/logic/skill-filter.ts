@@ -25,3 +25,34 @@ export function filterSkills(
     return true;
   });
 }
+
+export interface CareerSkillFilterOptions {
+  searchText: string;
+  careerOnly: boolean;
+}
+
+/**
+ * Filter sorted skill entries by name (case-insensitive substring match) and optionally
+ * by career status (inCareer === true).
+ * Combines both filters with AND logic: a skill must match BOTH the text search
+ * and the career filter to be included.
+ * Empty search text matches all skills (respecting career toggle).
+ * Returns a subset of the input entries matching all active criteria.
+ */
+export function filterSkillEntries<T extends { skill: { n: string }; inCareer: boolean }>(
+  skills: T[],
+  options: CareerSkillFilterOptions
+): T[] {
+  const { searchText, careerOnly } = options;
+  const lowerSearch = searchText.toLowerCase();
+
+  return skills.filter((entry) => {
+    if (lowerSearch && !entry.skill.n.toLowerCase().includes(lowerSearch)) {
+      return false;
+    }
+    if (careerOnly && !entry.inCareer) {
+      return false;
+    }
+    return true;
+  });
+}

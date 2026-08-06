@@ -805,6 +805,12 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.trappingCard:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(var(--accent-primary-rgb, 99, 102, 241), 0.15);
 }
 
 .trappingCardHorse {
@@ -835,6 +841,19 @@
   position: absolute;
   top: 4px;
   right: 4px;
+}
+
+.trappingContentRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trappingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .trappingHorseCheckbox {

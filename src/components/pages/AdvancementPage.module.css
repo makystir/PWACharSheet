@@ -623,6 +623,29 @@
   font-size: 11px;
 }
 
+/* Skill search input */
+.skillSearchInput {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  min-height: 36px;
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+
+.skillSearchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.skillSearchInput:focus {
+  border-color: var(--accent-gold);
+}
+
 /* Premature out-of-career warning label */
 .futureCareerWarning {
   font-size: 10px;
@@ -682,4 +705,24 @@
 .careerSummaryEditBtn {
   composes: smallButton from '../shared/styles/shared.module.css';
   font-size: 11px;
+}
+
+/* XP insufficient shake animation */
+.xpDisplayShake {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@media (max-width: 767px) {
+  .skillSearchInput {
+    min-height: 44px;
+    font-size: 16px;
+  }
 }

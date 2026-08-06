@@ -1,0 +1,54 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.track {
+  position: relative;
+  height: 10px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.fillNeutral {
+  composes: fill;
+  background: var(--text-secondary);
+}
+
+.fillWarning {
+  composes: fill;
+  background: var(--warning);
+}
+
+.fillDanger {
+  composes: fill;
+  background: color-mix(in srgb, var(--danger) 80%, var(--warning) 20%);
+}
+
+.fillCritical {
+  composes: fill;
+  background: var(--danger);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.overEncumbered {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--danger);
+}

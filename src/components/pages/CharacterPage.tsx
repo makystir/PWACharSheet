@@ -69,6 +69,10 @@ import { CoinWeightBreakdownContent } from './CoinWeightBreakdownContent';
 import { getSkillBreakdown, getCBBreakdown, getEncumbranceBreakdown, getCoinWeightBreakdown } from '../../logic/breakdown-helpers';
 import { getContributingTalent } from '../../logic/talents';
 import { AgeTierSelector } from '../shared/AgeTierSelector';
+import { ProgressBar } from '../shared/ProgressBar';
+import { getEncumbranceLevel, formatEncumbrance } from '../../logic/encumbrance';
+import { DragHandle } from '../shared/DragHandle';
+import { reorderArray } from '../../logic/reorder';
 import { DwarfAlternateRoll } from '../shared/DwarfAlternateRoll';
 import {
   getSpeciesGroup,
@@ -1414,6 +1418,32 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
       {/* ═══ GEAR & WEALTH ═══ */}
       <div className={`${styles.gearSection}${activeSubTab !== 'gear' ? ` ${styles.mobileHidden}` : ''}`}>
+      {/* Encumbrance Indicator */}
+      {(() => {
+        const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
+        const eA = character.armour.reduce((s, a) => {
+          const baseEnc = parseFloat(a.enc) || 0;
+          const wornEnc = a.worn !== false ? Math.max(0, baseEnc - 1) : baseEnc;
+          return s + wornEnc;
+        }, 0);
+        const eT = character.trappings.filter(t => !t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
+        const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
+        const currentEnc = eW + eA + eT + eCoin;
+        const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
+        const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
+        const maxEnc = calculateMaxEncumbrance(character.chars, strongBackLevel);
+        const level = getEncumbranceLevel(currentEnc, maxEnc);
+        const label = formatEncumbrance(currentEnc, maxEnc);
+        return (
+          <ProgressBar
+            current={currentEnc}
+            max={maxEnc}
+            level={level}
+            label={label}
+            ariaLabel="Encumbrance progress"
+          />
+        );
+      })()}
       {/* Trappings */}
       <Card>
         <SectionHeader icon={Package} title="Trappings" action={
@@ -1492,10 +1522,21 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                       <button type="button" onClick={() => setEditingTrappingIndex(i)} className={styles.trappingEditBtn} aria-label={`Edit ${t.name || 'trapping'}`}>✎</button>
                       <button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn} aria-label="Remove trapping">✕</button>
                     </div>
-                    <span className={styles.trappingName}>{t.name || '(unnamed)'}</span>
-                    <span className={styles.trappingMeta}>
-                      Enc {t.enc || '0'} · Qty {t.quantity || 1}
-                    </span>
+                    <div className={styles.trappingContentRow}>
+                      <DragHandle
+                        onMoveUp={() => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, i, i - 1) }))}
+                        onMoveDown={() => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, i, i + 1) }))}
+                        isFirst={i === 0}
+                        isLast={i === character.trappings.length - 1}
+                        itemLabel={t.name || 'trapping'}
+                      />
+                      <div className={styles.trappingInfo}>
+                        <span className={styles.trappingName}>{t.name || '(unnamed)'}</span>
+                        <span className={styles.trappingMeta}>
+                          Enc {t.enc || '0'} · Qty {t.quantity || 1}
+                        </span>
+                      </div>
+                    </div>
                   </>
                 )}
               </div>

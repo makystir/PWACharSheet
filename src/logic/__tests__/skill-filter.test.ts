@@ -119,3 +119,95 @@ describe('filterSkills — edge cases', () => {
     expect(sampleSkills).toEqual(original);
   });
 });
+
+// ─── filterSkillEntries: text + career-only AND composition ──────────────────
+// Validates: Requirements 2.2, 2.3, 2.4
+
+import { filterSkillEntries } from '../skill-filter';
+
+const sampleEntries = [
+  { skill: { n: 'Athletics' }, inCareer: true, originalIndex: 0, isBasic: true },
+  { skill: { n: 'Charm' }, inCareer: false, originalIndex: 1, isBasic: true },
+  { skill: { n: 'Cool' }, inCareer: true, originalIndex: 2, isBasic: true },
+  { skill: { n: 'Dodge' }, inCareer: true, originalIndex: 3, isBasic: true },
+  { skill: { n: 'Melee (Basic)' }, inCareer: false, originalIndex: 4, isBasic: true },
+  { skill: { n: 'Perception' }, inCareer: false, originalIndex: 5, isBasic: true },
+  { skill: { n: 'Stealth (Urban)' }, inCareer: true, originalIndex: 6, isBasic: false },
+  { skill: { n: 'Lore (Medicine)' }, inCareer: false, originalIndex: 7, isBasic: false },
+];
+
+describe('filterSkillEntries — text search filter', () => {
+  it('returns all entries when searchText is empty and careerOnly is false', () => {
+    const result = filterSkillEntries(sampleEntries, { searchText: '', careerOnly: false });
+    expect(result).toEqual(sampleEntries);
+  });
+
+  it('filters by name substring (case-insensitive)', () => {
+    const result = filterSkillEntries(sampleEntries, { searchText: 'cool', careerOnly: false });
+    expect(result).toEqual([{ skill: { n: 'Cool' }, inCareer: true, originalIndex: 2, isBasic: true }]);
+  });
+
+  it('returns empty when no names match', () => {
+    const result = filterSkillEntries(sampleEntries, { searchText: 'xyz', careerOnly: false });
+    expect(result).toEqual([]);
+  });
+});
+
+describe('filterSkillEntries — career-only toggle', () => {
+  it('returns only in-career entries when careerOnly is true', () => {
+    const result = filterSkillEntries(sampleEntries, { searchText: '', careerOnly: true });
+    expect(result).toEqual([
+      { skill: { n: 'Athletics' }, inCareer: true, originalIndex: 0, isBasic: true },
+      { skill: { n: 'Cool' }, inCareer: true, originalIndex: 2, isBasic: true },
+      { skill: { n: 'Dodge' }, inCareer: true, originalIndex: 3, isBasic: true },
+      { skill: { n: 'Stealth (Urban)' }, inCareer: true, originalIndex: 6, isBasic: false },
+    ]);
+  });
+
+  it('returns all entries when careerOnly is false', () => {
+    const result = filterSkillEntries(sampleEntries, { searchText: '', careerOnly: false });
+    expect(result).toEqual(sampleEntries);
+  });
+});
+
+describe('filterSkillEntries — combined text + career-only (AND composition)', () => {
+  it('applies both filters as intersection', () => {
+    // 'l' matches: Ath-l-etics, Coo-l, Mee-l-ee (Basic), Stea-l-th (Urban), L-ore (Medicine)
+    // in-career: Athletics, Cool, Dodge, Stealth (Urban)
+    // intersection: Athletics, Cool, Stealth (Urban)
+    const result = filterSkillEntries(sampleEntries, { searchText: 'l', careerOnly: true });
+    expect(result).toEqual([
+      { skill: { n: 'Athletics' }, inCareer: true, originalIndex: 0, isBasic: true },
+      { skill: { n: 'Cool' }, inCareer: true, originalIndex: 2, isBasic: true },
+      { skill: { n: 'Stealth (Urban)' }, inCareer: true, originalIndex: 6, isBasic: false },
+    ]);
+  });
+
+  it('returns empty when text matches but no career skills match', () => {
+    const result = filterSkillEntries(sampleEntries, { searchText: 'lore', careerOnly: true });
+    expect(result).toEqual([]);
+  });
+
+  it('returns empty when career matches but no text matches', () => {
+    const result = filterSkillEntries(sampleEntries, { searchText: 'xyz', careerOnly: true });
+    expect(result).toEqual([]);
+  });
+});
+
+describe('filterSkillEntries — edge cases', () => {
+  it('handles empty entries array', () => {
+    const result = filterSkillEntries([], { searchText: 'test', careerOnly: true });
+    expect(result).toEqual([]);
+  });
+
+  it('does not mutate the original array', () => {
+    const original = [...sampleEntries];
+    filterSkillEntries(sampleEntries, { searchText: 'cool', careerOnly: true });
+    expect(sampleEntries).toEqual(original);
+  });
+
+  it('empty search text returns all skills when careerOnly is false', () => {
+    const result = filterSkillEntries(sampleEntries, { searchText: '', careerOnly: false });
+    expect(result).toHaveLength(sampleEntries.length);
+  });
+});

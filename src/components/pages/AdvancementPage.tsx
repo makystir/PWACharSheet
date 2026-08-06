@@ -1,15 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { Character, ArmourPoints, CharacteristicKey, CareerLevel, AdvancementEntry } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { Picker } from '../shared/Picker';
 import { SpellPicker } from '../shared/SpellPicker';
+import { Toast } from '../shared/Toast';
 import { Tooltip } from '../shared/Tooltip';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, formatXpFeedback, applyBulkAdvancement, calculateTierBoundaryCost } from '../../logic/advancement';
+import { filterSkillEntries } from '../../logic/skill-filter';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
 import { SPELL_LIST } from '../../data/spells';
@@ -76,6 +78,17 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const [showSpellLearningPicker, setShowSpellLearningPicker] = useState(false);
   const [spellLearningType, setSpellLearningType] = useState<'petty' | 'arcane' | 'miracle' | 'chaos'>('petty');
   const [showRitualPicker, setShowRitualPicker] = useState(false);
+  const [xpToastMessage, setXpToastMessage] = useState<string | null>(null);
+  const [xpShake, setXpShake] = useState(false);
+  const [skillSearchText, setSkillSearchText] = useState('');
+
+  const triggerXpFeedback = useCallback((cost: number, available: number) => {
+    // Reset to null first so repeated identical messages still trigger the Toast
+    setXpToastMessage(null);
+    requestAnimationFrame(() => setXpToastMessage(formatXpFeedback(cost, available)));
+    setXpShake(true);
+    setTimeout(() => setXpShake(false), 400);
+  }, []);
 
   const handleTalentTooltip = (talentName: string, characterDesc: string, event: React.MouseEvent) => {
     const content = resolveTalentTooltip(talentName, characterDesc);
@@ -149,10 +162,14 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     () => sortSkillsByCareerStatus(character.bSkills, character.aSkills, careerSkills),
     [character.bSkills, character.aSkills, careerSkills]
   );
-  const inCareerSkills = sortedSkills.filter(e => e.inCareer);
-  const outCareerSkills = hideOutOfCareerSkills
-    ? sortedSkills.filter(e => !e.inCareer && e.skill.a > 0)
-    : sortedSkills.filter(e => !e.inCareer);
+
+  // Apply search + career-only filter using filterSkillEntries (AND logic)
+  const filteredSkills = useMemo(
+    () => filterSkillEntries(sortedSkills, { searchText: skillSearchText, careerOnly: hideOutOfCareerSkills }),
+    [sortedSkills, skillSearchText, hideOutOfCareerSkills]
+  );
+  const inCareerSkills = filteredSkills.filter(e => e.inCareer);
+  const outCareerSkills = filteredSkills.filter(e => !e.inCareer);
 
   // Career progress analysis — WFRP 4e completion thresholds: Level 1=5, 2=10, 3=15, 4=20, 5=25
   const completionThreshold = ({ 1: 5, 2: 10, 3: 15, 4: 20, 5: 25 } as Record<number, number>)[careerLevelNum] ?? 5;
@@ -236,6 +253,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   // Advance characteristic
   const handleAdvanceChar = (key: CharacteristicKey) => {
     const inCareer = careerChars.includes(key);
+    const cost = getAdvancementCost('characteristic', character.chars[key].a, inCareer);
+    if (character.xpCur < cost) {
+      triggerXpFeedback(cost, character.xpCur);
+      return;
+    }
     updateCharacter((c) => archiveOldEntries(advanceCharacteristic(c, key, inCareer)));
     setRedoStack([]);
   };
@@ -244,7 +266,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const inCareer = careerChars.includes(key);
     const currentAdv = character.chars[key].a;
     const bulk = calculateBulkAdvancement('characteristic', currentAdv, character.xpCur, inCareer, 5);
-    if (bulk.count === 0) return;
+    if (bulk.count === 0) {
+      const nextCost = getAdvancementCost('characteristic', currentAdv, inCareer);
+      triggerXpFeedback(nextCost, character.xpCur);
+      return;
+    }
     updateCharacter((c) => {
       let updated = { ...c };
       for (let i = 0; i < bulk.count; i++) {
@@ -260,6 +286,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const skills = isBasic ? character.bSkills : character.aSkills;
     const skill = skills[skillIndex];
     const inCareer = careerSkills.some(cs => careerSkillMatches(cs, skill.n));
+    const cost = getAdvancementCost('skill', skill.a, inCareer);
+    if (character.xpCur < cost) {
+      triggerXpFeedback(cost, character.xpCur);
+      return;
+    }
     updateCharacter((c) => archiveOldEntries(advanceSkill(c, skillIndex, isBasic, inCareer)));
     setRedoStack([]);
   };
@@ -269,7 +300,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const skill = skills[skillIndex];
     const inCareer = careerSkills.some(cs => careerSkillMatches(cs, skill.n));
     const bulk = calculateBulkAdvancement('skill', skill.a, character.xpCur, inCareer, count);
-    if (bulk.count === 0) return;
+    if (bulk.count === 0) {
+      const nextCost = getAdvancementCost('skill', skill.a, inCareer);
+      triggerXpFeedback(nextCost, character.xpCur);
+      return;
+    }
     updateCharacter((c) => {
       let updated = { ...c };
       for (let i = 0; i < bulk.count; i++) {
@@ -280,29 +315,50 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     setRedoStack([]);
   };
 
+  // Advance skill to next tier boundary
+  const handleAdvanceToTier = (skillIndex: number, isBasic: boolean) => {
+    const skills = isBasic ? character.bSkills : character.aSkills;
+    const skill = skills[skillIndex];
+    const inCareer = careerSkills.some(cs => careerSkillMatches(cs, skill.n));
+    const result = applyBulkAdvancement(character, skillIndex, isBasic, inCareer);
+    if ('character' in result) {
+      updateCharacter(() => archiveOldEntries(result.character));
+      setRedoStack([]);
+    } else {
+      triggerXpFeedback(result.cost, result.available);
+    }
+  };
+
   // Acquire talent using the WFRP 4e cost: 100 × (times taken + 1) in-career, doubled out
   const handleAcquireTalent = (talentName: string) => {
     const inCareer = careerTalents.some(ct => talentName === ct || talentName.startsWith(ct + ' (') || ct.startsWith(talentName + ' ('));
+    const existing = character.talents.find(t => t.n === talentName);
+    const timesTaken = existing ? existing.lvl : 0;
+    const cost = getAdvancementCost('talent', timesTaken, inCareer);
+    if (character.xpCur < cost) {
+      triggerXpFeedback(cost, character.xpCur);
+      return;
+    }
     updateCharacter((c) => {
-      const existing = c.talents.find(t => t.n === talentName);
-      const timesTaken = existing ? existing.lvl : 0;
-      const cost = getAdvancementCost('talent', timesTaken, inCareer);
-      if (c.xpCur < cost) return c;
+      const existingInner = c.talents.find(t => t.n === talentName);
+      const timesTakenInner = existingInner ? existingInner.lvl : 0;
+      const costInner = getAdvancementCost('talent', timesTakenInner, inCareer);
+      if (c.xpCur < costInner) return c;
       const newTalents = [...c.talents];
-      if (existing) {
+      if (existingInner) {
         const idx = newTalents.findIndex(t => t.n === talentName);
-        newTalents[idx] = { ...existing, lvl: existing.lvl + 1 };
+        newTalents[idx] = { ...existingInner, lvl: existingInner.lvl + 1 };
       } else {
         newTalents.push({ n: talentName, lvl: 1, desc: TALENT_DB.find(t => t.name === talentName)?.desc ?? '' });
       }
       return archiveOldEntries({
         ...c,
         talents: newTalents,
-        xpCur: c.xpCur - cost,
-        xpSpent: c.xpSpent + cost,
+        xpCur: c.xpCur - costInner,
+        xpSpent: c.xpSpent + costInner,
         advancementLog: [...c.advancementLog, {
           timestamp: Date.now(), type: 'talent', name: talentName,
-          from: timesTaken, to: timesTaken + 1, xpCost: cost,
+          from: timesTakenInner, to: timesTakenInner + 1, xpCost: costInner,
           careerLevel: c.careerLevel, inCareer,
         }],
       });
@@ -381,7 +437,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             <EditableField label="Total XP" value={character.xpTotal} type="number" onSave={(v) => update('xpTotal', v)} />
           </div>
         ) : (
-          <div className={styles.xpDisplayRow}>
+          <div className={`${styles.xpDisplayRow} ${xpShake ? styles.xpDisplayShake : ''}`}>
             <div className={styles.xpDisplayItem}>
               <span className={styles.xpDisplayLabel}>Current</span>
               <span className={styles.xpDisplayValue}>{character.xpCur}</span>
@@ -517,6 +573,14 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         <div className={styles.charHelpText}>
           <span className={styles.charHelpInCareer}>In-Career</span> skills use the tiered cost table. <span className={styles.charHelpOutCareer}>Out-of-Career</span> costs are double.
         </div>
+        <input
+          type="text"
+          placeholder="Search skills…"
+          aria-label="Search skills by name"
+          value={skillSearchText}
+          onChange={(e) => setSkillSearchText(e.target.value)}
+          className={styles.skillSearchInput}
+        />
         <table className={styles.tableBase}>
           <thead>
             <tr>
@@ -565,6 +629,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                     <div className={styles.skillBtnRow} role="group" aria-label="Advance skill amount">
                       <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford}>+1</button>
                       <button type="button" onClick={() => handleBulkAdvanceSkill(entry.originalIndex, entry.isBasic, 5)} disabled={!canAfford}>+5</button>
+                      {entry.skill.a < 25 && (
+                        <button type="button" onClick={() => handleAdvanceToTier(entry.originalIndex, entry.isBasic)} title={`Advance to next tier (${calculateTierBoundaryCost('skill', entry.skill.a, true).targetAdvances})`}>Tier</button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -618,6 +685,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                         <div className={styles.skillBtnRow} role="group" aria-label="Advance skill amount">
                           <button type="button" onClick={() => handleAdvanceSkill(entry.originalIndex, entry.isBasic)} disabled={!canAfford}>+1</button>
                           <button type="button" onClick={() => handleBulkAdvanceSkill(entry.originalIndex, entry.isBasic, 5)} disabled={!canAfford}>+5</button>
+                          {entry.skill.a < 25 && (
+                            <button type="button" onClick={() => handleAdvanceToTier(entry.originalIndex, entry.isBasic)} title={`Advance to next tier (${calculateTierBoundaryCost('skill', entry.skill.a, false).targetAdvances})`}>Tier</button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1135,6 +1205,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           ))}
         </Tooltip>
       )}
+
+      <Toast message={xpToastMessage} duration={3000} />
     </div>
   );
 }

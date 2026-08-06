@@ -315,6 +315,7 @@ export function getCostSummary(entries: EndeavourEntry[]): string | null {
 
 /**
  * Build grouped picker items for the endeavour type selector.
+ * - Starts with Template endeavours (the 6 standard types with auto-fill)
  * - Always includes General endeavours
  * - Includes Class endeavours if className matches a key in CLASS_ENDEAVOURS
  * - Shows info message if className is non-empty but unmatched
@@ -325,9 +326,18 @@ export function getCostSummary(entries: EndeavourEntry[]): string | null {
 export function buildPickerItems(className: string, isElfChar: boolean): PickerItem[] {
   const items: PickerItem[] = [];
 
-  // General Endeavours - always included
+  // Template Endeavours - the 6 standard types with auto-fill support
+  const TEMPLATE_TYPES = ['Training', 'Income', 'Research', 'Crafting', 'Healing', 'Socialising'];
+  for (const t of TEMPLATE_TYPES) {
+    items.push({ group: 'Templates', label: t });
+  }
+
+  // General Endeavours - always included (excluding those already in Templates)
+  const templateSet = new Set(TEMPLATE_TYPES.map(t => t.toLowerCase()));
   for (const e of GENERAL_ENDEAVOURS) {
-    items.push({ group: 'General', label: e });
+    if (!templateSet.has(e.toLowerCase())) {
+      items.push({ group: 'General', label: e });
+    }
   }
 
   // Class Endeavours - depends on className

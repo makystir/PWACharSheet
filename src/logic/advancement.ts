@@ -987,3 +987,113 @@ export function learnRitual(
     advancementLog: [...character.advancementLog, entry],
   };
 }
+
+// --- Quality-of-life: XP Budget Feedback & Bulk Advancement ---
+
+/** Tier boundaries for skill/characteristic advancement. */
+const TIER_BOUNDARIES = [5, 10, 15, 20, 25] as const;
+
+/**
+ * Format the insufficient-XP feedback message.
+ * Returns a human-readable string indicating the cost required and XP available.
+ */
+export function formatXpFeedback(cost: number, available: number): string {
+  return `Need ${cost} XP, have ${available}`;
+}
+
+/**
+ * Calculate cumulative cost from current advances to the next tier boundary.
+ * Tier boundaries are at 5, 10, 15, 20, 25.
+ * Returns the target advance count and total XP cost to reach it.
+ */
+export function calculateTierBoundaryCost(
+  type: 'skill' | 'characteristic',
+  currentAdvances: number,
+  inCareer: boolean
+): { targetAdvances: number; totalCost: number } {
+  // Find the next tier boundary above currentAdvances
+  const targetAdvances = TIER_BOUNDARIES.find(b => b > currentAdvances) ?? 25;
+
+  // Sum up individual advancement costs from currentAdvances to targetAdvances
+  let totalCost = 0;
+  for (let adv = currentAdvances; adv < targetAdvances; adv++) {
+    totalCost += getAdvancementCost(type, adv, inCareer);
+  }
+
+  return { targetAdvances, totalCost };
+}
+
+/**
+ * Apply bulk advancement to a character's skill, advancing it to the next tier boundary.
+ * Calculates cumulative cost from current advances to the next tier boundary (5, 10, 15, 20, 25).
+ * If XP is sufficient: applies all advances atomically, deducts total XP, creates individual log entries.
+ * If XP is insufficient: returns error with cost and available values (no state change).
+ * When a skill is already AT a tier boundary, calculates to the NEXT boundary above.
+ */
+export function applyBulkAdvancement(
+  character: Character,
+  skillIndex: number,
+  isBasic: boolean,
+  inCareer: boolean
+): { character: Character; entries: AdvancementEntry[] } | { error: string; cost: number; available: number } {
+  const skills = isBasic ? character.bSkills : character.aSkills;
+  if (skillIndex < 0 || skillIndex >= skills.length) {
+    return { error: 'Invalid skill index', cost: 0, available: character.xpCur };
+  }
+
+  const skill = skills[skillIndex];
+  const currentAdvances = skill.a;
+
+  // Calculate cost to next tier boundary
+  const { targetAdvances, totalCost } = calculateTierBoundaryCost('skill', currentAdvances, inCareer);
+
+  // If already at max tier boundary (25), nothing to advance
+  if (targetAdvances <= currentAdvances) {
+    return { error: 'Skill is already at maximum advances', cost: 0, available: character.xpCur };
+  }
+
+  // Check if XP is sufficient
+  if (character.xpCur < totalCost) {
+    return {
+      error: formatXpFeedback(totalCost, character.xpCur),
+      cost: totalCost,
+      available: character.xpCur,
+    };
+  }
+
+  // Apply all advances atomically: build individual log entries
+  const entries: AdvancementEntry[] = [];
+  let xpDeducted = 0;
+
+  for (let adv = currentAdvances; adv < targetAdvances; adv++) {
+    const cost = getAdvancementCost('skill', adv, inCareer);
+    entries.push({
+      timestamp: Date.now(),
+      type: 'skill',
+      name: skill.n,
+      from: adv,
+      to: adv + 1,
+      xpCost: cost,
+      careerLevel: character.careerLevel,
+      inCareer,
+    });
+    xpDeducted += cost;
+  }
+
+  // Update the skill advances
+  const newSkills = [...skills];
+  newSkills[skillIndex] = { ...skill, a: targetAdvances };
+
+  // Build updated character
+  const updates: Partial<Character> = {
+    xpCur: character.xpCur - xpDeducted,
+    xpSpent: character.xpSpent + xpDeducted,
+    advancementLog: [...character.advancementLog, ...entries],
+  };
+
+  if (isBasic) {
+    return { character: { ...character, ...updates, bSkills: newSkills }, entries };
+  } else {
+    return { character: { ...character, ...updates, aSkills: newSkills }, entries };
+  }
+}

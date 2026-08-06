@@ -41,6 +41,218 @@ const arbRollSequence: fc.Arbitrary<RollResult[]> = fc.array(arbRollResult, {
 
 // ─── Property Tests ─────────────────────────────────────────────────────────
 
+// Feature: quality-of-life-improvements, Property 3: Roll History Persistence Round-Trip
+describe('Feature: quality-of-life-improvements', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  describe('Property 3: Roll History Persistence Round-Trip', () => {
+    /**
+     * **Validates: Requirements 3.1, 3.3**
+     *
+     * For any sequence of roll history entries (up to 50), persisting to
+     * localStorage and then loading SHALL return an equivalent ordered list.
+     */
+
+    it('for any sequence of entries (up to 50), persist then load returns equivalent ordered list', () => {
+      fc.assert(
+        fc.property(
+          fc.array(arbRollResult, { minLength: 0, maxLength: 50 }),
+          (rolls) => {
+            localStorage.clear();
+
+            // Mount hook and add all rolls
+            const { result, unmount } = renderHook(() => useRollHistory());
+
+            for (const roll of rolls) {
+              act(() => result.current.addRoll(roll));
+            }
+
+            // Capture in-memory history before unmount
+            const historyBeforeReload = result.current.history.map((e) => ({
+              roll: e.result.roll,
+              targetNumber: e.result.targetNumber,
+              skillOrCharName: e.result.skillOrCharName,
+              sl: e.result.sl,
+              passed: e.result.passed,
+              timestamp: e.result.timestamp,
+            }));
+
+            // Unmount to simulate page close
+            unmount();
+
+            // Remount to simulate page reload — loads from localStorage
+            const { result: reloadedResult } = renderHook(() => useRollHistory());
+
+            const historyAfterReload = reloadedResult.current.history.map((e) => ({
+              roll: e.result.roll,
+              targetNumber: e.result.targetNumber,
+              skillOrCharName: e.result.skillOrCharName,
+              sl: e.result.sl,
+              passed: e.result.passed,
+              timestamp: e.result.timestamp,
+            }));
+
+            // Round-trip: loaded data matches what was persisted
+            expect(historyAfterReload).toHaveLength(historyBeforeReload.length);
+            expect(historyAfterReload).toEqual(historyBeforeReload);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('persisting entries preserves their chronological order (newest first)', () => {
+      fc.assert(
+        fc.property(
+          fc.array(arbRollResult, { minLength: 2, maxLength: 50 }),
+          (rolls) => {
+            localStorage.clear();
+
+            const { result, unmount } = renderHook(() => useRollHistory());
+
+            for (const roll of rolls) {
+              act(() => result.current.addRoll(roll));
+            }
+
+            unmount();
+
+            // Reload from localStorage
+            const { result: reloadedResult } = renderHook(() => useRollHistory());
+            const history = reloadedResult.current.history;
+
+            // The last added roll should be first in history (newest first)
+            const lastAdded = rolls[rolls.length - 1];
+            expect(history[0].result.roll).toBe(lastAdded.roll);
+            expect(history[0].result.skillOrCharName).toBe(lastAdded.skillOrCharName);
+            expect(history[0].result.targetNumber).toBe(lastAdded.targetNumber);
+
+            // The first added roll should be last (if within 50 cap)
+            const firstAdded = rolls[0];
+            expect(history[history.length - 1].result.roll).toBe(firstAdded.roll);
+            expect(history[history.length - 1].result.skillOrCharName).toBe(firstAdded.skillOrCharName);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+});
+
+// Feature: quality-of-life-improvements, Property 4: Roll History Maximum Length Invariant
+describe('Feature: quality-of-life-improvements - Property 4', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  describe('Property 4: Roll History Maximum Length Invariant', () => {
+    /**
+     * **Validates: Requirements 3.2**
+     *
+     * For any sequence of roll additions, the roll history length SHALL never
+     * exceed 50 entries, and when the limit is reached, the oldest entries
+     * SHALL be the ones discarded.
+     */
+
+    it('for any sequence of additions (0-80), history length never exceeds 50', () => {
+      fc.assert(
+        fc.property(
+          fc.array(arbRollResult, { minLength: 0, maxLength: 80 }),
+          (rolls) => {
+            localStorage.clear();
+
+            const { result } = renderHook(() => useRollHistory());
+
+            for (const roll of rolls) {
+              act(() => result.current.addRoll(roll));
+              // Invariant: length never exceeds 50 at any point
+              expect(result.current.history.length).toBeLessThanOrEqual(50);
+            }
+
+            // Final state: length is min(N, 50)
+            expect(result.current.history.length).toBe(Math.min(rolls.length, 50));
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('when more than 50 rolls are added, the history contains only the 50 most recent ones', () => {
+      fc.assert(
+        fc.property(
+          fc.array(arbRollResult, { minLength: 51, maxLength: 80 }),
+          (rolls) => {
+            localStorage.clear();
+
+            const { result } = renderHook(() => useRollHistory());
+
+            for (const roll of rolls) {
+              act(() => result.current.addRoll(roll));
+            }
+
+            const history = result.current.history;
+
+            // Length is exactly 50
+            expect(history).toHaveLength(50);
+
+            // History contains the 50 most recent rolls (newest first)
+            const mostRecent50 = rolls.slice(-50).reverse();
+            for (let i = 0; i < 50; i++) {
+              expect(history[i].result.roll).toBe(mostRecent50[i].roll);
+              expect(history[i].result.targetNumber).toBe(mostRecent50[i].targetNumber);
+              expect(history[i].result.skillOrCharName).toBe(mostRecent50[i].skillOrCharName);
+            }
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('oldest entries (first added) are the ones discarded when limit is reached', () => {
+      fc.assert(
+        fc.property(
+          fc.array(arbRollResult, { minLength: 51, maxLength: 80 }),
+          (rolls) => {
+            localStorage.clear();
+
+            const { result } = renderHook(() => useRollHistory());
+
+            for (const roll of rolls) {
+              act(() => result.current.addRoll(roll));
+            }
+
+            const history = result.current.history;
+            const N = rolls.length;
+
+            // The oldest entries (indices 0 to N-51) should NOT be in the history
+            const discardedRolls = rolls.slice(0, N - 50);
+            const retainedRolls = rolls.slice(N - 50);
+
+            // Verify retained: all 50 most recent are present (newest first)
+            const historyRolls = history.map((e) => e.result.roll);
+            for (const retained of retainedRolls) {
+              expect(historyRolls).toContain(retained.roll);
+            }
+
+            // Verify the newest roll is at index 0
+            expect(history[0].result.roll).toBe(rolls[N - 1].roll);
+            expect(history[0].result.skillOrCharName).toBe(rolls[N - 1].skillOrCharName);
+
+            // Verify order: history is newest-first (reverse of addition order for retained)
+            const expectedOrder = retainedRolls.reverse();
+            for (let i = 0; i < 50; i++) {
+              expect(history[i].result.roll).toBe(expectedOrder[i].roll);
+              expect(history[i].result.skillOrCharName).toBe(expectedOrder[i].skillOrCharName);
+            }
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+});
+
 describe('Feature: ux-polish-and-functionality', () => {
   beforeEach(() => {
     localStorage.clear();

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { filterSkills } from '../skill-filter';
+import { filterSkills, filterSkillEntries } from '../skill-filter';
 
 // Feature: ux-polish-and-functionality, Property 19: Skill Filter Subset Invariant
 // Feature: ux-polish-and-functionality, Property 20: Combined Skill Filter Intersection
@@ -154,6 +154,106 @@ describe('Feature: ux-polish-and-functionality', () => {
             );
 
             expect(resultAll).toEqual(expectedByText);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+});
+
+
+// Feature: quality-of-life-improvements, Property 2: Skill Filter AND Composition
+
+// ─── Generators for filterSkillEntries ──────────────────────────────────────
+
+/** Arbitrary skill entry with a skill name and inCareer flag. */
+const arbSkillEntry = fc.record({
+  skill: fc.record({
+    n: fc.string({ minLength: 1, maxLength: 30 }).filter(s => s.trim().length > 0),
+  }),
+  inCareer: fc.boolean(),
+});
+
+/** Arbitrary skill entry list (0–30 entries). */
+const arbSkillEntryList = fc.array(arbSkillEntry, { minLength: 0, maxLength: 30 });
+
+/** Arbitrary careerOnly boolean. */
+const arbCareerOnly = fc.boolean();
+
+// ─── Property 2 Tests ───────────────────────────────────────────────────────
+
+describe('Feature: quality-of-life-improvements', () => {
+  describe('Property 2: Skill Filter AND Composition', () => {
+    /**
+     * **Validates: Requirements 2.2, 2.4**
+     */
+
+    it('result contains exactly skills matching BOTH search text and career filter — no omissions, no extras', () => {
+      fc.assert(
+        fc.property(
+          arbSkillEntryList,
+          arbSearchText,
+          arbCareerOnly,
+          (skills, searchText, careerOnly) => {
+            const result = filterSkillEntries(skills, { searchText, careerOnly });
+            const lowerSearch = searchText.toLowerCase();
+
+            // Compute expected result manually using AND logic
+            const expected = skills.filter((entry) => {
+              const matchesText = !lowerSearch || entry.skill.n.toLowerCase().includes(lowerSearch);
+              const matchesCareer = !careerOnly || entry.inCareer;
+              return matchesText && matchesCareer;
+            });
+
+            // Result must equal expected exactly — same elements, same order
+            expect(result).toEqual(expected);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('no matching skill is omitted from the result', () => {
+      fc.assert(
+        fc.property(
+          arbSkillEntryList,
+          arbSearchText,
+          arbCareerOnly,
+          (skills, searchText, careerOnly) => {
+            const result = filterSkillEntries(skills, { searchText, careerOnly });
+            const lowerSearch = searchText.toLowerCase();
+
+            // Every skill that matches both criteria must appear in result
+            for (const entry of skills) {
+              const matchesText = !lowerSearch || entry.skill.n.toLowerCase().includes(lowerSearch);
+              const matchesCareer = !careerOnly || entry.inCareer;
+              if (matchesText && matchesCareer) {
+                expect(result).toContainEqual(entry);
+              }
+            }
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('no non-matching skill is included in the result', () => {
+      fc.assert(
+        fc.property(
+          arbSkillEntryList,
+          arbSearchText,
+          arbCareerOnly,
+          (skills, searchText, careerOnly) => {
+            const result = filterSkillEntries(skills, { searchText, careerOnly });
+            const lowerSearch = searchText.toLowerCase();
+
+            // Every result entry must satisfy both criteria
+            for (const entry of result) {
+              const matchesText = !lowerSearch || entry.skill.n.toLowerCase().includes(lowerSearch);
+              const matchesCareer = !careerOnly || entry.inCareer;
+              expect(matchesText && matchesCareer).toBe(true);
+            }
           }
         ),
         { numRuns: 100 }

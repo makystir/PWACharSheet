@@ -521,11 +521,20 @@ describe('getCostSummary', () => {
 // Validates: Requirements 6.1, 6.2, 6.3
 
 describe('buildPickerItems', () => {
-  it('always includes General group items', () => {
+  it('always includes Templates group with all 6 template types', () => {
+    const items = buildPickerItems('Warriors', false);
+    const templateItems = items.filter(i => i.group === 'Templates');
+    expect(templateItems.length).toBe(6);
+    expect(templateItems.map(i => i.label)).toEqual([
+      'Training', 'Income', 'Research', 'Crafting', 'Healing', 'Socialising',
+    ]);
+  });
+
+  it('always includes General group items (excluding those in Templates)', () => {
     const items = buildPickerItems('Warriors', false);
     const generalItems = items.filter(i => i.group === 'General');
-    expect(generalItems.length).toBe(10); // GENERAL_ENDEAVOURS has 10 items
-    expect(generalItems[0].label).toBe('Income');
+    expect(generalItems.length).toBe(7); // GENERAL_ENDEAVOURS minus Training, Income, Crafting
+    expect(generalItems[0].label).toBe('Banking');
   });
 
   it('includes Class group items when className matches CLASS_ENDEAVOURS', () => {

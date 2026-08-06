@@ -34,8 +34,10 @@ import {
   buildPickerItems,
   createEndeavourEntry,
   getMaxSessionNumber,
+  generateId,
 } from '../../logic/endeavours';
 import type { PickerItem } from '../../logic/endeavours';
+import { ENDEAVOUR_TEMPLATES, applyEndeavourTemplate } from '../../logic/endeavour-templates';
 
 interface EndeavoursPageProps {
   character: Character;
@@ -178,6 +180,9 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
     });
   };
 
+  // Set of template type names for quick lookup
+  const templateTypeNames = new Set(ENDEAVOUR_TEMPLATES.map(t => t.type.toLowerCase()));
+
   const handleSelectEndeavour = (periodId: string, item: PickerItem) => {
     if (item.label === '✏️ Custom (free text)') {
       setAddingToPeriodId(null);
@@ -185,6 +190,30 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
       setCustomInput('');
       return;
     }
+
+    // Check if the selected item matches a template type
+    if (templateTypeNames.has(item.label.toLowerCase())) {
+      const result = applyEndeavourTemplate(item.label, character.status || undefined);
+      const entry: EndeavourEntry = {
+        id: generateId(),
+        type: result.type,
+        notes: result.notes,
+        cost: result.cost,
+        status: 'pending',
+      };
+      updateCharacter((c) => ({
+        ...c,
+        endeavours: addEndeavourEntry(c.endeavours, periodId, entry),
+      }));
+      setAddingToPeriodId(null);
+      if (result.warning) {
+        setToastMessage(result.warning);
+      } else {
+        setToastMessage('Endeavour added');
+      }
+      return;
+    }
+
     const entry = createEndeavourEntry(item.label);
     updateCharacter((c) => ({
       ...c,
@@ -443,9 +472,20 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
                     >
                       {getStatusIndicator(entry.status)}
                     </button>
-                    <span className={entry.status === 'completed' ? styles.entryTypeCompleted : styles.entryType}>
-                      {entry.type}
-                    </span>
+                    <input
+                      type="text"
+                      value={entry.type}
+                      onChange={(e) =>
+                        updateCharacter((c) => ({
+                          ...c,
+                          endeavours: updateEndeavourEntry(c.endeavours, period.id, entry.id, 'type', e.target.value),
+                        }))
+                      }
+                      maxLength={50}
+                      placeholder="Type..."
+                      className={entry.status === 'completed' ? styles.entryTypeInputCompleted : styles.entryTypeInput}
+                      aria-label="Endeavour type"
+                    />
                     <input
                       type="text"
                       value={entry.cost || ''}
