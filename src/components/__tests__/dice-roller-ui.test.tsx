@@ -115,9 +115,11 @@ describe('RollResultDisplay — shows roll value, target, SL, and outcome descri
     skillOrCharName: 'Dodge',
   });
 
-  it('displays the d100 roll value', () => {
+  it('displays the d100 roll value', async () => {
     render(<RollResultDisplay result={result} onClose={vi.fn()} />);
-    expect(screen.getByText('32')).toBeInTheDocument();
+    // The component has a brief rolling animation (300ms) before showing the value.
+    // Use findByText to wait for the animation to complete.
+    expect(await screen.findByText('32')).toBeInTheDocument();
   });
 
   it('displays the target number', () => {

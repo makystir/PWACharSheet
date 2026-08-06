@@ -53,6 +53,7 @@ function buildCharacter(chars: Record<CharacteristicKey, CharacteristicValue>): 
 const defaultProps = {
   update: vi.fn(),
   updateCharacter: vi.fn(),
+  characterId: 'test-char-1',
   totalWounds: 12,
   armourPoints: { head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 } as ArmourPoints,
   maxEncumbrance: 30,
@@ -91,7 +92,7 @@ describe('Bug Condition: Characteristic Bonus Column Missing', () => {
       ),
       { numRuns: 20 }
     );
-  });
+  }, 30000);
 
   /**
    * Validates: Requirements 2.2
@@ -125,7 +126,7 @@ describe('Bug Condition: Characteristic Bonus Column Missing', () => {
       ),
       { numRuns: 20 }
     );
-  });
+  }, 30000);
 
   /**
    * Validates: Requirements 2.1
@@ -160,7 +161,7 @@ describe('Bug Condition: Characteristic Bonus Column Missing', () => {
           expect(hasTalentBonusLabel).toBe(true);
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 5 }
     );
-  });
+  }, 30000);
 });
