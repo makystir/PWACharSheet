@@ -41,5 +41,7 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          timeout: 900000
+      - name: Retry deployment on timeout
+        if: failure()
+        id: retry
+        uses: actions/deploy-pages@v4
