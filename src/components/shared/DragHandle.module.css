@@ -1,7 +1,8 @@
 .dragHandle {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 0;
+  flex-shrink: 0;
 }
 
 .grip {
@@ -10,6 +11,13 @@
   color: var(--text-secondary);
   cursor: grab;
   touch-action: none;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.dragHandle:hover .grip,
+.dragHandle:focus-within .grip {
+  opacity: 1;
 }
 
 .grip:active {
@@ -20,16 +28,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition: background 0.1s, color 0.1s, opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  opacity: 0;
+}
+
+.dragHandle:hover .moveButton,
+.dragHandle:focus-within .moveButton {
+  opacity: 1;
 }
 
 .moveButton:hover:not(:disabled) {
@@ -42,6 +56,28 @@
 }
 
 .moveButton:disabled {
-  opacity: 0.3;
+  opacity: 0;
   pointer-events: none;
+}
+
+.dragHandle:hover .moveButton:disabled,
+.dragHandle:focus-within .moveButton:disabled {
+  opacity: 0.2;
+}
+
+@media (hover: none) {
+  /* On touch devices, always show buttons since there's no hover */
+  .moveButton {
+    opacity: 1;
+    width: 28px;
+    height: 28px;
+  }
+
+  .moveButton:disabled {
+    opacity: 0.3;
+  }
+
+  .grip {
+    opacity: 1;
+  }
 }

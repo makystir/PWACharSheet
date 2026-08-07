@@ -12,26 +12,26 @@ export interface DragHandleProps {
 export function DragHandle({ onMoveUp, onMoveDown, isFirst, isLast, itemLabel }: DragHandleProps) {
   return (
     <div className={styles.dragHandle}>
+      <button
+        type="button"
+        className={styles.moveButton}
+        onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+        disabled={isFirst}
+        aria-label={`Move ${itemLabel} up`}
+      >
+        <ChevronUp size={12} />
+      </button>
       <span className={styles.grip} aria-hidden="true">
-        <GripVertical size={16} />
+        <GripVertical size={14} />
       </span>
       <button
         type="button"
         className={styles.moveButton}
-        onClick={onMoveUp}
-        disabled={isFirst}
-        aria-label={`Move ${itemLabel} up`}
-      >
-        <ChevronUp size={14} />
-      </button>
-      <button
-        type="button"
-        className={styles.moveButton}
-        onClick={onMoveDown}
+        onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
         disabled={isLast}
         aria-label={`Move ${itemLabel} down`}
       >
-        <ChevronDown size={14} />
+        <ChevronDown size={12} />
       </button>
     </div>
   );

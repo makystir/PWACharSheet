@@ -845,8 +845,8 @@
 
 .trappingContentRow {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .trappingInfo {
@@ -854,6 +854,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .trappingHorseCheckbox {

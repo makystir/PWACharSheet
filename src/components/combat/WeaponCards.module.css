@@ -40,7 +40,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  min-width: 60px;
+  min-width: 80px;
 }
 
 .primaryStats {
