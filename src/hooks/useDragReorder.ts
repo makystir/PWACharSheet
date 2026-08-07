@@ -48,6 +48,7 @@ interface InternalDragState {
   containerRect: DOMRect;
   scrollTimerId: number | null;
   draggedElement: HTMLElement | null;
+  allItemElements: HTMLElement[];
 }
 
 // --- Constants ---
@@ -172,6 +173,13 @@ export function useDragReorder<T>(
       el.style.boxShadow = '';
       el.style.pointerEvents = '';
     }
+    // Reset sibling shifts
+    if (internal?.allItemElements) {
+      for (const el of internal.allItemElements) {
+        el.style.transform = '';
+        el.style.transition = '';
+      }
+    }
     internalRef.current = null;
     setDragState(IDLE_STATE);
   }, []);
@@ -189,6 +197,50 @@ export function useDragReorder<T>(
     resetState();
   }, [resetState]);
 
+  // Apply transforms to sibling items to "make room" at the drop position.
+  // Items between dragIndex and dropIndex shift to fill the gap left by the dragged item.
+  const applySlotShifts = useCallback((internal: InternalDragState) => {
+    const { dragIndex, dropIndex, allItemElements, itemRects } = internal;
+    if (allItemElements.length === 0 || itemRects.length === 0) return;
+
+    for (let i = 0; i < allItemElements.length; i++) {
+      if (i === dragIndex) continue; // dragged item handles its own transform
+
+      const el = allItemElements[i];
+      let shiftX = 0;
+      let shiftY = 0;
+
+      // Determine if this item needs to shift:
+      // When dragging from dragIndex to dropIndex, items in between need to
+      // move one slot to fill the vacated space.
+      if (dragIndex < dropIndex) {
+        // Dragging forward: items between (dragIndex, dropIndex] shift backward one slot
+        if (i > dragIndex && i < dropIndex) {
+          const prevRect = itemRects[i - 1];
+          const curRect = itemRects[i];
+          shiftX = prevRect.left - curRect.left;
+          shiftY = prevRect.top - curRect.top;
+        }
+      } else if (dragIndex > dropIndex) {
+        // Dragging backward: items in [dropIndex, dragIndex) shift forward one slot
+        if (i >= dropIndex && i < dragIndex) {
+          const nextRect = itemRects[i + 1];
+          const curRect = itemRects[i];
+          shiftX = nextRect.left - curRect.left;
+          shiftY = nextRect.top - curRect.top;
+        }
+      }
+
+      if (shiftX !== 0 || shiftY !== 0) {
+        el.style.transition = 'transform 0.2s ease';
+        el.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+      } else {
+        el.style.transition = 'transform 0.2s ease';
+        el.style.transform = '';
+      }
+    }
+  }, []);
+
   // Compute drop index from pointer position — only triggers re-render when index changes
   const updateDropIndex = useCallback((clientX: number, clientY: number) => {
     const internal = internalRef.current;
@@ -204,6 +256,10 @@ export function useDragReorder<T>(
     // Throttle: only update React state if index actually changed
     if (newDropIndex !== internal.dropIndex) {
       internal.dropIndex = newDropIndex;
+
+      // Shift sibling items to show where the dragged item will land
+      applySlotShifts(internal);
+
       setDragState(prev => ({
         ...prev,
         dropIndex: newDropIndex,
@@ -274,7 +330,8 @@ export function useDragReorder<T>(
             const items = children.filter(child => child.dataset.dragItem !== undefined);
             internal.itemRects = items.map(child => child.getBoundingClientRect());
             internal.containerRect = container.getBoundingClientRect();
-            // Store reference to the dragged DOM element
+            // Store references to all item DOM elements and the dragged one
+            internal.allItemElements = items;
             internal.draggedElement = items[internal.dragIndex] || null;
           }
 
@@ -467,6 +524,7 @@ export function useDragReorder<T>(
           containerRect: container.getBoundingClientRect(),
           scrollTimerId: null,
           draggedElement: null,
+          allItemElements: [],
         };
 
         setDragState({
