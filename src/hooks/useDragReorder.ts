@@ -33,7 +33,7 @@ export interface UseDragReorderResult {
   announcementText: string;
 }
 
-// --- Internal State (mutable ref, no re-renders) ---
+// --- Internal State ---
 
 interface InternalState {
   status: 'idle' | 'tracking' | 'dragging';
@@ -43,7 +43,7 @@ interface InternalState {
   currentX: number;
   currentY: number;
   pointerId: number;
-  itemRects: DOMRect[];
+  itemRects: DOMRect[]; // cached at drag start, never changes
   containerRect: DOMRect;
   scrollTimerId: number | null;
 }
@@ -54,7 +54,7 @@ const DRAG_THRESHOLD_PX = 5;
 const AUTO_SCROLL_ZONE_PX = 40;
 const AUTO_SCROLL_SPEED = 8;
 
-// --- Helper: compute insertion index from pointer position and cached rects ---
+// --- Helper: compute insertion index ---
 
 export function computeInsertionIndex(
   pointerY: number,
@@ -64,7 +64,6 @@ export function computeInsertionIndex(
 ): number {
   if (itemRects.length === 0) return 0;
 
-  // Detect multi-column grid
   const isMultiColumn = itemRects.length > 1 && itemRects.some((r, i) => {
     if (i === 0) return false;
     const prev = itemRects[i - 1];
@@ -72,7 +71,6 @@ export function computeInsertionIndex(
   });
 
   if (!isMultiColumn || pointerX === undefined) {
-    // Single-column: count midpoints above pointer
     let index = 0;
     for (let i = 0; i < itemRects.length; i++) {
       const midY = itemRects[i].top + itemRects[i].height / 2;
@@ -85,10 +83,8 @@ export function computeInsertionIndex(
     return Math.max(0, Math.min(index, itemRects.length));
   }
 
-  // Multi-column: find closest item center in 2D
   let closestIndex = 0;
   let closestDist = Infinity;
-
   for (let i = 0; i < itemRects.length; i++) {
     const r = itemRects[i];
     const midX = r.left + r.width / 2;
@@ -125,29 +121,47 @@ export function generateAnnouncementText(
   return `${itemLabel} moved to position ${toIndex + 1} of ${totalItems}`;
 }
 
-// --- Helper: compute CSS order for each item to simulate reorder ---
-// Given N items, dragIndex, and dropIndex (insertion point),
-// returns an array of CSS `order` values that visually reorders items
-// as if the dragged item was removed and re-inserted at dropIndex.
+// --- Helper: compute transform offsets for each item ---
+// Each non-dragged item that needs to shift gets a pixel offset
+// based on the cached rects (positions at drag start).
 
-function computeVisualOrders(
+function computeShiftTransforms(
   itemCount: number,
   dragIndex: number,
-  dropIndex: number
-): number[] {
-  // Build the visual sequence: remove dragIndex, insert at dropIndex
-  const indices = Array.from({ length: itemCount }, (_, i) => i);
-  const [removed] = indices.splice(dragIndex, 1);
-  const insertAt = dropIndex > dragIndex ? dropIndex - 1 : dropIndex;
-  indices.splice(insertAt, 0, removed);
+  dropIndex: number,
+  itemRects: DOMRect[]
+): Array<{ x: number; y: number }> {
+  const shifts: Array<{ x: number; y: number }> = new Array(itemCount).fill(null).map(() => ({ x: 0, y: 0 }));
 
-  // Now indices[visualPos] = originalIndex
-  // We need order[originalIndex] = visualPos
-  const orders = new Array(itemCount);
-  for (let visualPos = 0; visualPos < indices.length; visualPos++) {
-    orders[indices[visualPos]] = visualPos;
+  if (dragIndex === dropIndex || itemRects.length < itemCount) {
+    return shifts;
   }
-  return orders;
+
+  // Items between dragIndex and dropIndex need to shift one slot
+  // toward the drag origin to fill the gap.
+  if (dragIndex < dropIndex) {
+    // Dragging forward: items (dragIndex+1) to (dropIndex-1) shift backward one slot
+    for (let i = dragIndex + 1; i < dropIndex; i++) {
+      const targetRect = itemRects[i - 1]; // shift to previous slot
+      const curRect = itemRects[i];
+      shifts[i] = {
+        x: targetRect.left - curRect.left,
+        y: targetRect.top - curRect.top,
+      };
+    }
+  } else {
+    // Dragging backward: items (dropIndex) to (dragIndex-1) shift forward one slot
+    for (let i = dropIndex; i < dragIndex; i++) {
+      const targetRect = itemRects[i + 1]; // shift to next slot
+      const curRect = itemRects[i];
+      shifts[i] = {
+        x: targetRect.left - curRect.left,
+        y: targetRect.top - curRect.top,
+      };
+    }
+  }
+
+  return shifts;
 }
 
 // --- The Hook ---
@@ -167,11 +181,8 @@ export function useDragReorder<T>(
 
   const [dragState, setDragState] = useState<DragState>(IDLE_STATE);
   const [announcementText, setAnnouncementText] = useState('');
-
   const internalRef = useRef<InternalState | null>(null);
   const contextMenuSuppressed = useRef(false);
-
-  // --- State transitions ---
 
   const resetState = useCallback(() => {
     const internal = internalRef.current;
@@ -187,8 +198,7 @@ export function useDragReorder<T>(
     setTimeout(() => { contextMenuSuppressed.current = false; }, 0);
   }, [resetState]);
 
-  // --- Auto-scroll ---
-
+  // Auto-scroll
   const autoScroll = useCallback(() => {
     const internal = internalRef.current;
     const container = containerRef.current;
@@ -209,11 +219,10 @@ export function useDragReorder<T>(
     if (scrollDelta !== 0) {
       container.scrollTop += scrollDelta;
     }
-
     internal.scrollTimerId = requestAnimationFrame(autoScroll);
   }, [containerRef]);
 
-  // --- Pointer event handlers ---
+  // --- Pointer handlers ---
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
@@ -226,11 +235,9 @@ export function useDragReorder<T>(
       internal.currentY = e.clientY;
 
       if (internal.status === 'tracking') {
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance > DRAG_THRESHOLD_PX) {
+        if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD_PX) {
           internal.status = 'dragging';
 
-          // Cache item rects at drag start
           const container = containerRef.current;
           if (container) {
             const children = Array.from(container.children) as HTMLElement[];
@@ -251,18 +258,13 @@ export function useDragReorder<T>(
           });
         }
       } else if (internal.status === 'dragging') {
-        // Compute new drop index
         const newDropIndex = computeInsertionIndex(
-          e.clientY,
-          internal.itemRects,
-          internal.dragIndex,
-          e.clientX
+          e.clientY, internal.itemRects, internal.dragIndex, e.clientX
         );
 
-        // Update state (React handles rendering — offset for drag preview, dropIndex for reorder visual)
         setDragState(prev => {
           if (prev.offsetX === dx && prev.offsetY === dy && prev.dropIndex === newDropIndex) {
-            return prev; // no change, skip re-render
+            return prev;
           }
           return { ...prev, offsetX: dx, offsetY: dy, dropIndex: newDropIndex };
         });
@@ -278,10 +280,7 @@ export function useDragReorder<T>(
 
       if (internal.status === 'dragging') {
         const finalDropIndex = computeInsertionIndex(
-          e.clientY,
-          internal.itemRects,
-          internal.dragIndex,
-          e.clientX
+          e.clientY, internal.itemRects, internal.dragIndex, e.clientX
         );
 
         let toIndex = finalDropIndex;
@@ -292,11 +291,7 @@ export function useDragReorder<T>(
         if (toIndex !== internal.dragIndex) {
           onReorder(internal.dragIndex, toIndex);
           setAnnouncementText(
-            generateAnnouncementText(
-              `Item ${internal.dragIndex + 1}`,
-              toIndex,
-              items.length
-            )
+            generateAnnouncementText(`Item ${internal.dragIndex + 1}`, toIndex, items.length)
           );
         }
       }
@@ -307,37 +302,28 @@ export function useDragReorder<T>(
     [items.length, onReorder, resetState]
   );
 
-  const handlePointerCancel = useCallback(() => {
-    cancelDrag();
+  const handlePointerCancel = useCallback(() => cancelDrag(), [cancelDrag]);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape' && internalRef.current?.status === 'dragging') {
+      e.preventDefault();
+      cancelDrag();
+    }
   }, [cancelDrag]);
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && internalRef.current?.status === 'dragging') {
-        e.preventDefault();
-        cancelDrag();
-      }
-    },
-    [cancelDrag]
-  );
-
   const handleContextMenu = useCallback((e: Event) => {
-    if (contextMenuSuppressed.current) {
-      e.preventDefault();
-    }
+    if (contextMenuSuppressed.current) e.preventDefault();
   }, []);
 
-  // --- Global listener management ---
+  // --- Listener management ---
 
   useEffect(() => {
     if (dragState.status === 'idle') return;
-
     document.addEventListener('pointermove', handlePointerMove);
     document.addEventListener('pointerup', handlePointerUp);
     document.addEventListener('pointercancel', handlePointerCancel);
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('contextmenu', handleContextMenu);
-
     return () => {
       document.removeEventListener('pointermove', handlePointerMove);
       document.removeEventListener('pointerup', handlePointerUp);
@@ -347,20 +333,20 @@ export function useDragReorder<T>(
     };
   }, [dragState.status, handlePointerMove, handlePointerUp, handlePointerCancel, handleKeyDown, handleContextMenu]);
 
-  useEffect(() => {
-    return () => {
-      if (internalRef.current?.scrollTimerId != null) {
-        cancelAnimationFrame(internalRef.current.scrollTimerId);
-      }
-    };
+  useEffect(() => () => {
+    if (internalRef.current?.scrollTimerId != null) cancelAnimationFrame(internalRef.current.scrollTimerId);
   }, []);
 
-  // --- Compute visual orders when dragging ---
+  // --- Compute shift transforms for non-dragged items ---
 
-  const visualOrders = dragState.status === 'dragging' &&
+  const internal = internalRef.current;
+  const shiftTransforms = (
+    dragState.status === 'dragging' &&
     dragState.dragIndex !== null &&
-    dragState.dropIndex !== null
-    ? computeVisualOrders(items.length, dragState.dragIndex, dragState.dropIndex)
+    dragState.dropIndex !== null &&
+    internal?.itemRects?.length
+  )
+    ? computeShiftTransforms(items.length, dragState.dragIndex, dragState.dropIndex, internal.itemRects)
     : null;
 
   // --- Public API ---
@@ -407,14 +393,11 @@ export function useDragReorder<T>(
   const getItemProps = useCallback(
     (index: number) => {
       const isDragging = dragState.status === 'dragging' && dragState.dragIndex === index;
-
       const style: React.CSSProperties = {};
 
       if (dragState.status === 'dragging') {
         if (isDragging) {
-          // The dragged item stays at its original grid position (order = index)
-          // and follows the pointer via transform only
-          style.order = index;
+          // Dragged item follows the pointer
           style.transform = `translate(${dragState.offsetX}px, ${dragState.offsetY}px)`;
           style.zIndex = 9999;
           style.position = 'relative';
@@ -422,10 +405,11 @@ export function useDragReorder<T>(
           style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
           style.pointerEvents = 'none';
           style.transition = 'box-shadow 0.2s, opacity 0.2s';
-        } else {
-          // Non-dragged items get CSS order for visual reordering
-          if (visualOrders) {
-            style.order = visualOrders[index];
+        } else if (shiftTransforms) {
+          // Non-dragged items slide to their shifted positions
+          const shift = shiftTransforms[index];
+          if (shift.x !== 0 || shift.y !== 0) {
+            style.transform = `translate(${shift.x}px, ${shift.y}px)`;
           }
           style.transition = 'transform 0.25s ease';
         }
@@ -438,7 +422,7 @@ export function useDragReorder<T>(
         'aria-grabbed': isDragging ? true : undefined,
       };
     },
-    [dragState, visualOrders]
+    [dragState, shiftTransforms]
   );
 
   const dropIndicatorIndex = dragState.status === 'dragging' ? dragState.dropIndex : null;
