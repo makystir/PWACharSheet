@@ -274,7 +274,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
   // Drag-reorder for trappings grid
   const trappingsGridRef = useRef<HTMLDivElement>(null);
-  const { dragState: trappingsDragState, getGripProps: getTrappingGripProps, getItemProps: getTrappingItemProps, dropIndicatorIndex: trappingsDropIndex, announcementText: trappingsAnnouncement } = useDragReorder({
+  const { dragState: trappingsDragState, getGripProps: getTrappingGripProps, dropIndicatorIndex: trappingsDropIndex, announcementText: trappingsAnnouncement } = useDragReorder({
     items: character.trappings,
     onReorder: (from, to) => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, from, to) })),
     containerRef: trappingsGridRef,
@@ -1476,7 +1476,6 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 key={i}
                 data-drag-item=""
                 aria-grabbed={trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? true : undefined}
-                style={getTrappingItemProps(i).style}
                 className={`${t.storedOnHorse ? styles.trappingCardHorse : styles.trappingCard}${trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? ` ${styles.trappingDragging}` : ''}${trappingsDropIndex === i ? ` ${styles.trappingDropTarget}` : ''}`}
               >
                 {editingTrappingIndex === i ? (

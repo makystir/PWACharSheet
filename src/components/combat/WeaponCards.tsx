@@ -94,7 +94,6 @@ export function WeaponCards({
                 className={`${styles.weaponCard}${isExpanded ? ` ${styles.expanded}` : ''}${itemProps.className ? ` ${styles.dragging}` : ''}${isDropTarget ? ` ${styles.dropTarget}` : ''}`}
                 data-testid={`weapon-card-${i}`}
                 data-drag-item=""
-                style={itemProps.style}
                 aria-grabbed={itemProps['aria-grabbed']}
                 onClick={() => { if (editingIndex !== i && dragState.status !== 'dragging') handleCardTap(i); }}
               >

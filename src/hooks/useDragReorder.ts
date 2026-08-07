@@ -26,7 +26,6 @@ export interface UseDragReorderResult {
   };
   getItemProps: (index: number) => {
     className?: string;
-    style?: React.CSSProperties;
     'aria-grabbed'?: boolean;
   };
   dropIndicatorIndex: number | null;
@@ -205,57 +204,46 @@ export function useDragReorder<T>(
     const { dragIndex, dropIndex, itemRects } = internal;
     if (itemRects.length === 0) return;
 
-    // Re-query elements from the DOM (references may be stale after React re-render)
+    // Re-query elements from the DOM
     const container = containerRef.current;
     if (!container) return;
     const elements = Array.from(container.querySelectorAll('[data-drag-item]')) as HTMLElement[];
     if (elements.length === 0) return;
 
-    // Update the stored reference
+    // Update the stored references
     internal.allItemElements = elements;
-    internal.draggedElement = elements[dragIndex] || null;
+    if (elements[dragIndex]) {
+      internal.draggedElement = elements[dragIndex];
+    }
 
     const count = Math.min(elements.length, itemRects.length);
 
     for (let i = 0; i < count; i++) {
-      if (i === dragIndex) continue; // dragged item handles its own transform
+      if (i === dragIndex) continue;
 
       const el = elements[i];
-
       let shouldShift = false;
 
       if (dragIndex < dropIndex) {
-        // Dragging forward: items after dragIndex up to (but not including) dropIndex
-        // shift backward to fill the vacated slot
+        // Dragging forward: items between dragIndex and dropIndex shift back one slot
         shouldShift = i > dragIndex && i < dropIndex;
       } else if (dragIndex > dropIndex) {
-        // Dragging backward: items at dropIndex up to (but not including) dragIndex
-        // shift forward to make room
+        // Dragging backward: items between dropIndex and dragIndex shift forward one slot
         shouldShift = i >= dropIndex && i < dragIndex;
       }
 
       if (shouldShift) {
         const curRect = itemRects[i];
-        let targetIdx: number;
-
-        if (dragIndex < dropIndex) {
-          targetIdx = i - 1;
-        } else {
-          targetIdx = i + 1;
-        }
+        const targetIdx = dragIndex < dropIndex ? i - 1 : i + 1;
 
         if (targetIdx >= 0 && targetIdx < itemRects.length) {
           const targetRect = itemRects[targetIdx];
-          const shiftX = targetRect.left - curRect.left;
-          const shiftY = targetRect.top - curRect.top;
-          el.style.transition = 'transform 0.2s ease';
-          el.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+          const shiftX = Math.round(targetRect.left - curRect.left);
+          const shiftY = Math.round(targetRect.top - curRect.top);
+          el.style.cssText = `transition: transform 0.2s ease; transform: translate(${shiftX}px, ${shiftY}px);`;
         }
       } else {
-        if (el.style.transform) {
-          el.style.transition = 'transform 0.2s ease';
-          el.style.transform = '';
-        }
+        el.style.cssText = 'transition: transform 0.2s ease;';
       }
     }
   }, [containerRef]);
@@ -281,14 +269,14 @@ export function useDragReorder<T>(
         dropIndex: newDropIndex,
       }));
 
-      // Apply slot shifts after React re-renders (next microtask)
-      Promise.resolve().then(() => {
+      // Apply slot shifts after React re-renders (next frame)
+      requestAnimationFrame(() => {
         if (internalRef.current) {
           applySlotShifts(internalRef.current);
         }
       });
     }
-  }, []);
+  }, [applySlotShifts]);
 
   // Auto-scroll logic
   const autoScroll = useCallback(() => {
@@ -587,12 +575,11 @@ export function useDragReorder<T>(
         dragState.status === 'dragging' && dragState.dragIndex === index;
 
       // Note: actual transform is applied directly to DOM in handlePointerMove
-      // for performance. We only set the static elevated styles here for the
-      // initial render when drag starts.
+      // for performance. We don't pass style here to avoid React clearing
+      // inline styles set via direct DOM manipulation.
       return {
         'data-drag-item': '',
         className: isDragging ? 'drag-item-dragging' : undefined,
-        style: undefined as React.CSSProperties | undefined,
         'aria-grabbed': isDragging ? true : undefined,
       };
     },
