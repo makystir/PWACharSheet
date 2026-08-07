@@ -841,12 +841,30 @@
   position: absolute;
   top: 4px;
   right: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  z-index: 1;
 }
 
-.trappingContentRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
+.trappingCard:hover .trappingActions,
+.trappingCard:focus-within .trappingActions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .trappingActions {
+    opacity: 1;
+    pointer-events: auto;
+    position: static;
+    padding: 0;
+    background: none;
+    margin-bottom: 4px;
+  }
 }
 
 .trappingInfo {

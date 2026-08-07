@@ -1511,6 +1511,13 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 ) : (
                   <>
                     <div className={styles.trappingActions}>
+                      <DragHandle
+                        onMoveUp={() => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, i, i - 1) }))}
+                        onMoveDown={() => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, i, i + 1) }))}
+                        isFirst={i === 0}
+                        isLast={i === character.trappings.length - 1}
+                        itemLabel={t.name || 'trapping'}
+                      />
                       <input
                         type="checkbox"
                         checked={!!t.storedOnHorse}
@@ -1522,20 +1529,11 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                       <button type="button" onClick={() => setEditingTrappingIndex(i)} className={styles.trappingEditBtn} aria-label={`Edit ${t.name || 'trapping'}`}>✎</button>
                       <button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn} aria-label="Remove trapping">✕</button>
                     </div>
-                    <div className={styles.trappingContentRow}>
-                      <DragHandle
-                        onMoveUp={() => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, i, i - 1) }))}
-                        onMoveDown={() => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, i, i + 1) }))}
-                        isFirst={i === 0}
-                        isLast={i === character.trappings.length - 1}
-                        itemLabel={t.name || 'trapping'}
-                      />
-                      <div className={styles.trappingInfo}>
-                        <span className={styles.trappingName}>{t.name || '(unnamed)'}</span>
-                        <span className={styles.trappingMeta}>
-                          Enc {t.enc || '0'} · Qty {t.quantity || 1}
-                        </span>
-                      </div>
+                    <div className={styles.trappingInfo}>
+                      <span className={styles.trappingName}>{t.name || '(unnamed)'}</span>
+                      <span className={styles.trappingMeta}>
+                        Enc {t.enc || '0'} · Qty {t.quantity || 1}
+                      </span>
                     </div>
                   </>
                 )}
