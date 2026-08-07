@@ -5,6 +5,5 @@ export interface DropIndicatorProps {
 }
 
 export function DropIndicator({ visible }: DropIndicatorProps) {
-  if (!visible) return null;
-  return <div className={styles.indicator} />;
+  return <div className={visible ? styles.indicator : styles.indicatorHidden} />;
 }

@@ -47,6 +47,7 @@ interface InternalDragState {
   itemRects: DOMRect[];
   containerRect: DOMRect;
   scrollTimerId: number | null;
+  draggedElement: HTMLElement | null;
 }
 
 // --- Constants ---
@@ -89,9 +90,6 @@ export function computeInsertionIndex(
   }
 
   // Multi-column grid: find the closest item center in 2D space.
-  // Items are in DOM/reading order (row-major: left-to-right, top-to-bottom).
-  // Insertion index = the position before the item whose center is closest
-  // to the pointer, biased by whether the pointer is before or after that center.
   let closestIndex = 0;
   let closestDist = Infinity;
 
@@ -112,15 +110,11 @@ export function computeInsertionIndex(
   const closestMidX = closest.left + closest.width / 2;
   const closestMidY = closest.top + closest.height / 2;
 
-  // If pointer is below the item's row, or on the same row but to the right of center
   if (pointerY > closestMidY + closest.height / 2) {
-    // Pointer is clearly below this item's row
     return Math.min(closestIndex + 1, itemRects.length);
   } else if (pointerY < closestMidY - closest.height / 2) {
-    // Pointer is clearly above this item's row
     return closestIndex;
   } else {
-    // Same row — decide based on X position
     if (pointerX > closestMidX) {
       return Math.min(closestIndex + 1, itemRects.length);
     } else {
@@ -162,11 +156,21 @@ export function useDragReorder<T>(
   const contextMenuSuppressed = useRef(false);
   const gripElementRef = useRef<HTMLElement | null>(null);
 
-  // Reset to idle
+  // Reset to idle — also clean up DOM styles on the dragged element
   const resetState = useCallback(() => {
     const internal = internalRef.current;
     if (internal?.scrollTimerId != null) {
       cancelAnimationFrame(internal.scrollTimerId);
+    }
+    // Reset inline styles on dragged element
+    if (internal?.draggedElement) {
+      const el = internal.draggedElement;
+      el.style.transform = '';
+      el.style.zIndex = '';
+      el.style.position = '';
+      el.style.opacity = '';
+      el.style.boxShadow = '';
+      el.style.pointerEvents = '';
     }
     internalRef.current = null;
     setDragState(IDLE_STATE);
@@ -185,7 +189,7 @@ export function useDragReorder<T>(
     resetState();
   }, [resetState]);
 
-  // Compute drop index from pointer position
+  // Compute drop index from pointer position — only triggers re-render when index changes
   const updateDropIndex = useCallback((clientX: number, clientY: number) => {
     const internal = internalRef.current;
     if (!internal) return;
@@ -197,7 +201,7 @@ export function useDragReorder<T>(
       clientX
     );
 
-    // Throttle: only update if index actually changed
+    // Throttle: only update React state if index actually changed
     if (newDropIndex !== internal.dropIndex) {
       internal.dropIndex = newDropIndex;
       setDragState(prev => ({
@@ -233,7 +237,6 @@ export function useDragReorder<T>(
       const rects: DOMRect[] = [];
       for (let i = 0; i < children.length; i++) {
         const child = children[i] as HTMLElement;
-        // Skip drop indicators and non-item elements
         if (child.dataset.dragItem !== undefined) {
           rects.push(child.getBoundingClientRect());
         }
@@ -268,10 +271,22 @@ export function useDragReorder<T>(
           const container = containerRef.current;
           if (container) {
             const children = Array.from(container.children) as HTMLElement[];
-            internal.itemRects = children
-              .filter(child => child.dataset.dragItem !== undefined)
-              .map(child => child.getBoundingClientRect());
+            const items = children.filter(child => child.dataset.dragItem !== undefined);
+            internal.itemRects = items.map(child => child.getBoundingClientRect());
             internal.containerRect = container.getBoundingClientRect();
+            // Store reference to the dragged DOM element
+            internal.draggedElement = items[internal.dragIndex] || null;
+          }
+
+          // Apply dragging styles directly to the DOM element (no React re-render)
+          if (internal.draggedElement) {
+            const el = internal.draggedElement;
+            el.style.zIndex = '9999';
+            el.style.position = 'relative';
+            el.style.opacity = '0.9';
+            el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+            el.style.pointerEvents = 'none';
+            el.style.transform = `translate(${dx}px, ${dy}px)`;
           }
 
           // Start auto-scroll
@@ -280,6 +295,7 @@ export function useDragReorder<T>(
           // Suppress context menu for touch
           contextMenuSuppressed.current = true;
 
+          // Only one React state update: status change + initial dropIndex
           setDragState({
             status: 'dragging',
             dragIndex: internal.dragIndex,
@@ -289,14 +305,12 @@ export function useDragReorder<T>(
           });
         }
       } else if (internal.status === 'dragging') {
-        // Update visual offset
-        setDragState(prev => ({
-          ...prev,
-          offsetX: dx,
-          offsetY: dy,
-        }));
+        // Update dragged element transform directly via DOM — no React re-render
+        if (internal.draggedElement) {
+          internal.draggedElement.style.transform = `translate(${dx}px, ${dy}px)`;
+        }
 
-        // Update drop index
+        // Update drop index (only triggers re-render when index changes)
         updateDropIndex(e.clientX, e.clientY);
       }
     },
@@ -452,6 +466,7 @@ export function useDragReorder<T>(
           itemRects: [],
           containerRect: container.getBoundingClientRect(),
           scrollTimerId: null,
+          draggedElement: null,
         };
 
         setDragState({
@@ -476,23 +491,17 @@ export function useDragReorder<T>(
       const isDragging =
         dragState.status === 'dragging' && dragState.dragIndex === index;
 
+      // Note: actual transform is applied directly to DOM in handlePointerMove
+      // for performance. We only set the static elevated styles here for the
+      // initial render when drag starts.
       return {
         'data-drag-item': '',
         className: isDragging ? 'drag-item-dragging' : undefined,
-        style: isDragging
-          ? ({
-              transform: `translate(${dragState.offsetX}px, ${dragState.offsetY}px)`,
-              zIndex: 9999,
-              position: 'relative' as const,
-              opacity: 0.9,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              transition: 'box-shadow 0.2s',
-            } as React.CSSProperties)
-          : undefined,
+        style: undefined as React.CSSProperties | undefined,
         'aria-grabbed': isDragging ? true : undefined,
       };
     },
-    [dragState]
+    [dragState.status, dragState.dragIndex]
   );
 
   const dropIndicatorIndex =

@@ -13,9 +13,12 @@ describe('DropIndicator', () => {
     expect(indicator.className).toMatch(/indicator/);
   });
 
-  it('renders nothing when visible={false}', () => {
+  it('renders a hidden div when visible={false}', () => {
     const { container } = render(<DropIndicator visible={false} />);
-    expect(container.firstChild).toBeNull();
+    const el = container.firstChild as HTMLElement;
+    expect(el).toBeInTheDocument();
+    expect(el.tagName).toBe('DIV');
+    expect(el.className).toMatch(/indicatorHidden/);
   });
 });
 
