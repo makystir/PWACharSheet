@@ -411,13 +411,10 @@ export function useDragReorder<T>(
       const style: React.CSSProperties = {};
 
       if (dragState.status === 'dragging') {
-        // All items get CSS order for visual reordering + transition for animation
-        if (visualOrders) {
-          style.order = visualOrders[index];
-        }
-
         if (isDragging) {
-          // The dragged item follows the pointer
+          // The dragged item stays at its original grid position (order = index)
+          // and follows the pointer via transform only
+          style.order = index;
           style.transform = `translate(${dragState.offsetX}px, ${dragState.offsetY}px)`;
           style.zIndex = 9999;
           style.position = 'relative';
@@ -426,8 +423,11 @@ export function useDragReorder<T>(
           style.pointerEvents = 'none';
           style.transition = 'box-shadow 0.2s, opacity 0.2s';
         } else {
-          // Non-dragged items animate to their new visual positions
-          style.transition = 'transform 0.25s ease, order 0s';
+          // Non-dragged items get CSS order for visual reordering
+          if (visualOrders) {
+            style.order = visualOrders[index];
+          }
+          style.transition = 'transform 0.25s ease';
         }
       }
 
