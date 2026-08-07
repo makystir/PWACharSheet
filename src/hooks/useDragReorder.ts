@@ -173,16 +173,18 @@ export function useDragReorder<T>(
       el.style.boxShadow = '';
       el.style.pointerEvents = '';
     }
-    // Reset sibling shifts
-    if (internal?.allItemElements) {
-      for (const el of internal.allItemElements) {
-        el.style.transform = '';
-        el.style.transition = '';
-      }
+    // Reset sibling shifts — re-query in case React replaced elements
+    const container = containerRef.current;
+    if (container) {
+      const items = container.querySelectorAll('[data-drag-item]');
+      items.forEach((el) => {
+        (el as HTMLElement).style.transform = '';
+        (el as HTMLElement).style.transition = '';
+      });
     }
     internalRef.current = null;
     setDragState(IDLE_STATE);
-  }, []);
+  }, [containerRef]);
 
   // Cancel drag without reordering
   const cancelDrag = useCallback(() => {
@@ -200,46 +202,63 @@ export function useDragReorder<T>(
   // Apply transforms to sibling items to "make room" at the drop position.
   // Items between dragIndex and dropIndex shift to fill the gap left by the dragged item.
   const applySlotShifts = useCallback((internal: InternalDragState) => {
-    const { dragIndex, dropIndex, allItemElements, itemRects } = internal;
-    if (allItemElements.length === 0 || itemRects.length === 0) return;
+    const { dragIndex, dropIndex, itemRects } = internal;
+    if (itemRects.length === 0) return;
 
-    for (let i = 0; i < allItemElements.length; i++) {
+    // Re-query elements from the DOM (references may be stale after React re-render)
+    const container = containerRef.current;
+    if (!container) return;
+    const elements = Array.from(container.querySelectorAll('[data-drag-item]')) as HTMLElement[];
+    if (elements.length === 0) return;
+
+    // Update the stored reference
+    internal.allItemElements = elements;
+    internal.draggedElement = elements[dragIndex] || null;
+
+    const count = Math.min(elements.length, itemRects.length);
+
+    for (let i = 0; i < count; i++) {
       if (i === dragIndex) continue; // dragged item handles its own transform
 
-      const el = allItemElements[i];
-      let shiftX = 0;
-      let shiftY = 0;
+      const el = elements[i];
 
-      // Determine if this item needs to shift:
-      // When dragging from dragIndex to dropIndex, items in between need to
-      // move one slot to fill the vacated space.
+      let shouldShift = false;
+
       if (dragIndex < dropIndex) {
-        // Dragging forward: items between (dragIndex, dropIndex] shift backward one slot
-        if (i > dragIndex && i < dropIndex) {
-          const prevRect = itemRects[i - 1];
-          const curRect = itemRects[i];
-          shiftX = prevRect.left - curRect.left;
-          shiftY = prevRect.top - curRect.top;
-        }
+        // Dragging forward: items after dragIndex up to (but not including) dropIndex
+        // shift backward to fill the vacated slot
+        shouldShift = i > dragIndex && i < dropIndex;
       } else if (dragIndex > dropIndex) {
-        // Dragging backward: items in [dropIndex, dragIndex) shift forward one slot
-        if (i >= dropIndex && i < dragIndex) {
-          const nextRect = itemRects[i + 1];
-          const curRect = itemRects[i];
-          shiftX = nextRect.left - curRect.left;
-          shiftY = nextRect.top - curRect.top;
-        }
+        // Dragging backward: items at dropIndex up to (but not including) dragIndex
+        // shift forward to make room
+        shouldShift = i >= dropIndex && i < dragIndex;
       }
 
-      if (shiftX !== 0 || shiftY !== 0) {
-        el.style.transition = 'transform 0.2s ease';
-        el.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+      if (shouldShift) {
+        const curRect = itemRects[i];
+        let targetIdx: number;
+
+        if (dragIndex < dropIndex) {
+          targetIdx = i - 1;
+        } else {
+          targetIdx = i + 1;
+        }
+
+        if (targetIdx >= 0 && targetIdx < itemRects.length) {
+          const targetRect = itemRects[targetIdx];
+          const shiftX = targetRect.left - curRect.left;
+          const shiftY = targetRect.top - curRect.top;
+          el.style.transition = 'transform 0.2s ease';
+          el.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+        }
       } else {
-        el.style.transition = 'transform 0.2s ease';
-        el.style.transform = '';
+        if (el.style.transform) {
+          el.style.transition = 'transform 0.2s ease';
+          el.style.transform = '';
+        }
       }
     }
-  }, []);
+  }, [containerRef]);
 
   // Compute drop index from pointer position — only triggers re-render when index changes
   const updateDropIndex = useCallback((clientX: number, clientY: number) => {
@@ -257,13 +276,17 @@ export function useDragReorder<T>(
     if (newDropIndex !== internal.dropIndex) {
       internal.dropIndex = newDropIndex;
 
-      // Shift sibling items to show where the dragged item will land
-      applySlotShifts(internal);
-
       setDragState(prev => ({
         ...prev,
         dropIndex: newDropIndex,
       }));
+
+      // Apply slot shifts after React re-renders (next microtask)
+      Promise.resolve().then(() => {
+        if (internalRef.current) {
+          applySlotShifts(internalRef.current);
+        }
+      });
     }
   }, []);
 
@@ -363,8 +386,22 @@ export function useDragReorder<T>(
         }
       } else if (internal.status === 'dragging') {
         // Update dragged element transform directly via DOM — no React re-render
+        // Re-query in case React replaced the element during a re-render
+        if (!internal.draggedElement || !internal.draggedElement.isConnected) {
+          const container = containerRef.current;
+          if (container) {
+            const items = Array.from(container.querySelectorAll('[data-drag-item]')) as HTMLElement[];
+            internal.draggedElement = items[internal.dragIndex] || null;
+            internal.allItemElements = items;
+          }
+        }
         if (internal.draggedElement) {
           internal.draggedElement.style.transform = `translate(${dx}px, ${dy}px)`;
+          internal.draggedElement.style.zIndex = '9999';
+          internal.draggedElement.style.position = 'relative';
+          internal.draggedElement.style.opacity = '0.9';
+          internal.draggedElement.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+          internal.draggedElement.style.pointerEvents = 'none';
         }
 
         // Update drop index (only triggers re-render when index changes)
