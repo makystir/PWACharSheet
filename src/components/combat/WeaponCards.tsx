@@ -145,8 +145,8 @@ export function WeaponCards({
                   </div>
                 ) : (
                 <>
-                {/* Primary row: name + damage + range/reach + roll */}
-                <div className={styles.primaryRow}>
+                {/* Name row: full weapon name, always readable */}
+                <div className={styles.nameRow}>
                   {onReorderWeapon && (
                     <DragHandle
                       onMoveUp={() => onReorderWeapon(i, i - 1)}
@@ -156,7 +156,11 @@ export function WeaponCards({
                       itemLabel={w.name || 'weapon'}
                     />
                   )}
-                  <div className={styles.weaponName} title={w.name}>{w.name || 'Unnamed'}</div>
+                  <div className={styles.weaponName}>{w.name || 'Unnamed'}</div>
+                </div>
+
+                {/* Stats row: damage + range/reach + action buttons */}
+                <div className={styles.statsRow}>
                   <div className={styles.primaryStats}>
                     <div className={styles.statChip}>
                       <span className={styles.statChipLabel}>DMG</span>
@@ -167,31 +171,33 @@ export function WeaponCards({
                       <span className={styles.statChipValueSecondary}>{rangeReach}</span>
                     </div>
                   </div>
-                  {onUpdateWeapon && (
+                  <div className={styles.actionButtons}>
+                    {onUpdateWeapon && (
+                      <button
+                        type="button"
+                        className={styles.editBtn}
+                        onClick={(e) => { e.stopPropagation(); setEditingIndex(i); }}
+                        aria-label={`Edit ${w.name || 'weapon'}`}
+                      >✎</button>
+                    )}
                     <button
                       type="button"
-                      className={styles.editBtn}
-                      onClick={(e) => { e.stopPropagation(); setEditingIndex(i); }}
-                      aria-label={`Edit ${w.name || 'weapon'}`}
-                    >✎</button>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.rollBtn}
-                    onClick={(e) => { e.stopPropagation(); onRollWeapon(w); }}
-                    title={`Roll ${w.name}`}
-                    aria-label={`Roll ${w.name}`}
-                  >
-                    🎲
-                  </button>
-                  {onDeleteWeapon && (
-                    <button
-                      type="button"
-                      className={styles.deleteBtn}
-                      onClick={(e) => { e.stopPropagation(); onDeleteWeapon(i); }}
-                      aria-label={`Delete ${w.name}`}
-                    >✕</button>
-                  )}
+                      className={styles.rollBtn}
+                      onClick={(e) => { e.stopPropagation(); onRollWeapon(w); }}
+                      title={`Roll ${w.name}`}
+                      aria-label={`Roll ${w.name}`}
+                    >
+                      🎲
+                    </button>
+                    {onDeleteWeapon && (
+                      <button
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={(e) => { e.stopPropagation(); onDeleteWeapon(i); }}
+                        aria-label={`Delete ${w.name}`}
+                      >✕</button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Secondary line: group + qualities (shown on hover/tap) */}

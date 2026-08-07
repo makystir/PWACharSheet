@@ -21,7 +21,7 @@ When adding UI controls (buttons, icons, drag handles, toggles, badges) to exist
 
 4. **Trapping cards are small (~160px minimum).** Any inline control added to trapping cards must be ≤24px wide at rest. Use hover-reveal or icon-only patterns.
 
-5. **Weapon cards have a dense primary row.** The primary row already contains: name + damage chip + range chip + roll button + delete button. Any additions must use hover-reveal or be placed in the secondary line.
+5. **Weapon cards use a two-line structure.** Line 1 is the weapon name (full width, never truncated). Line 2 is stats + action buttons. Never put the weapon name on the same flex row as buttons — they will always crowd it out.
 
 ## Mobile Touch Targets
 

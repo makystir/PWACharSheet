@@ -21,7 +21,7 @@ export function DragHandle({ onMoveUp, onMoveDown, isFirst, isLast, itemLabel }:
       >
         <ChevronUp size={12} />
       </button>
-      <span className={styles.grip} aria-hidden="true">
+      <span className={styles.grip} aria-hidden="true" draggable={false}>
         <GripVertical size={14} />
       </span>
       <button

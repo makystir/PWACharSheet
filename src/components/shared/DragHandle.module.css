@@ -9,19 +9,14 @@
   display: flex;
   align-items: center;
   color: var(--text-secondary);
-  cursor: grab;
-  touch-action: none;
   opacity: 0.5;
   transition: opacity 0.15s;
+  user-select: none;
 }
 
 .dragHandle:hover .grip,
 .dragHandle:focus-within .grip {
   opacity: 1;
-}
-
-.grip:active {
-  cursor: grabbing;
 }
 
 .moveButton {
