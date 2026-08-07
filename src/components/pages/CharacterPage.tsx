@@ -72,7 +72,6 @@ import { AgeTierSelector } from '../shared/AgeTierSelector';
 import { ProgressBar } from '../shared/ProgressBar';
 import { getEncumbranceLevel, formatEncumbrance } from '../../logic/encumbrance';
 import { DragHandle } from '../shared/DragHandle';
-import { DropIndicator } from '../shared/DropIndicator';
 import { AriaLiveAnnouncer } from '../shared/AriaLiveAnnouncer';
 import { useDragReorder } from '../../hooks/useDragReorder';
 import { reorderArray } from '../../logic/reorder';
@@ -1473,14 +1472,13 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         ) : (
           <div className={styles.trappingsGrid} ref={trappingsGridRef}>
             {character.trappings.map((t, i) => (
-              <React.Fragment key={i}>
-                <DropIndicator visible={trappingsDropIndex === i} />
-                <div
-                  data-drag-item=""
-                  aria-grabbed={trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? true : undefined}
-                  style={getTrappingItemProps(i).style}
-                  className={`${t.storedOnHorse ? styles.trappingCardHorse : styles.trappingCard}${trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? ` ${styles.trappingDragging}` : ''}`}
-                >
+              <div
+                key={i}
+                data-drag-item=""
+                aria-grabbed={trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? true : undefined}
+                style={getTrappingItemProps(i).style}
+                className={`${t.storedOnHorse ? styles.trappingCardHorse : styles.trappingCard}${trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? ` ${styles.trappingDragging}` : ''}${trappingsDropIndex === i ? ` ${styles.trappingDropTarget}` : ''}`}
+              >
                 {editingTrappingIndex === i ? (
                   <div className={styles.trappingEditForm}>
                     <input
@@ -1563,12 +1561,10 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                   </>
                 )}
               </div>
-              </React.Fragment>
             ))}
-            <DropIndicator visible={trappingsDropIndex === character.trappings.length} />
-            <AriaLiveAnnouncer message={trappingsAnnouncement} />
           </div>
         )}
+        <AriaLiveAnnouncer message={trappingsAnnouncement} />
       </Card>
 
       {/* AP Auto-Calculation */}

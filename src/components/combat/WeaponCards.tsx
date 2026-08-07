@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { WeaponItem, Character } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -6,7 +6,6 @@ import { AddButton } from '../shared/AddButton';
 import { EmptyState } from '../shared/EmptyState';
 import { HelpPopover } from '../shared/HelpPopover';
 import { DragHandle } from '../shared/DragHandle';
-import { DropIndicator } from '../shared/DropIndicator';
 import { AriaLiveAnnouncer } from '../shared/AriaLiveAnnouncer';
 import { useDragReorder } from '../../hooks/useDragReorder';
 import { calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
@@ -87,18 +86,18 @@ export function WeaponCards({
             const isExpanded = expandedIndex === i;
             const hasQualities = (w.qualities && w.qualities !== '—') || runeQualities.length > 0;
             const itemProps = getItemProps(i);
+            const isDropTarget = dropIndicatorIndex !== null && dropIndicatorIndex === i;
 
             return (
-              <React.Fragment key={i}>
-                <DropIndicator visible={dropIndicatorIndex === i} />
-                <div
-                  className={`${styles.weaponCard}${isExpanded ? ` ${styles.expanded}` : ''}${itemProps.className ? ` ${styles.dragging}` : ''}`}
-                  data-testid={`weapon-card-${i}`}
-                  data-drag-item=""
-                  style={itemProps.style}
-                  aria-grabbed={itemProps['aria-grabbed']}
-                  onClick={() => { if (editingIndex !== i && dragState.status !== 'dragging') handleCardTap(i); }}
-                >
+              <div
+                key={i}
+                className={`${styles.weaponCard}${isExpanded ? ` ${styles.expanded}` : ''}${itemProps.className ? ` ${styles.dragging}` : ''}${isDropTarget ? ` ${styles.dropTarget}` : ''}`}
+                data-testid={`weapon-card-${i}`}
+                data-drag-item=""
+                style={itemProps.style}
+                aria-grabbed={itemProps['aria-grabbed']}
+                onClick={() => { if (editingIndex !== i && dragState.status !== 'dragging') handleCardTap(i); }}
+              >
                 {editingIndex === i && onUpdateWeapon ? (
                   <div className={styles.editForm} onClick={(e) => e.stopPropagation()}>
                     <input
@@ -249,10 +248,8 @@ export function WeaponCards({
                 </>
                 )}
               </div>
-              </React.Fragment>
             );
           })}
-          <DropIndicator visible={dropIndicatorIndex === weapons.length} />
         </div>
       )}
 

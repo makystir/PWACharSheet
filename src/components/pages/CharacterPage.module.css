@@ -826,6 +826,11 @@
   position: relative;
 }
 
+.trappingDropTarget {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px var(--accent-gold);
+}
+
 .trappingName {
   font-size: 13px;
   font-weight: 600;

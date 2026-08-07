@@ -4,12 +4,5 @@
   background: var(--accent-gold);
   border-radius: 1px;
   opacity: 1;
-  transition: height 0.15s ease, opacity 0.15s ease;
-}
-
-.indicatorHidden {
-  height: 0;
-  width: 100%;
-  opacity: 0;
-  overflow: hidden;
+  transition: opacity 0.15s ease;
 }

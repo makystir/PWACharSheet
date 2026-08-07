@@ -30,6 +30,12 @@
   z-index: 9999;
 }
 
+/* Drop target: highlighted border when an item would be placed here */
+.dropTarget {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px var(--accent-gold);
+}
+
 /* Name row: full-width name, never truncated */
 .nameRow {
   display: flex;
