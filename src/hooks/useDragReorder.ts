@@ -13,6 +13,7 @@ export interface DragState {
   status: 'idle' | 'tracking' | 'dragging';
   dragIndex: number | null;
   dropIndex: number | null;
+  offsetX: number;
   offsetY: number;
 }
 
@@ -40,6 +41,7 @@ interface InternalDragState {
   startY: number;
   startX: number;
   currentY: number;
+  currentX: number;
   dropIndex: number;
   pointerId: number;
   itemRects: DOMRect[];
@@ -53,25 +55,78 @@ const DRAG_THRESHOLD_PX = 5;
 const AUTO_SCROLL_ZONE_PX = 40;
 const AUTO_SCROLL_SPEED = 8;
 
-// --- Helper: compute insertion index from pointer Y and cached rects ---
+// --- Helper: compute insertion index from pointer position and cached rects ---
 
 export function computeInsertionIndex(
   pointerY: number,
   itemRects: DOMRect[],
-  dragIndex: number
+  dragIndex: number,
+  pointerX?: number
 ): number {
-  // Find the gap closest to the pointer Y position.
-  // The insertion index is the count of item midpoints above the pointer position.
-  let index = 0;
+  if (itemRects.length === 0) return 0;
+
+  // Detect if this is a multi-column grid by checking if any two items
+  // share similar Y positions (same row) but differ in X.
+  const isMultiColumn = itemRects.length > 1 && itemRects.some((r, i) => {
+    if (i === 0) return false;
+    const prev = itemRects[i - 1];
+    // Same row: tops within 10px of each other, but left positions differ
+    return Math.abs(r.top - prev.top) < 10 && Math.abs(r.left - prev.left) > 10;
+  });
+
+  if (!isMultiColumn || pointerX === undefined) {
+    // Single-column layout: use original vertical-only logic
+    let index = 0;
+    for (let i = 0; i < itemRects.length; i++) {
+      const midY = itemRects[i].top + itemRects[i].height / 2;
+      if (pointerY > midY) {
+        index = i + 1;
+      } else {
+        break;
+      }
+    }
+    return Math.max(0, Math.min(index, itemRects.length));
+  }
+
+  // Multi-column grid: find the closest item center in 2D space.
+  // Items are in DOM/reading order (row-major: left-to-right, top-to-bottom).
+  // Insertion index = the position before the item whose center is closest
+  // to the pointer, biased by whether the pointer is before or after that center.
+  let closestIndex = 0;
+  let closestDist = Infinity;
+
   for (let i = 0; i < itemRects.length; i++) {
-    const midY = itemRects[i].top + itemRects[i].height / 2;
-    if (pointerY > midY) {
-      index = i + 1;
-    } else {
-      break;
+    const r = itemRects[i];
+    const midX = r.left + r.width / 2;
+    const midY = r.top + r.height / 2;
+    const dist = Math.sqrt((pointerX - midX) ** 2 + (pointerY - midY) ** 2);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestIndex = i;
     }
   }
-  return Math.max(0, Math.min(index, itemRects.length));
+
+  // Determine if pointer is "after" the closest item (insert after it)
+  // or "before" it (insert before it).
+  const closest = itemRects[closestIndex];
+  const closestMidX = closest.left + closest.width / 2;
+  const closestMidY = closest.top + closest.height / 2;
+
+  // If pointer is below the item's row, or on the same row but to the right of center
+  if (pointerY > closestMidY + closest.height / 2) {
+    // Pointer is clearly below this item's row
+    return Math.min(closestIndex + 1, itemRects.length);
+  } else if (pointerY < closestMidY - closest.height / 2) {
+    // Pointer is clearly above this item's row
+    return closestIndex;
+  } else {
+    // Same row — decide based on X position
+    if (pointerX > closestMidX) {
+      return Math.min(closestIndex + 1, itemRects.length);
+    } else {
+      return closestIndex;
+    }
+  }
 }
 
 // --- Helper: generate announcement text ---
@@ -90,6 +145,7 @@ const IDLE_STATE: DragState = {
   status: 'idle',
   dragIndex: null,
   dropIndex: null,
+  offsetX: 0,
   offsetY: 0,
 };
 
@@ -129,15 +185,16 @@ export function useDragReorder<T>(
     resetState();
   }, [resetState]);
 
-  // Compute drop index from pointer Y
-  const updateDropIndex = useCallback((clientY: number) => {
+  // Compute drop index from pointer position
+  const updateDropIndex = useCallback((clientX: number, clientY: number) => {
     const internal = internalRef.current;
     if (!internal) return;
 
     const newDropIndex = computeInsertionIndex(
       clientY,
       internal.itemRects,
-      internal.dragIndex
+      internal.dragIndex,
+      clientX
     );
 
     // Throttle: only update if index actually changed
@@ -199,6 +256,7 @@ export function useDragReorder<T>(
       const dx = e.clientX - internal.startX;
       const dy = e.clientY - internal.startY;
       internal.currentY = e.clientY;
+      internal.currentX = e.clientX;
 
       if (internal.status === 'tracking') {
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -226,6 +284,7 @@ export function useDragReorder<T>(
             status: 'dragging',
             dragIndex: internal.dragIndex,
             dropIndex: internal.dragIndex,
+            offsetX: dx,
             offsetY: dy,
           });
         }
@@ -233,11 +292,12 @@ export function useDragReorder<T>(
         // Update visual offset
         setDragState(prev => ({
           ...prev,
+          offsetX: dx,
           offsetY: dy,
         }));
 
         // Update drop index
-        updateDropIndex(e.clientY);
+        updateDropIndex(e.clientX, e.clientY);
       }
     },
     [containerRef, autoScroll, updateDropIndex]
@@ -261,7 +321,8 @@ export function useDragReorder<T>(
         const finalDropIndex = computeInsertionIndex(
           e.clientY,
           internal.itemRects,
-          internal.dragIndex
+          internal.dragIndex,
+          e.clientX
         );
 
         // Adjust for removal: if dropping after original position, the effective
@@ -385,6 +446,7 @@ export function useDragReorder<T>(
           startY: e.clientY,
           startX: e.clientX,
           currentY: e.clientY,
+          currentX: e.clientX,
           dropIndex: index,
           pointerId: e.pointerId,
           itemRects: [],
@@ -396,6 +458,7 @@ export function useDragReorder<T>(
           status: 'tracking',
           dragIndex: index,
           dropIndex: null,
+          offsetX: 0,
           offsetY: 0,
         });
 
@@ -418,7 +481,7 @@ export function useDragReorder<T>(
         className: isDragging ? 'drag-item-dragging' : undefined,
         style: isDragging
           ? ({
-              transform: `translateY(${dragState.offsetY}px)`,
+              transform: `translate(${dragState.offsetX}px, ${dragState.offsetY}px)`,
               zIndex: 9999,
               position: 'relative' as const,
               opacity: 0.9,
