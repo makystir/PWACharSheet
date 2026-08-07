@@ -819,6 +819,13 @@
   background: rgba(200, 168, 76, 0.05);
 }
 
+.trappingDragging {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+  z-index: 9999;
+  position: relative;
+}
+
 .trappingName {
   font-size: 13px;
   font-weight: 600;
@@ -879,6 +886,19 @@
   cursor: pointer;
   width: 14px;
   height: 14px;
+}
+
+.horseIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 24px;
+  cursor: pointer;
+}
+
+.horseIcon {
+  font-size: 14px;
+  line-height: 1;
 }
 
 /* Trapping edit form */

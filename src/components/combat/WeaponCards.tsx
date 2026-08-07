@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import type { WeaponItem, Character } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -6,6 +6,9 @@ import { AddButton } from '../shared/AddButton';
 import { EmptyState } from '../shared/EmptyState';
 import { HelpPopover } from '../shared/HelpPopover';
 import { DragHandle } from '../shared/DragHandle';
+import { DropIndicator } from '../shared/DropIndicator';
+import { AriaLiveAnnouncer } from '../shared/AriaLiveAnnouncer';
+import { useDragReorder } from '../../hooks/useDragReorder';
 import { calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
 import { getRuneQualities } from '../../logic/runes';
 import { getBonus } from '../../logic/calculators';
@@ -38,6 +41,14 @@ export function WeaponCards({
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { dragState, getGripProps, getItemProps, dropIndicatorIndex, announcementText } =
+    useDragReorder({
+      items: weapons,
+      onReorder: onReorderWeapon || (() => {}),
+      containerRef,
+    });
 
   const handleCardTap = (index: number) => {
     setExpandedIndex((prev) => (prev === index ? null : index));
@@ -66,7 +77,7 @@ export function WeaponCards({
       )}
 
       {weapons.length > 0 && (
-        <div className={styles.cardGrid}>
+        <div className={styles.cardGrid} ref={containerRef}>
           {weapons.map((w, i) => {
             const calc = calcWeaponDamage(w, SB, character.talents, w.runes ?? [], character.houseRules.rangedDamageSBMode);
             const isRanged = RANGED_GROUPS.includes(w.group);
@@ -75,14 +86,19 @@ export function WeaponCards({
             const rangeReach = w.rangeReach || w.maxR || '—';
             const isExpanded = expandedIndex === i;
             const hasQualities = (w.qualities && w.qualities !== '—') || runeQualities.length > 0;
+            const itemProps = getItemProps(i);
 
             return (
-              <div
-                key={i}
-                className={`${styles.weaponCard}${isExpanded ? ` ${styles.expanded}` : ''}`}
-                data-testid={`weapon-card-${i}`}
-                onClick={() => { if (editingIndex !== i) handleCardTap(i); }}
-              >
+              <React.Fragment key={i}>
+                <DropIndicator visible={dropIndicatorIndex === i} />
+                <div
+                  className={`${styles.weaponCard}${isExpanded ? ` ${styles.expanded}` : ''}${itemProps.className ? ` ${styles.dragging}` : ''}`}
+                  data-testid={`weapon-card-${i}`}
+                  data-drag-item=""
+                  style={itemProps.style}
+                  aria-grabbed={itemProps['aria-grabbed']}
+                  onClick={() => { if (editingIndex !== i && dragState.status !== 'dragging') handleCardTap(i); }}
+                >
                 {editingIndex === i && onUpdateWeapon ? (
                   <div className={styles.editForm} onClick={(e) => e.stopPropagation()}>
                     <input
@@ -154,6 +170,7 @@ export function WeaponCards({
                       isFirst={i === 0}
                       isLast={i === weapons.length - 1}
                       itemLabel={w.name || 'weapon'}
+                      gripProps={getGripProps(i)}
                     />
                   )}
                   <div className={styles.weaponName}>{w.name || 'Unnamed'}</div>
@@ -232,8 +249,10 @@ export function WeaponCards({
                 </>
                 )}
               </div>
+              </React.Fragment>
             );
           })}
+          <DropIndicator visible={dropIndicatorIndex === weapons.length} />
         </div>
       )}
 
@@ -245,6 +264,8 @@ export function WeaponCards({
           </HelpPopover>
         </div>
       )}
+
+      <AriaLiveAnnouncer message={announcementText} />
     </Card>
   );
 }

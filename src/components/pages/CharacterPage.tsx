@@ -72,6 +72,9 @@ import { AgeTierSelector } from '../shared/AgeTierSelector';
 import { ProgressBar } from '../shared/ProgressBar';
 import { getEncumbranceLevel, formatEncumbrance } from '../../logic/encumbrance';
 import { DragHandle } from '../shared/DragHandle';
+import { DropIndicator } from '../shared/DropIndicator';
+import { AriaLiveAnnouncer } from '../shared/AriaLiveAnnouncer';
+import { useDragReorder } from '../../hooks/useDragReorder';
 import { reorderArray } from '../../logic/reorder';
 import { DwarfAlternateRoll } from '../shared/DwarfAlternateRoll';
 import {
@@ -269,6 +272,14 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const [showTalentPicker, setShowTalentPicker] = useState(false);
   const [showTrappingPicker, setShowTrappingPicker] = useState(false);
   const [editingTrappingIndex, setEditingTrappingIndex] = useState<number | null>(null);
+
+  // Drag-reorder for trappings grid
+  const trappingsGridRef = useRef<HTMLDivElement>(null);
+  const { dragState: trappingsDragState, getGripProps: getTrappingGripProps, getItemProps: getTrappingItemProps, dropIndicatorIndex: trappingsDropIndex, announcementText: trappingsAnnouncement } = useDragReorder({
+    items: character.trappings,
+    onReorder: (from, to) => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, from, to) })),
+    containerRef: trappingsGridRef,
+  });
 
   // Responsive characteristics table: hide T. Bonus on mobile by default (Req 7.3)
   const [showTBonus, setShowTBonus] = useState(false);
@@ -1460,9 +1471,16 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             action={{ label: '+ Add', onClick: () => setShowTrappingPicker(true) }}
           />
         ) : (
-          <div className={styles.trappingsGrid}>
+          <div className={styles.trappingsGrid} ref={trappingsGridRef}>
             {character.trappings.map((t, i) => (
-              <div key={i} className={t.storedOnHorse ? styles.trappingCardHorse : styles.trappingCard}>
+              <React.Fragment key={i}>
+                <DropIndicator visible={trappingsDropIndex === i} />
+                <div
+                  data-drag-item=""
+                  aria-grabbed={trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? true : undefined}
+                  style={getTrappingItemProps(i).style}
+                  className={`${t.storedOnHorse ? styles.trappingCardHorse : styles.trappingCard}${trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? ` ${styles.trappingDragging}` : ''}`}
+                >
                 {editingTrappingIndex === i ? (
                   <div className={styles.trappingEditForm}>
                     <input
@@ -1517,16 +1535,23 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                         isFirst={i === 0}
                         isLast={i === character.trappings.length - 1}
                         itemLabel={t.name || 'trapping'}
+                        gripProps={getTrappingGripProps(i)}
                       />
-                      <input
-                        type="checkbox"
-                        checked={!!t.storedOnHorse}
-                        onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)}
-                        title="Stored on horse"
-                        aria-label="Stored on horse"
-                        className={styles.trappingHorseCheckbox}
-                      />
-                      <button type="button" onClick={() => setEditingTrappingIndex(i)} className={styles.trappingEditBtn} aria-label={`Edit ${t.name || 'trapping'}`}>✎</button>
+                      <label
+                        className={styles.horseIndicator}
+                        aria-label="Stored on horse — does not count toward personal encumbrance"
+                        title="Stored on horse — does not count toward personal encumbrance"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!!t.storedOnHorse}
+                          onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)}
+                          className={styles.trappingHorseCheckbox}
+                          disabled={trappingsDragState.status === 'dragging'}
+                        />
+                        <span className={styles.horseIcon} aria-hidden="true">🐎</span>
+                      </label>
+                      <button type="button" onClick={() => setEditingTrappingIndex(i)} className={styles.trappingEditBtn} aria-label={`Edit ${t.name || 'trapping'}`} disabled={trappingsDragState.status === 'dragging'}>✎</button>
                       <button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn} aria-label="Remove trapping">✕</button>
                     </div>
                     <div className={styles.trappingInfo}>
@@ -1538,7 +1563,10 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                   </>
                 )}
               </div>
+              </React.Fragment>
             ))}
+            <DropIndicator visible={trappingsDropIndex === character.trappings.length} />
+            <AriaLiveAnnouncer message={trappingsAnnouncement} />
           </div>
         )}
       </Card>

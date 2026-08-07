@@ -1,0 +1,8 @@
+.indicator {
+  height: 2px;
+  width: 100%;
+  background: var(--accent-gold);
+  border-radius: 1px;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}

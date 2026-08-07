@@ -7,9 +7,15 @@ export interface DragHandleProps {
   isFirst: boolean;
   isLast: boolean;
   itemLabel: string;
+  // Pointer event props from useDragReorder hook for drag-to-reorder
+  gripProps?: {
+    onPointerDown: (e: React.PointerEvent) => void;
+    'aria-roledescription': string;
+    style?: React.CSSProperties;
+  };
 }
 
-export function DragHandle({ onMoveUp, onMoveDown, isFirst, isLast, itemLabel }: DragHandleProps) {
+export function DragHandle({ onMoveUp, onMoveDown, isFirst, isLast, itemLabel, gripProps }: DragHandleProps) {
   return (
     <div className={styles.dragHandle}>
       <button
@@ -21,7 +27,14 @@ export function DragHandle({ onMoveUp, onMoveDown, isFirst, isLast, itemLabel }:
       >
         <ChevronUp size={12} />
       </button>
-      <span className={styles.grip} aria-hidden="true" draggable={false}>
+      <span
+        className={styles.grip}
+        draggable={false}
+        {...(gripProps
+          ? { ...gripProps, style: { touchAction: 'none', ...gripProps.style } }
+          : { 'aria-hidden': 'true' as const }
+        )}
+      >
         <GripVertical size={14} />
       </span>
       <button

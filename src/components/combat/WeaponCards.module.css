@@ -23,6 +23,13 @@
   box-shadow: 0 0 0 2px rgba(var(--accent-primary-rgb, 99, 102, 241), 0.15);
 }
 
+/* Elevated dragging state: applied when item is actively being dragged */
+.dragging {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
+  z-index: 9999;
+}
+
 /* Name row: full-width name, never truncated */
 .nameRow {
   display: flex;
