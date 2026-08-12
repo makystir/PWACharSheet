@@ -6,6 +6,17 @@
   gap: 12px;
 }
 
+.subSection {
+  position: relative;
+}
+
+.helpIconFloat {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+
 .valueRow {
   display: flex;
   align-items: baseline;

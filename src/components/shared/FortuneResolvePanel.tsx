@@ -67,12 +67,13 @@ export function FortuneResolvePanel({ character, updateCharacter }: FortuneResol
       <Card>
         <div className={styles.gridRow}>
           {/* Fate / Fortune sub-section */}
-          <div>
-            <SectionHeader icon={Star} title="Fate / Fortune" action={
+          <div className={styles.subSection}>
+            <SectionHeader icon={Star} title="Fate / Fortune" />
+            <div className={styles.helpIconFloat}>
               <HelpPopover concept="fortune-resolve-spending">
                 Spend Fortune to reroll a test or add +1 SL. Spend Resolve for immunity to psychology or to remove conditions — both reset each session.
               </HelpPopover>
-            } />
+            </div>
             <div className={styles.valueRow}>
               <EditableField label="Fate" value={character.fate} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, fate: Number(v) }))} />
               <EditableField label="Fortune" value={character.fortune} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, fortune: Number(v) }))} />
@@ -107,7 +108,7 @@ export function FortuneResolvePanel({ character, updateCharacter }: FortuneResol
           </div>
 
           {/* Resilience / Resolve sub-section */}
-          <div>
+          <div className={styles.subSection}>
             <SectionHeader icon={Shield} title="Resilience / Resolve" />
             <div className={styles.valueRow}>
               <EditableField label="Resilience" value={character.resilience} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, resilience: Number(v) }))} />
