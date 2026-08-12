@@ -491,9 +491,6 @@ export function CombatDashboard(props: CombatDashboardProps) {
                 <div className={styles.iconLabelSmall}>
                   <Star size={12} color="var(--accent-gold)" />
                   <span className={styles.label}>Fortune</span>
-                  <HelpPopover concept="fortune-resolve-spending">
-                    Spend Fortune to reroll a test or add +1 SL. Spend Resolve for immunity to psychology or to remove conditions — both reset each session.
-                  </HelpPopover>
                 </div>
                 <button
                   type="button"
@@ -566,6 +563,9 @@ export function CombatDashboard(props: CombatDashboardProps) {
                   </div>
                 )}
               </div>
+              <HelpPopover concept="fortune-resolve-spending">
+                Spend Fortune to reroll a test or add +1 SL. Spend Resolve for immunity to psychology or to remove conditions — both reset each session.
+              </HelpPopover>
             </div>
           </div>
           {/* ── Condition Badges ── */}
