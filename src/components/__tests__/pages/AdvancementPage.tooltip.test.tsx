@@ -1,9 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AdvancementPage } from '../../pages/AdvancementPage';
 import { BLANK_CHARACTER } from '../../../types/character';
 import type { Character, ArmourPoints } from '../../../types/character';
+
+// Suppress HelpPopover auto-open by pre-setting localStorage dismissal counts
+beforeEach(() => {
+  localStorage.setItem('wfrp-hint-dismissed-career-advancement', '3');
+  localStorage.setItem('wfrp-hint-dismissed-xp-cost-table', '3');
+});
+
+afterEach(() => {
+  localStorage.clear();
+});
 
 /**
  * Build a test character with the Soldier career (level 1 = Recruit).

@@ -6,6 +6,7 @@ import { addDisease, removeDisease, updateDiseaseNotes, findDisease, getDiseaseS
 import { Card } from './Card';
 import { SectionHeader } from './SectionHeader';
 import { AddButton } from './AddButton';
+import { EmptyState } from './EmptyState';
 import { Picker } from './Picker';
 import { HeartPulse, ChevronDown, ChevronRight } from 'lucide-react';
 import styles from './DiseasePanel.module.css';
@@ -54,7 +55,13 @@ export function DiseasePanel({ character, updateCharacter }: DiseasePanelProps) 
       <SectionHeader icon={HeartPulse} title="Diseases" />
 
       {diseases.length === 0 ? (
-        <div className={styles.emptyState}>No active diseases</div>
+        <EmptyState
+          icon={HeartPulse}
+          heading="No Diseases"
+          description="No active diseases — add one from the registry when contracted."
+          compact
+          action={{ label: 'Add Disease', onClick: () => setShowPicker(true) }}
+        />
       ) : (
         <div className={styles.diseaseList}>
           {diseases.map((disease) => {
@@ -137,9 +144,11 @@ export function DiseasePanel({ character, updateCharacter }: DiseasePanelProps) 
         </div>
       )}
 
-      <div className={styles.addRow}>
-        <AddButton label="Add Disease" onClick={() => setShowPicker(true)} />
-      </div>
+      {diseases.length > 0 && (
+        <div className={styles.addRow}>
+          <AddButton label="Add Disease" onClick={() => setShowPicker(true)} />
+        </div>
+      )}
 
       {showPicker && (
         <Picker

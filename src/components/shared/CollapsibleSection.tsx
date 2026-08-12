@@ -78,10 +78,13 @@ export function CollapsibleSection({
         )}
       </button>
       <div
-        className={expanded ? styles.contentExpanded : styles.contentCollapsed}
+        className={styles.content}
+        data-expanded={String(expanded)}
         aria-hidden={!expanded}
       >
-        {children}
+        <div className={styles.contentInner}>
+          {children}
+        </div>
       </div>
     </div>
   );

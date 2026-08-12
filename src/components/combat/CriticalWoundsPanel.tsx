@@ -5,6 +5,7 @@ import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { AddButton } from '../shared/AddButton';
+import { EmptyState } from '../shared/EmptyState';
 import { RollCriticalFlow } from './RollCriticalFlow';
 import { Activity } from 'lucide-react';
 import styles from './CriticalWoundsPanel.module.css';
@@ -74,9 +75,13 @@ export function CriticalWoundsPanel({ criticalWounds, onAdd, onHeal, onUpdate, d
             />
           )}
           {activeWounds.length === 0 && (
-            <div className={styles.emptyMessage}>
-              No active critical wounds
-            </div>
+            <EmptyState
+              icon={Activity}
+              heading="No Critical Wounds"
+              description="No active critical wounds — roll or add one manually when injuries occur."
+              compact
+              action={{ label: 'Add Wound', onClick: onAdd }}
+            />
           )}
           {activeWounds.map((w) => {
             const idx = criticalWounds.indexOf(w);

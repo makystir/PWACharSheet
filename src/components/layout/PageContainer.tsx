@@ -3,6 +3,7 @@ import type { ReactNode, RefObject } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { CharacterNameHeader } from '../shared/CharacterNameHeader';
 import { OfflineIndicator } from '../shared/OfflineIndicator';
+import { PageTransition } from '../shared/PageTransition';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import styles from './PageContainer.module.css';
 
@@ -12,9 +13,10 @@ interface PageContainerProps {
   onOpenCharacterSheet?: () => void;
   headerRef?: RefObject<HTMLButtonElement | null>;
   domain?: 'combat' | 'character' | 'advancement';
+  pageKey?: string;
 }
 
-export function PageContainer({ children, characterName, onOpenCharacterSheet, headerRef, domain }: PageContainerProps) {
+export function PageContainer({ children, characterName, onOpenCharacterSheet, headerRef, domain, pageKey }: PageContainerProps) {
   const ref = useRef<HTMLElement>(null);
   const [showScroll, setShowScroll] = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
@@ -48,7 +50,9 @@ export function PageContainer({ children, characterName, onOpenCharacterSheet, h
           ref={headerRef}
         />
       )}
-      {children}
+      <PageTransition pageKey={pageKey || 'default'}>
+        {children}
+      </PageTransition>
       {showScroll && (
         <button
           type="button"

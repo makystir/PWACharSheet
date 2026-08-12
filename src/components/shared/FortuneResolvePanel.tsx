@@ -3,6 +3,7 @@ import type { Character } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { HelpPopover } from '../shared/HelpPopover';
 import { spendFortune, spendResolve, burnFate, burnResilience, sessionReset } from '../../logic/fortune-resolve';
 import type { FortuneSpendReason, ResolveSpendReason } from '../../logic/fortune-resolve';
 import { EditableField } from '../shared/EditableField';
@@ -68,6 +69,9 @@ export function FortuneResolvePanel({ character, updateCharacter }: FortuneResol
           {/* Fate / Fortune sub-section */}
           <div>
             <SectionHeader icon={Star} title="Fate / Fortune" />
+            <HelpPopover concept="fortune-resolve-spending">
+              Spend Fortune to reroll a test or add +1 SL. Spend Resolve for immunity to psychology or to remove conditions — both reset each session.
+            </HelpPopover>
             <div className={styles.valueRow}>
               <EditableField label="Fate" value={character.fate} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, fate: Number(v) }))} />
               <EditableField label="Fortune" value={character.fortune} type="number" onSave={(v) => updateCharacter((c) => ({ ...c, fortune: Number(v) }))} />

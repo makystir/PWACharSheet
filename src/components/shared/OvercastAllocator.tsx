@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { OvercastOption } from '../../logic/spell-casting';
 import { computeOvercastDamagePreview } from '../../logic/spell-casting';
+import { HelpPopover } from './HelpPopover';
 import styles from './OvercastAllocator.module.css';
 
 interface OvercastAllocatorProps {
@@ -36,6 +37,9 @@ export function OvercastAllocator({ options, availableSlots, baseDamage, onAlloc
     <div className={styles.container}>
       <div className={styles.header}>
         Overcasting ({availableSlots} slot{availableSlots !== 1 ? 's' : ''})
+        <HelpPopover concept="overcast-allocation">
+          Overcast slots come from extra SL on your casting roll. Allocate them to increase a spell's range, duration, targets, or damage.
+        </HelpPopover>
       </div>
 
       {options.map((opt) => (

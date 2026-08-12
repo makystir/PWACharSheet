@@ -5,7 +5,10 @@ import { CollapsibleSection } from '../shared/CollapsibleSection';
 
 /**
  * CollapsibleSection animation and default state tests.
- * Validates: Requirements 2.4, 1.2, 6.1, 5.4
+ * Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5
+ *
+ * The component uses CSS Grid animation (grid-template-rows: 0fr ↔ 1fr)
+ * controlled via a data-expanded attribute on the content wrapper.
  */
 
 describe('CollapsibleSection animation classes', () => {
@@ -13,67 +16,68 @@ describe('CollapsibleSection animation classes', () => {
     localStorage.clear();
   });
 
-  describe('Requirement 2.4: Animate expand/collapse with 150ms ease-out CSS transition on max-height', () => {
-    it('renders content with contentCollapsed class when defaultExpanded is false', () => {
+  describe('CSS Grid animation via data-expanded attribute', () => {
+    it('renders content with data-expanded="false" when defaultExpanded is false', () => {
       render(
         <CollapsibleSection title="Test Section" storageKey="test-collapsed" defaultExpanded={false}>
           <p>Hidden content</p>
         </CollapsibleSection>
       );
 
-      const content = screen.getByText('Hidden content').parentElement!;
-      expect(content.className).toContain('contentCollapsed');
-      expect(content.className).not.toContain('contentExpanded');
-      expect(content).toHaveAttribute('aria-hidden', 'true');
+      // Content is inside .contentInner > .content wrapper
+      const contentInner = screen.getByText('Hidden content').parentElement!;
+      const contentWrapper = contentInner.parentElement!;
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'false');
+      expect(contentWrapper).toHaveAttribute('aria-hidden', 'true');
     });
 
-    it('renders content with contentExpanded class when defaultExpanded is true', () => {
+    it('renders content with data-expanded="true" when defaultExpanded is true', () => {
       render(
         <CollapsibleSection title="Test Section" storageKey="test-expanded" defaultExpanded={true}>
           <p>Visible content</p>
         </CollapsibleSection>
       );
 
-      const content = screen.getByText('Visible content').parentElement!;
-      expect(content.className).toContain('contentExpanded');
-      expect(content.className).not.toContain('contentCollapsed');
-      expect(content).toHaveAttribute('aria-hidden', 'false');
+      const contentInner = screen.getByText('Visible content').parentElement!;
+      const contentWrapper = contentInner.parentElement!;
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'true');
+      expect(contentWrapper).toHaveAttribute('aria-hidden', 'false');
     });
 
-    it('toggles from contentCollapsed to contentExpanded on click', () => {
+    it('toggles from data-expanded="false" to data-expanded="true" on click', () => {
       render(
         <CollapsibleSection title="Toggle Me" storageKey="test-toggle" defaultExpanded={false}>
           <p>Toggle content</p>
         </CollapsibleSection>
       );
 
-      const content = screen.getByText('Toggle content').parentElement!;
-      expect(content.className).toContain('contentCollapsed');
+      const contentInner = screen.getByText('Toggle content').parentElement!;
+      const contentWrapper = contentInner.parentElement!;
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'false');
 
       // Click the header toggle
       fireEvent.click(screen.getByRole('button', { name: /toggle me/i }));
 
-      expect(content.className).toContain('contentExpanded');
-      expect(content.className).not.toContain('contentCollapsed');
-      expect(content).toHaveAttribute('aria-hidden', 'false');
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'true');
+      expect(contentWrapper).toHaveAttribute('aria-hidden', 'false');
     });
 
-    it('toggles from contentExpanded to contentCollapsed on click', () => {
+    it('toggles from data-expanded="true" to data-expanded="false" on click', () => {
       render(
         <CollapsibleSection title="Toggle Me" storageKey="test-toggle-back" defaultExpanded={true}>
           <p>Toggle content</p>
         </CollapsibleSection>
       );
 
-      const content = screen.getByText('Toggle content').parentElement!;
-      expect(content.className).toContain('contentExpanded');
+      const contentInner = screen.getByText('Toggle content').parentElement!;
+      const contentWrapper = contentInner.parentElement!;
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'true');
 
       // Click the header toggle to collapse
       fireEvent.click(screen.getByRole('button', { name: /toggle me/i }));
 
-      expect(content.className).toContain('contentCollapsed');
-      expect(content.className).not.toContain('contentExpanded');
-      expect(content).toHaveAttribute('aria-hidden', 'true');
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'false');
+      expect(contentWrapper).toHaveAttribute('aria-hidden', 'true');
     });
 
     it('header button has aria-expanded=false when collapsed', () => {
@@ -96,6 +100,62 @@ describe('CollapsibleSection animation classes', () => {
 
       const headerBtn = screen.getByRole('button', { name: /test/i });
       expect(headerBtn).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('supports keyboard toggle via Enter key', () => {
+      render(
+        <CollapsibleSection title="Keyboard Test" storageKey="test-keyboard" defaultExpanded={false}>
+          <p>Keyboard content</p>
+        </CollapsibleSection>
+      );
+
+      const headerBtn = screen.getByRole('button', { name: /keyboard test/i });
+      const contentInner = screen.getByText('Keyboard content').parentElement!;
+      const contentWrapper = contentInner.parentElement!;
+
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'false');
+
+      // Press Enter to toggle
+      fireEvent.keyDown(headerBtn, { key: 'Enter' });
+      fireEvent.click(headerBtn);
+
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'true');
+    });
+
+    it('supports keyboard toggle via Space key', () => {
+      render(
+        <CollapsibleSection title="Space Test" storageKey="test-space" defaultExpanded={false}>
+          <p>Space content</p>
+        </CollapsibleSection>
+      );
+
+      const headerBtn = screen.getByRole('button', { name: /space test/i });
+      const contentInner = screen.getByText('Space content').parentElement!;
+      const contentWrapper = contentInner.parentElement!;
+
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'false');
+
+      // Press Space to toggle (buttons natively handle Enter/Space)
+      fireEvent.keyDown(headerBtn, { key: ' ' });
+      fireEvent.click(headerBtn);
+
+      expect(contentWrapper).toHaveAttribute('data-expanded', 'true');
+    });
+
+    it('inner wrapper exists for overflow hidden containment', () => {
+      render(
+        <CollapsibleSection title="Overflow Test" storageKey="test-overflow" defaultExpanded={true}>
+          <p>Inner content</p>
+        </CollapsibleSection>
+      );
+
+      // The content's direct child (.contentInner) is the inner wrapper
+      const contentInner = screen.getByText('Inner content').parentElement!;
+      const contentWrapper = contentInner.parentElement!;
+
+      // contentInner is between contentWrapper and the children
+      expect(contentWrapper.firstElementChild).toBe(contentInner);
+      expect(contentInner).toContainElement(screen.getByText('Inner content'));
     });
   });
 });

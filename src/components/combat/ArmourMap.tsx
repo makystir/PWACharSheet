@@ -3,6 +3,7 @@ import type { ArmourPoints, ArmourItem, WeaponData } from '../../types/character
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { AddButton } from '../shared/AddButton';
+import { EmptyState } from '../shared/EmptyState';
 import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
 import { Tooltip } from '../shared/Tooltip';
 import { APBreakdownContent } from '../pages/APBreakdownContent';
@@ -384,7 +385,13 @@ export function ArmourMap({
       {/* Worn Armour List */}
       <div className={styles.sectionLabel}>Worn Armour</div>
       {armourList.length === 0 && (
-        <div className={styles.emptyMsg}>No armour worn.</div>
+        <EmptyState
+          icon={Shield}
+          heading="No Armour"
+          description="No armour worn — add pieces from the rulebook or create custom armour."
+          compact
+          action={onOpenArmourPicker ? { label: 'Add Armour', onClick: onOpenArmourPicker } : undefined}
+        />
       )}
       <div className={styles.armourListSection}>
         {(() => {

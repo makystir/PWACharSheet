@@ -1,0 +1,75 @@
+/* ContextualMenu component styles — long-press contextual actions */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  /* Transparent backdrop for capturing outside clicks */
+}
+
+.menu {
+  position: fixed;
+  z-index: 901;
+  min-width: 160px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px var(--shadow);
+  padding: 4px 0;
+  animation: menuFadeIn 0.15s ease;
+  list-style: none;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-align: left;
+  min-height: 44px;
+  transition: background 0.1s ease;
+}
+
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: var(--bg-tertiary);
+}
+
+.menuItem:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: -2px;
+}
+
+.menuItemDestructive {
+  color: var(--danger);
+}
+
+.menuItemIcon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation: none;
+  }
+}

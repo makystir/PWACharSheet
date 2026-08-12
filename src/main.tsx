@@ -16,6 +16,23 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
+// Remove splash screen after React mounts first meaningful content
+const splash = document.getElementById('splash');
+if (splash) {
+  // Fade out splash
+  splash.style.opacity = '0';
+
+  // Remove from DOM after fade transition completes
+  const removeSplash = () => {
+    splash.remove();
+    clearTimeout(fallbackTimeout);
+  };
+  splash.addEventListener('transitionend', removeSplash, { once: true });
+
+  // Fallback: force-remove after 2 seconds if transition event never fires
+  const fallbackTimeout = setTimeout(removeSplash, 2000);
+}
+
 // Service worker registration is handled by SWUpdateProvider in useSWUpdate.ts
 // (which calls registerServiceWorker from sw-register.ts).
 // Do NOT register separately here — a duplicate registration races with the

@@ -26,7 +26,7 @@ describe('CriticalWoundsPanel', () => {
         onUpdate={vi.fn()}
       />,
     );
-    expect(screen.getByText('No active critical wounds')).toBeInTheDocument();
+    expect(screen.getByText('No Critical Wounds')).toBeInTheDocument();
   });
 
   it('renders empty state when all wounds are healed', () => {
@@ -39,7 +39,7 @@ describe('CriticalWoundsPanel', () => {
         onUpdate={vi.fn()}
       />,
     );
-    expect(screen.getByText('No active critical wounds')).toBeInTheDocument();
+    expect(screen.getByText('No Critical Wounds')).toBeInTheDocument();
   });
 
   it('renders active wound with location and description', () => {

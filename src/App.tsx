@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Component, lazy } from 'react';
+import { useState, useEffect, useRef, useCallback, Component, lazy } from 'react';
 import type { ReactNode } from 'react';
 import type { Character, CharacteristicKey } from './types/character';
 import { Navigation } from './components/layout/Navigation';
@@ -10,6 +10,7 @@ import { PrintLayout } from './components/layout/PrintLayout';
 import { CharacterPage } from './components/pages/CharacterPage';
 import { loadQuickActions } from './storage/quick-actions';
 import { CombatSkeleton, AdvancementSkeleton, SettingsSkeleton } from './components/skeletons';
+import { useUndoStack } from './hooks/useUndoStack';
 
 const CombatPage = lazy(() => import('./components/pages/CombatPage'));
 const EstatePage = lazy(() => import('./components/pages/EstatePage'));
@@ -157,6 +158,41 @@ function AppContent() {
   );
 }
 
+/**
+ * Retrieves a nested value from an object using dot-notation path.
+ * Returns undefined if any segment along the path is missing.
+ */
+function getNestedValue(obj: unknown, path: string): unknown {
+  const keys = path.split('.');
+  let current: unknown = obj;
+  for (const key of keys) {
+    if (current === null || current === undefined || typeof current !== 'object') {
+      return undefined;
+    }
+    current = (current as Record<string, unknown>)[key];
+  }
+  return current;
+}
+
+/**
+ * Generates a human-readable label from a dot-notation field path.
+ * e.g. "chars.WS.a" → "WS advances", "name" → "name", "wCur" → "wCur"
+ */
+function fieldToLabel(field: string): string {
+  const parts = field.split('.');
+  // For characteristic fields like "chars.WS.a" or "chars.T.i"
+  if (parts[0] === 'chars' && parts.length >= 2) {
+    const charKey = parts[1];
+    const sub = parts[2];
+    if (sub === 'a') return `${charKey} advances`;
+    if (sub === 'i') return `${charKey} initial`;
+    if (sub === 'b') return `${charKey} bonus`;
+    return charKey;
+  }
+  // Return the last meaningful segment for common fields
+  return parts[parts.length - 1];
+}
+
 function AppWithCharacter({
   manager,
   page,
@@ -175,6 +211,61 @@ function AppWithCharacter({
   const [showNewCharChoice, setShowNewCharChoice] = useState(false);
   const [showCharSheet, setShowCharSheet] = useState(false);
   const charHeaderRef = useRef<HTMLButtonElement>(null);
+
+  // ── Undo Stack ──
+  const undoStack = useUndoStack(10);
+  const [undoToastMessage, setUndoToastMessage] = useState<string | null>(null);
+  const characterRef = useRef(character);
+  characterRef.current = character;
+
+  // Wrapped update that pushes to undo stack before applying
+  const undoableUpdate = useCallback((field: string, value: unknown) => {
+    const previousValue = getNestedValue(characterRef.current, field);
+    undoStack.push({ field, previousValue, newValue: value });
+    update(field, value);
+  }, [update, undoStack]);
+
+  // Clear undo stack on character switch
+  const prevCharIdRef = useRef(manager.activeId);
+  useEffect(() => {
+    if (prevCharIdRef.current !== manager.activeId) {
+      undoStack.clear();
+      prevCharIdRef.current = manager.activeId;
+    }
+  }, [manager.activeId, undoStack]);
+
+  // Global keydown listener for Ctrl+Z / Cmd+Z
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isUndo = (e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey;
+      if (!isUndo) return;
+
+      // Only fire when not in an input/textarea/contenteditable
+      const active = document.activeElement;
+      if (active) {
+        const tag = active.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea') return;
+        if ((active as HTMLElement).isContentEditable) return;
+      }
+
+      e.preventDefault();
+
+      const entry = undoStack.undo();
+      if (!entry) return;
+
+      // Revert the field to its previous value
+      update(entry.field, entry.previousValue);
+
+      // Show toast notification
+      const label = fieldToLabel(entry.field);
+      const valueStr = String(entry.previousValue ?? '');
+      const displayValue = valueStr.length > 20 ? valueStr.slice(0, 20) + '…' : valueStr;
+      setUndoToastMessage(`Reverted ${label} to ${displayValue}`);
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [undoStack, update]);
 
   // Quick Actions state
   const [quickActions] = useState(() => loadQuickActions());
@@ -235,7 +326,7 @@ function AppWithCharacter({
     setShowCharSheet(true);
   };
 
-  const pageProps = { character, update, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight };
+  const pageProps = { character, update: undoableUpdate, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight };
 
   const getDomain = (): 'combat' | 'character' | 'advancement' | undefined => {
     switch (page) {
@@ -253,7 +344,7 @@ function AppWithCharacter({
       case 'combat':
         return <PageLoader skeleton={<CombatSkeleton />}><CombatPage {...pageProps} characterId={manager.activeId} rollHistory={rollHistory} addRoll={addRoll} clearHistory={clearHistory} /></PageLoader>;
       case 'retinue':
-        return <PageLoader><RetinuePage character={character} update={update} updateCharacter={updateCharacter} subTab={subTab} onSubTabChange={(tab) => navigate('retinue', tab)} /></PageLoader>;
+        return <PageLoader><RetinuePage character={character} update={undoableUpdate} updateCharacter={updateCharacter} subTab={subTab} onSubTabChange={(tab) => navigate('retinue', tab)} /></PageLoader>;
       case 'estate':
         return <PageLoader><EstatePage {...pageProps} subTab={subTab} onSubTabChange={(tab) => navigate('estate', tab)} /></PageLoader>;
       case 'endeavours':
@@ -289,6 +380,7 @@ function AppWithCharacter({
           onOpenCharacterSheet={() => setShowCharSheet(true)}
           headerRef={charHeaderRef}
           domain={getDomain()}
+          pageKey={page}
         >
           <ErrorBoundary>
             {renderPage()}
@@ -340,6 +432,7 @@ function AppWithCharacter({
           onCancel={handleWizardCancel}
         />
       )}
+      <Toast message={undoToastMessage} duration={3000} />
     </>
   );
 }

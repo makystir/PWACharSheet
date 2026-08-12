@@ -1,0 +1,23 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.content {
+  opacity: 1;
+  transition: opacity 200ms ease;
+}
+
+.content[data-transition="fade-out"] {
+  opacity: 0;
+}
+
+.content[data-transition="fade-in"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    transition-duration: 0ms;
+  }
+}

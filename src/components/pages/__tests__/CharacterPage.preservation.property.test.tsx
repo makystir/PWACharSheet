@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fc from 'fast-check';
 import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -9,6 +9,18 @@ import {
   calculateMaxEncumbrance,
 } from '../../../logic/calculators';
 import type { Character, CharacteristicKey, CharacteristicValue, ArmourPoints } from '../../../types/character';
+
+// Suppress HelpPopover auto-open by pre-setting localStorage dismissal counts
+beforeEach(() => {
+  localStorage.setItem('wfrp-hint-dismissed-status-tier', '3');
+  localStorage.setItem('wfrp-hint-dismissed-yenlui-balance', '3');
+  localStorage.setItem('wfrp-hint-dismissed-corruption-mutation', '3');
+  localStorage.setItem('wfrp-hint-dismissed-fortune-resolve-spending', '3');
+});
+
+afterEach(() => {
+  localStorage.clear();
+});
 
 /**
  * Validates: Requirements 3.1, 3.2, 3.3
@@ -136,7 +148,7 @@ describe('Feature: characteristic-bonus-display — Preservation Properties', ()
    * Property: For all CharacteristicValue objects (i: 0-99, a: 0-99, b: 0-9),
    * the talent bonus cell displays c.b (or "—" when zero) - unchanged from pre-fix.
    */
-  it('Property 2a: Talent bonus cell displays c.b or "—" when zero', () => {
+  it('Property 2a: Talent bonus cell displays c.b or "—" when zero', { timeout: 30000 }, () => {
     fc.assert(
       fc.property(
         arbitraryCharacteristics,

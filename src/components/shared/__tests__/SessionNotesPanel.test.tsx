@@ -18,7 +18,7 @@ describe('SessionNotesPanel', () => {
       <SessionNotesPanel character={makeCharacterWithLog([])} updateCharacter={updateCharacter} />
     );
 
-    expect(screen.getByText(/no session notes recorded/i)).toBeInTheDocument();
+    expect(screen.getByText('No Session Notes')).toBeInTheDocument();
   });
 
   // **Validates: Requirement 6.2**
@@ -130,7 +130,7 @@ describe('SessionNotesPanel', () => {
       <SessionNotesPanel character={makeCharacterWithLog([])} updateCharacter={updateCharacter} />
     );
 
-    expect(screen.getByText(/no session notes recorded/i)).toBeInTheDocument();
+    expect(screen.getByText('No Session Notes')).toBeInTheDocument();
     expect(screen.queryAllByRole('button', { name: /delete/i })).toHaveLength(0);
   });
 

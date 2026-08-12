@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import type { WeaponItem, Character } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -7,11 +7,13 @@ import { EmptyState } from '../shared/EmptyState';
 import { HelpPopover } from '../shared/HelpPopover';
 import { DragHandle } from '../shared/DragHandle';
 import { AriaLiveAnnouncer } from '../shared/AriaLiveAnnouncer';
+import { ContextualMenu } from '../shared/ContextualMenu';
 import { useDragReorder } from '../../hooks/useDragReorder';
+import { useLongPress } from '../../hooks/useLongPress';
 import { calcWeaponDamage, RANGED_GROUPS } from '../../logic/weapons';
 import { getRuneQualities } from '../../logic/runes';
 import { getBonus } from '../../logic/calculators';
-import { Sword } from 'lucide-react';
+import { Sword, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
 import styles from './WeaponCards.module.css';
 
 export interface WeaponCardsProps {
@@ -40,7 +42,21 @@ export function WeaponCards({
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; index: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleLongPress = useCallback((e: TouchEvent) => {
+    const target = (e.target as HTMLElement).closest('[data-weapon-index]') as HTMLElement | null;
+    if (!target) return;
+    const index = Number(target.dataset.weaponIndex);
+    if (Number.isNaN(index)) return;
+    const touch = e.touches?.[0] ?? e.changedTouches?.[0];
+    if (touch) {
+      setContextMenu({ x: touch.clientX, y: touch.clientY, index });
+    }
+  }, []);
+
+  const longPressHandlers = useLongPress({ onLongPress: handleLongPress });
 
   const { dragState, getGripProps, getItemProps, dropIndicatorIndex, announcementText } =
     useDragReorder({
@@ -94,9 +110,13 @@ export function WeaponCards({
                 className={`${styles.weaponCard}${isExpanded ? ` ${styles.expanded}` : ''}${itemProps.className ? ` ${styles.dragging}` : ''}${isDropTarget ? ` ${styles.dropTarget}` : ''}`}
                 data-testid={`weapon-card-${i}`}
                 data-drag-item=""
+                data-weapon-index={i}
                 style={itemProps.style}
                 aria-grabbed={itemProps['aria-grabbed']}
                 onClick={() => { if (editingIndex !== i && dragState.status !== 'dragging') handleCardTap(i); }}
+                onTouchStart={longPressHandlers.onTouchStart}
+                onTouchEnd={longPressHandlers.onTouchEnd}
+                onTouchMove={longPressHandlers.onTouchMove}
               >
                 {editingIndex === i && onUpdateWeapon ? (
                   <div className={styles.editForm} onClick={(e) => e.stopPropagation()}>
@@ -263,6 +283,37 @@ export function WeaponCards({
       )}
 
       <AriaLiveAnnouncer message={announcementText} />
+
+      {contextMenu && (
+        <ContextualMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={[
+            ...(onUpdateWeapon ? [{
+              label: 'Edit',
+              icon: Pencil,
+              onAction: () => setEditingIndex(contextMenu.index),
+            }] : []),
+            ...(onDeleteWeapon ? [{
+              label: 'Delete',
+              icon: Trash2,
+              onAction: () => onDeleteWeapon(contextMenu.index),
+              destructive: true,
+            }] : []),
+            ...(onReorderWeapon ? [{
+              label: 'Move',
+              icon: ArrowUpDown,
+              onAction: () => {
+                // Move up if not first, otherwise move down
+                const idx = contextMenu.index;
+                if (idx > 0) onReorderWeapon(idx, idx - 1);
+                else if (idx < weapons.length - 1) onReorderWeapon(idx, idx + 1);
+              },
+            }] : []),
+          ]}
+          onDismiss={() => setContextMenu(null)}
+        />
+      )}
     </Card>
   );
 }

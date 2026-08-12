@@ -19,7 +19,7 @@ describe('DiseasePanel', () => {
       <DiseasePanel character={makeCharacterWithDiseases([])} updateCharacter={updateCharacter} />
     );
 
-    expect(screen.getByText('No active diseases')).toBeInTheDocument();
+    expect(screen.getByText('No Diseases')).toBeInTheDocument();
   });
 
   // **Validates: Requirements 6.3**

@@ -27,7 +27,7 @@ import { calculateMaxEncumbrance, calculateCoinWeight, computeWoundMaximum, calc
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../logic/tooltip-content';
 import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
-import { User, Swords, BookOpen, Sparkles, Wand2, Package, Coins, Scale, Footprints, Hammer, Lock, Heart, Shield, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { User, Swords, BookOpen, Sparkles, Wand2, Package, Coins, Scale, Footprints, Hammer, Lock, Heart, Shield, ChevronDown, ChevronRight, Plus, Minimize2, Maximize2, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
 import { CorruptionCard } from '../shared/CorruptionCard';
 import { DiseasePanel } from '../shared/DiseasePanel';
 import { EmptyState } from '../shared/EmptyState';
@@ -49,6 +49,7 @@ import type { ProtectionItem, EngineeringItem } from '../../types/character';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { SubTabBar } from '../shared/SubTabBar';
 import { useTabOrder } from '../../hooks/useTabOrder';
+import { useCompactMode } from '../../hooks/useCompactMode';
 import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
@@ -73,7 +74,9 @@ import { ProgressBar } from '../shared/ProgressBar';
 import { getEncumbranceLevel, formatEncumbrance } from '../../logic/encumbrance';
 import { DragHandle } from '../shared/DragHandle';
 import { AriaLiveAnnouncer } from '../shared/AriaLiveAnnouncer';
+import { ContextualMenu } from '../shared/ContextualMenu';
 import { useDragReorder } from '../../hooks/useDragReorder';
+import { useLongPress } from '../../hooks/useLongPress';
 import { reorderArray } from '../../logic/reorder';
 import { DwarfAlternateRoll } from '../shared/DwarfAlternateRoll';
 import {
@@ -138,6 +141,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       { id: 'notes', label: 'Notes' },
     ],
   });
+
+  // Compact/Expanded mode toggle (Req 9.1–9.5)
+  const { mode: displayMode, toggle: toggleDisplayMode } = useCompactMode();
 
   // Active sub-tab: use URL hash > last stored > first ordered tab
   const resolveInitialTab = (): CharSubTab => {
@@ -279,6 +285,22 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     onReorder: (from, to) => updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, from, to) })),
     containerRef: trappingsGridRef,
   });
+
+  // Long-press contextual menu for trappings
+  const [trappingContextMenu, setTrappingContextMenu] = useState<{ x: number; y: number; index: number } | null>(null);
+
+  const handleTrappingLongPress = useCallback((e: TouchEvent) => {
+    const target = (e.target as HTMLElement).closest('[data-trapping-index]') as HTMLElement | null;
+    if (!target) return;
+    const index = Number(target.dataset.trappingIndex);
+    if (Number.isNaN(index)) return;
+    const touch = e.touches?.[0] ?? e.changedTouches?.[0];
+    if (touch) {
+      setTrappingContextMenu({ x: touch.clientX, y: touch.clientY, index });
+    }
+  }, []);
+
+  const trappingLongPressHandlers = useLongPress({ onLongPress: handleTrappingLongPress });
 
   // Responsive characteristics table: hide T. Bonus on mobile by default (Req 7.3)
   const [showTBonus, setShowTBonus] = useState(false);
@@ -500,6 +522,74 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           saveError,
         }}
       />
+
+      {/* Compact/Expanded Mode Toggle (Req 9.1) */}
+      <div className={styles.compactToggleRow}>
+        <button
+          type="button"
+          className={styles.compactToggleBtn}
+          onClick={toggleDisplayMode}
+          aria-pressed={displayMode === 'compact'}
+          aria-label={displayMode === 'compact' ? 'Switch to expanded view' : 'Switch to compact view'}
+          title={displayMode === 'compact' ? 'Expand details' : 'Compact view'}
+        >
+          {displayMode === 'compact' ? <Maximize2 size={16} aria-hidden="true" /> : <Minimize2 size={16} aria-hidden="true" />}
+          <span>{displayMode === 'compact' ? 'Expand' : 'Compact'}</span>
+        </button>
+      </div>
+
+      {/* ═══ COMPACT MODE SUMMARY (Req 9.2) ═══ */}
+      {displayMode === 'compact' && (
+        <div className={styles.compactSummary}>
+          <div className={styles.compactHeader}>
+            <span className={styles.compactName}>{character.name || '(Unnamed)'}</span>
+            <span className={styles.compactMeta}>
+              {[character.species, character.career].filter(Boolean).join(' · ')}
+            </span>
+          </div>
+          <div className={styles.compactWounds}>
+            <Heart size={14} aria-hidden="true" />
+            <span>Wounds: <strong>{character.wCur}</strong> / {(() => {
+              const S = character.chars.S.i + character.chars.S.a + character.chars.S.b;
+              const T = character.chars.T.i + character.chars.T.a + character.chars.T.b;
+              const WP = character.chars.WP.i + character.chars.WP.a + character.chars.WP.b;
+              const hardyTalent = character.talents.find(t => t.n === 'Hardy');
+              const hardyLvl = hardyTalent ? hardyTalent.lvl : 0;
+              const speciesWoundData = character.species ? SPECIES_DATA[character.species] : undefined;
+              const woundMult = speciesWoundData?.woundMultiplier ?? 1;
+              const woundResult = computeWoundMaximum(S, T, WP, hardyLvl, character.woundsUseSB, woundMult);
+              return character.eMaxOverride ?? woundResult.total;
+            })()}</span>
+          </div>
+          <div className={styles.compactChars}>
+            {CHAR_KEYS.map((key) => {
+              const c = character.chars[key];
+              const current = c.i + c.a + c.b;
+              return (
+                <div key={key} className={styles.compactCharCell}>
+                  <span className={styles.compactCharLabel}>{key}</span>
+                  <span className={styles.compactCharValue}>{current}</span>
+                </div>
+              );
+            })}
+          </div>
+          {character.weapons.length > 0 && (
+            <div className={styles.compactWeapons}>
+              <Swords size={14} aria-hidden="true" />
+              <span>
+                {character.weapons
+                  .filter(w => w.equipped !== false)
+                  .map(w => w.name)
+                  .filter(Boolean)
+                  .join(', ') || 'No equipped weapons'}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ EXPANDED MODE CONTENT — animated via grid-template-rows (Req 9.3, 9.5) ═══ */}
+      <div className={styles.expandedContent} data-expanded={String(displayMode === 'expanded')}><div className={styles.expandedContentInner}>
 
       {/* ═══ TWO-COLUMN DESKTOP GRID (Req 22.1–22.5) ═══ */}
       <div className={styles.desktopGrid}>
@@ -1202,6 +1292,14 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             )}
           </div>
         } />
+        {character.spells.length === 0 ? (
+          <EmptyState
+            icon={Wand2}
+            heading="No Spells or Prayers"
+            description="Add spells or prayers from the rulebook or create custom entries."
+            action={{ label: 'Add Spell', onClick: () => setShowSpellPicker(true) }}
+          />
+        ) : (
         <table className={styles.tableBase}>
           <thead>
             <tr>
@@ -1256,6 +1354,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             })}
           </tbody>
         </table>
+        )}
       </Card>
       )}
 
@@ -1475,9 +1574,13 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               <div
                 key={i}
                 data-drag-item=""
+                data-trapping-index={i}
                 aria-grabbed={trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? true : undefined}
                 style={getTrappingItemProps(i).style}
                 className={`${t.storedOnHorse ? styles.trappingCardHorse : styles.trappingCard}${trappingsDragState.status === 'dragging' && trappingsDragState.dragIndex === i ? ` ${styles.trappingDragging}` : ''}${trappingsDropIndex === i ? ` ${styles.trappingDropTarget}` : ''}`}
+                onTouchStart={trappingLongPressHandlers.onTouchStart}
+                onTouchEnd={trappingLongPressHandlers.onTouchEnd}
+                onTouchMove={trappingLongPressHandlers.onTouchMove}
               >
                 {editingTrappingIndex === i ? (
                   <div className={styles.trappingEditForm}>
@@ -1565,6 +1668,39 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
           </div>
         )}
         <AriaLiveAnnouncer message={trappingsAnnouncement} />
+
+        {trappingContextMenu && (
+          <ContextualMenu
+            x={trappingContextMenu.x}
+            y={trappingContextMenu.y}
+            items={[
+              {
+                label: 'Edit',
+                icon: Pencil,
+                onAction: () => setEditingTrappingIndex(trappingContextMenu.index),
+              },
+              {
+                label: 'Delete',
+                icon: Trash2,
+                onAction: () => setDeleteTarget({ type: 'trapping', index: trappingContextMenu.index }),
+                destructive: true,
+              },
+              {
+                label: 'Move',
+                icon: ArrowUpDown,
+                onAction: () => {
+                  const idx = trappingContextMenu.index;
+                  if (idx > 0) {
+                    updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, idx, idx - 1) }));
+                  } else if (idx < character.trappings.length - 1) {
+                    updateCharacter((c) => ({ ...c, trappings: reorderArray(c.trappings, idx, idx + 1) }));
+                  }
+                },
+              },
+            ]}
+            onDismiss={() => setTrappingContextMenu(null)}
+          />
+        )}
       </Card>
 
       {/* AP Auto-Calculation */}
@@ -1755,6 +1891,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {/* Session Notes */}
       <SessionNotesPanel character={character} updateCharacter={updateCharacter} />
       </>)}
+      </div>{/* end expandedContentInner */}</div>{/* end expandedContent */}
 
       {/* Pickers */}
       {showAdvSkillPicker && (

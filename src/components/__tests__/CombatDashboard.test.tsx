@@ -1,9 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CombatDashboard } from '../combat/CombatDashboard';
 import type { CombatDashboardProps } from '../combat/CombatDashboard';
 import type { CombatState, Condition } from '../../types/character';
+
+// Suppress HelpPopover auto-open by pre-setting localStorage dismissal counts
+beforeEach(() => {
+  localStorage.setItem('wfrp-hint-dismissed-advantage-tracking', '3');
+  localStorage.setItem('wfrp-hint-dismissed-fortune-resolve-spending', '3');
+});
+
+afterEach(() => {
+  localStorage.clear();
+});
 
 function makeProps(overrides: Partial<CombatDashboardProps> = {}): CombatDashboardProps {
   const defaultCombatState: CombatState = {

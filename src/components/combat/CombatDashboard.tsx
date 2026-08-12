@@ -12,6 +12,7 @@ import { EndOfTurnReportModal } from './EndOfTurnReportModal';
 import { InitiativeTracker } from './InitiativeTracker';
 import { Heart, Zap, Star, Shield, AlertTriangle, Skull, Droplets, ArrowDown, Flame } from 'lucide-react';
 import { applyCondition } from '../../logic/combat';
+import { HelpPopover } from '../shared/HelpPopover';
 import styles from './CombatDashboard.module.css';
 import pressableStyles from '../../styles/micro-interactions.module.css';
 import microStyles from '../shared/styles/micro-interactions.module.css';
@@ -455,6 +456,9 @@ export function CombatDashboard(props: CombatDashboardProps) {
                 <div className={styles.iconLabel}>
                   <Zap size={14} color="var(--accent-gold)" aria-hidden="true" />
                   <span className={styles.label}>{useGroupAdvantage ? 'Group Advantage' : 'Advantage'}</span>
+                  <HelpPopover concept="advantage-tracking">
+                    Advantage represents momentum in combat. You gain +1 on successful attacks or charges, and lose all Advantage when you take damage or fail a test.
+                  </HelpPopover>
                 </div>
                 <span className={`${styles.bigNumber} ${styles.accentGold} ${styles.numberTransition}${advantageBump ? ` ${styles.numberBump} ${microStyles.advantagePulse}` : ''}`}>{advantage}</span>
                 <div className={styles.buttonBar}>
@@ -487,6 +491,9 @@ export function CombatDashboard(props: CombatDashboardProps) {
                 <div className={styles.iconLabelSmall}>
                   <Star size={12} color="var(--accent-gold)" />
                   <span className={styles.label}>Fortune</span>
+                  <HelpPopover concept="fortune-resolve-spending">
+                    Spend Fortune to reroll a test or add +1 SL. Spend Resolve for immunity to psychology or to remove conditions — both reset each session.
+                  </HelpPopover>
                 </div>
                 <button
                   type="button"

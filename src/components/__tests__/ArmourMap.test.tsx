@@ -45,7 +45,7 @@ describe('ArmourMap — basic rendering', () => {
 
   it('shows empty message when no armour items', () => {
     render(<ArmourMap {...makeProps({ armourList: [] })} />);
-    expect(screen.getByText(/No armour worn/)).toBeInTheDocument();
+    expect(screen.getByText('No Armour')).toBeInTheDocument();
   });
 });
 

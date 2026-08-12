@@ -19,6 +19,7 @@ import { RollDialog } from '../shared/RollDialog';
 import { CastResultDisplay } from './CastResultDisplay';
 import { EmptyState } from '../shared/EmptyState';
 import { CantPanel } from '../shared/CantPanel';
+import { HelpPopover } from '../shared/HelpPopover';
 import { COLOUR_LORES } from '../../data/cants';
 import { SPELL_LIST } from '../../data/spells';
 import { Sparkles, Settings } from 'lucide-react';
@@ -358,6 +359,13 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
             ) : undefined
           }
         />
+
+        {/* Contextual help for Channelling */}
+        {canCastSpells && (
+          <HelpPopover concept="channelling">
+            Channelling lets you accumulate SL over multiple rounds before casting. Once accumulated SL meets the spell's CN, you can cast it without needing to meet the CN again.
+          </HelpPopover>
+        )}
 
         {/* Read-only banner when character has spells but no spellcasting talent */}
         {!canCastSpells && (

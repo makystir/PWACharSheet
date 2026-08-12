@@ -1209,3 +1209,150 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+
+/* ═══ Compact/Expanded Mode Toggle (Req 9.1–9.5) ═══ */
+
+.compactToggleRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.compactToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 36px;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.compactToggleBtn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-gold);
+  color: var(--text-primary);
+}
+
+.compactToggleBtn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.compactToggleBtn[aria-pressed="true"] {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ─── Compact Summary View (Req 9.2) ─── */
+
+.compactSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.compactHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.compactName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--parchment);
+  font-family: var(--font-heading);
+}
+
+.compactMeta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.compactWounds {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.compactWounds strong {
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.compactChars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.compactCharCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-width: 44px;
+}
+
+.compactCharLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 600;
+}
+
+.compactCharValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.compactWeapons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ─── Expanded Content Animation (Req 9.5) ─── */
+
+.expandedContent {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms ease;
+}
+
+.expandedContent[data-expanded="true"] {
+  grid-template-rows: 1fr;
+}
+
+.expandedContentInner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap, 24px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expandedContent {
+    transition-duration: 0s;
+  }
+}

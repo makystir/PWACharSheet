@@ -2,7 +2,9 @@ import { useState } from 'react';
 import type { Character, MutationEntry } from '../../types/character';
 import { Card } from './Card';
 import { SectionHeader } from './SectionHeader';
-import { Skull } from 'lucide-react';
+import { HelpPopover } from './HelpPopover';
+import { EmptyState } from './EmptyState';
+import { Skull, Bug } from 'lucide-react';
 import {
   getCorruptionThreshold,
   getCorruptionStatus,
@@ -103,6 +105,9 @@ export function CorruptionCard({ character, update, updateCharacter }: Corruptio
   return (
     <Card>
       <SectionHeader icon={Skull} title="Corruption & Mutation" />
+      <HelpPopover concept="corruption-mutation">
+        Corruption accumulates from exposure to Chaos. When it reaches your threshold (TB + WPB), you must pass a Corruption test or gain a mutation.
+      </HelpPopover>
 
       {/* 1. CORRUPTION TRACKER */}
       <div className={styles.section}>
@@ -234,6 +239,15 @@ export function CorruptionCard({ character, update, updateCharacter }: Corruptio
             ⚠ Lost to Chaos if another gained
           </div>
         )}
+        {physicalMutations.length === 0 && (
+          <EmptyState
+            icon={Bug}
+            heading="No Physical Mutations"
+            description="Roll or add a custom physical mutation when one is acquired."
+            compact
+            action={{ label: 'Add Custom', onClick: () => addCustomMutation('physical') }}
+          />
+        )}
         {physicalMutations.map((m) => (
           <MutationRow key={m.id} mutation={m} onRemove={() => removeMutation(m.id)} updateCharacter={updateCharacter} />
         ))}
@@ -257,6 +271,15 @@ export function CorruptionCard({ character, update, updateCharacter }: Corruptio
           <div className={styles.chaosWarning}>
             ⚠ Lost to Chaos if another gained
           </div>
+        )}
+        {mentalMutations.length === 0 && (
+          <EmptyState
+            icon={Bug}
+            heading="No Mental Mutations"
+            description="Roll or add a custom mental mutation when one is acquired."
+            compact
+            action={{ label: 'Add Custom', onClick: () => addCustomMutation('mental') }}
+          />
         )}
         {mentalMutations.map((m) => (
           <MutationRow key={m.id} mutation={m} onRemove={() => removeMutation(m.id)} updateCharacter={updateCharacter} />

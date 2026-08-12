@@ -1,9 +1,21 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CharacterPage } from '../../pages/CharacterPage';
 import { BLANK_CHARACTER } from '../../../types/character';
 import type { Character, ArmourPoints } from '../../../types/character';
+
+// Suppress HelpPopover auto-open by pre-setting localStorage dismissal counts
+beforeEach(() => {
+  localStorage.setItem('wfrp-hint-dismissed-status-tier', '3');
+  localStorage.setItem('wfrp-hint-dismissed-yenlui-balance', '3');
+  localStorage.setItem('wfrp-hint-dismissed-corruption-mutation', '3');
+  localStorage.setItem('wfrp-hint-dismissed-fortune-resolve-spending', '3');
+});
+
+afterEach(() => {
+  localStorage.clear();
+});
 
 function makeCharacter(overrides: Partial<Character> = {}): Character {
   return structuredClone({ ...BLANK_CHARACTER, ...overrides });

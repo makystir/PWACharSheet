@@ -8,7 +8,7 @@
   --parchment-dark: #a8884e;
   --text-primary: #d4c4a0;
   --text-secondary: #a89878;
-  --text-muted: #908070;
+  --text-muted: #a89880;
   --accent: #c85050;
   --accent-gold: #c8a84c;
   --accent-gold-dark: #a08030;
@@ -483,7 +483,7 @@ td, th, label {
   --parchment-dark: #b89858;
   --text-primary: #e0d0b0;
   --text-secondary: #b8a888;
-  --text-muted: #9a8a7a;
+  --text-muted: #a89880;
   --accent: #c85050;
   --accent-gold: #d4b85c;
   --accent-gold-dark: #b09040;
@@ -520,7 +520,10 @@ td, th, label {
 }
 
 [data-theme="old-guy"] #root {
-  zoom: 1.2;
+  transform: scale(1.2);
+  transform-origin: top left;
+  width: calc(100% / 1.2);        /* 83.33% — prevents horizontal overflow */
+  min-height: calc(100vh / 1.2);  /* ensures full viewport coverage */
 }
 
 [data-theme="light"] ::selection {

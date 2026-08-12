@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { Character } from '../../types/character';
 import { Card } from './Card';
+import { EmptyState } from './EmptyState';
+import { BookOpen } from 'lucide-react';
 import styles from './SessionNotesPanel.module.css';
 
 interface SessionNotesPanelProps {
@@ -107,9 +109,12 @@ export function SessionNotesPanel({ character, updateCharacter }: SessionNotesPa
 
         {/* Notes List */}
         {sortedEntries.length === 0 ? (
-          <div className={styles.emptyState}>
-            No session notes recorded yet. Add notes to track events, decisions, and reminders.
-          </div>
+          <EmptyState
+            icon={BookOpen}
+            heading="No Session Notes"
+            description="Add notes to track events, decisions, and reminders during your session."
+            compact
+          />
         ) : (
           <div className={styles.noteList}>
             {sortedEntries.map((entry) => (
