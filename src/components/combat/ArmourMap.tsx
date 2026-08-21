@@ -10,7 +10,7 @@ import { APBreakdownContent } from '../pages/APBreakdownContent';
 import { getAPBreakdown } from '../../logic/breakdown-helpers';
 import { getRuneQualities } from '../../logic/runes';
 import { QUALITY_DEFINITIONS } from '../../data/armourQualities';
-import { validateLayering, calculateEffectiveAP, isWeakpointsSuppressed } from '../../logic/armourLayering';
+import { validateLayering, isWeakpointsSuppressed } from '../../logic/armourLayering';
 import type { LocationKey as LayeringLocationKey } from '../../logic/armourLayering';
 import { Shield } from 'lucide-react';
 import styles from './ArmourMap.module.css';
@@ -307,7 +307,7 @@ export function ArmourMap({
           {/* Total Effective AP */}
           {contributingItems.length > 0 && (
             <div className={styles.effectiveApNote} data-testid="effective-ap-note">
-              Total Effective AP: {calculateEffectiveAP(armourList, selectedLocation as LayeringLocationKey)}
+              Total Effective AP: {armourPoints[selectedLocation]}
             </div>
           )}
           {contributingItems.length === 0 && (
