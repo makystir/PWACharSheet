@@ -181,7 +181,7 @@ function isFlexible(armour: ArmourItem): boolean {
  * Options for the unified armour-point calculation.
  */
 export interface ArmourPointOptions {
-  /** If true, only include items where worn === true. Default: false (all items). */
+  /** If true, only include items where worn !== false (undefined treated as worn). Default: false (all items). */
   filterByWorn?: boolean;
   /** If true, include shield AP in the result. Default: false. */
   includeShield?: boolean;
@@ -219,7 +219,7 @@ export function calculateArmourPointsUnified(
   const includeShield = options?.includeShield ?? false;
 
   const items = filterByWorn
-    ? armourItems.filter(item => item.worn === true)
+    ? armourItems.filter(item => item.worn !== false)
     : armourItems;
 
   const result: APResult = {

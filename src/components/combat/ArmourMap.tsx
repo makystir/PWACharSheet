@@ -219,7 +219,7 @@ export function ArmourMap({
 
   // Get armour items that contribute to the selected location
   const contributingItems = selectedLocation
-    ? armourList.filter(item => coversLocation(item, selectedLocation))
+    ? armourList.filter(item => item.worn !== false && coversLocation(item, selectedLocation))
     : [];
 
   // Shield rating from equipped weapons
@@ -407,7 +407,19 @@ export function ArmourMap({
                 const hasQualities = (item.qualities && item.qualities !== '—') || runeQualities.length > 0;
 
                 return (
-                  <div key={i} className={styles.armourRow} data-testid={`armour-item-${i}`}>
+                  <div key={i} className={`${styles.armourRow}${item.worn === false ? ` ${styles.armourRowUnworn}` : ''}`} data-testid={`armour-item-${i}`}>
+                    {/* Worn toggle checkbox */}
+                    {onUpdateArmour && !isEditing && (
+                      <input
+                        type="checkbox"
+                        checked={item.worn !== false}
+                        onChange={() => onUpdateArmour(i, 'worn', !(item.worn !== false))}
+                        aria-label={`${item.name} — ${item.worn !== false ? 'worn' : 'unworn'}`}
+                        className={styles.wornToggle}
+                        data-testid={`armour-worn-toggle-${i}`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    )}
                     {isEditing && onUpdateArmour ? (
                       <div className={styles.editForm}>
                         <input

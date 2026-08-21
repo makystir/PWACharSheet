@@ -511,7 +511,7 @@ describe('computeAPByLocation', () => {
   it('returns all zeros when no armour is worn', () => {
     const armour: ArmourItem[] = [
       { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: false },
-      { name: 'Helm', locations: 'Head', enc: '2', ap: 2, qualities: '—' },
+      { name: 'Helm', locations: 'Head', enc: '2', ap: 2, qualities: '—', worn: false },
     ];
     const result = computeAPByLocation(armour);
     expect(result).toEqual({ head: 0, leftArm: 0, rightArm: 0, body: 0, leftLeg: 0, rightLeg: 0 });

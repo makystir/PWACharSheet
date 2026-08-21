@@ -106,6 +106,67 @@
   background: var(--bg-tertiary);
   border-radius: var(--radius-sm);
   gap: 8px;
+  transition: opacity 0.15s;
+}
+
+.armourRowUnworn {
+  opacity: 0.5;
+}
+
+/* Worn toggle checkbox */
+.wornToggle {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 12px;
+  box-sizing: content-box;
+  border: 2px solid var(--accent-gold-dark);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.wornToggle:checked {
+  background: rgba(200, 168, 76, 0.3);
+  border-color: var(--accent-gold);
+}
+
+.wornToggle:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  line-height: 1;
+}
+
+.wornToggle:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.wornToggle:hover {
+  border-color: var(--accent-gold);
+  background: rgba(200, 168, 76, 0.1);
+}
+
+@media (max-width: 767px) {
+  .wornToggle {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    padding: 11px;
+  }
 }
 
 .armourInfo {

@@ -5,7 +5,7 @@ import { saveCharacter } from '../storage/character-manager';
 import {
   getBonus,
   calculateTotalWounds,
-  calculateArmourPoints,
+  calculateArmourPointsUnified,
   calculateMaxEncumbrance,
   calculateCoinWeight,
   syncWoundFields,
@@ -287,10 +287,18 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     return st ? st.lvl : 0;
   }, [character.talents]);
 
-  // Auto-sync character.ap whenever armour list changes
+  // Auto-sync character.ap whenever armour list changes (worn-only AP per WFRP4e Core p.293)
   useEffect(() => {
     setCharacter(prev => {
-      const computed = calculateArmourPoints(prev.armour);
+      const unified = calculateArmourPointsUnified(prev.armour, { filterByWorn: true });
+      const computed = {
+        head: unified.head,
+        lArm: unified.leftArm,
+        rArm: unified.rightArm,
+        body: unified.body,
+        lLeg: unified.leftLeg,
+        rLeg: unified.rightLeg,
+      };
       const ap = prev.ap;
       if (
         ap.head === computed.head &&
@@ -323,7 +331,18 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
   );
 
   const armourPoints = useMemo(
-    () => calculateArmourPoints(character.armour),
+    () => {
+      const unified = calculateArmourPointsUnified(character.armour, { filterByWorn: true });
+      return {
+        head: unified.head,
+        lArm: unified.leftArm,
+        rArm: unified.rightArm,
+        body: unified.body,
+        lLeg: unified.leftLeg,
+        rLeg: unified.rightLeg,
+        shield: unified.shield,
+      };
+    },
     [character.armour]
   );
 

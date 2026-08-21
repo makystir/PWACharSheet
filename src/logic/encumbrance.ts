@@ -29,3 +29,14 @@ export function getEncumbranceLevel(current: number, max: number): EncumbranceLe
 export function formatEncumbrance(current: number, max: number): string {
   return `${current} / ${max}`;
 }
+
+/**
+ * Calculates effective encumbrance for a single armour item.
+ * Per WFRP4e Core p.293: worn items have Enc reduced by 1, minimum 0.
+ * Unworn items contribute their full Enc value.
+ */
+export function calculateArmourEncumbrance(enc: string, worn: boolean | undefined): number {
+  const baseEnc = parseFloat(enc) || 0;
+  if (worn === false) return baseEnc;
+  return Math.max(0, baseEnc - 1);
+}

@@ -71,7 +71,7 @@ import { getSkillBreakdown, getCBBreakdown, getEncumbranceBreakdown, getCoinWeig
 import { getContributingTalent } from '../../logic/talents';
 import { AgeTierSelector } from '../shared/AgeTierSelector';
 import { ProgressBar } from '../shared/ProgressBar';
-import { getEncumbranceLevel, formatEncumbrance } from '../../logic/encumbrance';
+import { getEncumbranceLevel, formatEncumbrance, calculateArmourEncumbrance } from '../../logic/encumbrance';
 import { DragHandle } from '../shared/DragHandle';
 import { AriaLiveAnnouncer } from '../shared/AriaLiveAnnouncer';
 import { ContextualMenu } from '../shared/ContextualMenu';
@@ -1530,11 +1530,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {/* Encumbrance Indicator */}
       {(() => {
         const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
-        const eA = character.armour.reduce((s, a) => {
-          const baseEnc = parseFloat(a.enc) || 0;
-          const wornEnc = a.worn !== false ? Math.max(0, baseEnc - 1) : baseEnc;
-          return s + wornEnc;
-        }, 0);
+        const eA = character.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
         const eT = character.trappings.filter(t => !t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
         const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
         const currentEnc = eW + eA + eT + eCoin;
@@ -1800,12 +1796,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             <SectionHeader icon={Scale} title="Encumbrance" />
             {(() => {
               const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
-              const eA = character.armour.reduce((s, a) => {
-                const baseEnc = parseFloat(a.enc) || 0;
-                // Per WFRP 4e rules: worn items have encumbrance reduced by 1 (min 0)
-                const wornEnc = a.worn !== false ? Math.max(0, baseEnc - 1) : baseEnc;
-                return s + wornEnc;
-              }, 0);
+              const eA = character.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
               const eT = character.trappings.filter(t => !t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
               const eHorse = character.trappings.filter(t => t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
               const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
