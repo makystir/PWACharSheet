@@ -74,35 +74,15 @@
   border: 2px solid var(--danger);
 }
 
-/* ── Two-column desktop layout ── */
-.combatTwoColumn {
-  display: block;
-}
-
-.combatLeftColumn {
-  display: flex;
-  flex-direction: column;
-  gap: var(--card-gap, 16px);
-}
-
-.combatRightColumn {
-  display: flex;
-  flex-direction: column;
-  gap: var(--card-gap, 16px);
-}
-
+/* ── Sticky Segmented Control (desktop only) ── */
 @media (min-width: 1025px) {
-  .combatTwoColumn {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: var(--card-gap, 16px);
-    align-items: start;
-  }
-
-  .combatLeftColumn {
+  .segmentedControlSticky {
     position: sticky;
     top: 0;
-    align-self: start;
+    z-index: 20;
+    background: var(--bg-primary);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-border);
   }
 }
 

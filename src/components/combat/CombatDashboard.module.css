@@ -1184,3 +1184,38 @@
     width: 100%;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Desktop Full-Width Banner Layout (Requirements 2.1–2.4, 4.1–4.3, 6.1–6.3, 8.1)
+   Combat Dashboard as compact horizontal banner on desktop viewports.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1025px) {
+  .dashboard {
+    position: static;
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 16px;
+  }
+
+  .dashboardGroups {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .conditionRow,
+  .conditionRowSpaced {
+    flex-wrap: wrap;
+    max-width: none;
+    width: 100%;
+  }
+
+  .primaryRow {
+    gap: 16px;
+  }
+
+  .statusGroup {
+    gap: 8px;
+  }
+}

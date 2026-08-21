@@ -225,24 +225,24 @@ describe('Desktop two-column layout: CombatPage (Req 24.1)', () => {
     window.matchMedia = originalMatchMedia;
   });
 
-  it('renders the combatTwoColumn container when in combat on desktop', () => {
+  it('does NOT render combatTwoColumn container on desktop (single-column layout)', () => {
     window.matchMedia = mockMatchMedia(1200);
 
     const { container } = render(<CombatPage {...combatPageProps} />);
 
-    // The combatTwoColumn class should be applied at desktop with active combat
+    // Two-column layout has been removed — single-column flow is used instead
     const twoColElements = container.querySelectorAll('[class*="combatTwoColumn"]');
-    expect(twoColElements.length).toBeGreaterThan(0);
+    expect(twoColElements.length).toBe(0);
   });
 
-  it('renders the combatLeftColumn with sticky positioning class on desktop', () => {
+  it('does NOT render combatLeftColumn on desktop (single-column layout)', () => {
     window.matchMedia = mockMatchMedia(1200);
 
     const { container } = render(<CombatPage {...combatPageProps} />);
 
-    // The left column should exist with the combatLeftColumn class (which carries position: sticky at ≥1025px)
+    // Left column has been removed — CombatDashboard renders inline as full-width
     const leftColumn = container.querySelectorAll('[class*="combatLeftColumn"]');
-    expect(leftColumn.length).toBeGreaterThan(0);
+    expect(leftColumn.length).toBe(0);
   });
 
   it('does NOT render combatTwoColumn when viewport is below 1025px', () => {
@@ -251,7 +251,6 @@ describe('Desktop two-column layout: CombatPage (Req 24.1)', () => {
     const { container } = render(<CombatPage {...combatPageProps} />);
 
     // At mobile/tablet width, the combatTwoColumn container should not be present
-    // because the component conditionally applies the class based on isDesktop
     const twoColElements = container.querySelectorAll('[class*="combatTwoColumn"]');
     expect(twoColElements.length).toBe(0);
   });
@@ -287,13 +286,13 @@ describe('Desktop two-column breakpoint behavior', () => {
     expect(gridElements.length).toBeGreaterThan(0);
   });
 
-  it('CombatPage at exactly 1025px renders two-column layout', () => {
+  it('CombatPage at exactly 1025px does NOT render two-column layout (single-column now)', () => {
     window.matchMedia = mockMatchMedia(1025);
 
     const { container } = render(<CombatPage {...combatPageProps} />);
 
     const twoColElements = container.querySelectorAll('[class*="combatTwoColumn"]');
-    expect(twoColElements.length).toBeGreaterThan(0);
+    expect(twoColElements.length).toBe(0);
   });
 
   it('CombatPage at 1024px (below breakpoint) does NOT render two-column layout', () => {
