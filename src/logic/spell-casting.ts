@@ -631,9 +631,15 @@ export function resolveChannellingInterruption(
 // ─── Armour Casting Penalty ───────────────────────────────────────────────────
 
 /**
- * Determine if an armour item is metal-based (mail, plate, chain, etc.).
+ * Determine if an armour item is metal-based (repels Chamon).
+ * Prefers the armourType field (Chainmail/Plate/Brigandine are metal — brigandine
+ * is metal lames riveted into fabric), falling back to name heuristics when the
+ * type is not set (e.g. custom or legacy items).
  */
 export function isMetalArmour(item: ArmourItem): boolean {
+  if (item.armourType) {
+    return item.armourType === 'Chainmail' || item.armourType === 'Plate' || item.armourType === 'Brigandine';
+  }
   const lower = item.name.toLowerCase();
   return (
     lower.includes('mail') ||
@@ -650,9 +656,14 @@ export function isMetalArmour(item: ArmourItem): boolean {
 }
 
 /**
- * Determine if an armour item is leather/hide-based (leather, hide, fur, etc.).
+ * Determine if an armour item is leather/hide-based (repels Ghur).
+ * Prefers the armourType field (BoiledLeather), falling back to name heuristics
+ * when the type is not set. Soft Kits are cloth/padding, not leather.
  */
 export function isLeatherArmour(item: ArmourItem): boolean {
+  if (item.armourType) {
+    return item.armourType === 'BoiledLeather';
+  }
   const lower = item.name.toLowerCase();
   return (
     lower.includes('leather') ||
@@ -662,6 +673,23 @@ export function isLeatherArmour(item: ArmourItem): boolean {
     lower.includes('skin') ||
     lower.includes('bark')
   );
+}
+
+/**
+ * Determine if an armour item is Chaos Armour (exempt for Chaos Sorcerers,
+ * Winds of Magic). Detected by "chaos" in the name or qualities, since the app
+ * has no dedicated Chaos armourType.
+ */
+export function isChaosArmour(item: ArmourItem): boolean {
+  return (
+    item.name.toLowerCase().includes('chaos') ||
+    item.qualities.toLowerCase().includes('chaos')
+  );
+}
+
+/** True if the character is a Chaos caster (has any Chaos Magic talent). */
+function hasChaosMagic(character: Character): boolean {
+  return character.talents.some((t) => t.n.startsWith('Chaos Magic'));
 }
 
 /**
@@ -679,38 +707,44 @@ function hasArcaneMagicLore(character: Character, ...loreKeywords: string[]): bo
 
 /**
  * Calculate the casting penalty from armour.
- * Penalty is -1 SL per Armour Point on the character's most-armoured location (worn items only).
  *
- * Exemptions:
- * - Metal (Chamon) wizards wearing only metal armour are exempt.
- * - Beasts (Ghur) wizards wearing only leather/hide armour are exempt.
+ * Rule (WFRP Core p.236 / Winds of Magic, "Repelling the Winds"): spellcasters
+ * suffer -1 SL to Casting and Channelling Tests for every Armour Point on the
+ * location with the most armour.
  *
- * Returns a non-negative integer representing the SL penalty magnitude.
- * e.g., returns 3 meaning the character suffers -3 SL on casting/channelling.
+ * Exemptions apply PER PIECE (the exempt armour is worn "without penalty"), so
+ * the penalty is computed from the highest AP among only the NON-exempt worn
+ * pieces:
+ * - Arcane Magic (Metal/Chamon): metal armour is exempt.
+ * - Arcane Magic (Beasts/Ghur): leather armour is exempt.
+ * - Chaos casters (Chaos Magic): Chaos Armour is exempt (Winds of Magic).
+ *
+ * Example: a Metal wizard in a plate breastplate (metal, exempt) plus leather
+ * leggings (AP 1) is penalised -1, from the leggings only — not from the plate.
+ *
+ * Returns a non-negative integer SL penalty magnitude (e.g. 3 → -3 SL).
  */
 export function getArmourCastingPenalty(character: Character): number {
   const wornArmour = character.armour.filter((item) => item.worn === true && item.ap > 0);
-
-  // No worn armour with AP → no penalty
   if (wornArmour.length === 0) return 0;
 
-  // Check exemptions
   const isMetalWizard = hasArcaneMagicLore(character, 'metal', 'chamon');
   const isBeastsWizard = hasArcaneMagicLore(character, 'beasts', 'ghur');
+  const isChaosCaster = hasChaosMagic(character);
 
-  if (isMetalWizard && wornArmour.every(isMetalArmour)) {
-    return 0;
-  }
+  // A worn piece is exempt if the caster's affinity lets them wear it freely.
+  const isExempt = (item: ArmourItem): boolean =>
+    (isMetalWizard && isMetalArmour(item)) ||
+    (isBeastsWizard && isLeatherArmour(item)) ||
+    (isChaosCaster && isChaosArmour(item));
 
-  if (isBeastsWizard && wornArmour.every(isLeatherArmour)) {
-    return 0;
-  }
+  // Only non-exempt worn pieces contribute to the repelling penalty.
+  const penalising = wornArmour.filter((item) => !isExempt(item));
+  if (penalising.length === 0) return 0;
 
-  // Compute AP per location from worn armour
-  const apByLocation = computeAPByLocation(character.armour);
-
-  // Find the highest AP value across all locations
-  const highestAP = Math.max(
+  // Highest AP across locations, computed from the non-exempt worn pieces only.
+  const apByLocation = computeAPByLocation(penalising);
+  return Math.max(
     apByLocation.head,
     apByLocation.leftArm,
     apByLocation.rightArm,
@@ -718,8 +752,6 @@ export function getArmourCastingPenalty(character: Character): number {
     apByLocation.leftLeg,
     apByLocation.rightLeg,
   );
-
-  return highestAP;
 }
 
 // ─── Overcast Damage Preview ──────────────────────────────────────────────────

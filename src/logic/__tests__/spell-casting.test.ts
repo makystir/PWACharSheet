@@ -872,16 +872,67 @@ describe('getArmourCastingPenalty', () => {
     expect(getArmourCastingPenalty(char)).toBe(0);
   });
 
-  it('Metal wizard wearing mixed armour (metal + leather) gets penalty', () => {
+  it('Metal wizard in mixed armour is penalised only for the non-exempt (leather) pieces', () => {
     const char = makeCharacter({
       intI: 40,
       talents: [{ n: 'Arcane Magic (Metal)', lvl: 1, desc: '' }],
     });
     char.armour = [
-      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', worn: true },
-      { name: 'Leather Leggings', locations: 'Legs', enc: '1', ap: 1, qualities: '—', worn: true },
+      // Metal AP 2 is exempt for a Metal wizard...
+      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: '—', armourType: 'Chainmail', worn: true },
+      // ...so only the non-exempt leather AP 1 penalises.
+      { name: 'Leather Leggings', locations: 'Legs', enc: '1', ap: 1, qualities: '—', armourType: 'BoiledLeather', worn: true },
     ];
-    expect(getArmourCastingPenalty(char)).toBe(2);
+    expect(getArmourCastingPenalty(char)).toBe(1);
+  });
+
+  it('Beasts wizard in mixed armour is penalised only for the non-exempt (metal) pieces', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Beasts)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      // Leather AP 1 is exempt for a Beasts wizard...
+      { name: 'Leather Jack', locations: 'Arms, Body', enc: '1', ap: 1, qualities: '—', armourType: 'BoiledLeather', worn: true },
+      // ...so only the non-exempt plate helm AP 3 penalises.
+      { name: 'Great Helm', locations: 'Head', enc: '2', ap: 3, qualities: 'Impenetrable', armourType: 'Plate', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(3);
+  });
+
+  it('Metal wizard treats Brigandine as metal (exempt)', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Arcane Magic (Metal)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Brigandine Jack', locations: 'Arms, Body', enc: '3', ap: 2, qualities: 'Overcoat', armourType: 'Brigandine', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(0);
+  });
+
+  it('Chaos caster wearing only Chaos Armour is exempt', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Chaos Magic (Nurgle)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Chaos Plate', locations: 'Body', enc: '3', ap: 3, qualities: 'Impenetrable', armourType: 'Plate', worn: true },
+    ];
+    expect(getArmourCastingPenalty(char)).toBe(0);
+  });
+
+  it('Chaos caster in Chaos Armour + non-Chaos armour is penalised only for the non-Chaos pieces', () => {
+    const char = makeCharacter({
+      intI: 40,
+      talents: [{ n: 'Chaos Magic (Tzeentch)', lvl: 1, desc: '' }],
+    });
+    char.armour = [
+      { name: 'Chaos Breastplate', locations: 'Body', enc: '3', ap: 3, qualities: 'Impenetrable', armourType: 'Plate', worn: true },
+      { name: 'Plate Leggings', locations: 'Legs', enc: '3', ap: 3, qualities: 'Impenetrable', armourType: 'Plate', worn: true },
+    ];
+    // Chaos breastplate exempt; plate leggings AP 3 penalise.
+    expect(getArmourCastingPenalty(char)).toBe(3);
   });
 
   it('Beasts wizard wearing only leather armour is exempt', () => {
@@ -959,6 +1010,16 @@ describe('isMetalArmour', () => {
     const item = { name, locations: 'Body', enc: '1', ap: 1, qualities: '—' };
     expect(isMetalArmour(item)).toBe(expected);
   });
+
+  it('classifies by armourType when set (Chainmail/Plate/Brigandine are metal)', () => {
+    const mk = (armourType: import('../../types/character').ArmourType) =>
+      ({ name: 'X', locations: 'Body', enc: '1', ap: 1, qualities: '—', armourType });
+    expect(isMetalArmour(mk('Chainmail'))).toBe(true);
+    expect(isMetalArmour(mk('Plate'))).toBe(true);
+    expect(isMetalArmour(mk('Brigandine'))).toBe(true);
+    expect(isMetalArmour(mk('BoiledLeather'))).toBe(false);
+    expect(isMetalArmour(mk('SoftKit'))).toBe(false);
+  });
 });
 
 describe('isLeatherArmour', () => {
@@ -975,6 +1036,15 @@ describe('isLeatherArmour', () => {
   ])('$name → $expected', ({ name, expected }) => {
     const item = { name, locations: 'Body', enc: '1', ap: 1, qualities: '—' };
     expect(isLeatherArmour(item)).toBe(expected);
+  });
+
+  it('classifies by armourType when set (only BoiledLeather is leather)', () => {
+    const mk = (armourType: import('../../types/character').ArmourType) =>
+      ({ name: 'X', locations: 'Body', enc: '1', ap: 1, qualities: '—', armourType });
+    expect(isLeatherArmour(mk('BoiledLeather'))).toBe(true);
+    expect(isLeatherArmour(mk('Chainmail'))).toBe(false);
+    expect(isLeatherArmour(mk('Plate'))).toBe(false);
+    expect(isLeatherArmour(mk('SoftKit'))).toBe(false);
   });
 });
 

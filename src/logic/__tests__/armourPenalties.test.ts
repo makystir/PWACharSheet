@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { getStealthPenalty, getPerceptionPenalty } from '../armourPenalties';
 import type { ArmourItem } from '../../types/character';
 
-// Validates WFRP4e Core p.293:
-//  - Stealth: -10 per worn Mail or Plate piece (stacks; armour table footnote)
-//  - Perception: per-item helmet penalty (Mail Coif/Open Helm -10, Helm -20)
+// Validates Archives of the Empire III armour penalties:
+//  - Stealth: flat -10 if any worn Chainmail or Plate (does NOT stack) — p.1531
+//  - Perception: per-item helmet penalty (Open Helm/Chainmail Coif -10;
+//    Great Helm/Bascinet/Armet/Sallet -20); suppressed when visor is open.
 
 function item(overrides: Partial<ArmourItem>): ArmourItem {
   return {
@@ -18,7 +19,7 @@ function item(overrides: Partial<ArmourItem>): ArmourItem {
   };
 }
 
-describe('getStealthPenalty', () => {
+describe('getStealthPenalty (Archives III p.1531)', () => {
   it('is 0 with no Mail/Plate worn', () => {
     const result = getStealthPenalty([
       item({ name: 'Leather Jack', armourType: 'BoiledLeather' }),
@@ -34,14 +35,15 @@ describe('getStealthPenalty', () => {
     expect(result.items).toHaveLength(1);
   });
 
-  it('stacks -10 for each worn Mail/Plate piece', () => {
+  it('is a FLAT -10 regardless of how many Mail/Plate pieces are worn (no stacking)', () => {
     const result = getStealthPenalty([
       item({ name: 'Mail Shirt', armourType: 'Chainmail' }),
       item({ name: 'Plate Breastplate', armourType: 'Plate' }),
       item({ name: 'Plate Leggings', armourType: 'Plate' }),
     ]);
-    // 3 pieces × 10 = 30
-    expect(result.total).toBe(30);
+    // Archives III: flat -10, not 3 × 10
+    expect(result.total).toBe(10);
+    // Triggering pieces are still listed for the breakdown.
     expect(result.items.map((i) => i.name)).toEqual([
       'Mail Shirt',
       'Plate Breastplate',
@@ -49,12 +51,13 @@ describe('getStealthPenalty', () => {
     ]);
   });
 
-  it('ignores unworn Mail/Plate pieces', () => {
+  it('ignores unworn Mail/Plate pieces (still flat -10 if any worn one remains)', () => {
     const result = getStealthPenalty([
       item({ name: 'Mail Shirt', armourType: 'Chainmail', worn: true }),
       item({ name: 'Plate Leggings', armourType: 'Plate', worn: false }),
     ]);
     expect(result.total).toBe(10);
+    expect(result.items).toHaveLength(1);
   });
 
   it('does not penalise Brigandine (Overcoat) which is not Mail or Plate type', () => {
@@ -63,28 +66,40 @@ describe('getStealthPenalty', () => {
   });
 });
 
-describe('getPerceptionPenalty', () => {
+describe('getPerceptionPenalty (Archives III armour table)', () => {
   it('is 0 when no penalising helmet is worn', () => {
     const result = getPerceptionPenalty([
-      item({ name: 'Plate Breastplate', armourType: 'Plate' }),
+      item({ name: 'Breastplate', armourType: 'Plate' }),
       item({ name: 'Mail Shirt', armourType: 'Chainmail' }),
     ]);
     expect(result.total).toBe(0);
   });
 
-  it('applies -10 for an Open Helm (not a Stealth penalty)', () => {
+  it('applies -10 for an Open Helm', () => {
     const result = getPerceptionPenalty([item({ name: 'Open Helm', locations: 'Head', armourType: 'Plate' })]);
     expect(result.total).toBe(10);
     expect(result.items).toEqual([{ name: 'Open Helm', penalty: 10 }]);
   });
 
-  it('applies -10 for a Chainmail Coif and -20 for a Great Helm', () => {
+  it('applies -10 for a Chainmail Coif', () => {
     expect(
       getPerceptionPenalty([item({ name: 'Chainmail Coif', locations: 'Head', armourType: 'Chainmail' })]).total,
     ).toBe(10);
-    expect(
-      getPerceptionPenalty([item({ name: 'Great Helm', locations: 'Head', armourType: 'Plate' })]).total,
-    ).toBe(20);
+  });
+
+  it('applies -20 for the fully-enclosed plate helms (Great Helm/Bascinet/Armet/Sallet)', () => {
+    for (const name of ['Great Helm', 'Bascinet', 'Armet', 'Sallet']) {
+      const result = getPerceptionPenalty([item({ name, locations: 'Head', armourType: 'Plate' })]);
+      expect(result.total, `${name} should be -20 Perception`).toBe(20);
+    }
+  });
+
+  it('suppresses the Perception penalty when a visor helmet is worn open', () => {
+    const closed = getPerceptionPenalty([item({ name: 'Bascinet', locations: 'Head', armourType: 'Plate', visorOpen: false })]);
+    expect(closed.total).toBe(20);
+
+    const open = getPerceptionPenalty([item({ name: 'Bascinet', locations: 'Head', armourType: 'Plate', visorOpen: true })]);
+    expect(open.total).toBe(0);
   });
 
   it('ignores unworn helmets', () => {
@@ -95,14 +110,10 @@ describe('getPerceptionPenalty', () => {
   });
 });
 
-describe('Open Helm penalty classification (regression)', () => {
-  it('Open Helm gives a Perception penalty, and its Stealth penalty is the general Plate -10 (not a helmet-specific stealth penalty)', () => {
-    const armour = [item({ name: 'Open Helm', locations: 'Head', armourType: 'Plate' })];
-    // Perception penalty exists...
+describe('Chainmail Coif dual-penalty (Archives III)', () => {
+  it('a Chainmail Coif imposes both -10 Stealth and -10 Perception', () => {
+    const armour = [item({ name: 'Chainmail Coif', locations: 'Head', armourType: 'Chainmail' })];
+    expect(getStealthPenalty(armour).total).toBe(10);
     expect(getPerceptionPenalty(armour).total).toBe(10);
-    // ...and the only Stealth penalty comes from the general Mail/Plate rule.
-    const stealth = getStealthPenalty(armour);
-    expect(stealth.total).toBe(10);
-    expect(stealth.items).toHaveLength(1);
   });
 });

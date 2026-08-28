@@ -227,8 +227,9 @@ export function ArmourMap({
   // Shield rating from equipped weapons
   const shieldRating = getShieldRating(weapons);
 
-  // Armour test penalties (Core p.293): Stealth stacks -10 per worn Mail/Plate
-  // piece; Perception is a per-item penalty (helmets). Each shows a breakdown.
+  // Armour test penalties (Archives of the Empire III): flat -10 Stealth for
+  // wearing any Chainmail/Plate; Perception is a per-item helmet penalty
+  // (suppressed when the visor is open). Each shows a breakdown.
   const stealthPenalty = getStealthPenalty(armourList);
   const perceptionPenalty = getPerceptionPenalty(armourList);
 
@@ -303,8 +304,8 @@ export function ArmourMap({
         </div>
       )}
 
-      {/* Armour test penalties — Stealth (stacks per Mail/Plate piece) and
-          Perception (per-item helmet penalty). Core p.293. */}
+      {/* Armour test penalties — flat -10 Stealth for any Chainmail/Plate, and
+          per-item Perception (helmets). Archives of the Empire III. */}
       {(stealthPenalty.total > 0 || perceptionPenalty.total > 0) && (
         <div className={styles.penaltyRow} data-testid="armour-penalty-row">
           {stealthPenalty.total > 0 && (
@@ -766,8 +767,8 @@ export function ArmourMap({
             <div className={styles.penaltyTooltipBody}>
               {result.items.map((item, i) => (
                 <div key={i} className={styles.penaltyTooltipRow}>
-                  <span>{item.name}:</span>
-                  <span>−{item.penalty}{suffix}</span>
+                  <span>{item.name}{isStealth ? '' : ':'}</span>
+                  {!isStealth && <span>−{item.penalty}{suffix}</span>}
                 </div>
               ))}
               <hr className={styles.penaltyTooltipSep} />
@@ -777,8 +778,8 @@ export function ArmourMap({
               </div>
               <div className={styles.penaltyTooltipNote}>
                 {isStealth
-                  ? 'Core p.293: −10 Stealth per worn Mail or Plate piece.'
-                  : 'Core p.293: per-item Perception penalty from worn helmets.'}
+                  ? 'Archives of the Empire III: flat −10 Stealth for wearing any Chainmail or Plate.'
+                  : 'Archives of the Empire III: per-item Perception penalty from worn helmets (none if visor open).'}
               </div>
             </div>
           </Tooltip>

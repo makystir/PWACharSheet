@@ -18,7 +18,8 @@ function armour(overrides: Partial<ArmourItem>): ArmourItem {
   };
 }
 
-// Validates WFRP4e Core p.293: Stealth stacks -10 per Mail/Plate; Perception is per-item.
+// Validates Archives of the Empire III: flat -10 Stealth for any Chainmail/Plate;
+// Perception is a per-item helmet penalty (suppressed when visor is open).
 
 describe('ArmourMap — armour test penalties', () => {
   it('shows a single -10 Stealth for one Mail piece', () => {
@@ -31,22 +32,22 @@ describe('ArmourMap — armour test penalties', () => {
     expect(screen.getByTestId('stealth-penalty-badge')).toHaveTextContent('−10 Stealth');
   });
 
-  it('stacks the Stealth penalty across multiple worn Mail/Plate pieces', () => {
+  it('keeps the Stealth penalty flat at -10 across multiple worn Mail/Plate pieces', () => {
     render(
       <ArmourMap
         armourPoints={ZERO_AP}
         armourList={[
           armour({ name: 'Mail Shirt', armourType: 'Chainmail' }),
-          armour({ name: 'Plate Breastplate', armourType: 'Plate' }),
+          armour({ name: 'Breastplate', armourType: 'Plate' }),
           armour({ name: 'Plate Leggings', locations: 'Legs', armourType: 'Plate' }),
         ]}
       />,
     );
-    // 3 pieces × 10 = 30
-    expect(screen.getByTestId('stealth-penalty-badge')).toHaveTextContent('−30 Stealth');
+    // Archives III: flat -10, not 3 × 10
+    expect(screen.getByTestId('stealth-penalty-badge')).toHaveTextContent('−10 Stealth');
   });
 
-  it('shows an Open Helm as a Perception penalty, not only Stealth', () => {
+  it('shows an Open Helm as a -10 Perception penalty', () => {
     render(
       <ArmourMap
         armourPoints={ZERO_AP}
@@ -58,7 +59,29 @@ describe('ArmourMap — armour test penalties', () => {
     expect(perception).toHaveTextContent('−10 Perception');
   });
 
-  it('opens a breakdown tooltip listing each contributing Stealth piece', () => {
+  it('shows a Great Helm as a -20 Perception penalty', () => {
+    render(
+      <ArmourMap
+        armourPoints={ZERO_AP}
+        armourList={[armour({ name: 'Great Helm', locations: 'Head', armourType: 'Plate' })]}
+      />,
+    );
+    expect(screen.getByTestId('perception-penalty-badge')).toHaveTextContent('−20 Perception');
+  });
+
+  it('drops the Perception penalty when a visor helmet is worn open', () => {
+    render(
+      <ArmourMap
+        armourPoints={ZERO_AP}
+        armourList={[armour({ name: 'Bascinet', locations: 'Head', armourType: 'Plate', visorOpen: true })]}
+      />,
+    );
+    // Visor open → no Perception penalty (badge absent). Still -10 Stealth (Plate).
+    expect(screen.queryByTestId('perception-penalty-badge')).not.toBeInTheDocument();
+    expect(screen.getByTestId('stealth-penalty-badge')).toHaveTextContent('−10 Stealth');
+  });
+
+  it('opens a Stealth breakdown tooltip listing the triggering pieces and flat total', () => {
     render(
       <ArmourMap
         armourPoints={ZERO_AP}
@@ -73,7 +96,8 @@ describe('ArmourMap — armour test penalties', () => {
     expect(tooltip).toHaveTextContent('Mail Shirt');
     expect(tooltip).toHaveTextContent('Plate Leggings');
     expect(tooltip).toHaveTextContent('Total:');
-    expect(tooltip).toHaveTextContent('−20');
+    // Flat -10 total regardless of the number of triggering pieces.
+    expect(tooltip).toHaveTextContent('−10');
   });
 
   it('shows no penalty row when only soft leather is worn', () => {
