@@ -217,6 +217,8 @@ export interface TrappingEncBreakdownLine {
   worn: boolean;
   quantity: number;
   effective: number;
+  /** True when this line is zeroed by the "backpack ignores encumbrance" house rule. */
+  inBackpackIgnored?: boolean;
 }
 
 export interface TrappingEncBreakdown {
@@ -231,25 +233,34 @@ export interface TrappingEncBreakdown {
  * (isEffectivelyWorn) so the reported worn marker and effective contribution
  * match calculateCarriedTrappingEnc. Zero-value lines are included so users
  * can see every contributing factor (calculated-totals steering guideline 4).
- * `total` equals calculateCarriedTrappingEnc(trappings).
+ * `total` equals calculateCarriedTrappingEnc(trappings, ignoreBackpackEnc).
  * Core p.293 "Worn Items": worn items have per-item Enc reduced by 1 (min 0).
+ *
+ * House rule (ignoreBackpackEnc): when enabled, trappings marked inBackpack are
+ * shown with effective 0 and flagged inBackpackIgnored so the tooltip matches
+ * the reduced total.
  */
-export function getTrappingEncBreakdown(trappings: Trapping[]): TrappingEncBreakdown {
+export function getTrappingEncBreakdown(
+  trappings: Trapping[],
+  ignoreBackpackEnc = false,
+): TrappingEncBreakdown {
   const lines = trappings
     .filter((t) => t.storedOnHorse !== true)
     .map((t) => {
       const worn = isEffectivelyWorn(t);
+      const ignored = ignoreBackpackEnc && t.inBackpack === true;
       return {
         name: t.name || 'Unnamed',
         baseEnc: parseFloat(t.enc) || 0,
         worn,
         quantity: t.quantity || 1,
-        effective: calculateTrappingEncumbrance(t.enc, t.quantity, worn),
+        effective: ignored ? 0 : calculateTrappingEncumbrance(t.enc, t.quantity, worn),
+        inBackpackIgnored: ignored,
       };
     });
 
   return {
     lines,
-    total: calculateCarriedTrappingEnc(trappings),
+    total: calculateCarriedTrappingEnc(trappings, ignoreBackpackEnc),
   };
 }

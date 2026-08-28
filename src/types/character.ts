@@ -402,6 +402,13 @@ export interface Trapping {
   quantity: number;
   storedOnHorse?: boolean;
   worn?: boolean; // Core p.293 Worn Items: reduces per-item Enc by 1 (min 0)
+  /**
+   * Marks the item as packed inside a backpack. Only has a mechanical effect
+   * under the "Backpack ignores encumbrance" house rule (HouseRules.ignoreBackpackEnc),
+   * where in-backpack items contribute 0 to carried encumbrance. Otherwise it is
+   * a purely organisational marker.
+   */
+  inBackpack?: boolean;
 }
 
 export interface Companion {
@@ -549,6 +556,11 @@ export interface HouseRules {
   useCriticalDeflection: boolean;
   useEnterprises: boolean;
   useCants: boolean;
+  /**
+   * House rule: items marked as inside a backpack contribute 0 to the
+   * character's carried encumbrance (carrying capacity is unchanged).
+   */
+  ignoreBackpackEnc: boolean;
 }
 
 export interface Character {
@@ -808,6 +820,7 @@ export const BLANK_CHARACTER: Character = {
     useCriticalDeflection: false,
     useEnterprises: false,
     useCants: false,
+    ignoreBackpackEnc: false,
   },
   knownRunes: [],
   learnedTechniques: [],

@@ -465,6 +465,26 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                 </button>
               </div>
             </div>
+
+            {/* Backpack ignores encumbrance (house rule) */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Backpack Ignores Encumbrance</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.ignoreBackpackEnc ? { color: 'var(--text-muted)' } : undefined}>
+                    House rule: items marked as in a backpack count as 0 Enc (carrying capacity unchanged)
+                  </div>
+                  {character.houseRules.ignoreBackpackEnc && <div className={styles.ruleLocation}>Find it on: Character page → Gear tab → per-trapping 🎒 toggle</div>}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.ignoreBackpackEnc', !character.houseRules.ignoreBackpackEnc)}
+                  className={character.houseRules.ignoreBackpackEnc ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.ignoreBackpackEnc ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
           </div>
         </CollapsibleSection>
 

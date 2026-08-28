@@ -517,6 +517,17 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     }));
   };
 
+  // "In backpack" marker (house rule: ignoreBackpackEnc). A packed item is not
+  // being worn and is not on the horse, so setting it clears both.
+  const setInBackpack = (i: number, value: boolean) => {
+    updateCharacter((c) => ({
+      ...c,
+      trappings: c.trappings.map((t, idx) =>
+        idx === i ? { ...t, inBackpack: value, worn: value ? false : t.worn, storedOnHorse: value ? false : t.storedOnHorse } : t
+      ),
+    }));
+  };
+
   const handleDelete = () => {
     if (!deleteTarget) return;
     if (deleteTarget.type === 'aSkill') removeAdvancedSkill(deleteTarget.index);
@@ -1554,7 +1565,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {(() => {
         const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
         const eA = character.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
-        const eT = calculateCarriedTrappingEnc(character.trappings);
+        const eT = calculateCarriedTrappingEnc(character.trappings, character.houseRules.ignoreBackpackEnc);
         const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
         const currentEnc = eW + eA + eT + eCoin;
         const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
@@ -1655,6 +1666,19 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                         <span className={styles.trappingEditLabel}>Worn</span>
                       </div>
                     )}
+                    {/* In backpack — house rule: when ignoreBackpackEnc is on, packed items count 0 Enc */}
+                    {character.houseRules.ignoreBackpackEnc && (
+                      <div className={styles.trappingEditRow}>
+                        <input
+                          type="checkbox"
+                          checked={!!t.inBackpack}
+                          onChange={(e) => setInBackpack(i, e.target.checked)}
+                          className={styles.trappingWornCheckbox}
+                          aria-label={`In backpack — ${t.name || 'this trapping'} counts as 0 encumbrance (house rule)`}
+                        />
+                        <span className={styles.trappingEditLabel}>In backpack</span>
+                      </div>
+                    )}
                     <button
                       type="button"
                       className={styles.trappingEditDoneBtn}
@@ -1701,6 +1725,23 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                             disabled={trappingsDragState.status === 'dragging'}
                           />
                           <span className={styles.wornIcon} aria-hidden="true">👕</span>
+                        </label>
+                      )}
+                      {/* In-backpack toggle — only when the house rule is enabled */}
+                      {character.houseRules.ignoreBackpackEnc && (
+                        <label
+                          className={styles.wornIndicator}
+                          aria-label={`In backpack — ${t.name || 'this trapping'} counts as 0 encumbrance (house rule)`}
+                          title="In backpack — counts as 0 encumbrance (house rule)"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!t.inBackpack}
+                            onChange={(e) => setInBackpack(i, e.target.checked)}
+                            className={styles.trappingWornCheckbox}
+                            disabled={trappingsDragState.status === 'dragging'}
+                          />
+                          <span className={styles.wornIcon} aria-hidden="true">🎒</span>
                         </label>
                       )}
                       <button type="button" onClick={() => setEditingTrappingIndex(i)} className={styles.trappingEditBtn} aria-label={`Edit ${t.name || 'trapping'}`} disabled={trappingsDragState.status === 'dragging'}>✎</button>
@@ -1852,7 +1893,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             {(() => {
               const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
               const eA = character.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
-              const eT = calculateCarriedTrappingEnc(character.trappings);
+              const eT = calculateCarriedTrappingEnc(character.trappings, character.houseRules.ignoreBackpackEnc);
               const eHorse = calculateHorseTrappingEnc(character.trappings);
               const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
               const eTotal = eW + eA + eT + eCoin;
@@ -2133,7 +2174,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       })()}
 
       {breakdownTooltip?.type === 'trappingEnc' && (() => {
-        const breakdown = getTrappingEncBreakdown(character.trappings);
+        const breakdown = getTrappingEncBreakdown(character.trappings, character.houseRules.ignoreBackpackEnc);
         return (
           <Tooltip
             anchorEl={breakdownTooltip.anchorEl}

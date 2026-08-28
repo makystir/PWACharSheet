@@ -41,6 +41,7 @@ const RAW_DEFAULTS = {
   useCriticalDeflection: false,
   useEnterprises: false,
   useCants: false,
+  ignoreBackpackEnc: false,
 };
 
 /** Create a character missing the houseRules field (simulates pre-feature data). */
@@ -88,6 +89,7 @@ describe('Backfill — character loaded without houseRules', () => {
       useCriticalDeflection: false,
       useEnterprises: false,
       useCants: false,
+      ignoreBackpackEnc: false,
     });
   });
 });
@@ -138,6 +140,7 @@ describe('Import — character imported with custom houseRules', () => {
       useCriticalDeflection: false,
       useEnterprises: false,
       useCants: false,
+      ignoreBackpackEnc: false,
     };
     const importData = {
       _v: 6,
@@ -209,6 +212,7 @@ describe('Import — character imported with custom houseRules', () => {
       useCriticalDeflection: false,
       useEnterprises: false,
       useCants: false,
+      ignoreBackpackEnc: false,
     };
 
     const json = exportToJSON(original);

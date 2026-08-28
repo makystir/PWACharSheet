@@ -99,14 +99,20 @@ export function isEffectivelyWorn(t: Trapping): boolean {
  * Carried total: sum of effective enc for trappings NOT stored on horse (Req 4.5, 4.6).
  * Uses the effective (read-time) worn state so a both-flags-true item is treated as
  * stored on horse and thus excluded here.
+ *
+ * House rule (ignoreBackpackEnc): when enabled, trappings marked inBackpack
+ * contribute 0 to the carried total (carrying capacity is unchanged elsewhere).
  */
-export function calculateCarriedTrappingEnc(trappings: Trapping[]): number {
+export function calculateCarriedTrappingEnc(
+  trappings: Trapping[],
+  ignoreBackpackEnc = false,
+): number {
   return trappings
     .filter((t) => t.storedOnHorse !== true)
-    .reduce(
-      (sum, t) => sum + calculateTrappingEncumbrance(t.enc, t.quantity, isEffectivelyWorn(t)),
-      0,
-    );
+    .reduce((sum, t) => {
+      if (ignoreBackpackEnc && t.inBackpack === true) return sum;
+      return sum + calculateTrappingEncumbrance(t.enc, t.quantity, isEffectivelyWorn(t));
+    }, 0);
 }
 
 /**

@@ -59,7 +59,7 @@ export function PrintLayout({ character, totalWounds, armourPoints }: PrintLayou
   const maxEnc = calculateMaxEncumbrance(ch.chars, strongBackLevel);
   const eW = ch.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
   const eA = ch.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
-  const eT = calculateCarriedTrappingEnc(ch.trappings);
+  const eT = calculateCarriedTrappingEnc(ch.trappings, ch.houseRules?.ignoreBackpackEnc ?? false);
   const bSkills1 = ch.bSkills.slice(0, 13);
   const bSkills2 = ch.bSkills.slice(13);
 

@@ -26,6 +26,7 @@ export function TrappingsBreakdownContent({ lines, total }: TrappingsBreakdownCo
           <span className={styles.label}>
             {line.name}
             {line.worn && <span className={styles.wornMarker}> 👕 worn</span>}
+            {line.inBackpackIgnored && <span className={styles.wornMarker}> 🎒 in backpack</span>}
             <span className={styles.detail}>
               {' '}
               (Enc {line.baseEnc} × {line.quantity})
