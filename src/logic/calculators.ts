@@ -325,16 +325,21 @@ export function computeAPByLocation(
 }
 
 /**
- * Calculates maximum encumbrance: SB + TB + strongBackLevel.
+ * Calculates maximum encumbrance.
+ * Core p.293: base carrying capacity is SB + TB.
+ * Core p.146 (Strong Back): +1 Enc per level.
+ * Core p.146 (Sturdy): +2 Enc per level ("Increase the number of Encumbrance
+ * Points you can carry by your Sturdy level x 2").
  * Result is always a non-negative integer.
  */
 export function calculateMaxEncumbrance(
   chars: Record<CharacteristicKey, CharacteristicValue>,
-  strongBackLevel: number
+  strongBackLevel: number,
+  sturdyLevel: number = 0
 ): number {
   const SB = getBonus(chars.S.i + chars.S.a + chars.S.b);
   const TB = getBonus(chars.T.i + chars.T.a + chars.T.b);
-  return Math.max(0, SB + TB + strongBackLevel);
+  return Math.max(0, SB + TB + strongBackLevel + sturdyLevel * 2);
 }
 
 /**

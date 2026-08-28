@@ -27,7 +27,10 @@ export function EncumbranceBreakdownContent({
         </div>
       )}
       {sturdyLevel > 0 && (
-        <div className={styles.note}>Sturdy: halves overburdened penalties</div>
+        <div className={styles.row}>
+          <span className={styles.label}>Sturdy:</span>
+          <span className={styles.value}>+{sturdyLevel * 2}</span>
+        </div>
       )}
       <hr className={styles.separator} />
       <div className={styles.totalRow}>

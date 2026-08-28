@@ -347,7 +347,7 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
   );
 
   const maxEncumbrance = useMemo(
-    () => calculateMaxEncumbrance(character.chars, strongBackLevel) + (sturdyLevel * 2),
+    () => calculateMaxEncumbrance(character.chars, strongBackLevel, sturdyLevel),
     [character.chars, strongBackLevel, sturdyLevel]
   );
 

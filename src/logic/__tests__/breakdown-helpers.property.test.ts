@@ -141,7 +141,7 @@ describe('Feature: calculated-total-tooltips', () => {
     /**
      * **Validates: Requirements 3.2, 3.3**
      */
-    it('sb, tb, and total are correctly computed from S, T, and strongBackLevel', () => {
+    it('sb, tb, and total are correctly computed from S, T, strongBackLevel, and sturdyLevel', () => {
       fc.assert(
         fc.property(
           fc.integer({ min: 0, max: 99 }),
@@ -157,7 +157,8 @@ describe('Feature: calculated-total-tooltips', () => {
 
             expect(result.sb).toBe(expectedSB);
             expect(result.tb).toBe(expectedTB);
-            expect(result.total).toBe(expectedSB + expectedTB + strongBackLevel);
+            // Core p.146: Sturdy adds level × 2 to carrying capacity.
+            expect(result.total).toBe(expectedSB + expectedTB + strongBackLevel + sturdyLevel * 2);
           },
         ),
         { numRuns: 100 },

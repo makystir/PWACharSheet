@@ -87,7 +87,9 @@ export interface EncumbranceBreakdown {
 
 /**
  * Computes the breakdown for max encumbrance.
- * sb = floor(S/10), tb = floor(T/10), total = sb + tb + strongBackLevel.
+ * sb = floor(S/10), tb = floor(T/10).
+ * total = sb + tb + strongBackLevel + sturdyLevel×2.
+ * Core p.293 (base SB+TB), p.146 Strong Back (+1/level), p.146 Sturdy (+2/level).
  * Negative characteristic values are clamped to 0.
  */
 export function getEncumbranceBreakdown(
@@ -104,7 +106,7 @@ export function getEncumbranceBreakdown(
     tb,
     strongBackLevel,
     sturdyLevel,
-    total: sb + tb + strongBackLevel,
+    total: sb + tb + strongBackLevel + sturdyLevel * 2,
   };
 }
 

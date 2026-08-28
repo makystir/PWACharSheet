@@ -1559,7 +1559,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         const currentEnc = eW + eA + eT + eCoin;
         const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
         const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
-        const maxEnc = calculateMaxEncumbrance(character.chars, strongBackLevel);
+        const sturdyTalent = character.talents.find(t => t.n === 'Sturdy');
+        const sturdyLevel = sturdyTalent ? sturdyTalent.lvl : 0;
+        const maxEnc = calculateMaxEncumbrance(character.chars, strongBackLevel, sturdyLevel);
         const level = getEncumbranceLevel(currentEnc, maxEnc);
         const label = formatEncumbrance(currentEnc, maxEnc);
         return (
@@ -1858,7 +1860,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
               const sturdyTalent = character.talents.find(t => t.n === 'Sturdy');
               const sturdyLevel = sturdyTalent ? sturdyTalent.lvl : 0;
-              const maxEnc = calculateMaxEncumbrance(character.chars, strongBackLevel);
+              const maxEnc = calculateMaxEncumbrance(character.chars, strongBackLevel, sturdyLevel);
               const over = eTotal > maxEnc;
               return (
                 <div className={styles.encBreakdown}>

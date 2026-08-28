@@ -394,6 +394,26 @@ describe('calculateMaxEncumbrance', () => {
     const chars = makeChars({ S: { i: 5, a: 0 }, T: { i: 8, a: 0 } });
     expect(calculateMaxEncumbrance(chars, 2)).toBe(2);
   });
+
+  // Core p.146: Sturdy increases carrying capacity by level × 2.
+  it('Sturdy adds 2 Enc per level', () => {
+    // S=20, T=20 → SB=2, TB=2 = 4; Sturdy 1 → +2 → 6
+    const chars = makeChars();
+    expect(calculateMaxEncumbrance(chars, 0, 1)).toBe(6);
+    // Sturdy 3 → +6 → 10
+    expect(calculateMaxEncumbrance(chars, 0, 3)).toBe(10);
+  });
+
+  it('Strong Back and Sturdy stack (SB+TB + strongBack×1 + sturdy×2)', () => {
+    // SB=2, TB=2 = 4; +Strong Back 1 (=1); +Sturdy 2 (=4) → 9
+    const chars = makeChars();
+    expect(calculateMaxEncumbrance(chars, 1, 2)).toBe(9);
+  });
+
+  it('defaults sturdyLevel to 0 when omitted (backward compatible)', () => {
+    const chars = makeChars();
+    expect(calculateMaxEncumbrance(chars, 0)).toBe(4);
+  });
 });
 
 // ─── calculateCoinWeight ─────────────────────────────────────────────────────
