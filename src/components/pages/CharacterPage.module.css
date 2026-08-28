@@ -906,6 +906,25 @@
   line-height: 1;
 }
 
+.trappingWornCheckbox {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
+.wornIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 24px;
+  cursor: pointer;
+}
+
+.wornIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
 /* Trapping edit form */
 .trappingEditForm {
   display: flex;

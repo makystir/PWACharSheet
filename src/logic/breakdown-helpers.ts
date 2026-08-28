@@ -1,6 +1,7 @@
-import type { CharacteristicKey, CharacteristicValue, ArmourItem } from '../types/character';
+import type { CharacteristicKey, CharacteristicValue, ArmourItem, Trapping } from '../types/character';
 import type { LocationKey } from './armourLayering';
 import { coversLocation } from './armourLayering';
+import { calculateTrappingEncumbrance, calculateCarriedTrappingEnc, isEffectivelyWorn } from './encumbrance';
 
 // ─── Characteristic Name Mapping ─────────────────────────────────────────────
 
@@ -166,5 +167,50 @@ export function getAPBreakdown(
     locationLabel,
     items: covering,
     total,
+  };
+}
+
+// ─── Trapping Encumbrance Breakdown ──────────────────────────────────────────
+
+export interface TrappingEncBreakdownLine {
+  name: string;
+  baseEnc: number;
+  worn: boolean;
+  quantity: number;
+  effective: number;
+}
+
+export interface TrappingEncBreakdown {
+  lines: TrappingEncBreakdownLine[];
+  total: number;
+}
+
+/**
+ * Computes the breakdown for the carried trappings encumbrance total.
+ * Includes only carried trappings (storedOnHorse !== true), one line per
+ * trapping. Each line's `effective` value uses the read-time worn state
+ * (isEffectivelyWorn) so the reported worn marker and effective contribution
+ * match calculateCarriedTrappingEnc. Zero-value lines are included so users
+ * can see every contributing factor (calculated-totals steering guideline 4).
+ * `total` equals calculateCarriedTrappingEnc(trappings).
+ * Core p.293 "Worn Items": worn items have per-item Enc reduced by 1 (min 0).
+ */
+export function getTrappingEncBreakdown(trappings: Trapping[]): TrappingEncBreakdown {
+  const lines = trappings
+    .filter((t) => t.storedOnHorse !== true)
+    .map((t) => {
+      const worn = isEffectivelyWorn(t);
+      return {
+        name: t.name || 'Unnamed',
+        baseEnc: parseFloat(t.enc) || 0,
+        worn,
+        quantity: t.quantity || 1,
+        effective: calculateTrappingEncumbrance(t.enc, t.quantity, worn),
+      };
+    });
+
+  return {
+    lines,
+    total: calculateCarriedTrappingEnc(trappings),
   };
 }

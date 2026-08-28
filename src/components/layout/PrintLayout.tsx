@@ -4,7 +4,7 @@ import '@fontsource/im-fell-english/400.css';
 
 import type { Character, ArmourPoints, CharacteristicKey } from '../../types/character';
 import { getBonus, calculateMaxEncumbrance } from '../../logic/calculators';
-import { calculateArmourEncumbrance } from '../../logic/encumbrance';
+import { calculateArmourEncumbrance, calculateCarriedTrappingEnc } from '../../logic/encumbrance';
 import styles from './PrintLayout.module.css';
 
 interface PrintLayoutProps {
@@ -59,7 +59,7 @@ export function PrintLayout({ character, totalWounds, armourPoints }: PrintLayou
   const maxEnc = calculateMaxEncumbrance(ch.chars, strongBackLevel);
   const eW = ch.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
   const eA = ch.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
-  const eT = ch.trappings.reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
+  const eT = calculateCarriedTrappingEnc(ch.trappings);
   const bSkills1 = ch.bSkills.slice(0, 13);
   const bSkills2 = ch.bSkills.slice(13);
 

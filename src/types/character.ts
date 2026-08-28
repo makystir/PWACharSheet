@@ -401,6 +401,7 @@ export interface Trapping {
   enc: string;
   quantity: number;
   storedOnHorse?: boolean;
+  worn?: boolean; // Core p.293 Worn Items: reduces per-item Enc by 1 (min 0)
 }
 
 export interface Companion {

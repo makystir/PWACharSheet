@@ -67,11 +67,12 @@ import { SkillBreakdownContent } from './SkillBreakdownContent';
 import { CBBreakdownContent } from './CBBreakdownContent';
 import { EncumbranceBreakdownContent } from './EncumbranceBreakdownContent';
 import { CoinWeightBreakdownContent } from './CoinWeightBreakdownContent';
-import { getSkillBreakdown, getCBBreakdown, getEncumbranceBreakdown, getCoinWeightBreakdown } from '../../logic/breakdown-helpers';
+import { TrappingsBreakdownContent } from './TrappingsBreakdownContent';
+import { getSkillBreakdown, getCBBreakdown, getEncumbranceBreakdown, getCoinWeightBreakdown, getTrappingEncBreakdown } from '../../logic/breakdown-helpers';
 import { getContributingTalent } from '../../logic/talents';
 import { AgeTierSelector } from '../shared/AgeTierSelector';
 import { ProgressBar } from '../shared/ProgressBar';
-import { getEncumbranceLevel, formatEncumbrance, calculateArmourEncumbrance } from '../../logic/encumbrance';
+import { getEncumbranceLevel, formatEncumbrance, calculateArmourEncumbrance, isWearableTrapping, calculateCarriedTrappingEnc, calculateHorseTrappingEnc } from '../../logic/encumbrance';
 import { DragHandle } from '../shared/DragHandle';
 import { AriaLiveAnnouncer } from '../shared/AriaLiveAnnouncer';
 import { ContextualMenu } from '../shared/ContextualMenu';
@@ -100,7 +101,8 @@ export type BreakdownTooltipState =
   | { type: 'skill'; index: number; anchorEl: HTMLElement }
   | { type: 'cb'; key: CharacteristicKey; anchorEl: HTMLElement }
   | { type: 'encumbrance'; anchorEl: HTMLElement }
-  | { type: 'coinWeight'; anchorEl: HTMLElement };
+  | { type: 'coinWeight'; anchorEl: HTMLElement }
+  | { type: 'trappingEnc'; anchorEl: HTMLElement };
 
 interface CharacterPageProps {
   character: Character;
@@ -492,6 +494,27 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       }
       return next;
     });
+  };
+
+  // Trapping worn / stored-on-horse mutual exclusivity (Core p.293 Worn Items).
+  // Req 6.1: setting worn=true clears storedOnHorse.
+  const setWorn = (i: number, value: boolean) => {
+    updateCharacter((c) => ({
+      ...c,
+      trappings: c.trappings.map((t, idx) =>
+        idx === i ? { ...t, worn: value, storedOnHorse: value ? false : t.storedOnHorse } : t
+      ),
+    }));
+  };
+
+  // Req 6.2: setting storedOnHorse=true clears worn.
+  const setStoredOnHorse = (i: number, value: boolean) => {
+    updateCharacter((c) => ({
+      ...c,
+      trappings: c.trappings.map((t, idx) =>
+        idx === i ? { ...t, storedOnHorse: value, worn: value ? false : t.worn } : t
+      ),
+    }));
   };
 
   const handleDelete = () => {
@@ -1531,7 +1554,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       {(() => {
         const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
         const eA = character.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
-        const eT = character.trappings.filter(t => !t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
+        const eT = calculateCarriedTrappingEnc(character.trappings);
         const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
         const currentEnc = eW + eA + eT + eCoin;
         const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
@@ -1611,12 +1634,25 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                       <input
                         type="checkbox"
                         checked={!!t.storedOnHorse}
-                        onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)}
+                        onChange={(e) => setStoredOnHorse(i, e.target.checked)}
                         className={styles.trappingHorseCheckbox}
                         aria-label="Stored on horse"
                       />
                       <span className={styles.trappingEditLabel}>Stored on horse</span>
                     </div>
+                    {/* Worn toggle — wearable trappings only (Core p.293 Worn Items). Req 2.4, 2.5, 8.1-8.3 */}
+                    {isWearableTrapping(t.name) && (
+                      <div className={styles.trappingEditRow}>
+                        <input
+                          type="checkbox"
+                          checked={!!t.worn}
+                          onChange={(e) => setWorn(i, e.target.checked)}
+                          className={styles.trappingWornCheckbox}
+                          aria-label={`Worn — reduces ${t.name || 'this trapping'}'s encumbrance by 1 per item (min 0)`}
+                        />
+                        <span className={styles.trappingEditLabel}>Worn</span>
+                      </div>
+                    )}
                     <button
                       type="button"
                       className={styles.trappingEditDoneBtn}
@@ -1642,12 +1678,29 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                         <input
                           type="checkbox"
                           checked={!!t.storedOnHorse}
-                          onChange={(e) => update(`trappings.${i}.storedOnHorse`, e.target.checked)}
+                          onChange={(e) => setStoredOnHorse(i, e.target.checked)}
                           className={styles.trappingHorseCheckbox}
                           disabled={trappingsDragState.status === 'dragging'}
                         />
                         <span className={styles.horseIcon} aria-hidden="true">🐎</span>
                       </label>
+                      {/* Worn toggle — wearable trappings only (Core p.293 Worn Items). Req 2.4, 2.5, 8.1-8.3 */}
+                      {isWearableTrapping(t.name) && (
+                        <label
+                          className={styles.wornIndicator}
+                          aria-label={`Worn — reduces ${t.name || 'this trapping'}'s encumbrance by 1 per item (min 0)`}
+                          title="Worn — reduces encumbrance by 1 per item (min 0)"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!t.worn}
+                            onChange={(e) => setWorn(i, e.target.checked)}
+                            className={styles.trappingWornCheckbox}
+                            disabled={trappingsDragState.status === 'dragging'}
+                          />
+                          <span className={styles.wornIcon} aria-hidden="true">👕</span>
+                        </label>
+                      )}
                       <button type="button" onClick={() => setEditingTrappingIndex(i)} className={styles.trappingEditBtn} aria-label={`Edit ${t.name || 'trapping'}`} disabled={trappingsDragState.status === 'dragging'}>✎</button>
                       <button type="button" onClick={() => setDeleteTarget({ type: 'trapping', index: i })} className={styles.deleteBtn} aria-label="Remove trapping">✕</button>
                     </div>
@@ -1797,8 +1850,8 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             {(() => {
               const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
               const eA = character.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
-              const eT = character.trappings.filter(t => !t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
-              const eHorse = character.trappings.filter(t => t.storedOnHorse).reduce((s, t) => s + (parseFloat(t.enc) || 0) * (t.quantity || 1), 0);
+              const eT = calculateCarriedTrappingEnc(character.trappings);
+              const eHorse = calculateHorseTrappingEnc(character.trappings);
               const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
               const eTotal = eW + eA + eT + eCoin;
               const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
@@ -1811,7 +1864,17 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 <div className={styles.encBreakdown}>
                   <div className={styles.encRow}><span className={styles.encLabel}>Weapons</span><span>{eW}</span></div>
                   <div className={styles.encRow}><span className={styles.encLabel}>Armour</span><span>{eA}</span></div>
-                  <div className={styles.encRow}><span className={styles.encLabel}>Trappings</span><span>{eT}</span></div>
+                  <div className={styles.encRow}>
+                    <span className={styles.encLabel}>Trappings</span>
+                    <TooltipTriggerCell
+                      tooltipId="tooltip-breakdown-trappingEnc"
+                      displayValue={eT}
+                      isTooltipOpen={breakdownTooltip?.type === 'trappingEnc'}
+                      onOpen={(anchorEl) => openBreakdownTooltip({ type: 'trappingEnc', anchorEl })}
+                      onClose={closeBreakdownTooltip}
+                      ariaLabel="Trappings encumbrance breakdown"
+                    />
+                  </div>
                   <div className={styles.encRow}>
                     <span className={styles.encLabel}>Coins</span>
                     <TooltipTriggerCell
@@ -2063,6 +2126,20 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
             id="tooltip-breakdown-coinWeight"
           >
             <CoinWeightBreakdownContent {...breakdown} />
+          </Tooltip>
+        );
+      })()}
+
+      {breakdownTooltip?.type === 'trappingEnc' && (() => {
+        const breakdown = getTrappingEncBreakdown(character.trappings);
+        return (
+          <Tooltip
+            anchorEl={breakdownTooltip.anchorEl}
+            title="Trappings Encumbrance"
+            onClose={closeBreakdownTooltip}
+            id="tooltip-breakdown-trappingEnc"
+          >
+            <TrappingsBreakdownContent {...breakdown} />
           </Tooltip>
         );
       })()}
