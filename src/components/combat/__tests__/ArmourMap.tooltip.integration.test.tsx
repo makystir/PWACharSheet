@@ -37,31 +37,31 @@ describe('ArmourMap AP Tooltip Integration', () => {
    * Test: click AP location cell → tooltip lists armour items and total
    */
   it('shows tooltip with armour items and total when AP cell is clicked', () => {
-    // Leather Cap (non-flexible, 1 AP) worn under a Flexible Mail Coif (2 AP).
-    // Per WFRP4e Core p.293 (Flexible), both layers combine → total 3.
-    const leatherCap = makeArmourItem({ name: 'Leather Cap', locations: 'Head', ap: 1, worn: true });
-    const mailCoif = makeArmourItem({ name: 'Mail Coif', locations: 'Head', ap: 2, qualities: 'Flexible', worn: true });
+    // Archives III: a Chainmail Shirt (base, 2 AP) + a Plate Breastplate
+    // (Overcoat, 3 AP) combine on the body → total 5.
+    const mailShirt = makeArmourItem({ name: 'Chainmail Shirt', locations: 'Body', ap: 2, qualities: '—', armourType: 'Chainmail', worn: true });
+    const breastplate = makeArmourItem({ name: 'Breastplate', locations: 'Body', ap: 3, qualities: 'Impenetrable, Overcoat, Weakpoints', armourType: 'Plate', worn: true });
 
     const props = makeDefaultProps({
-      armourPoints: { head: 3, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 },
-      armourList: [leatherCap, mailCoif],
+      armourPoints: { head: 0, lArm: 0, rArm: 0, body: 5, lLeg: 0, rLeg: 0, shield: 0 },
+      armourList: [mailShirt, breastplate],
     });
 
     render(<ArmourMap {...props} />);
 
-    // Click the Head AP cell (ariaLabel = "Head AP 3")
-    const headApCell = screen.getByRole('button', { name: 'Head AP 3' });
-    fireEvent.click(headApCell);
+    // Click the Body AP cell (ariaLabel = "Body AP 5")
+    const bodyApCell = screen.getByRole('button', { name: 'Body AP 5' });
+    fireEvent.click(bodyApCell);
 
     // Tooltip should appear with role="tooltip"
     const tooltip = screen.getByRole('tooltip');
     expect(tooltip).toBeInTheDocument();
 
-    // Should list both armour items with their AP values
-    expect(tooltip).toHaveTextContent('Leather Cap');
-    expect(tooltip).toHaveTextContent('Mail Coif');
+    // Should list both armour items and the combined total
+    expect(tooltip).toHaveTextContent('Chainmail Shirt');
+    expect(tooltip).toHaveTextContent('Breastplate');
     expect(tooltip).toHaveTextContent('Total:');
-    expect(tooltip).toHaveTextContent('3');
+    expect(tooltip).toHaveTextContent('5');
   });
 
   /**

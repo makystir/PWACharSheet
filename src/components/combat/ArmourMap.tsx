@@ -344,6 +344,7 @@ export function ArmourMap({
           {contributingItems.length > 0 && (
             <div className={styles.effectiveApNote} data-testid="effective-ap-note">
               Total Effective AP: {armourPoints[selectedLocation]}
+              <span className={styles.rulesetNote}> · Archives of the Empire III combining rules</span>
             </div>
           )}
           {contributingItems.length === 0 && (
@@ -490,7 +491,7 @@ export function ArmourMap({
                             type="text"
                             value={item.qualities}
                             onChange={(e) => onUpdateArmour(i, 'qualities', e.target.value)}
-                            placeholder="Qualities (e.g. Flexible)"
+                            placeholder="Qualities (e.g. Impenetrable)"
                             className={styles.editInput}
                             aria-label="Armour qualities"
                           />

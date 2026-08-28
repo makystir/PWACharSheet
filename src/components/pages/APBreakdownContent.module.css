@@ -34,7 +34,7 @@
 }
 
 /* A covering piece that does not contribute to the applied total
-   (not the highest of its flexible / non-flexible layer). */
+   (not part of the best legal Archives III stack). */
 .rowExcluded {
   opacity: 0.55;
 }
@@ -43,10 +43,19 @@
   text-decoration: line-through;
 }
 
-/* Note explaining the flexible-layering rule when a piece is excluded. */
+/* Note explaining the layering rule when a piece is excluded. */
 .layerNote {
   color: var(--text-secondary);
   font-style: italic;
   font-size: 0.85em;
   padding: 4px 0 2px;
+}
+
+/* Attribution of the combining ruleset the app follows. */
+.rulesetNote {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.8em;
+  opacity: 0.8;
+  padding-top: 6px;
 }

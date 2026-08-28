@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { calculateArmourPointsUnified } from '../calculators';
 import type { APResult } from '../calculators';
+import { computeArchives3LocationAP, type LocationKey } from '../armourLayering';
 import type { ArmourItem } from '../../types/character';
 
 // Feature: armour-worn-toggle, Property 4: AP calculation uses only worn items
@@ -53,43 +54,23 @@ const ALL_LOCATIONS: (keyof Omit<APResult, 'shield'>)[] = [
   'head', 'leftArm', 'rightArm', 'body', 'leftLeg', 'rightLeg',
 ];
 
-/**
- * Determine which APResult keys an armour item covers,
- * replicating the parsing logic used by calculateArmourPointsUnified.
- */
-function getAPLocations(item: ArmourItem): (keyof APResult)[] {
-  const result: (keyof APResult)[] = [];
-  const parts = item.locations.split(',').map(s => s.trim().toLowerCase());
-  for (const part of parts) {
-    if (part === 'head') result.push('head');
-    else if (part === 'body') result.push('body');
-    else if (part === 'arms') { result.push('leftArm', 'rightArm'); }
-    else if (part === 'legs') { result.push('leftLeg', 'rightLeg'); }
-  }
-  return result;
-}
+/** Map an APResult key to the armourLayering LocationKey. */
+const AP_KEY_TO_LOCATION: Record<keyof Omit<APResult, 'shield'>, LocationKey> = {
+  head: 'head',
+  leftArm: 'lArm',
+  rightArm: 'rArm',
+  body: 'body',
+  leftLeg: 'lLeg',
+  rightLeg: 'rLeg',
+};
 
 /**
- * Compute expected AP for a single location using the WFRP4e stacking rule:
- * highest non-flexible AP + highest flexible AP.
+ * Compute expected AP for a single location using the Archives III combining
+ * rules — the same logic the function under test uses. This property verifies
+ * worn-filtering behaviour, not the stacking model itself.
  */
-function expectedAPForLocation(items: ArmourItem[], location: keyof APResult): number {
-  let highestNonFlexible = 0;
-  let highestFlexible = 0;
-
-  for (const item of items) {
-    const coveredLocations = getAPLocations(item);
-    if (coveredLocations.includes(location)) {
-      const effectiveAP = item.ap; // no runes in test items
-      if (item.qualities.toLowerCase().includes('flexible')) {
-        highestFlexible = Math.max(highestFlexible, effectiveAP);
-      } else {
-        highestNonFlexible = Math.max(highestNonFlexible, effectiveAP);
-      }
-    }
-  }
-
-  return Math.max(0, highestNonFlexible + highestFlexible);
+function expectedAPForLocation(items: ArmourItem[], location: keyof Omit<APResult, 'shield'>): number {
+  return computeArchives3LocationAP(items, AP_KEY_TO_LOCATION[location], (i) => i.ap).total;
 }
 
 // ─── Property Tests ─────────────────────────────────────────────────────────

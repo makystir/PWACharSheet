@@ -7,8 +7,10 @@ export function APBreakdownContent({
   items,
   total,
 }: APBreakdownContentProps) {
-  // Per WFRP4e (Core p.293, Flexible), only the highest non-flexible layer and
-  // the highest flexible layer combine, so some covering pieces may not count.
+  // Armour combining follows Archives of the Empire III: only the pieces that
+  // form the best legal stack (soft kit + base + overcoat/breastplate, or a
+  // standalone plate piece) contribute. Non-contributing pieces are shown but
+  // struck through.
   const hasExcluded = items.some((item) => !item.contributes);
 
   return (
@@ -21,17 +23,14 @@ export function APBreakdownContent({
             key={index}
             className={item.contributes ? styles.row : `${styles.row} ${styles.rowExcluded}`}
           >
-            <span className={styles.label}>
-              {item.name}
-              {item.flexible ? ' (Flexible)' : ''}:
-            </span>
+            <span className={styles.label}>{item.name}:</span>
             <span className={styles.value}>{item.ap}</span>
           </div>
         ))
       )}
       {hasExcluded && (
         <div className={styles.layerNote}>
-          Only the highest non-flexible and highest flexible layer combine.
+          Some pieces don't combine under these layering rules.
         </div>
       )}
       <hr className={styles.separator} />
@@ -39,6 +38,7 @@ export function APBreakdownContent({
         <span>Total:</span>
         <span>{total}</span>
       </div>
+      <div className={styles.rulesetNote}>Combining rules: Archives of the Empire III</div>
     </div>
   );
 }

@@ -876,3 +876,11 @@
     font-size: 20px;
   }
 }
+
+/* Ruleset attribution note in the Contributing Armour panel */
+.rulesetNote {
+  font-size: 10px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted, #999);
+}

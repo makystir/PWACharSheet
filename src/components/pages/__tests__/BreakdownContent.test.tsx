@@ -82,11 +82,13 @@ describe('EncumbranceBreakdownContent', () => {
     expect(screen.getByText('9')).toBeInTheDocument();
   });
 
-  it('renders Sturdy note when sturdyLevel > 0', () => {
+  it('renders Sturdy contribution (+2 per level) when sturdyLevel > 0', () => {
+    // sb 4 + tb 3 + Sturdy 1 (×2) = 9
     render(
-      <EncumbranceBreakdownContent sb={4} tb={3} strongBackLevel={0} sturdyLevel={1} total={7} />,
+      <EncumbranceBreakdownContent sb={4} tb={3} strongBackLevel={0} sturdyLevel={1} total={9} />,
     );
-    expect(screen.getByText('Sturdy: halves overburdened penalties')).toBeInTheDocument();
+    expect(screen.getByText('Sturdy:')).toBeInTheDocument();
+    expect(screen.getByText('+2')).toBeInTheDocument();
   });
 });
 
@@ -117,24 +119,24 @@ describe('CoinWeightBreakdownContent', () => {
 });
 
 describe('APBreakdownContent', () => {
-  it('renders armour items and total (non-flexible + flexible layer combine)', () => {
+  it('renders armour items, total, and the Archives III ruleset note', () => {
     render(
       <APBreakdownContent
         locationLabel="Head"
         items={[
-          { name: 'Leather Cap', ap: 1, flexible: false, contributes: true },
-          { name: 'Mail Coif', ap: 2, flexible: true, contributes: true },
+          { name: 'Chainmail Coif', ap: 2, contributes: true },
+          { name: 'Great Helm', ap: 3, contributes: true },
         ]}
-        total={3}
+        total={5}
       />,
     );
-    expect(screen.getByText('Leather Cap:')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
-    // Flexible pieces are marked so users understand the layering rule.
-    expect(screen.getByText('Mail Coif (Flexible):')).toBeInTheDocument();
+    expect(screen.getByText('Chainmail Coif:')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('Total:')).toBeInTheDocument();
+    expect(screen.getByText('Great Helm:')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('Total:')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('Combining rules: Archives of the Empire III')).toBeInTheDocument();
   });
 
   it('marks a non-contributing layer and explains the layering rule', () => {
@@ -142,20 +144,20 @@ describe('APBreakdownContent', () => {
       <APBreakdownContent
         locationLabel="Body"
         items={[
-          { name: 'Plate Breastplate', ap: 2, flexible: false, contributes: true },
-          { name: 'Leather Jerkin', ap: 1, flexible: false, contributes: false },
+          { name: 'Breastplate', ap: 3, contributes: true },
+          { name: 'Leather Jerkin', ap: 1, contributes: false },
         ]}
-        total={2}
+        total={3}
       />,
     );
     // Both pieces are still listed so all factors are visible.
-    expect(screen.getByText('Plate Breastplate:')).toBeInTheDocument();
+    expect(screen.getByText('Breastplate:')).toBeInTheDocument();
     expect(screen.getByText('Leather Jerkin:')).toBeInTheDocument();
-    // Only the highest non-flexible layer counts: total is 2, not 3.
+    // Only the contributing stack counts: total is 3, not 4.
     const totalRow = screen.getByText('Total:').closest('div') as HTMLElement;
-    expect(totalRow).toHaveTextContent('2');
+    expect(totalRow).toHaveTextContent('3');
     expect(
-      screen.getByText('Only the highest non-flexible and highest flexible layer combine.'),
+      screen.getByText("Some pieces don't combine under these layering rules."),
     ).toBeInTheDocument();
   });
 

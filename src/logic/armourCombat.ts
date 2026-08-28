@@ -1,5 +1,5 @@
 import type { ArmourItem, ArmourType } from '../types/character';
-import { type LocationKey, coversLocation, isWeakpointsSuppressed } from './armourLayering';
+import { type LocationKey, coversLocation, isWeakpointsSuppressed, selectArchives3ContributingItems } from './armourLayering';
 
 export interface CombatArmourContext {
   armourItems: ArmourItem[];       // Items covering the hit location (worn, at that location)
@@ -94,7 +94,16 @@ export function resolveArmourCombatEffects(context: CombatArmourContext): Armour
   // We pass a dummy location since all items are already filtered to the hit location
   const weakpointsSuppressed = isWeakpointsSuppressedForItems(armourItems);
 
-  for (const item of armourItems) {
+  // Only the pieces forming the best legal Archives III stack contribute AP.
+  // (Reinforced Soft Kit weakpoints-suppression is still evaluated across the
+  // full worn set above, so a non-contributing reinforced kit can still
+  // suppress a plate's Weakpoints.) Uses currentAp as the AP basis.
+  const contributingItems = selectArchives3ContributingItems(
+    armourItems,
+    (i) => i.currentAp ?? i.ap,
+  );
+
+  for (const item of contributingItems) {
     let contribution = item.currentAp ?? item.ap;
 
     // 1. Partial flaw check

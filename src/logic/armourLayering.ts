@@ -1,4 +1,5 @@
 import type { ArmourItem, ArmourType } from '../types/character';
+import { getRuneAPBonus } from './runes';
 
 export type LocationKey = 'head' | 'lArm' | 'rArm' | 'body' | 'lLeg' | 'rLeg';
 
@@ -258,4 +259,137 @@ export function isWeakpointsSuppressed(
   );
 
   return hasPlateWithWeakpoints && hasReinforcedSoftKit;
+}
+
+// ─── Archives of the Empire III — Combining Armour ──────────────────────────
+//
+// This app follows the "Combining Armour" rules from Archives of the Empire
+// Vol. III (p.188 area), which REPLACE the Core Rulebook's Flexible-based
+// layering. Under Archives III, armour is not freely "layered by grade";
+// instead, at each Hit Location a legal stack is built from at most:
+//   • one Soft Kit (worn under everything), plus
+//   • one base body layer — Boiled Leather OR Chainmail, plus
+//   • one Overcoat layer — Brigandine or a Plate Breastplate (both have the
+//     Overcoat quality) which alone may be worn over leather/mail.
+// Plate limb/head pieces (Bracers, Leggings, Helms) are NOT Overcoat: they may
+// only be worn over a Soft Kit, so they do not combine with mail/leather.
+//
+// The location's AP is the sum of the AP of the best LEGAL stack, reproducing
+// the Archives III "Alphonse" worked example (soft kit 1 + mail 2 + breastplate
+// 3 = 6 AP on the body). Illegal combinations still compute the best legal
+// subset for the total; validateLayering() surfaces warnings separately.
+
+/** True if an item is a Plate Breastplate-style Overcoat plate (Overcoat + Plate). */
+function isOvercoatPlate(item: ArmourItem): boolean {
+  return item.armourType === 'Plate' && hasOvercoat(item);
+}
+
+/** Result of an Archives III per-location AP computation. */
+export interface Archives3APResult {
+  /** Total AP at the location from the best legal stack. */
+  total: number;
+  /** Names of the armour items that contribute to that total. */
+  contributingNames: string[];
+}
+
+/**
+ * Select the armour items that form the best legal Archives III stack among a
+ * set of pieces already covering a single location.
+ *
+ * Returns the contributing items (a subset): at most one Soft Kit, plus the
+ * highest-AP combination of a base layer (leather/mail) + Overcoat
+ * (brigandine/breastplate), OR a single standalone plate piece — whichever
+ * yields the highest AP. Illegal loadouts still resolve to their best legal
+ * subset (validateLayering surfaces warnings separately).
+ *
+ * @param covering  Items covering the location (caller filters by worn/location).
+ * @param apOf  AP basis for an item (base `ap` by default, or `currentAp`).
+ *              Rune AP bonuses are always added on top.
+ */
+export function selectArchives3ContributingItems(
+  covering: ArmourItem[],
+  apOf: (item: ArmourItem) => number = (i) => i.ap,
+): ArmourItem[] {
+  const effAP = (item: ArmourItem) => apOf(item) + getRuneAPBonus(item.runes ?? []);
+
+  // Highest-AP piece in each Archives III band.
+  let softKit: ArmourItem | null = null;         // Soft Kit
+  let base: ArmourItem | null = null;             // Boiled Leather OR Chainmail
+  let overcoat: ArmourItem | null = null;         // Brigandine / Plate Breastplate (Overcoat)
+  let standalonePlate: ArmourItem | null = null;  // Non-overcoat Plate (Bracers/Leggings/Helm)
+
+  const consider = (slot: ArmourItem | null, item: ArmourItem): ArmourItem =>
+    !slot || effAP(item) > effAP(slot) ? item : slot;
+
+  for (const item of covering) {
+    switch (item.armourType) {
+      case 'SoftKit':
+        softKit = consider(softKit, item);
+        break;
+      case 'BoiledLeather':
+      case 'Chainmail':
+        base = consider(base, item);
+        break;
+      case 'Brigandine':
+        overcoat = consider(overcoat, item);
+        break;
+      case 'Plate':
+        if (isOvercoatPlate(item)) overcoat = consider(overcoat, item);
+        else standalonePlate = consider(standalonePlate, item);
+        break;
+      default:
+        // Unknown/legacy armourType: treat as a base-ish layer so it still
+        // contributes its own AP (highest wins) rather than being ignored.
+        base = consider(base, item);
+        break;
+    }
+  }
+
+  const baseAP = base ? effAP(base) : 0;
+  const overcoatAP = overcoat ? effAP(overcoat) : 0;
+  const plateAP = standalonePlate ? effAP(standalonePlate) : 0;
+  const baseOvercoat = baseAP + overcoatAP;
+  const outer = Math.max(baseOvercoat, plateAP, baseAP, overcoatAP);
+
+  const contributing: ArmourItem[] = [];
+  if (softKit) contributing.push(softKit);
+  if (outer === baseOvercoat && (base || overcoat)) {
+    if (base) contributing.push(base);
+    if (overcoat) contributing.push(overcoat);
+  } else if (outer === plateAP && standalonePlate) {
+    contributing.push(standalonePlate);
+  } else if (outer === baseAP && base) {
+    contributing.push(base);
+  } else if (outer === overcoatAP && overcoat) {
+    contributing.push(overcoat);
+  }
+
+  return contributing;
+}
+
+/**
+ * Compute the AP at a single location under the Archives III combining rules.
+ *
+ * @param items  All armour items (already worn-filtered by the caller if desired).
+ * @param location  The body location to compute.
+ * @param apOf  Returns the AP basis for an item (e.g. base `ap`, or `currentAp`).
+ *              Rune AP bonuses are added on top automatically.
+ */
+export function computeArchives3LocationAP(
+  items: ArmourItem[],
+  location: LocationKey,
+  apOf: (item: ArmourItem) => number = (i) => i.ap,
+): Archives3APResult {
+  const covering = items.filter((item) => coversLocation(item, location));
+  const contributing = selectArchives3ContributingItems(covering, apOf);
+
+  const total = Math.max(
+    0,
+    contributing.reduce((sum, item) => sum + apOf(item) + getRuneAPBonus(item.runes ?? []), 0),
+  );
+
+  return {
+    total,
+    contributingNames: contributing.map((i) => i.name || 'Unnamed'),
+  };
 }

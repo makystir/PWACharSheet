@@ -209,34 +209,36 @@ describe('calculateArmourPoints', () => {
   });
 
   it('flexible + non-flexible armour stacks: highest of each', () => {
+    // Archives III: a base layer (mail) + an Overcoat (plate breastplate) combine.
     const armour: ArmourItem[] = [
-      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—' },
-      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible' },
+      { name: 'Chainmail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: '—', armourType: 'Chainmail' },
+      { name: 'Breastplate', locations: 'Body', enc: '3', ap: 3, qualities: 'Impenetrable, Overcoat, Weakpoints', armourType: 'Plate' },
     ];
     const result = calculateArmourPoints(armour);
-    // Non-flexible highest: 1, Flexible highest: 2 → total: 3
-    expect(result.body).toBe(3);
+    // Base (mail 2) + Overcoat (breastplate 3) = 5
+    expect(result.body).toBe(5);
   });
 
-  it('multiple flexible armour on same location: takes highest flexible', () => {
+  it('two base-layer pieces on same location: only the highest base counts', () => {
+    // Archives III: you cannot wear leather under mail; only one base layer.
     const armour: ArmourItem[] = [
-      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible' },
-      { name: 'Light Mail', locations: 'Body', enc: '1', ap: 1, qualities: 'Flexible' },
+      { name: 'Chainmail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: '—', armourType: 'Chainmail' },
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', armourType: 'BoiledLeather' },
     ];
     const result = calculateArmourPoints(armour);
-    // No non-flexible, highest flexible: 2
+    // Highest base only: 2
     expect(result.body).toBe(2);
   });
 
   it('complex overlapping: mail coat (Arms, Body) + plate breastplate (Body)', () => {
     const armour: ArmourItem[] = [
-      { name: 'Mail Coat', locations: 'Arms, Body', enc: '3', ap: 2, qualities: 'Flexible' },
-      { name: 'Plate Breastplate', locations: 'Body', enc: '3', ap: 2, qualities: 'Impenetrable, Weakpoints' },
+      { name: 'Chainmail Coat', locations: 'Arms, Body', enc: '3', ap: 2, qualities: '—', armourType: 'Chainmail' },
+      { name: 'Breastplate', locations: 'Body', enc: '3', ap: 3, qualities: 'Impenetrable, Overcoat, Weakpoints', armourType: 'Plate' },
     ];
     const result = calculateArmourPoints(armour);
-    // Body: non-flex 2 + flex 2 = 4
-    expect(result.body).toBe(4);
-    // Arms: only flexible 2
+    // Body: base mail 2 + Overcoat breastplate 3 = 5
+    expect(result.body).toBe(5);
+    // Arms: only the mail (breastplate is Body only) = 2
     expect(result.lArm).toBe(2);
     expect(result.rArm).toBe(2);
     expect(result.head).toBe(0);
@@ -296,38 +298,38 @@ describe('calculateArmourPoints — rune AP integration', () => {
     expect(result.head).toBe(0);
   });
 
-  it('two armour pieces on same location with rune bonuses — stacking rules apply to augmented values', () => {
+  it('Archives III stack with rune bonuses — bonuses apply to augmented values', () => {
     const armour: ArmourItem[] = [
-      // Non-flexible: base 1 + Rune of Stone (+1) = effective 2
-      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', runes: ['rune-of-stone'] },
-      // Flexible: base 2 + Rune of Iron (+1) = effective 3
-      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', runes: ['rune-of-iron'] },
+      // Base (mail): base 2 + Rune of Iron (+1) = effective 3
+      { name: 'Chainmail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: '—', armourType: 'Chainmail', runes: ['rune-of-iron'] },
+      // Overcoat (breastplate): base 3, no runes = effective 3
+      { name: 'Breastplate', locations: 'Body', enc: '3', ap: 3, qualities: 'Impenetrable, Overcoat, Weakpoints', armourType: 'Plate' },
     ];
     const result = calculateArmourPoints(armour);
-    // Stacking: highest non-flexible (2) + highest flexible (3) = 5
-    expect(result.body).toBe(5);
+    // Base (mail 3) + Overcoat (breastplate 3) = 6
+    expect(result.body).toBe(6);
   });
 
-  it('two non-flexible armour on same location — highest augmented value wins', () => {
+  it('two base-layer pieces on same location — highest augmented value wins', () => {
     const armour: ArmourItem[] = [
       // base 1 + Master Rune of Gromril (+2) = effective 3
-      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', runes: ['master-rune-of-gromril'] },
-      // base 2, no runes = effective 2
-      { name: 'Plate Breastplate', locations: 'Body', enc: '3', ap: 2, qualities: 'Impenetrable, Weakpoints' },
+      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', armourType: 'BoiledLeather', runes: ['master-rune-of-gromril'] },
+      // base 2 (mail), no runes = effective 2
+      { name: 'Chainmail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: '—', armourType: 'Chainmail' },
     ];
     const result = calculateArmourPoints(armour);
-    // Both non-flexible, highest augmented is 3
+    // Both are base layers, highest augmented is 3
     expect(result.body).toBe(3);
   });
 
   it('backward compatibility: armour without runes field works as before', () => {
     const armour: ArmourItem[] = [
-      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—' },
-      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible' },
+      { name: 'Chainmail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: '—', armourType: 'Chainmail' },
+      { name: 'Breastplate', locations: 'Body', enc: '3', ap: 3, qualities: 'Impenetrable, Overcoat, Weakpoints', armourType: 'Plate' },
     ];
     const result = calculateArmourPoints(armour);
-    // Non-flexible 1 + Flexible 2 = 3 (same as before rune feature)
-    expect(result.body).toBe(3);
+    // Base mail 2 + Overcoat breastplate 3 = 5
+    expect(result.body).toBe(5);
   });
 
   it('backward compatibility: armour with empty runes array works as before', () => {
@@ -565,14 +567,14 @@ describe('computeAPByLocation', () => {
     expect(result.rightLeg).toBe(1);
   });
 
-  it('applies flexible + non-flexible stacking rule for worn items', () => {
+  it('applies Archives III combining rule for worn items (base + overcoat)', () => {
     const armour: ArmourItem[] = [
-      { name: 'Leather Jerkin', locations: 'Body', enc: '1', ap: 1, qualities: '—', worn: true },
-      { name: 'Mail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: 'Flexible', worn: true },
+      { name: 'Chainmail Shirt', locations: 'Body', enc: '2', ap: 2, qualities: '—', armourType: 'Chainmail', worn: true },
+      { name: 'Breastplate', locations: 'Body', enc: '3', ap: 3, qualities: 'Impenetrable, Overcoat, Weakpoints', armourType: 'Plate', worn: true },
     ];
     const result = computeAPByLocation(armour);
-    // Non-flexible highest = 1, Flexible highest = 2 → 3
-    expect(result.body).toBe(3);
+    // Base mail 2 + Overcoat breastplate 3 = 5
+    expect(result.body).toBe(5);
   });
 
   it('overlapping non-flexible worn armour: takes highest AP', () => {

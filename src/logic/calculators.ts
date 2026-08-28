@@ -1,5 +1,5 @@
 import type { Character, CharacteristicKey, CharacteristicValue, ArmourItem, ArmourPoints } from '../types/character';
-import { getRuneAPBonus } from './runes';
+import { computeArchives3LocationAP } from './armourLayering';
 
 /**
  * Returns the bonus (tens digit) for a characteristic value.
@@ -148,36 +148,6 @@ type BodyLocation = 'head' | 'lArm' | 'rArm' | 'body' | 'lLeg' | 'rLeg';
 const BODY_LOCATIONS: BodyLocation[] = ['head', 'lArm', 'rArm', 'body', 'lLeg', 'rLeg'];
 
 /**
- * Parses an armour's locations string into the set of body locations it covers.
- * Handles compound entries like "Arms, Body" and singular keywords.
- */
-function parseLocations(locations: string): BodyLocation[] {
-  const result: BodyLocation[] = [];
-  const parts = locations.split(',').map(s => s.trim().toLowerCase());
-
-  for (const part of parts) {
-    if (part === 'head') {
-      result.push('head');
-    } else if (part === 'body') {
-      result.push('body');
-    } else if (part === 'arms') {
-      result.push('lArm', 'rArm');
-    } else if (part === 'legs') {
-      result.push('lLeg', 'rLeg');
-    }
-  }
-
-  return result;
-}
-
-/**
- * Determines if an armour item has the "Flexible" quality.
- */
-function isFlexible(armour: ArmourItem): boolean {
-  return armour.qualities.toLowerCase().includes('flexible');
-}
-
-/**
  * Options for the unified armour-point calculation.
  */
 export interface ArmourPointOptions {
@@ -204,8 +174,10 @@ export interface APResult {
  * Unified armour-point calculation.
  * Replaces both calculateArmourPoints and computeAPByLocation.
  *
- * Uses the WFRP 4e stacking rule: highest non-flexible AP + highest flexible AP per location.
- * Includes rune AP bonuses. All AP values are non-negative integers.
+ * Uses the Archives of the Empire III combining rules (see armourLayering.ts):
+ * per location, a legal stack of Soft Kit + base (leather/mail) + Overcoat
+ * (brigandine/breastplate) or a standalone plate piece. Includes rune AP
+ * bonuses. All AP values are non-negative integers.
  *
  * @param armourItems - The list of armour items to calculate AP from
  * @param options - Optional configuration for filtering and shield inclusion
@@ -241,23 +213,10 @@ export function calculateArmourPointsUnified(
     rLeg: 'rightLeg',
   };
 
+  // AP combining follows Archives of the Empire III (see armourLayering.ts).
+  // Uses each item's base `ap` (+ rune bonus) for the max-AP total shown on the sheet.
   for (const loc of BODY_LOCATIONS) {
-    let highestNonFlexible = 0;
-    let highestFlexible = 0;
-
-    for (const armour of items) {
-      const coveredLocations = parseLocations(armour.locations);
-      if (coveredLocations.includes(loc)) {
-        const effectiveAP = armour.ap + getRuneAPBonus(armour.runes ?? []);
-        if (isFlexible(armour)) {
-          highestFlexible = Math.max(highestFlexible, effectiveAP);
-        } else {
-          highestNonFlexible = Math.max(highestNonFlexible, effectiveAP);
-        }
-      }
-    }
-
-    result[locationMap[loc]] = Math.max(0, highestNonFlexible + highestFlexible);
+    result[locationMap[loc]] = computeArchives3LocationAP(items, loc, (a) => a.ap).total;
   }
 
   // Shield AP placeholder — include only when explicitly requested
@@ -269,10 +228,8 @@ export function calculateArmourPointsUnified(
 }
 
 /**
- * Calculates armour points per body location.
- * For each location: AP = highest non-flexible AP + highest flexible AP
- * among all armour covering that location.
- * All AP values are non-negative integers.
+ * Calculates armour points per body location using the Archives of the Empire
+ * III combining rules. All AP values are non-negative integers.
  *
  * Legacy wrapper — delegates to calculateArmourPointsUnified.
  */
@@ -304,7 +261,7 @@ export interface APByLocation {
 
 /**
  * Computes AP per body location from worn armour items only.
- * Uses the WFRP 4e stacking rule: highest non-flexible AP + highest flexible AP per location.
+ * Uses the Archives of the Empire III combining rules (see armourLayering.ts).
  * Includes rune AP bonuses. Only armour items with worn === true are included.
  *
  * Legacy wrapper — delegates to calculateArmourPointsUnified.

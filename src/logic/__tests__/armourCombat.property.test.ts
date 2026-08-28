@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { resolveArmourCombatEffects } from '../armourCombat';
+import { selectArchives3ContributingItems } from '../armourLayering';
 import type { ArmourItem } from '../../types/character';
 import type { ArmourType } from '../../types/character';
 
@@ -561,24 +562,27 @@ describe('Feature: expanded-armour-system, Property 5: Damage Calculation Uses C
     );
   });
 
-  it('effectiveAP for multiple items equals the sum of their currentAp values', () => {
+  it('effectiveAP equals the sum of the Archives III contributing stack (currentAp basis)', () => {
     fc.assert(
       fc.property(
         fc.array(
           fc.record({
+            name: fc.string({ minLength: 1, maxLength: 12 }).filter((s) => s.trim().length > 0),
             ap: fc.integer({ min: 1, max: 10 }),
             currentAp: fc.integer({ min: 0, max: 10 }),
             armourType: fc.constantFrom<ArmourType>('SoftKit', 'BoiledLeather', 'Chainmail', 'Brigandine', 'Plate'),
+            overcoat: fc.boolean(),
           }),
           { minLength: 2, maxLength: 5 },
         ),
         (items) => {
-          const armourItems: ArmourItem[] = items.map(({ ap, currentAp, armourType }) => ({
-            name: 'Test Armour',
+          const armourItems: ArmourItem[] = items.map(({ name, ap, currentAp, armourType, overcoat }) => ({
+            name,
             locations: 'Body',
             enc: '1',
             ap,
-            qualities: '',
+            // Plate can be an Overcoat breastplate; others' Overcoat flag is ignored by the selector.
+            qualities: overcoat && armourType === 'Plate' ? 'Overcoat' : '',
             worn: true,
             armourType,
             currentAp: Math.min(currentAp, ap), // clamp to valid range
@@ -591,11 +595,14 @@ describe('Feature: expanded-armour-system, Property 5: Damage Calculation Uses C
             attackerHasImpale: false,
           });
 
-          // The effective AP should be the sum of all currentAp values
-          const expectedAP = armourItems.reduce(
-            (sum, item) => sum + (item.currentAp ?? item.ap),
-            0,
+          // Under Archives III, effective AP is the sum of the best legal stack
+          // (soft kit + base + overcoat, or a standalone plate piece), using
+          // currentAp as the basis. No qualities trigger here, so no bypasses.
+          const contributing = selectArchives3ContributingItems(
+            armourItems,
+            (i) => i.currentAp ?? i.ap,
           );
+          const expectedAP = contributing.reduce((sum, item) => sum + (item.currentAp ?? item.ap), 0);
           expect(result.effectiveAP).toBe(expectedAP);
         },
       ),

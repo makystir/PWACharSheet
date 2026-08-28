@@ -1,6 +1,6 @@
 import type { CharacteristicKey, CharacteristicValue, ArmourItem, Trapping } from '../types/character';
 import type { LocationKey } from './armourLayering';
-import { coversLocation } from './armourLayering';
+import { coversLocation, computeArchives3LocationAP } from './armourLayering';
 import { getRuneAPBonus } from './runes';
 import { calculateTrappingEncumbrance, calculateCarriedTrappingEnc, isEffectivelyWorn } from './encumbrance';
 
@@ -145,13 +145,10 @@ export interface APBreakdownItem {
   name: string;
   /** Effective AP of this piece (currentAp if damaged, plus rune bonus). */
   ap: number;
-  /** Whether this piece has the Flexible quality. */
-  flexible: boolean;
   /**
-   * Whether this piece actually contributes to the applied total. Only the
-   * highest non-flexible piece and the highest flexible piece count, per the
-   * WFRP4e layering rule. Non-contributing pieces are still shown so the user
-   * can see every factor.
+   * Whether this piece actually contributes to the applied total under the
+   * Archives of the Empire III combining rules. Non-contributing pieces are
+   * still listed so the user can see every factor.
    */
   contributes: boolean;
 }
@@ -162,66 +159,53 @@ export interface APBreakdown {
   total: number;
 }
 
-/** Determine if an armour item has the "Flexible" quality. */
-function isFlexible(item: ArmourItem): boolean {
-  return item.qualities.toLowerCase().includes('flexible');
-}
-
 /**
  * Computes the breakdown for armour points at a given body location.
  *
- * Applies the WFRP4e layering rule so the tooltip matches the applied AP used
- * by combat and the body map. Only one flexible layer combines with one
- * non-flexible layer:
- *   Core p.293 (Flexible): "Flexible armour can be worn under a layer of
- *   non-Flexible armour if you wish. If you do so, you gain the benefit of both."
- * Therefore the total is (highest non-flexible AP) + (highest flexible AP).
+ * Uses the Archives of the Empire III combining rules (see armourLayering.ts)
+ * so the tooltip matches the applied AP used by combat and the body map. The
+ * total is the AP of the best legal stack (Soft Kit + base + Overcoat, or a
+ * standalone plate piece). Uses currentAp so damaged armour is reflected.
  *
  * Every worn covering piece is still listed so users can see all contributing
- * factors (calculated-totals steering guideline 4); pieces that are not the
- * highest of their layer are flagged with contributes=false.
+ * factors (calculated-totals steering guideline 4); pieces not part of the
+ * best legal stack are flagged with contributes=false.
  */
 export function getAPBreakdown(
   armourItems: ArmourItem[],
   location: LocationKey,
   locationLabel: string,
 ): APBreakdown {
-  const covering = armourItems
-    .filter((item) => item.worn === true && coversLocation(item, location))
-    .map((item) => {
-      const baseAp = item.currentAp !== undefined ? item.currentAp : item.ap;
-      const ap = baseAp + getRuneAPBonus(item.runes ?? []);
-      return {
-        name: item.name || 'Unnamed',
-        ap,
-        flexible: isFlexible(item),
-        contributes: false,
-      };
-    });
+  const worn = armourItems.filter((item) => item.worn === true && coversLocation(item, location));
 
-  // Identify the single highest non-flexible piece and the single highest
-  // flexible piece — these are the only pieces that count toward the total.
-  let bestNonFlexIdx = -1;
-  let bestFlexIdx = -1;
-  covering.forEach((item, i) => {
-    if (item.flexible) {
-      if (bestFlexIdx === -1 || item.ap > covering[bestFlexIdx].ap) bestFlexIdx = i;
-    } else {
-      if (bestNonFlexIdx === -1 || item.ap > covering[bestNonFlexIdx].ap) bestNonFlexIdx = i;
+  // Compute the Archives III total and which pieces contribute, using each
+  // piece's current (damaged) AP as the basis.
+  const archives = computeArchives3LocationAP(worn, location, (i) => i.currentAp ?? i.ap);
+  const contributing = new Set(archives.contributingNames);
+
+  // Track how many of each name we've marked contributing, so duplicates named
+  // items don't all light up when only one is part of the stack.
+  const remaining = new Map<string, number>();
+  for (const name of archives.contributingNames) {
+    remaining.set(name, (remaining.get(name) ?? 0) + 1);
+  }
+
+  const items: APBreakdownItem[] = worn.map((item) => {
+    const name = item.name || 'Unnamed';
+    const baseAp = item.currentAp !== undefined ? item.currentAp : item.ap;
+    const ap = baseAp + getRuneAPBonus(item.runes ?? []);
+    let contributes = false;
+    if (contributing.has(name) && (remaining.get(name) ?? 0) > 0) {
+      contributes = true;
+      remaining.set(name, (remaining.get(name) ?? 0) - 1);
     }
+    return { name, ap, contributes };
   });
-
-  if (bestNonFlexIdx !== -1) covering[bestNonFlexIdx].contributes = true;
-  if (bestFlexIdx !== -1) covering[bestFlexIdx].contributes = true;
-
-  const highestNonFlexible = bestNonFlexIdx === -1 ? 0 : covering[bestNonFlexIdx].ap;
-  const highestFlexible = bestFlexIdx === -1 ? 0 : covering[bestFlexIdx].ap;
-  const total = Math.max(0, highestNonFlexible + highestFlexible);
 
   return {
     locationLabel,
-    items: covering,
-    total,
+    items,
+    total: archives.total,
   };
 }
 
