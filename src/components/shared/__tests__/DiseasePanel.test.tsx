@@ -219,6 +219,50 @@ describe('DiseasePanel', () => {
     randSpy.mockRestore();
   });
 
+  // ── Elapsed in-game time tracking ───────────────────────────────────────────
+
+  it('adds an in-game day via the elapsed stepper', async () => {
+    const user = userEvent.setup();
+    const updateCharacter = vi.fn();
+    const diseases: ActiveDisease[] = [
+      { id: 1, diseaseName: 'Galloping Trots', contracted: 1000, notes: '' },
+    ];
+    render(<DiseasePanel character={makeCharacterWithDiseases(diseases)} updateCharacter={updateCharacter} />);
+    await user.click(screen.getByRole('button', { name: /Toggle Galloping Trots details/i }));
+
+    await user.click(screen.getByRole('button', { name: /Add a day to Galloping Trots/i }));
+
+    const mutator = updateCharacter.mock.calls[updateCharacter.mock.calls.length - 1][0];
+    const result = mutator(makeCharacterWithDiseases(diseases));
+    expect(result.diseases[0].elapsedDays).toBe(1);
+  });
+
+  it('shows elapsed vs rolled duration and a "Duration reached" indicator', async () => {
+    const user = userEvent.setup();
+    const diseases: ActiveDisease[] = [
+      {
+        id: 1, diseaseName: 'Galloping Trots', contracted: 1000, notes: '',
+        elapsedDays: 5,
+        rolledDuration: { total: 5, unit: 'days', breakdown: '1d10 → [5] = 5 days' },
+      },
+    ];
+    render(<DiseasePanel character={makeCharacterWithDiseases(diseases)} updateCharacter={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: /Toggle Galloping Trots details/i }));
+
+    expect(screen.getByTestId('disease-elapsed-1')).toHaveTextContent('5 / 5 days');
+    expect(screen.getByTestId('duration-reached-1')).toBeInTheDocument();
+  });
+
+  it('disables the minus stepper at 0 elapsed days', async () => {
+    const user = userEvent.setup();
+    const diseases: ActiveDisease[] = [
+      { id: 1, diseaseName: 'Galloping Trots', contracted: 1000, notes: '' },
+    ];
+    render(<DiseasePanel character={makeCharacterWithDiseases(diseases)} updateCharacter={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: /Toggle Galloping Trots details/i }));
+    expect(screen.getByRole('button', { name: /Subtract a day from Galloping Trots/i })).toBeDisabled();
+  });
+
   it('Gangrene offers a Roll Location button that reports a hit location', async () => {
     const user = userEvent.setup();
     const diseases: ActiveDisease[] = [

@@ -264,3 +264,75 @@
   border-left: 2px solid var(--accent, #f0a050);
   border-radius: 3px;
 }
+
+/* ── Elapsed in-game time tracker ── */
+.elapsedRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.elapsedControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.elapsedBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.elapsedBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.elapsedBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.elapsedWeekBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  height: 22px;
+  font-size: 11px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.elapsedWeekBtn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.elapsedValue {
+  min-width: 64px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.durationReached {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent, #f0a050);
+  font-style: italic;
+}

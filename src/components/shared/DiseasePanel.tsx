@@ -10,6 +10,8 @@ import {
   getDiseaseSymptoms,
   rollDiseaseTiming,
   setDiseaseTiming,
+  adjustDiseaseElapsed,
+  getDiseaseProgress,
   getSymptomTest,
   symptomRollsHitLocation,
   getSymptomTestBaseTarget,
@@ -93,6 +95,14 @@ export function DiseasePanel({ character, updateCharacter, onRoll }: DiseasePane
     updateCharacter((char) => ({
       ...char,
       diseases: setDiseaseTiming(char.diseases ?? [], id, field, rolled),
+    }));
+  }
+
+  /** Adjust the in-game elapsed days for a disease (clamped ≥ 0). */
+  function handleAdjustElapsed(id: number, delta: number) {
+    updateCharacter((char) => ({
+      ...char,
+      diseases: adjustDiseaseElapsed(char.diseases ?? [], id, delta),
     }));
   }
 
@@ -221,6 +231,54 @@ export function DiseasePanel({ character, updateCharacter, onRoll }: DiseasePane
                         <span className={styles.detailValue}>{diseaseEntry.permanent}</span>
                       </div>
                     )}
+
+                    {/* Elapsed in-game time tracker */}
+                    {(() => {
+                      const progress = getDiseaseProgress(disease);
+                      return (
+                        <div className={styles.elapsedRow} data-testid={`disease-elapsed-${disease.id}`}>
+                          <span className={styles.detailLabel}>Elapsed:</span>
+                          <div className={styles.elapsedControls}>
+                            <button
+                              type="button"
+                              className={styles.elapsedBtn}
+                              onClick={() => handleAdjustElapsed(disease.id, -1)}
+                              disabled={progress.elapsed <= 0}
+                              aria-label={`Subtract a day from ${disease.diseaseName}`}
+                            >
+                              −
+                            </button>
+                            <span className={styles.elapsedValue}>
+                              {progress.elapsed}
+                              {progress.durationTotal != null ? ` / ${progress.durationTotal}` : ''}
+                              {' '}
+                              {progress.durationUnit ?? 'days'}
+                            </span>
+                            <button
+                              type="button"
+                              className={styles.elapsedBtn}
+                              onClick={() => handleAdjustElapsed(disease.id, 1)}
+                              aria-label={`Add a day to ${disease.diseaseName}`}
+                            >
+                              +
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.elapsedWeekBtn}
+                              onClick={() => handleAdjustElapsed(disease.id, 7)}
+                              aria-label={`Add a week to ${disease.diseaseName}`}
+                            >
+                              +7
+                            </button>
+                          </div>
+                          {progress.durationReached && (
+                            <span className={styles.durationReached} data-testid={`duration-reached-${disease.id}`}>
+                              Duration reached — the disease ends (roll any Lingering Test)
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {symptoms && symptoms.length > 0 && (
                       <div className={styles.symptomsList}>

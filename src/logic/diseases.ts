@@ -172,12 +172,18 @@ export interface RolledTiming {
 export interface ActiveDisease {
   id: number;
   diseaseName: string;
-  contracted: number;   // Date.now() timestamp
+  contracted: number;   // Date.now() timestamp (real-world, when the record was added)
   notes: string;
   /** Rolled incubation result (persisted once rolled). */
   rolledIncubation?: RolledTiming;
   /** Rolled duration result (persisted once rolled). */
   rolledDuration?: RolledTiming;
+  /**
+   * In-game days the character has had the disease so far. WFRP diseases
+   * progress in game time (not real time), so this is tracked manually and
+   * compared against the rolled Duration. Defaults to 0.
+   */
+  elapsedDays?: number;
 }
 
 /**
@@ -213,6 +219,56 @@ export function updateDiseaseNotes(diseases: ActiveDisease[], id: number, notes:
   return diseases.map(d =>
     d.id === id ? { ...d, notes } : d
   );
+}
+
+/**
+ * Adjust the in-game elapsed days for an active disease by `delta` (may be
+ * negative). The result is clamped to a minimum of 0. Returns a new array
+ * without mutating the input. No-op if the ID is not found.
+ */
+export function adjustDiseaseElapsed(diseases: ActiveDisease[], id: number, delta: number): ActiveDisease[] {
+  return diseases.map(d =>
+    d.id === id ? { ...d, elapsedDays: Math.max(0, (d.elapsedDays ?? 0) + delta) } : d
+  );
+}
+
+/**
+ * Set the in-game elapsed days for an active disease to an absolute value
+ * (clamped to a minimum of 0). Returns a new array without mutating the input.
+ */
+export function setDiseaseElapsed(diseases: ActiveDisease[], id: number, value: number): ActiveDisease[] {
+  return diseases.map(d =>
+    d.id === id ? { ...d, elapsedDays: Math.max(0, Math.floor(value) || 0) } : d
+  );
+}
+
+/** Progress of an active disease against its rolled Duration. */
+export interface DiseaseProgress {
+  /** Elapsed in-game days so far (>= 0). */
+  elapsed: number;
+  /** The rolled Duration total, if the duration has been rolled. */
+  durationTotal: number | null;
+  /** The Duration unit (e.g. "days"), if rolled. */
+  durationUnit: string | null;
+  /** True when a Duration is rolled and elapsed has reached/exceeded it. */
+  durationReached: boolean;
+}
+
+/**
+ * Summarise a disease's elapsed-time progress against its rolled Duration.
+ * `durationReached` is only meaningful once a Duration has been rolled.
+ */
+export function getDiseaseProgress(disease: ActiveDisease): DiseaseProgress {
+  const elapsed = disease.elapsedDays ?? 0;
+  const rolled = disease.rolledDuration;
+  const durationTotal = rolled ? rolled.total : null;
+  const durationUnit = rolled ? rolled.unit : null;
+  return {
+    elapsed,
+    durationTotal,
+    durationUnit,
+    durationReached: durationTotal != null && elapsed >= durationTotal,
+  };
 }
 
 /**

@@ -4,6 +4,9 @@ import {
   rollDiceExpression,
   rollDiseaseTiming,
   setDiseaseTiming,
+  adjustDiseaseElapsed,
+  setDiseaseElapsed,
+  getDiseaseProgress,
   getSymptomTest,
   getLingeringDifficulty,
   symptomRollsHitLocation,
@@ -102,6 +105,55 @@ describe('setDiseaseTiming', () => {
   it('is a no-op for an unknown id', () => {
     const result = setDiseaseTiming(base, 99, 'rolledIncubation', { total: 1, unit: 'days', breakdown: 'x' });
     expect(result[0].rolledIncubation).toBeUndefined();
+  });
+});
+
+describe('elapsed-days tracking', () => {
+  const base: ActiveDisease[] = [
+    { id: 1, diseaseName: 'Galloping Trots', contracted: 1000, notes: '' },
+  ];
+
+  it('adjustDiseaseElapsed increments and clamps at 0, without mutating input', () => {
+    const plus3 = adjustDiseaseElapsed(base, 1, 3);
+    expect(plus3[0].elapsedDays).toBe(3);
+    expect(base[0].elapsedDays).toBeUndefined();
+
+    const back = adjustDiseaseElapsed(plus3, 1, -10);
+    expect(back[0].elapsedDays).toBe(0); // clamped
+  });
+
+  it('adjustDiseaseElapsed is a no-op for an unknown id', () => {
+    const result = adjustDiseaseElapsed(base, 99, 5);
+    expect(result[0].elapsedDays).toBeUndefined();
+  });
+
+  it('setDiseaseElapsed sets an absolute (floored, clamped) value', () => {
+    expect(setDiseaseElapsed(base, 1, 5)[0].elapsedDays).toBe(5);
+    expect(setDiseaseElapsed(base, 1, -2)[0].elapsedDays).toBe(0);
+  });
+
+  it('getDiseaseProgress reports elapsed vs rolled duration and reached-state', () => {
+    // No duration rolled yet
+    const noDuration = getDiseaseProgress({ id: 1, diseaseName: 'X', contracted: 0, notes: '', elapsedDays: 2 });
+    expect(noDuration).toMatchObject({ elapsed: 2, durationTotal: null, durationReached: false });
+
+    // Duration rolled to 5 days, elapsed 4 → not reached
+    const midway = getDiseaseProgress({
+      id: 1, diseaseName: 'X', contracted: 0, notes: '', elapsedDays: 4,
+      rolledDuration: { total: 5, unit: 'days', breakdown: '' },
+    });
+    expect(midway).toMatchObject({ elapsed: 4, durationTotal: 5, durationUnit: 'days', durationReached: false });
+
+    // Elapsed 5 ≥ 5 → reached
+    const reached = getDiseaseProgress({
+      id: 1, diseaseName: 'X', contracted: 0, notes: '', elapsedDays: 5,
+      rolledDuration: { total: 5, unit: 'days', breakdown: '' },
+    });
+    expect(reached.durationReached).toBe(true);
+  });
+
+  it('getDiseaseProgress treats missing elapsedDays as 0', () => {
+    expect(getDiseaseProgress({ id: 1, diseaseName: 'X', contracted: 0, notes: '' }).elapsed).toBe(0);
   });
 });
 
