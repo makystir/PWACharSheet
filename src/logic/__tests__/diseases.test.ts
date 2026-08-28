@@ -16,13 +16,13 @@ describe('addDisease', () => {
 
   it('adding to array with existing entries produces ID = max(existing) + 1', () => {
     const existing: ActiveDisease[] = [
-      { id: 3, diseaseName: 'The Shakes', contracted: 1000, notes: '' },
+      { id: 3, diseaseName: 'Ratte Fever', contracted: 1000, notes: '' },
       { id: 7, diseaseName: 'Fever', contracted: 2000, notes: 'bad' },
     ];
-    const result = addDisease(existing, 'Black Plague');
+    const result = addDisease(existing, 'The Black Plague');
     expect(result).toHaveLength(3);
     expect(result[2].id).toBe(8);
-    expect(result[2].diseaseName).toBe('Black Plague');
+    expect(result[2].diseaseName).toBe('The Black Plague');
   });
 
   it('does not mutate the original array', () => {
@@ -44,7 +44,7 @@ describe('removeDisease', () => {
   it('removing non-existent ID from non-empty array returns same content', () => {
     const existing: ActiveDisease[] = [
       { id: 1, diseaseName: 'Blood Rot', contracted: 1000, notes: '' },
-      { id: 2, diseaseName: 'The Shakes', contracted: 2000, notes: 'notes' },
+      { id: 2, diseaseName: 'Ratte Fever', contracted: 2000, notes: 'notes' },
     ];
     const result = removeDisease(existing, 99);
     expect(result).toEqual(existing);
@@ -55,7 +55,7 @@ describe('updateDiseaseNotes', () => {
   it('updating notes for non-existent ID returns unchanged array', () => {
     const existing: ActiveDisease[] = [
       { id: 1, diseaseName: 'Blood Rot', contracted: 1000, notes: 'original' },
-      { id: 2, diseaseName: 'The Shakes', contracted: 2000, notes: 'other' },
+      { id: 2, diseaseName: 'Ratte Fever', contracted: 2000, notes: 'other' },
     ];
     const result = updateDiseaseNotes(existing, 999, 'new notes');
     expect(result).toEqual(existing);

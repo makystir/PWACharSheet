@@ -18,18 +18,49 @@ export function findSymptom(name: string): SymptomEntry | undefined {
 }
 
 /**
+ * A symptom reference may carry a severity tag, e.g. "Flux (Severe)".
+ * Split it into the base symptom name and the optional severity.
+ */
+export function parseSymptomReference(ref: string): { baseName: string; severity: string | null } {
+  const match = ref.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  if (match) {
+    return { baseName: match[1].trim(), severity: match[2].trim() };
+  }
+  return { baseName: ref.trim(), severity: null };
+}
+
+/** A resolved disease symptom, including any per-disease severity tag. */
+export interface ResolvedSymptom extends SymptomEntry {
+  /** Severity tag from the disease reference (e.g. "Severe"), or null. */
+  severity: string | null;
+  /** Display name including severity, e.g. "Flux (Severe)". */
+  displayName: string;
+}
+
+/**
  * Get the resolved symptom entries for a disease, in order.
  * Returns undefined if the disease name is not found.
- * Defensively filters out any unresolved symptom references.
+ * Parses optional severity tags (e.g. "Blight (Moderate)") and resolves the
+ * base name against the symptom catalogue. Defensively filters out any
+ * unresolved symptom references.
  */
-export function getDiseaseSymptoms(diseaseName: string): SymptomEntry[] | undefined {
+export function getDiseaseSymptoms(diseaseName: string): ResolvedSymptom[] | undefined {
   const disease = findDisease(diseaseName);
   if (!disease) {
     return undefined;
   }
   return disease.symptoms
-    .map(name => findSymptom(name))
-    .filter((s): s is SymptomEntry => s !== undefined);
+    .map((ref) => {
+      const { baseName, severity } = parseSymptomReference(ref);
+      const entry = findSymptom(baseName);
+      if (!entry) return undefined;
+      return {
+        ...entry,
+        severity,
+        displayName: severity ? `${entry.name} (${severity})` : entry.name,
+      };
+    })
+    .filter((s): s is ResolvedSymptom => s !== undefined);
 }
 
 // ─── Active Disease Management ────────────────────────────────────────────────

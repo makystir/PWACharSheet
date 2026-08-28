@@ -110,13 +110,19 @@ export function DiseasePanel({ character, updateCharacter }: DiseasePanelProps) 
                       <span className={styles.detailLabel}>Duration:</span>
                       <span className={styles.detailValue}>{diseaseEntry.duration}</span>
                     </div>
+                    {diseaseEntry.permanent && (
+                      <div className={styles.detailRow}>
+                        <span className={styles.detailLabel}>Permanent:</span>
+                        <span className={styles.detailValue}>{diseaseEntry.permanent}</span>
+                      </div>
+                    )}
 
                     {symptoms && symptoms.length > 0 && (
                       <div className={styles.symptomsList}>
                         <span className={styles.symptomsHeading}>Symptoms</span>
                         {symptoms.map((symptom) => (
-                          <div key={symptom.name} className={styles.symptomItem}>
-                            <span className={styles.symptomName}>{symptom.name}</span>
+                          <div key={symptom.displayName} className={styles.symptomItem}>
+                            <span className={styles.symptomName}>{symptom.displayName}</span>
                             <span className={styles.symptomDescription}>{symptom.description}</span>
                             <span className={styles.symptomEffects}>{symptom.effects}</span>
                           </div>

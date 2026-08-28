@@ -9,17 +9,17 @@ describe('Disease Registry', () => {
     expect(DISEASE_REGISTRY).toHaveLength(9);
   });
 
-  it('contains all expected disease names', () => {
+  it('contains all expected disease names (Core p.185-186)', () => {
     const expectedDiseases = [
+      'The Black Plague',
       'Blood Rot',
       'The Bloody Flux',
+      'Festering Wound',
       'Galloping Trots',
       'Itching Pox',
-      'Neiglish Rot',
+      'Minor Infection',
       "Packer's Pox",
       'Ratte Fever',
-      'The Shakes',
-      'Black Plague',
     ];
     const names = DISEASE_REGISTRY.map(d => d.name);
     for (const name of expectedDiseases) {
@@ -27,20 +27,45 @@ describe('Disease Registry', () => {
     }
   });
 
-  it('Blood Rot has correct data', () => {
+  it('Blood Rot matches the rulebook (Core p.185)', () => {
     const bloodRot = DISEASE_REGISTRY.find(d => d.name === 'Blood Rot');
     expect(bloodRot).toBeDefined();
-    expect(bloodRot!.contraction).toBe('Infected Wound');
-    expect(bloodRot!.incubation).toBe('1d10 days');
+    expect(bloodRot!.incubation).toBe('Instant');
     expect(bloodRot!.duration).toBe('1d10 days');
-    expect(bloodRot!.symptoms).toEqual(['Blight', 'Fever', 'Malaise', 'Wounded']);
+    expect(bloodRot!.symptoms).toEqual(['Blight', 'Fever (Severe)', 'Malaise']);
   });
 
-  it('Black Plague has the most symptoms', () => {
-    const blackPlague = DISEASE_REGISTRY.find(d => d.name === 'Black Plague');
+  it('Galloping Trots includes Malaise (Core p.186)', () => {
+    const trots = DISEASE_REGISTRY.find(d => d.name === 'Galloping Trots');
+    expect(trots).toBeDefined();
+    expect(trots!.incubation).toBe('1d10 hours');
+    expect(trots!.symptoms).toEqual(['Flux (Moderate)', 'Malaise', 'Nausea']);
+  });
+
+  it('The Bloody Flux includes Malaise and severity tags (Core p.185)', () => {
+    const flux = DISEASE_REGISTRY.find(d => d.name === 'The Bloody Flux');
+    expect(flux).toBeDefined();
+    expect(flux!.incubation).toBe('2d10 days');
+    expect(flux!.symptoms).toEqual([
+      'Flux (Severe)', 'Lingering (Challenging)', 'Fever', 'Malaise', 'Nausea',
+    ]);
+  });
+
+  it('Itching Pox records its Permanent immunity clause (Core p.186)', () => {
+    const pox = DISEASE_REGISTRY.find(d => d.name === 'Itching Pox');
+    expect(pox).toBeDefined();
+    expect(pox!.duration).toBe('1d10+7 days');
+    expect(pox!.permanent).toBeTruthy();
+    expect(pox!.permanent).toMatch(/immune/i);
+  });
+
+  it('The Black Plague matches the rulebook (Core p.185)', () => {
+    const blackPlague = DISEASE_REGISTRY.find(d => d.name === 'The Black Plague');
     expect(blackPlague).toBeDefined();
+    expect(blackPlague!.incubation).toBe('1d10 minutes');
+    expect(blackPlague!.duration).toBe('3d10 days');
     expect(blackPlague!.symptoms).toEqual([
-      'Blight', 'Convulsions', 'Delirium', 'Fever', 'Flux', 'Lingering', 'Wounded',
+      'Buboes', 'Blight (Moderate)', 'Fever', 'Gangrene', 'Malaise',
     ]);
   });
 
@@ -58,12 +83,12 @@ describe('Symptom Catalogue', () => {
     expect(SYMPTOM_CATALOGUE).toHaveLength(12);
   });
 
-  it('contains all expected symptom names', () => {
+  it('contains all expected symptom names (Core p.187-188)', () => {
     const expectedSymptoms = [
       'Blight',
+      'Buboes',
       'Convulsions',
       'Coughs and Sneezes',
-      'Delirium',
       'Fever',
       'Flux',
       'Gangrene',

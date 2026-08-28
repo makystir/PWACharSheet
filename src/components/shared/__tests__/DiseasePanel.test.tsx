@@ -81,14 +81,15 @@ describe('DiseasePanel', () => {
     // Click the disease header to expand
     await user.click(screen.getByRole('button', { name: /Toggle Blood Rot details/i }));
 
-    // Verify disease details are shown
+    // Verify disease details are shown (Blood Rot, Core p.185)
     expect(screen.getByText('Contraction:')).toBeInTheDocument();
-    expect(screen.getByText('Infected Wound')).toBeInTheDocument();
     expect(screen.getByText('Incubation:')).toBeInTheDocument();
+    expect(screen.getByText('Instant')).toBeInTheDocument();
     expect(screen.getByText('Duration:')).toBeInTheDocument();
-    // Both incubation and duration are "1d10 days" for Blood Rot
-    expect(screen.getAllByText('1d10 days')).toHaveLength(2);
+    expect(screen.getByText('1d10 days')).toBeInTheDocument();
     expect(screen.getByText('Symptoms')).toBeInTheDocument();
+    // Severity tag is shown on the symptom display name
+    expect(screen.getByText('Fever (Severe)')).toBeInTheDocument();
   });
 
   // **Validates: Requirements 6.5**

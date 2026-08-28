@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { DISEASE_REGISTRY } from '../../data/diseases';
 import { SYMPTOM_CATALOGUE } from '../../data/symptoms';
+import { parseSymptomReference } from '../../logic/diseases';
 
 // Pre-compute symptom name set for lookups
 const SYMPTOM_NAMES = new Set(SYMPTOM_CATALOGUE.map(s => s.name));
@@ -48,7 +49,8 @@ describe('Feature: disease-system', () => {
 
   /**
    * Property 2: Symptom reference round-trip resolution
-   * Every disease symptom reference resolves to a valid symptom entry.
+   * Every disease symptom reference (its base name, ignoring any severity tag)
+   * resolves to a valid symptom entry.
    * Validates: Requirements 1.3, 9.1
    */
   it('Property 2: Symptom reference round-trip resolution', () => {
@@ -57,7 +59,8 @@ describe('Feature: disease-system', () => {
         fc.constantFrom(...DISEASE_REGISTRY),
         (disease) => {
           for (const symptomRef of disease.symptoms) {
-            expect(SYMPTOM_NAMES.has(symptomRef)).toBe(true);
+            const { baseName } = parseSymptomReference(symptomRef);
+            expect(SYMPTOM_NAMES.has(baseName)).toBe(true);
           }
         }
       ),

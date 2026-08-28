@@ -558,6 +558,13 @@
 }
 
 /* Stealth Penalty Badge */
+.penaltyRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
 .stealthPenaltyBadge {
   display: inline-flex;
   align-items: center;
@@ -568,7 +575,51 @@
   background: rgba(220, 140, 60, 0.15);
   border: 1px solid rgba(220, 140, 60, 0.4);
   border-radius: var(--radius-sm);
-  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.perceptionPenaltyBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7fb0e8;
+  background: rgba(70, 130, 200, 0.15);
+  border: 1px solid rgba(70, 130, 200, 0.4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* Armour penalty tooltip body (Stealth / Perception breakdown) */
+.penaltyTooltipBody {
+  min-width: 180px;
+}
+
+.penaltyTooltipRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.penaltyTooltipSep {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 6px 0;
+}
+
+.penaltyTooltipTotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-weight: 600;
+}
+
+.penaltyTooltipNote {
+  margin-top: 6px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-secondary);
 }
 
 /* Helmet Special Ability Label */

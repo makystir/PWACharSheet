@@ -349,10 +349,17 @@ The extended costs appear to follow a reasonable mathematical progression. This 
 - ✅ Characteristic bonuses from runes — **correct**
 - ✅ Learning requirements check — **correct**
 
-### Diseases (diseases.ts)
+### Diseases (diseases.ts / data)
 - ✅ Disease registry lookup — **correct**
-- ✅ Symptom resolution — **correct**
+- ✅ Symptom resolution (incl. severity tags) — **correct**
 - ✅ Active disease management (add/remove/notes) — **correct**
+- ✅ Disease/symptom data transcribed from Core p.185–188 — **corrected**
+  - Registry now lists the nine core diseases (previously two invented entries,
+    "Neiglish Rot" and "The Shakes", replaced with the real Festering Wound and
+    Minor Infection).
+  - Symptom catalogue now holds the twelve core symptoms (invented "Delirium"
+    replaced with the missing Buboes); effects match the rulebook.
+  - Symptom references carry severity tags (e.g. Flux (Severe), Blight (Moderate)).
 
 ### Initiative (initiative.ts)
 - ✅ Sort by initiative descending — **correct**

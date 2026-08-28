@@ -12,6 +12,7 @@ import { getRuneQualities } from '../../logic/runes';
 import { QUALITY_DEFINITIONS } from '../../data/armourQualities';
 import { validateLayering, isWeakpointsSuppressed } from '../../logic/armourLayering';
 import type { LocationKey as LayeringLocationKey } from '../../logic/armourLayering';
+import { getStealthPenalty, getPerceptionPenalty } from '../../logic/armourPenalties';
 import { Shield } from 'lucide-react';
 import styles from './ArmourMap.module.css';
 
@@ -186,6 +187,7 @@ export function ArmourMap({
   const [showAllArmour, setShowAllArmour] = useState(false);
   const [expandedQuality, setExpandedQuality] = useState<string | null>(null);
   const [apTooltip, setApTooltip] = useState<{ location: LocationKey; anchorEl: HTMLElement } | null>(null);
+  const [penaltyTooltip, setPenaltyTooltip] = useState<{ kind: 'stealth' | 'perception'; anchorEl: HTMLElement } | null>(null);
 
   // Use external prop if provided, otherwise use internal state
   const selectedLocation = externalSelectedLocation !== undefined ? externalSelectedLocation : internalSelectedLocation;
@@ -224,6 +226,16 @@ export function ArmourMap({
 
   // Shield rating from equipped weapons
   const shieldRating = getShieldRating(weapons);
+
+  // Armour test penalties (Core p.293): Stealth stacks -10 per worn Mail/Plate
+  // piece; Perception is a per-item penalty (helmets). Each shows a breakdown.
+  const stealthPenalty = getStealthPenalty(armourList);
+  const perceptionPenalty = getPerceptionPenalty(armourList);
+
+  const handlePenaltyTooltipToggle = (kind: 'stealth' | 'perception', anchorEl: HTMLElement) => {
+    setPenaltyTooltip((prev) => (prev?.kind === kind ? null : { kind, anchorEl }));
+  };
+  const handlePenaltyTooltipClose = () => setPenaltyTooltip(null);
 
   return (
     <Card>
@@ -291,10 +303,34 @@ export function ArmourMap({
         </div>
       )}
 
-      {/* Stealth Penalty Badge — always visible when Chainmail or Plate is worn */}
-      {armourList.some(item => item.worn !== false && (item.armourType === 'Chainmail' || item.armourType === 'Plate')) && (
-        <div className={styles.stealthPenaltyBadge} data-testid="stealth-penalty-badge">
-          -10 Stealth
+      {/* Armour test penalties — Stealth (stacks per Mail/Plate piece) and
+          Perception (per-item helmet penalty). Core p.293. */}
+      {(stealthPenalty.total > 0 || perceptionPenalty.total > 0) && (
+        <div className={styles.penaltyRow} data-testid="armour-penalty-row">
+          {stealthPenalty.total > 0 && (
+            <button
+              type="button"
+              className={styles.stealthPenaltyBadge}
+              data-testid="stealth-penalty-badge"
+              aria-label={`Stealth penalty −${stealthPenalty.total}. Tap for breakdown.`}
+              aria-expanded={penaltyTooltip?.kind === 'stealth'}
+              onClick={(e) => handlePenaltyTooltipToggle('stealth', e.currentTarget)}
+            >
+              −{stealthPenalty.total} Stealth
+            </button>
+          )}
+          {perceptionPenalty.total > 0 && (
+            <button
+              type="button"
+              className={styles.perceptionPenaltyBadge}
+              data-testid="perception-penalty-badge"
+              aria-label={`Perception penalty −${perceptionPenalty.total}. Tap for breakdown.`}
+              aria-expanded={penaltyTooltip?.kind === 'perception'}
+              onClick={(e) => handlePenaltyTooltipToggle('perception', e.currentTarget)}
+            >
+              −{perceptionPenalty.total} Perception
+            </button>
+          )}
         </div>
       )}
 
@@ -709,6 +745,41 @@ export function ArmourMap({
             id={`tooltip-ap-${apTooltip.location}`}
           >
             <APBreakdownContent {...breakdown} />
+          </Tooltip>
+        );
+      })()}
+
+      {/* Armour penalty breakdown tooltip (Stealth / Perception) */}
+      {penaltyTooltip && (() => {
+        const isStealth = penaltyTooltip.kind === 'stealth';
+        const result = isStealth ? stealthPenalty : perceptionPenalty;
+        const title = isStealth ? 'Stealth Penalty' : 'Perception Penalty';
+        const suffix = isStealth ? '' : '%';
+        return (
+          <Tooltip
+            anchorEl={penaltyTooltip.anchorEl}
+            title={title}
+            onClose={handlePenaltyTooltipClose}
+            id={`tooltip-penalty-${penaltyTooltip.kind}`}
+          >
+            <div className={styles.penaltyTooltipBody}>
+              {result.items.map((item, i) => (
+                <div key={i} className={styles.penaltyTooltipRow}>
+                  <span>{item.name}:</span>
+                  <span>−{item.penalty}{suffix}</span>
+                </div>
+              ))}
+              <hr className={styles.penaltyTooltipSep} />
+              <div className={styles.penaltyTooltipTotal}>
+                <span>Total:</span>
+                <span>−{result.total}{suffix}</span>
+              </div>
+              <div className={styles.penaltyTooltipNote}>
+                {isStealth
+                  ? 'Core p.293: −10 Stealth per worn Mail or Plate piece.'
+                  : 'Core p.293: per-item Perception penalty from worn helmets.'}
+              </div>
+            </div>
           </Tooltip>
         );
       })()}
