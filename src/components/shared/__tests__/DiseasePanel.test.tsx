@@ -143,4 +143,97 @@ describe('DiseasePanel', () => {
 
     expect(result.diseases[0].notes).toBe('t');
   });
+
+  // ── Rolling: Incubation / Duration ──────────────────────────────────────────
+
+  it('rolls a disease Duration and persists the result via updateCharacter', async () => {
+    const user = userEvent.setup();
+    const updateCharacter = vi.fn();
+    const diseases: ActiveDisease[] = [
+      // Galloping Trots: Incubation 1d10 hours, Duration 1d10 days
+      { id: 1, diseaseName: 'Galloping Trots', contracted: 1000, notes: '' },
+    ];
+    // Force d10 = 7 (Math.random * 10 → 6.x → +1 = 7)
+    const randSpy = vi.spyOn(Math, 'random').mockReturnValue(0.65);
+
+    render(<DiseasePanel character={makeCharacterWithDiseases(diseases)} updateCharacter={updateCharacter} />);
+    await user.click(screen.getByRole('button', { name: /Toggle Galloping Trots details/i }));
+
+    // The Duration row has a Roll button
+    await user.click(screen.getByRole('button', { name: 'Roll 1d10 days' }));
+
+    // The mutator persists a rolledDuration of 7 days
+    const mutator = updateCharacter.mock.calls[updateCharacter.mock.calls.length - 1][0];
+    const result = mutator(makeCharacterWithDiseases(diseases));
+    expect(result.diseases[0].rolledDuration).toMatchObject({ total: 7, unit: 'days' });
+
+    randSpy.mockRestore();
+  });
+
+  it('shows the persisted rolled duration value when present', async () => {
+    const user = userEvent.setup();
+    const diseases: ActiveDisease[] = [
+      {
+        id: 1, diseaseName: 'Galloping Trots', contracted: 1000, notes: '',
+        rolledDuration: { total: 9, unit: 'days', breakdown: '1d10 → [9] = 9 days' },
+      },
+    ];
+    render(<DiseasePanel character={makeCharacterWithDiseases(diseases)} updateCharacter={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: /Toggle Galloping Trots details/i }));
+    expect(screen.getByText('= 9 days')).toBeInTheDocument();
+  });
+
+  it('does not show a roll control for an "Instant" incubation (Blood Rot)', async () => {
+    const user = userEvent.setup();
+    const diseases: ActiveDisease[] = [
+      { id: 1, diseaseName: 'Blood Rot', contracted: 1000, notes: '' },
+    ];
+    render(<DiseasePanel character={makeCharacterWithDiseases(diseases)} updateCharacter={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: /Toggle Blood Rot details/i }));
+    // Blood Rot incubation is "Instant" — no Roll button for it.
+    expect(screen.queryByRole('button', { name: /Roll Instant/i })).not.toBeInTheDocument();
+    // But its Duration (1d10 days) IS rollable.
+    expect(screen.getByRole('button', { name: 'Roll 1d10 days' })).toBeInTheDocument();
+  });
+
+  // ── Rolling: Symptom Tests ──────────────────────────────────────────────────
+
+  it('rolling a symptom Test calls onRoll and shows the outcome', async () => {
+    const user = userEvent.setup();
+    const onRoll = vi.fn();
+    const diseases: ActiveDisease[] = [
+      // Ratte Fever has Wounded (Easy Endurance Test) among its symptoms
+      { id: 1, diseaseName: 'Ratte Fever', contracted: 1000, notes: '' },
+    ];
+    const randSpy = vi.spyOn(Math, 'random').mockReturnValue(0.1); // roll ≈ 11
+
+    render(<DiseasePanel character={makeCharacterWithDiseases(diseases)} updateCharacter={vi.fn()} onRoll={onRoll} />);
+    await user.click(screen.getByRole('button', { name: /Toggle Ratte Fever details/i }));
+
+    // Click the Wounded symptom's Endurance Test button
+    await user.click(screen.getByRole('button', { name: /Easy Endurance Test for Wounded/i }));
+
+    expect(onRoll).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('symptom-roll-result-1')).toHaveTextContent(/Rolled 11 vs/i);
+
+    randSpy.mockRestore();
+  });
+
+  it('Gangrene offers a Roll Location button that reports a hit location', async () => {
+    const user = userEvent.setup();
+    const diseases: ActiveDisease[] = [
+      // The Black Plague includes Gangrene
+      { id: 1, diseaseName: 'The Black Plague', contracted: 1000, notes: '' },
+    ];
+    // roll 1 → reversed 10 → Left Arm (per WFRP reversed-digit hit location table)
+    const randSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    render(<DiseasePanel character={makeCharacterWithDiseases(diseases)} updateCharacter={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: /Toggle The Black Plague details/i }));
+
+    await user.click(screen.getByRole('button', { name: /Roll Hit Location for Gangrene/i }));
+    expect(screen.getByTestId('symptom-roll-result-1')).toHaveTextContent(/Left Arm \(fingers\)/i);
+
+    randSpy.mockRestore();
+  });
 });

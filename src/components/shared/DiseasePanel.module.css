@@ -182,3 +182,85 @@
   outline: none;
   border-color: var(--accent, #f0a050);
 }
+
+/* ── Timing roll controls (Incubation / Duration) ── */
+.timingRollBtn,
+.timingRerollBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  font-size: 11px;
+  color: var(--accent, #f0a050);
+  background: rgba(240, 160, 80, 0.12);
+  border: 1px solid rgba(240, 160, 80, 0.35);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.timingRollBtn:hover,
+.timingRerollBtn:hover {
+  background: rgba(240, 160, 80, 0.22);
+}
+
+.timingRolled {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timingRolledValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: help;
+}
+
+.timingRerollBtn {
+  padding: 1px 4px;
+}
+
+/* ── Symptom test controls ── */
+.symptomActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.symptomRollBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--accent, #f0a050);
+  background: rgba(240, 160, 80, 0.12);
+  border: 1px solid rgba(240, 160, 80, 0.35);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.symptomRollBtn:hover {
+  background: rgba(240, 160, 80, 0.22);
+}
+
+.symptomCadence {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.symptomRollResult {
+  margin-top: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 2px solid var(--accent, #f0a050);
+  border-radius: 3px;
+}

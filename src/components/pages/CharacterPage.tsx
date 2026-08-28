@@ -1942,7 +1942,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} />
 
       {/* Diseases */}
-      <DiseasePanel character={character} updateCharacter={updateCharacter} />
+      <DiseasePanel character={character} updateCharacter={updateCharacter} onRoll={addRoll} />
 
       {/* Session Notes */}
       <SessionNotesPanel character={character} updateCharacter={updateCharacter} />
