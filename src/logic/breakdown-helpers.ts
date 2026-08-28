@@ -1,6 +1,7 @@
 import type { CharacteristicKey, CharacteristicValue, ArmourItem, Trapping } from '../types/character';
 import type { LocationKey } from './armourLayering';
 import { coversLocation } from './armourLayering';
+import { getRuneAPBonus } from './runes';
 import { calculateTrappingEncumbrance, calculateCarriedTrappingEnc, isEffectivelyWorn } from './encumbrance';
 
 // ─── Characteristic Name Mapping ─────────────────────────────────────────────
@@ -138,16 +139,45 @@ export function getCoinWeightBreakdown(
 
 // ─── Armour Points Breakdown ─────────────────────────────────────────────────
 
+export interface APBreakdownItem {
+  name: string;
+  /** Effective AP of this piece (currentAp if damaged, plus rune bonus). */
+  ap: number;
+  /** Whether this piece has the Flexible quality. */
+  flexible: boolean;
+  /**
+   * Whether this piece actually contributes to the applied total. Only the
+   * highest non-flexible piece and the highest flexible piece count, per the
+   * WFRP4e layering rule. Non-contributing pieces are still shown so the user
+   * can see every factor.
+   */
+  contributes: boolean;
+}
+
 export interface APBreakdown {
   locationLabel: string;
-  items: { name: string; ap: number }[];
+  items: APBreakdownItem[];
   total: number;
+}
+
+/** Determine if an armour item has the "Flexible" quality. */
+function isFlexible(item: ArmourItem): boolean {
+  return item.qualities.toLowerCase().includes('flexible');
 }
 
 /**
  * Computes the breakdown for armour points at a given body location.
- * Filters to worn items covering the location, maps each to { name, ap }
- * (using currentAp if set, otherwise ap), and sums their APs.
+ *
+ * Applies the WFRP4e layering rule so the tooltip matches the applied AP used
+ * by combat and the body map. Only one flexible layer combines with one
+ * non-flexible layer:
+ *   Core p.293 (Flexible): "Flexible armour can be worn under a layer of
+ *   non-Flexible armour if you wish. If you do so, you gain the benefit of both."
+ * Therefore the total is (highest non-flexible AP) + (highest flexible AP).
+ *
+ * Every worn covering piece is still listed so users can see all contributing
+ * factors (calculated-totals steering guideline 4); pieces that are not the
+ * highest of their layer are flagged with contributes=false.
  */
 export function getAPBreakdown(
   armourItems: ArmourItem[],
@@ -156,12 +186,35 @@ export function getAPBreakdown(
 ): APBreakdown {
   const covering = armourItems
     .filter((item) => item.worn === true && coversLocation(item, location))
-    .map((item) => ({
-      name: item.name || 'Unnamed',
-      ap: item.currentAp !== undefined ? item.currentAp : item.ap,
-    }));
+    .map((item) => {
+      const baseAp = item.currentAp !== undefined ? item.currentAp : item.ap;
+      const ap = baseAp + getRuneAPBonus(item.runes ?? []);
+      return {
+        name: item.name || 'Unnamed',
+        ap,
+        flexible: isFlexible(item),
+        contributes: false,
+      };
+    });
 
-  const total = covering.reduce((sum, item) => sum + item.ap, 0);
+  // Identify the single highest non-flexible piece and the single highest
+  // flexible piece — these are the only pieces that count toward the total.
+  let bestNonFlexIdx = -1;
+  let bestFlexIdx = -1;
+  covering.forEach((item, i) => {
+    if (item.flexible) {
+      if (bestFlexIdx === -1 || item.ap > covering[bestFlexIdx].ap) bestFlexIdx = i;
+    } else {
+      if (bestNonFlexIdx === -1 || item.ap > covering[bestNonFlexIdx].ap) bestNonFlexIdx = i;
+    }
+  });
+
+  if (bestNonFlexIdx !== -1) covering[bestNonFlexIdx].contributes = true;
+  if (bestFlexIdx !== -1) covering[bestFlexIdx].contributes = true;
+
+  const highestNonFlexible = bestNonFlexIdx === -1 ? 0 : covering[bestNonFlexIdx].ap;
+  const highestFlexible = bestFlexIdx === -1 ? 0 : covering[bestFlexIdx].ap;
+  const total = Math.max(0, highestNonFlexible + highestFlexible);
 
   return {
     locationLabel,

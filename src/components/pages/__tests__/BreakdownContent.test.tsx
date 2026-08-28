@@ -117,23 +117,46 @@ describe('CoinWeightBreakdownContent', () => {
 });
 
 describe('APBreakdownContent', () => {
-  it('renders armour items and total', () => {
+  it('renders armour items and total (non-flexible + flexible layer combine)', () => {
     render(
       <APBreakdownContent
         locationLabel="Head"
         items={[
-          { name: 'Leather Cap', ap: 1 },
-          { name: 'Mail Coif', ap: 2 },
+          { name: 'Leather Cap', ap: 1, flexible: false, contributes: true },
+          { name: 'Mail Coif', ap: 2, flexible: true, contributes: true },
         ]}
         total={3}
       />,
     );
     expect(screen.getByText('Leather Cap:')).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('Mail Coif:')).toBeInTheDocument();
+    // Flexible pieces are marked so users understand the layering rule.
+    expect(screen.getByText('Mail Coif (Flexible):')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByText('Total:')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
+  });
+
+  it('marks a non-contributing layer and explains the layering rule', () => {
+    render(
+      <APBreakdownContent
+        locationLabel="Body"
+        items={[
+          { name: 'Plate Breastplate', ap: 2, flexible: false, contributes: true },
+          { name: 'Leather Jerkin', ap: 1, flexible: false, contributes: false },
+        ]}
+        total={2}
+      />,
+    );
+    // Both pieces are still listed so all factors are visible.
+    expect(screen.getByText('Plate Breastplate:')).toBeInTheDocument();
+    expect(screen.getByText('Leather Jerkin:')).toBeInTheDocument();
+    // Only the highest non-flexible layer counts: total is 2, not 3.
+    const totalRow = screen.getByText('Total:').closest('div') as HTMLElement;
+    expect(totalRow).toHaveTextContent('2');
+    expect(
+      screen.getByText('Only the highest non-flexible and highest flexible layer combine.'),
+    ).toBeInTheDocument();
   });
 
   it('renders empty message when no items cover the location', () => {

@@ -37,8 +37,10 @@ describe('ArmourMap AP Tooltip Integration', () => {
    * Test: click AP location cell → tooltip lists armour items and total
    */
   it('shows tooltip with armour items and total when AP cell is clicked', () => {
+    // Leather Cap (non-flexible, 1 AP) worn under a Flexible Mail Coif (2 AP).
+    // Per WFRP4e Core p.293 (Flexible), both layers combine → total 3.
     const leatherCap = makeArmourItem({ name: 'Leather Cap', locations: 'Head', ap: 1, worn: true });
-    const mailCoif = makeArmourItem({ name: 'Mail Coif', locations: 'Head', ap: 2, worn: true });
+    const mailCoif = makeArmourItem({ name: 'Mail Coif', locations: 'Head', ap: 2, qualities: 'Flexible', worn: true });
 
     const props = makeDefaultProps({
       armourPoints: { head: 3, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 },

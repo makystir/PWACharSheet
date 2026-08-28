@@ -32,3 +32,21 @@
   font-style: italic;
   padding: 2px 0;
 }
+
+/* A covering piece that does not contribute to the applied total
+   (not the highest of its flexible / non-flexible layer). */
+.rowExcluded {
+  opacity: 0.55;
+}
+
+.rowExcluded .value {
+  text-decoration: line-through;
+}
+
+/* Note explaining the flexible-layering rule when a piece is excluded. */
+.layerNote {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.85em;
+  padding: 4px 0 2px;
+}

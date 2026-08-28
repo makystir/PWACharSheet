@@ -187,11 +187,15 @@ describe('Feature: calculated-total-tooltips', () => {
     });
   });
 
-  describe('Property 5: AP breakdown lists all covering items and total equals their AP sum', () => {
+  describe('Property 5: AP breakdown lists all covering items and total applies the flexible-layering rule', () => {
     /**
      * **Validates: Requirements 5.2, 5.3**
+     *
+     * Per WFRP4e (Core p.293, Flexible), only the highest non-flexible layer
+     * and the highest flexible layer combine. These generated items are all
+     * non-flexible (qualities: ''), so the total equals the highest single AP.
      */
-    it('items array contains exactly worn items covering location, total equals sum of APs', () => {
+    it('items array contains exactly worn items covering location, total = highest non-flex + highest flex', () => {
       fc.assert(
         fc.property(
           arbLocationKey,
@@ -230,11 +234,14 @@ describe('Feature: calculated-total-tooltips', () => {
               return false;
             });
 
-            // Verify item count matches
+            // Verify item count matches — all covering pieces are still listed
             expect(result.items.length).toBe(expectedItems.length);
 
-            // Verify total equals sum of covering items' AP
-            const expectedTotal = expectedItems.reduce((sum, item) => sum + item.ap, 0);
+            // All generated items are non-flexible, so the applied total is the
+            // highest single AP among covering items (0 when none cover).
+            const highestNonFlex = expectedItems.reduce((max, item) => Math.max(max, item.ap), 0);
+            const highestFlex = 0;
+            const expectedTotal = highestNonFlex + highestFlex;
             expect(result.total).toBe(expectedTotal);
           },
         ),
