@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { User, Swords, Users, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown, Search, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { User, Swords, Users, Landmark, CalendarCheck, TrendingUp, Settings, Plus, ChevronDown, ChevronRight, Search, PanelLeftClose, PanelLeftOpen, Keyboard } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { CharacterSummary } from '../../types/character';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
@@ -20,24 +20,42 @@ interface NavigationProps {
   onRenameCharacter?: (id: string, name: string) => void;
   onDuplicateCharacter?: (id: string) => void;
   onDeleteCharacter?: (id: string) => void;
+  /** Opens the full character-management affordance (create/rename/duplicate/delete). Req 15.1/15.3 */
+  onManageCharacters?: () => void;
   /** Whether badge dot should show on Advancement nav item (unspent XP > 0) */
   showAdvancementBadge?: boolean;
   /** Whether badge dot should show on Endeavours nav item (active endeavours exist) */
   showEndeavoursBadge?: boolean;
 }
 
-interface NavItem {
+export interface NavItem {
   id: PageSection;
   label: string;
   icon: LucideIcon;
   shortcut: string;
+  /**
+   * When set, the section contains multiple sub-tabs; the label conveys the
+   * combined scope of those sub-tabs. Req 16.1/16.2 — the sub-label makes the
+   * presence of sub-tabs discoverable without changing routing keys (Req 16.3).
+   */
+  subTabHint?: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+/**
+ * Page-navigation items. The `shortcut` field is the number key (1–7) handled
+ * by the keydown listener below. This array is the single source of truth for
+ * page-switch shortcuts and is re-exported to `config/shortcuts.ts` so the
+ * ShortcutsHelp overlay never diverges from the actual handlers.
+ */
+export const NAV_ITEMS: NavItem[] = [
   { id: 'character', label: 'Character', icon: User, shortcut: '1' },
   { id: 'combat', label: 'Combat', icon: Swords, shortcut: '2' },
   { id: 'retinue', label: 'Retinue', icon: Users, shortcut: '3' },
-  { id: 'estate', label: 'Holdings & Wealth', icon: Landmark, shortcut: '4' },
+  // Req 16.1: "Holdings & Wealth" conveys the combined scope (estate, holdings,
+  // wealth, enterprises). Req 16.2: subTabHint surfaces the sub-tabs. The
+  // PageSection routing key stays 'estate' and the hash route '#estate' is
+  // unchanged (Req 16.3).
+  { id: 'estate', label: 'Holdings & Wealth', icon: Landmark, shortcut: '4', subTabHint: 'Estate · Holdings · Wealth' },
   { id: 'endeavours', label: 'Endeavours', icon: CalendarCheck, shortcut: '5' },
   { id: 'advancement', label: 'Advancement', icon: TrendingUp, shortcut: '6' },
   { id: 'settings', label: 'Settings', icon: Settings, shortcut: '7' },
@@ -51,14 +69,14 @@ function getInitialCollapsed(): boolean {
   }
 }
 
-export function Navigation({ activePage, onPageChange, characterName, characters, activeId, onSwitchCharacter, onCreateCharacter, onRenameCharacter, onDuplicateCharacter, onDeleteCharacter, showAdvancementBadge, showEndeavoursBadge }: NavigationProps) {
+export function Navigation({ activePage, onPageChange, characterName, characters, activeId, onSwitchCharacter, onCreateCharacter, onRenameCharacter, onDuplicateCharacter, onDeleteCharacter, onManageCharacters, showAdvancementBadge, showEndeavoursBadge }: NavigationProps) {
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState('');
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(getInitialCollapsed);
 
-  const { open } = useCommandPaletteContext();
+  const { open, openShortcuts } = useCommandPaletteContext();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const activeItemRef = useRef<HTMLButtonElement>(null);
 
@@ -127,7 +145,12 @@ export function Navigation({ activePage, onPageChange, characterName, characters
               <Icon size={18} />
               {hasBadge && <span className={styles.badgeDot} aria-label="has updates" />}
             </span>
-            <span>{item.label}</span>
+            <span className={styles.mobileLabelRow}>
+              {item.label}
+              {item.subTabHint && (
+                <ChevronRight size={10} className={styles.subTabCaret} aria-hidden="true" />
+              )}
+            </span>
           </button>
         );
       })}
@@ -142,6 +165,18 @@ export function Navigation({ activePage, onPageChange, characterName, characters
       >
         <Search size={18} />
         <span>Search</span>
+      </button>
+
+      {/* Visible keyboard-shortcuts affordance (Req 14.2) */}
+      <button
+        type="button"
+        className={styles.navItem}
+        onClick={() => openShortcuts()}
+        aria-label="Keyboard shortcuts"
+        data-section="shortcuts"
+      >
+        <Keyboard size={18} />
+        <span>Shortcuts</span>
       </button>
     </div>
   );
@@ -168,7 +203,19 @@ export function Navigation({ activePage, onPageChange, characterName, characters
               <Icon size={18} />
               {hasBadge && <span className={styles.badgeDot} aria-label="has updates" />}
             </span>
-            {!collapsed && <span>{item.label}</span>}
+            {!collapsed && (
+              <span className={styles.navItemLabel}>
+                <span className={styles.navItemLabelRow}>
+                  {item.label}
+                  {item.subTabHint && (
+                    <ChevronRight size={12} className={styles.subTabCaret} aria-hidden="true" />
+                  )}
+                </span>
+                {item.subTabHint && (
+                  <span className={styles.navItemSubHint}>{item.subTabHint}</span>
+                )}
+              </span>
+            )}
           </button>
         );
       })}
@@ -233,6 +280,10 @@ export function Navigation({ activePage, onPageChange, characterName, characters
                 </div>
                 {showSwitcher && characters && characters.length > 0 && (
                   <div className={styles.charList}>
+                    {/* Req 15.1/15.2: this quick-switch list is for switching the
+                        active character. A distinct "Manage Characters" entry
+                        below opens the full management affordance (Req 15.3). */}
+                    <div className={styles.switcherHeading}>Switch Character</div>
                     {characters.map(c => {
                       const isActive = c.id === activeId;
                       if (renameId === c.id) {
@@ -254,6 +305,16 @@ export function Navigation({ activePage, onPageChange, characterName, characters
                         </div>
                       );
                     })}
+                    {onManageCharacters && (
+                      <button
+                        type="button"
+                        onClick={() => { setShowSwitcher(false); onManageCharacters(); }}
+                        className={styles.manageCharsBtn}
+                        title="Open full character management (create, rename, duplicate, delete)"
+                      >
+                        <Users size={12} /> Manage Characters…
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -262,6 +323,23 @@ export function Navigation({ activePage, onPageChange, characterName, characters
         )}
 
         {isMobile ? renderMobileNav() : renderDesktopNav()}
+
+        {/* Visible keyboard-shortcuts affordance, desktop sidebar (Req 14.2) */}
+        {!isMobile && (
+          <button
+            type="button"
+            className={`${styles.navItem} ${collapsed ? styles.navItemCollapsed : ''}`}
+            onClick={() => openShortcuts()}
+            aria-label="Keyboard shortcuts"
+            title={collapsed ? 'Keyboard shortcuts' : undefined}
+            data-section="shortcuts"
+          >
+            <span className={styles.iconWrapper}>
+              <Keyboard size={18} />
+            </span>
+            {!collapsed && <span>Keyboard Shortcuts</span>}
+          </button>
+        )}
 
         {/* Collapse toggle button (desktop only) */}
         {!isMobile && (

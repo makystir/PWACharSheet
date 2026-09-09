@@ -114,6 +114,76 @@
   transition: transform 0.15s;
 }
 
+/* Nav item label stack: primary label + optional sub-tab hint (Req 16.2) */
+.navItemLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.navItemLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Small caret shown next to sections that contain sub-tabs (Req 16.2) */
+.subTabCaret {
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+/* Secondary line naming the sub-tabs so their presence is discoverable */
+.navItemSubHint {
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mobile label row: label + optional sub-tab caret */
+.mobileLabelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Quick-switch dropdown heading — distinguishes quick-switch from full
+   management (Req 15.1/15.2) */
+.switcherHeading {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 2px 2px 4px;
+}
+
+/* Entry into the full character-management affordance (Req 15.3) */
+.manageCharsBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 6px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.manageCharsBtn:hover {
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
 .chevronIconExpanded {
   flex-shrink: 0;
   opacity: 0.6;
@@ -473,6 +543,10 @@
 
   .charSwitchBtn,
   .charSwitchBtnActive {
+    min-height: 44px;
+  }
+
+  .manageCharsBtn {
     min-height: 44px;
   }
 }

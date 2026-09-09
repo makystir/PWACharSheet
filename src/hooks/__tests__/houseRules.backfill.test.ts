@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { BLANK_CHARACTER } from '../../types/character';
-import type { Character } from '../../types/character';
+import type { Character, HouseRules } from '../../types/character';
 import { backfillCharacter } from '../useCharacter';
 import { importFromJSON, exportToJSON } from '../../storage/export-import';
 
@@ -42,6 +42,7 @@ const RAW_DEFAULTS = {
   useEnterprises: false,
   useCants: false,
   ignoreBackpackEnc: false,
+  initiativeFormula: 'initiativePlusD10' as const,
 };
 
 /** Create a character missing the houseRules field (simulates pre-feature data). */
@@ -64,6 +65,9 @@ describe('Backfill — character loaded without houseRules', () => {
 
   it('backfillCharacter preserves existing houseRules when present', () => {
     const char = structuredClone(BLANK_CHARACTER);
+    // Simulate a character saved before several houseRules fields existed
+    // (missing useCriticalDeflection, useEnterprises, useCants,
+    // ignoreBackpackEnc, initiativeFormula) — backfill should fill them.
     char.houseRules = {
       rangedDamageSBMode: 'fullSB',
       impaleCritsOnTens: true,
@@ -73,7 +77,7 @@ describe('Backfill — character loaded without houseRules', () => {
       useYenlui: false,
       useGrudgeBook: false,
       usePsychologyTracker: false,
-    };
+    } as HouseRules;
 
     const patched = backfillCharacter(char);
 
@@ -90,6 +94,7 @@ describe('Backfill — character loaded without houseRules', () => {
       useEnterprises: false,
       useCants: false,
       ignoreBackpackEnc: false,
+      initiativeFormula: 'initiativePlusD10',
     });
   });
 });
@@ -141,6 +146,7 @@ describe('Import — character imported with custom houseRules', () => {
       useEnterprises: false,
       useCants: false,
       ignoreBackpackEnc: false,
+      initiativeFormula: 'initiativePlusD10',
     };
     const importData = {
       _v: 6,
@@ -213,6 +219,7 @@ describe('Import — character imported with custom houseRules', () => {
       useEnterprises: false,
       useCants: false,
       ignoreBackpackEnc: false,
+      initiativeFormula: 'initiativePlusD10',
     };
 
     const json = exportToJSON(original);

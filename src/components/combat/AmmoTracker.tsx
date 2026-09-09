@@ -4,6 +4,7 @@ import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
 import { AddButton } from '../shared/AddButton';
+import { EmptyState } from '../shared/EmptyState';
 import { Target } from 'lucide-react';
 import styles from './AmmoTracker.module.css';
 
@@ -31,9 +32,15 @@ export function AmmoTracker({ ammo, onUpdate, onAdd, onRemove, defaultCollapsed 
       {!collapsed && (
         <>
           {ammo.length === 0 && (
-            <div className={styles.emptyMessage}>
-              No ammunition tracked
-            </div>
+            // Action-oriented empty state referencing the add-ammo action
+            // (ux-audit-improvements Req 12.2), using the shared EmptyState.
+            <EmptyState
+              icon={Target}
+              heading="No ammunition tracked"
+              description="Add ammunition to track quantities and firing."
+              compact
+              action={{ label: 'Add Ammunition', onClick: onAdd }}
+            />
           )}
           <div className={styles.ammoGrid}>
             {ammo.map((a, i) => {

@@ -93,6 +93,23 @@
   z-index: 10;
 }
 
+/*
+ * ── Mode-panel visibility (ux-audit-improvements Req 9.3) ──
+ * Attack / Defend mode panels stay MOUNTED while combat is active and are
+ * toggled with display:none instead of being conditionally rendered. This
+ * preserves each panel's internal state (AttackFlow step, TakeDamagePanel
+ * inputs) when the user switches modes, rather than unmounting/resetting them.
+ */
+.modePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md, 16px);
+}
+
+.modePanelHidden {
+  display: none;
+}
+
 /* ── Mobile overrides ── */
 @media (max-width: 767px) {
   .combatBtn {

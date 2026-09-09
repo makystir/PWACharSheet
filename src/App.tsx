@@ -46,9 +46,11 @@ import type { PageSection } from './components/layout/Navigation';
 import errorStyles from './ErrorBoundary.module.css';
 import { SWUpdateProvider } from './hooks/useSWUpdate';
 import { UpdateBanner } from './components/shared/UpdateBanner';
-import { CommandPaletteProvider } from './components/command-palette/CommandPaletteContext';
+import { InstallHintBanner } from './components/shared/InstallPromptControl';
+import { CommandPaletteProvider, useCommandPaletteContext } from './components/command-palette/CommandPaletteContext';
 import { useCommandPalette } from './components/command-palette/useCommandPalette';
 import { CommandPalette } from './components/command-palette/CommandPalette';
+import { ShortcutsHelp } from './components/shared/ShortcutsHelp';
 
 const APP_VERSION = '2.0.0';
 
@@ -103,6 +105,13 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
+/** Renders the keyboard-shortcuts overlay when opened via the palette context. */
+function ShortcutsHelpMount() {
+  const { shortcutsOpen, closeShortcuts } = useCommandPaletteContext();
+  if (!shortcutsOpen) return null;
+  return <ShortcutsHelp onClose={closeShortcuts} />;
+}
+
 function AppContent() {
   useCommandPalette();
   const manager = useCharacterManager();
@@ -129,6 +138,7 @@ function AppContent() {
         />
         <Toast message={storageErrorMessage} duration={5000} />
         <CommandPalette />
+        <ShortcutsHelpMount />
         {showWhatsNew && (
           <WhatsNewPanel
             version={APP_VERSION}
@@ -150,6 +160,7 @@ function AppContent() {
       />
       <Toast message={storageErrorMessage} duration={5000} />
       <CommandPalette />
+      <ShortcutsHelpMount />
       {showWhatsNew && (
         <WhatsNewPanel
           version={APP_VERSION}
@@ -422,6 +433,7 @@ function AppWithCharacter({
           onRenameCharacter={(id, name) => { manager.renameCharacter(id, name); manager.refresh(); }}
           onDuplicateCharacter={(id) => { manager.duplicateCharacter(id); manager.refresh(); }}
           onDeleteCharacter={(id) => { manager.deleteCharacter(id); manager.refresh(); }}
+          onManageCharacters={() => setShowCharSheet(true)}
           showAdvancementBadge={character.xpCur > 0}
           showEndeavoursBadge={character.endeavours.some(period => period.entries.some(e => e.status === 'pending' || e.status === 'in_progress'))}
         />
@@ -513,6 +525,8 @@ export default function App() {
         </CommandPaletteProvider>
       </ErrorBoundary>
       <UpdateBanner />
+      {/* One-time PWA install hint, mounted outside Settings in the app shell (Req 6.3, 6.7) */}
+      <InstallHintBanner />
     </SWUpdateProvider>
   );
 }

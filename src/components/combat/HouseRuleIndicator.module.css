@@ -1,0 +1,98 @@
+/* HouseRuleIndicator — co-located CSS Module (ux-audit-improvements Req 11) */
+
+.indicator {
+  background: color-mix(in srgb, var(--accent-gold) 8%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--accent-gold) 40%, var(--card-border));
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.icon {
+  color: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.title {
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+}
+
+.settingsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-secondary, var(--text-primary));
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settingsLink:hover,
+.settingsLink:focus-visible {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ruleName {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ruleDetail {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+@media (min-width: 640px) {
+  .item {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .ruleName {
+    flex-shrink: 0;
+    min-width: 160px;
+  }
+
+  .ruleDetail {
+    flex: 1;
+    min-width: 0;
+  }
+}

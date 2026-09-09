@@ -31,6 +31,7 @@ import { User, Swords, BookOpen, Sparkles, Wand2, Package, Coins, Scale, Footpri
 import { CorruptionCard } from '../shared/CorruptionCard';
 import { DiseasePanel } from '../shared/DiseasePanel';
 import { EmptyState } from '../shared/EmptyState';
+import { GettingStartedCard } from '../shared/GettingStartedCard';
 import { getRuneById } from '../../logic/runes';
 import { RUNE_CATALOGUE } from '../../data/runes';
 import { getRestrictedRunes, shouldApplyDeityFilter, isHighPriestLevel, isPriestCareer } from '../../logic/priestRunes';
@@ -543,6 +544,17 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
   return (
     <div className={styles.sectionGap}>
+      {/* New-character onboarding card (spec: ux-audit-improvements, Req 5).
+          Renders only for a brand-new character and self-hides once dismissed. */}
+      <GettingStartedCard
+        characterId={characterId}
+        xpSpent={character.xpSpent}
+        career={character.career}
+        onSetup={() => setActiveSubTab('identity')}
+        onRollTest={() => openCharacteristicRoll('WS')}
+        onOpenCombat={() => { window.location.hash = '#combat'; }}
+      />
+
       {/* Sub-tab navigation */}
       <SubTabBar
         tabs={orderedTabs}

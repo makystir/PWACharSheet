@@ -73,9 +73,8 @@ describe('Integration: Layered armour damage with currentAp', () => {
     const damageInput = screen.getByLabelText('Incoming damage');
     fireEvent.change(damageInput, { target: { value: '10' } });
 
-    // Select Body location (should be default)
-    const locationSelect = screen.getByLabelText('Hit location');
-    fireEvent.change(locationSelect, { target: { value: 'Body' } });
+    // Select Body location (should be default) — location is a chip radiogroup.
+    fireEvent.click(screen.getByRole('radio', { name: 'Body' }));
 
     // Verify net wounds: 10 - 3(TB) - 2(AP from currentAp values) = 5
     const netWounds = screen.getByTestId('net-wounds');
@@ -113,8 +112,7 @@ describe('Integration: Layered armour damage with currentAp', () => {
     const damageInput = screen.getByLabelText('Incoming damage');
     fireEvent.change(damageInput, { target: { value: '10' } });
 
-    const locationSelect = screen.getByLabelText('Hit location');
-    fireEvent.change(locationSelect, { target: { value: 'Body' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Body' }));
 
     const netWounds = screen.getByTestId('net-wounds');
     expect(netWounds).toHaveTextContent('6');
@@ -171,9 +169,8 @@ describe('Integration: Critical Deflection end-to-end', () => {
     const damageInput = screen.getByLabelText('Incoming damage');
     fireEvent.change(damageInput, { target: { value: '15' } });
 
-    // Body should be default, but ensure it
-    const locationSelect = screen.getByLabelText('Hit location');
-    fireEvent.change(locationSelect, { target: { value: 'Body' } });
+    // Body should be default, but ensure it (location is a chip radiogroup)
+    fireEvent.click(screen.getByRole('radio', { name: 'Body' }));
 
     // Net wounds should be 15 - 3(TB) - 3(AP) = 9, which exceeds wCur=5 → critical
     const netWounds = screen.getByTestId('net-wounds');

@@ -1,0 +1,120 @@
+/* InstallPromptControl — PWA install affordances (spec: ux-audit-improvements, Req 6) */
+
+/* Settings-page install button */
+.installBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  background: var(--accent-gold);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--bg-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.installBtn:hover {
+  opacity: 0.9;
+}
+
+.installBtn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.installBtn svg {
+  flex-shrink: 0;
+}
+
+/* One-time hint banner — fixed bottom, non-modal, subtle */
+.hint {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 12px var(--shadow);
+  animation: installHintSlideUp 200ms ease-out;
+}
+
+.hintMessage {
+  font-size: 14px;
+  color: var(--text-primary);
+  flex: 1;
+  text-align: center;
+}
+
+.hintActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.hintInstallBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
+  background: var(--accent-gold);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--bg-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hintInstallBtn:hover {
+  opacity: 0.9;
+}
+
+.hintInstallBtn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.hintDismissBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.hintDismissBtn:hover {
+  background: var(--bg-tertiary);
+}
+
+.hintDismissBtn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+@keyframes installHintSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

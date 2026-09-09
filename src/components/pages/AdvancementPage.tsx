@@ -8,6 +8,7 @@ import { SpellPicker } from '../shared/SpellPicker';
 import { Toast } from '../shared/Toast';
 import { Tooltip } from '../shared/Tooltip';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
+import { AdvancementChecklist } from './AdvancementChecklist';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
 import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, formatXpFeedback, applyBulkAdvancement, calculateTierBoundaryCost } from '../../logic/advancement';
@@ -422,6 +423,25 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           </div>
         )}
       </Card>
+
+      {/* Advancement completion checklist — presentation layer over the existing
+          completion computations below (charsMet/skillsMet/talentsMet etc.).
+          Single source of truth: values are passed in, never re-derived (Req 7.1–7.5). */}
+      {scheme && careerLevelNum > 0 && (
+        <AdvancementChecklist
+          career={character.career}
+          careerLevel={character.careerLevel}
+          charsProgress={charsProgress}
+          charsMet={charsMet}
+          skillsWithAdvances={skillsWithAdvances}
+          skillsRequired={Math.min(8, careerSkills.length)}
+          skillsMet={skillsMet}
+          talentsOwned={talentsOwned}
+          talentsMet={talentsMet}
+          completionThreshold={completionThreshold}
+          isMaxLevel={isMaxLevel}
+        />
+      )}
 
       {/* XP Tracking */}
       <Card>

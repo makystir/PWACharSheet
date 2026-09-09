@@ -1,0 +1,117 @@
+/* GettingStartedCard — onboarding card (spec: ux-audit-improvements, Req 5) */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.titleGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.titleIcon {
+  color: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.dismiss:hover,
+.dismiss:focus-visible {
+  color: var(--accent-gold);
+}
+
+.dismiss:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-gold);
+  outline: none;
+}
+
+.intro {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.action:hover,
+.action:focus-visible {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-gold);
+}
+
+.action svg {
+  flex-shrink: 0;
+  color: var(--accent-gold);
+}
+
+/* On mobile, stack actions so each keeps a comfortable full-width tap target. */
+@media (max-width: 767px) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .action {
+    width: 100%;
+  }
+}

@@ -324,6 +324,13 @@ export interface CombatState {
   currentRound: number;
   engaged: boolean;
   surprised: boolean;
+  /**
+   * Ad-hoc combat target (spec: ux-audit-improvements, Req 1). Remembers the
+   * current opponent's name, Toughness Bonus, and Armour Points during an active
+   * combat so they are not re-typed on each attack. NOT a persisted opponent
+   * roster — cleared when combat ends (Req 1.5, 1.7).
+   */
+  target?: { name: string; tb: number; ap: number };
 }
 
 export interface SessionHistoryEntry {
@@ -531,6 +538,16 @@ export interface GrudgeEntry {
 
 export type RangedDamageSBMode = 'none' | 'halfSB' | 'fullSB';
 
+/**
+ * Configurable initiative rolling rule (spec: ux-audit-improvements, Req 4.4).
+ * Per the "Roll For Initiative!" optional rules (WFRP4e Core p.156):
+ * - 'initiativePlusD10': the app's default — roll 1d10 and add it to Initiative.
+ * - 'initiativeAgilityTest': roll an Initiative Test to determine a SL,
+ *   ordered by the resulting orderable value.
+ * Combatants act in Initiative order, highest first (Core p.156 "Initiative Order").
+ */
+export type InitiativeFormula = 'initiativePlusD10' | 'initiativeAgilityTest';
+
 export interface MagicalBurnout {
   type: 'temporary' | 'permanent';
   daysRemaining: number;    // For temporary: days of no-casting remaining. For permanent: 0
@@ -561,6 +578,12 @@ export interface HouseRules {
    * character's carried encumbrance (carrying capacity is unchanged).
    */
   ignoreBackpackEnc: boolean;
+  /**
+   * Initiative rolling rule (spec: ux-audit-improvements, Req 4.4).
+   * Default 'initiativePlusD10' (WFRP4e Core p.156 "Roll For Initiative!").
+   * Backfilled for older saves via deepMerge against BLANK_CHARACTER.
+   */
+  initiativeFormula: InitiativeFormula;
 }
 
 /**
@@ -918,6 +941,8 @@ export const BLANK_CHARACTER: Character = {
     useEnterprises: false,
     useCants: false,
     ignoreBackpackEnc: false,
+    // Default initiative rule: roll 1d10 + Initiative (Core p.156).
+    initiativeFormula: 'initiativePlusD10',
   },
   knownRunes: [],
   learnedTechniques: [],

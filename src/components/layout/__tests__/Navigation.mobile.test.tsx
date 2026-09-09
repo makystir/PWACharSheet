@@ -63,8 +63,13 @@ describe('Navigation mobile touch targets and height', () => {
     const navButtons = screen.getAllByRole('button').filter(
       (btn) => btn.getAttribute('data-section') !== null
     );
-    // 7 nav items (Character, Combat, Retinue, Holdings & Wealth, Endeavours, Advancement, Settings) + Search = 8
-    expect(navButtons).toHaveLength(8);
+    // 7 nav items (Character, Combat, Retinue, Holdings & Wealth, Endeavours,
+    // Advancement, Settings) + Search + Keyboard shortcuts affordance (Req 14.2) = 9
+    expect(navButtons).toHaveLength(9);
+
+    // The core affordances are all present in the scrollable row.
+    expect(screen.getByRole('button', { name: /search game reference/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /keyboard shortcuts/i })).toBeInTheDocument();
   });
 
   it('nav items have min-height for 48px touch targets via CSS class (Req 1.1)', () => {

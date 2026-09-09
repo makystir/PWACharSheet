@@ -3,6 +3,10 @@ import type { ArmourItem, ArmourPoints, WeaponItem } from '../../types/character
 import type { HitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
+import { CollapsibleSection } from '../shared/CollapsibleSection';
+import { ChipGroup } from '../shared/ChipGroup';
+import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
+import { Tooltip } from '../shared/Tooltip';
 import { ShieldAlert } from 'lucide-react';
 import { resolveArmourCombatEffects, canDeflectCritical, applyDeflection, resolvePenetratingEffect } from '../../logic/armourCombat';
 import { calculateCriticalModifier, parseShieldRating, findEquippedShield } from '../../logic/combat';
@@ -22,8 +26,24 @@ export interface TakeDamagePanelProps {
   wCur: number;
   totalWounds: number;
   onApplyWounds: (woundsToApply: number) => void;
+  /**
+   * Optional callback fired after wounds are applied so the host can record a
+   * `combat` event in the unified Event_Log (Req 3.5). Receives the net wounds
+   * applied and the resulting current wounds. Kept as a presentational callback
+   * (like onApplyWounds/onDown) so the panel stays free of the character model.
+   */
+  onLogDamage?: (netWounds: number, newWCur: number, location: HitLocation) => void;
   min1Wound?: boolean;
   onDown?: (location: HitLocation) => void;
+  /**
+   * Optional hand-off callback (ux-audit-improvements Req 8.1–8.4). Fired when the
+   * player activates the "Roll Critical Wound" control shown once damage has
+   * reduced the character to ≤0 wounds. The panel invents no critical-wound
+   * results itself; it defers entirely to the host's existing critical-wound
+   * flow (RollCriticalFlow / CriticalWoundsPanel). Receives the hit location so
+   * the host can preselect it in that flow.
+   */
+  onRollCritical?: (location: HitLocation) => void;
 }
 
 // ─── Location mapping ────────────────────────────────────────────────────────
@@ -78,8 +98,10 @@ export function TakeDamagePanel({
   wCur,
   totalWounds: _totalWounds,
   onApplyWounds,
+  onLogDamage,
   min1Wound = true,
   onDown,
+  onRollCritical,
 }: TakeDamagePanelProps) {
   // totalWounds kept in props interface for potential future use (e.g. percentage display)
   void _totalWounds;
@@ -88,6 +110,9 @@ export function TakeDamagePanel({
   const [selectedLocation, setSelectedLocation] = useState<HitLocation>('Body');
   const [collapsed, setCollapsed] = useState(false);
   const [showDownAlert, setShowDownAlert] = useState(false);
+
+  // Net-wounds breakdown tooltip anchor (calculated-total-tooltips steering rule)
+  const [netWoundsTooltipAnchor, setNetWoundsTooltipAnchor] = useState<HTMLElement | null>(null);
 
   // Expanded armour system: to-hit roll parity and Impale quality (task 7.1)
   const [toHitRollEven, setToHitRollEven] = useState(false); // false = Odd (safe default)
@@ -245,6 +270,10 @@ export function TakeDamagePanel({
     const newWCur = Math.max(0, wCur - netWounds);
     onApplyWounds(netWounds);
 
+    // Record the applied damage in the unified Event_Log (Req 3.5). The host
+    // wires this to appendEvent; the panel itself stays presentational.
+    onLogDamage?.(netWounds, newWCur, selectedLocation);
+
     // Show alert if character is down
     if (newWCur <= 0) {
       setShowDownAlert(true);
@@ -330,109 +359,122 @@ export function TakeDamagePanel({
             />
           </div>
 
-          {/* 8.3: Hit location selector */}
+          {/* 8.3: Hit location selector — chip group (radiogroup) rather than a
+              native select (ux-audit-improvements Req 10.2). All 6 hit locations
+              are preserved, the selected one indicated, chips ≥44px for touch
+              (Req 10.3–10.5). */}
           <div className={styles.formRow}>
-            <label htmlFor="hit-location" className={styles.label}>Location:</label>
-            <select
-              id="hit-location"
+            <span className={styles.label} id="hit-location-label">Location:</span>
+            <ChipGroup<HitLocation>
+              ariaLabel="Hit location"
               value={selectedLocation}
-              onChange={(e) => handleLocationChange(e.target.value)}
-              className={styles.select}
-              aria-label="Hit location"
-            >
-              {HIT_LOCATIONS.map(loc => (
-                <option key={loc.apKey} value={loc.label}>{loc.label}</option>
-              ))}
-            </select>
+              onChange={(loc) => handleLocationChange(loc)}
+              options={HIT_LOCATIONS.map((loc) => ({ value: loc.label, label: loc.label }))}
+            />
           </div>
 
-          {/* To-hit roll parity selector (Req 11.3, 12.3) */}
-          <div className={styles.formRow}>
-            <span className={styles.label}>To-Hit Roll:</span>
-            <div className={styles.radioGroup} role="radiogroup" aria-label="To-hit roll parity">
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="toHitParity"
-                  value="odd"
-                  checked={!toHitRollEven}
-                  onChange={() => setToHitRollEven(false)}
-                  className={styles.radioInput}
-                />
-                Odd
-              </label>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="toHitParity"
-                  value="even"
-                  checked={toHitRollEven}
-                  onChange={() => setToHitRollEven(true)}
-                  className={styles.radioInput}
-                />
-                Even
-              </label>
+          {/*
+            Advanced_Qualities_Section (Req 3.2, 3.3, 3.4): the less-common
+            per-hit toggles live in a collapsible section so the common
+            Damage/SL/Location inputs stay front and centre. The toggles keep
+            their component state whether or not the section is expanded
+            (CollapsibleSection hides children via CSS rather than unmounting),
+            so collapsed net-wounds computation uses the current default toggle
+            values and is identical to the prior behaviour when untouched.
+          */}
+          <CollapsibleSection
+            title="Advanced Qualities"
+            storageKey="wfrp-take-damage-advanced-qualities"
+            defaultExpanded={false}
+          >
+            {/* To-hit roll parity selector (Req 11.3, 12.3) */}
+            <div className={styles.formRow}>
+              <span className={styles.label}>To-Hit Roll:</span>
+              <div className={styles.radioGroup} role="radiogroup" aria-label="To-hit roll parity">
+                <label className={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    name="toHitParity"
+                    value="odd"
+                    checked={!toHitRollEven}
+                    onChange={() => setToHitRollEven(false)}
+                    className={styles.radioInput}
+                  />
+                  Odd
+                </label>
+                <label className={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    name="toHitParity"
+                    value="even"
+                    checked={toHitRollEven}
+                    onChange={() => setToHitRollEven(true)}
+                    className={styles.radioInput}
+                  />
+                  Even
+                </label>
+              </div>
             </div>
-          </div>
 
-          {/* Impale weapon quality toggle (Req 13.2) */}
-          <div className={styles.formRow}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={attackerHasImpale}
-                onChange={(e) => setAttackerHasImpale(e.target.checked)}
-                className={styles.checkboxInput}
-              />
-              Impale
-            </label>
-          </div>
-
-          {/* Penetrating weapon quality toggle (Req 1.6) */}
-          <div className={styles.formRow}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={penetratingEnabled}
-                onChange={(e) => setPenetratingEnabled(e.target.checked)}
-                className={styles.checkboxInput}
-                data-testid="penetrating-toggle"
-              />
-              Penetrating
-            </label>
-          </div>
-
-          {/* Bascinet frontal missile toggle (Req 7.1, task 7.4) */}
-          {bascinetAtLocation && (
+            {/* Impale weapon quality toggle (Req 13.2) */}
             <div className={styles.formRow}>
               <label className={styles.checkboxLabel}>
                 <input
                   type="checkbox"
-                  checked={isMissileFrontal}
-                  onChange={(e) => setIsMissileFrontal(e.target.checked)}
+                  checked={attackerHasImpale}
+                  onChange={(e) => setAttackerHasImpale(e.target.checked)}
                   className={styles.checkboxInput}
-                  data-testid="frontal-missile-toggle"
                 />
-                Frontal Missile?
+                Impale
               </label>
             </div>
-          )}
 
-          {/* Defended with Shield toggle (Req 3.1, 3.4) — only shown when shield is equipped */}
-          {equippedShield && (
+            {/* Penetrating weapon quality toggle (Req 1.6) */}
             <div className={styles.formRow}>
               <label className={styles.checkboxLabel}>
                 <input
                   type="checkbox"
-                  checked={defendedWithShield}
-                  onChange={(e) => setDefendedWithShield(e.target.checked)}
+                  checked={penetratingEnabled}
+                  onChange={(e) => setPenetratingEnabled(e.target.checked)}
                   className={styles.checkboxInput}
-                  data-testid="defended-with-shield-toggle"
+                  data-testid="penetrating-toggle"
                 />
-                Defended with Shield
+                Penetrating
               </label>
             </div>
-          )}
+
+            {/* Bascinet frontal missile toggle (Req 7.1, task 7.4) — conditional (Req 3.4) */}
+            {bascinetAtLocation && (
+              <div className={styles.formRow}>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={isMissileFrontal}
+                    onChange={(e) => setIsMissileFrontal(e.target.checked)}
+                    className={styles.checkboxInput}
+                    data-testid="frontal-missile-toggle"
+                  />
+                  Frontal Missile?
+                </label>
+              </div>
+            )}
+
+            {/* Defended with Shield toggle (Req 3.1, 3.4) — only shown when shield is equipped */}
+            {equippedShield && (
+              <div className={styles.formRow}>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={defendedWithShield}
+                    onChange={(e) => setDefendedWithShield(e.target.checked)}
+                    className={styles.checkboxInput}
+                    data-testid="defended-with-shield-toggle"
+                  />
+                  Defended with Shield
+                </label>
+              </div>
+            )}
+          </CollapsibleSection>
 
           {/* 8.4 & 8.5: AP at location and Toughness Bonus display */}
           <div className={styles.formRow}>
@@ -508,19 +550,39 @@ export function TakeDamagePanel({
             </div>
           )}
 
-          {/* 8.6: Net wounds calculation */}
+          {/* 8.6: Net wounds calculation. The net-wounds value carries a
+              breakdown tooltip (calculated-total-tooltips steering rule) showing
+              Damage + SL − TB − AP, plus the min-1-wound floor when it applies. */}
           <div className={styles.netWoundsBox}>
             <div className={styles.netWoundsRow}>
               <span className={styles.netWoundsLabel}>Net Wounds</span>
-              <span className={styles.netWoundsValue} data-testid="net-wounds">{netWounds}</span>
-            </div>
-            <div className={styles.breakdownText}>
-              {incomingDamage} + {sl} (SL) − {toughnessBonus} (TB) − {effectiveAP} (AP) = {incomingDamage + sl - toughnessBonus - effectiveAP}
-              {netWounds === 1 && incomingDamage + sl - toughnessBonus - effectiveAP < 1 && min1Wound && incomingDamage + sl > effectiveAP + toughnessBonus
-                ? ' → min 1 wound'
-                : ''}
+              <TooltipTriggerCell
+                tooltipId="tooltip-net-wounds"
+                displayValue={netWounds}
+                isTooltipOpen={netWoundsTooltipAnchor !== null}
+                onOpen={(anchorEl) => setNetWoundsTooltipAnchor(anchorEl)}
+                onClose={() => setNetWoundsTooltipAnchor(null)}
+                className={styles.netWoundsValue}
+                ariaLabel={`Net wounds ${netWounds}. Show breakdown.`}
+                dataTestId="net-wounds"
+              />
             </div>
           </div>
+          {netWoundsTooltipAnchor && (
+            <Tooltip
+              anchorEl={netWoundsTooltipAnchor}
+              title="Net Wounds"
+              onClose={() => setNetWoundsTooltipAnchor(null)}
+              id="tooltip-net-wounds"
+            >
+              <div className={styles.breakdownText} data-testid="net-wounds-breakdown">
+                Damage {incomingDamage} + SL {sl} − TB {toughnessBonus} − AP {effectiveAP} = {incomingDamage + sl - toughnessBonus - effectiveAP}
+                {netWounds === 1 && incomingDamage + sl - toughnessBonus - effectiveAP < 1 && min1Wound && incomingDamage + sl > effectiveAP + toughnessBonus
+                  ? ' → min 1 wound'
+                  : ''}
+              </div>
+            </Tooltip>
+          )}
 
           {/* Critical Deflection button (Req 6.4, 6.5, 6.6, 6.8, 6.9 — task 7.3) */}
           {deflectionAvailable && (
@@ -575,6 +637,27 @@ export function TakeDamagePanel({
             <div className={styles.alertBox} role="alert" data-testid="down-alert">
               💀 Character is Down!{criticalDeflected ? ' Critical Wound deflected.' : ' May take a Critical Wound.'}
             </div>
+          )}
+
+          {/*
+            Critical-wound hand-off (ux-audit-improvements Req 8.1–8.4). Once the
+            applied damage has dropped the character to ≤0 wounds (the existing
+            down/critical state), surface a control that hands off to the host's
+            existing critical-wound flow. This invents no critical-wound result
+            itself (Req 8.4); it only signals the host to open RollCriticalFlow /
+            CriticalWoundsPanel with the hit location preselected. Hidden when the
+            critical was deflected — there is no critical to roll in that case.
+          */}
+          {showDownAlert && !criticalDeflected && onRollCritical && (
+            <button
+              type="button"
+              className={styles.rollCriticalBtn}
+              onClick={() => onRollCritical(selectedLocation)}
+              data-testid="roll-critical-btn"
+              aria-label="Roll Critical Wound"
+            >
+              🎲 Roll Critical Wound
+            </button>
           )}
         </div>
       )}

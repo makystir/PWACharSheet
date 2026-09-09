@@ -77,7 +77,7 @@ function paletteReducer(state: PaletteState, action: PaletteAction): PaletteStat
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function CommandPalette() {
-  const { isOpen, close } = useCommandPaletteContext();
+  const { isOpen, close, openShortcuts } = useCommandPaletteContext();
   const [state, dispatch] = useReducer(paletteReducer, INITIAL_STATE);
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -336,6 +336,17 @@ export function CommandPalette() {
           {state.view === 'detail' && state.selectedEntity && (
             <DetailView entity={state.selectedEntity} onBack={handleBack} />
           )}
+        </div>
+
+        {/* Footer: visible affordance to the keyboard-shortcuts reference (Req 14.2) */}
+        <div className={styles.footer}>
+          <button
+            type="button"
+            className={styles.shortcutsButton}
+            onClick={openShortcuts}
+          >
+            Keyboard Shortcuts
+          </button>
         </div>
       </div>
     </div>

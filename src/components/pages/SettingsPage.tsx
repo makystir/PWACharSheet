@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import type { Character, ArmourPoints, RangedDamageSBMode } from '../../types/character';
+import type { Character, ArmourPoints, RangedDamageSBMode, InitiativeFormula } from '../../types/character';
 import { BLANK_CHARACTER } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -16,6 +16,7 @@ import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders, Zap, X }
 import type { ThemeMode } from '../../hooks/useTheme';
 import styles from './SettingsPage.module.css';
 import { loadQuickActions, saveQuickActions } from '../../storage/quick-actions';
+import { InstallPromptControl } from '../shared/InstallPromptControl';
 import type { QuickActionConfig } from '../../storage/quick-actions';
 
 export { loadQuickActions };
@@ -388,6 +389,29 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
               </div>
             </div>
 
+            {/* Initiative Formula (Core p.156 "Roll For Initiative!") */}
+            <div className={styles.ruleItem}>
+              <div className={styles.ruleLabel}>Initiative Formula</div>
+              <div className={styles.ruleDesc}>
+                How Initiative order is rolled in combat
+              </div>
+              <div className={styles.selectorRow}>
+                {([
+                  { id: 'initiativePlusD10' as InitiativeFormula, label: 'Initiative + 1d10' },
+                  { id: 'initiativeAgilityTest' as InitiativeFormula, label: 'Initiative/Agility Test' },
+                ]).map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => update('houseRules.initiativeFormula', opt.id)}
+                    className={character.houseRules.initiativeFormula === opt.id ? styles.selectorBtnActive : styles.selectorBtn}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Impale Crits on 10s */}
             <div className={styles.ruleItem}>
               <div className={styles.toggleRow}>
@@ -709,6 +733,8 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
             <Printer size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
             Print
           </button>
+          {/* PWA install button — renders nothing when the app can't be installed (Req 6.2, 6.5, 6.6) */}
+          <InstallPromptControl />
         </div>
       </Card>
 

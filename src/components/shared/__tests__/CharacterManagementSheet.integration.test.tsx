@@ -151,7 +151,7 @@ describe('CharacterManagementSheet - Integration Flows', () => {
       });
 
       // Verify the sheet is open with all characters rendered
-      expect(screen.getByRole('dialog', { name: 'Character management' })).toBeInTheDocument();
+      expect(screen.getByRole('dialog', { name: 'Manage Characters' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Brunhilde (active)' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Switch to Gottfried' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Switch to Elara' })).toBeInTheDocument();
@@ -216,7 +216,7 @@ describe('CharacterManagementSheet - Integration Flows', () => {
       });
 
       // Verify sheet is open and New Character button is visible
-      expect(screen.getByRole('dialog', { name: 'Character management' })).toBeInTheDocument();
+      expect(screen.getByRole('dialog', { name: 'Manage Characters' })).toBeInTheDocument();
       const newCharButton = screen.getByRole('button', { name: 'New Character' });
       expect(newCharButton).toBeInTheDocument();
 

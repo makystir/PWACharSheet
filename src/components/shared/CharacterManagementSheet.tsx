@@ -437,7 +437,8 @@ export function CharacterManagementSheet({
         ref={sheetRef}
         className={sheetClass}
         role="dialog"
-        aria-label="Character management"
+        aria-label="Manage Characters"
+        aria-labelledby="char-management-title"
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -446,6 +447,14 @@ export function CharacterManagementSheet({
           onTouchEnd={handleDragEnd}
         >
           <div className={styles.dragHandle} />
+        </div>
+
+        {/* Req 15.1/15.3: visible title marks this as the full management
+            affordance (create/rename/duplicate/delete), distinct from the
+            sidebar "Switch Character" quick-switch. */}
+        <div className={styles.header}>
+          <h2 id="char-management-title" className={styles.title}>Manage Characters</h2>
+          <p className={styles.subtitle}>Create, rename, duplicate, or delete characters</p>
         </div>
 
         <div className={styles.content} ref={contentRef}>

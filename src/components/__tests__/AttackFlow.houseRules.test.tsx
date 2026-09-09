@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AttackFlow } from '../combat/AttackFlow';
@@ -64,6 +65,7 @@ function makeProps(overrides: Partial<AttackFlowProps> = {}): AttackFlowProps {
     character: makeCharacter(),
     armourPoints: defaultArmourPoints,
     onRoll: vi.fn(),
+    updateCharacter: vi.fn(),
     ...overrides,
   };
 }
@@ -71,6 +73,31 @@ function makeProps(overrides: Partial<AttackFlowProps> = {}): AttackFlowProps {
 /** Mock Math.random to return a specific d100 value (1-100). */
 function mockRoll(d100Value: number) {
   vi.spyOn(Math, 'random').mockReturnValue((d100Value - 1) / 100);
+}
+
+/**
+ * Stateful test host mirroring how the real app threads `updateCharacter`: it
+ * holds the character in `useState` and applies the mutator, so edits to the
+ * Combat_Target (opponent TB/AP) re-render AttackFlow with the updated value. A
+ * plain `vi.fn()` would be a no-op and never re-render, leaving TB/AP stuck at 0.
+ */
+function StatefulAttackFlowHost({ initialProps }: { initialProps: AttackFlowProps }) {
+  const [character, setCharacter] = useState<Character>(initialProps.character);
+  const updateCharacter = (mutator: (c: Character) => Character) => {
+    setCharacter((prev) => mutator(prev));
+  };
+  return (
+    <AttackFlow
+      {...initialProps}
+      character={character}
+      updateCharacter={updateCharacter}
+    />
+  );
+}
+
+/** Render AttackFlow inside the stateful host so opponent TB/AP edits stick. */
+function renderAttackFlow(overrides: Partial<AttackFlowProps> = {}) {
+  return render(<StatefulAttackFlowHost initialProps={makeProps(overrides)} />);
 }
 
 /**
@@ -182,15 +209,12 @@ describe('AttackFlow — Min 1 Wound house rule', () => {
     // With min1Wound=false, effectiveWounds = 0.
     mockRoll(45); // SL = 5 - 4 = 1, weapon dmg = 8, total = 9
     const character = makeCharacter(withHouseRules({ min1Wound: false }));
-    render(
-      <AttackFlow {...makeProps({ character })} />,
-    );
+    renderAttackFlow({ character });
     advanceToStep4('Hand Weapon', 5, 4);
 
     // net = max(0, 9 - 5 - 4) = 0. min1Wound disabled, 9 > 9 is false → 0
     // The net wounds value should be 0
-    const netWoundsValue = screen.getByText('0');
-    expect(netWoundsValue).toBeInTheDocument();
+    expect(screen.getByLabelText(/Net wounds 0\./)).toBeInTheDocument();
   });
 
   it('shows effective wounds = 1 when min1Wound enabled and damage exceeds TB+AP but raw is 0', () => {
@@ -206,28 +230,23 @@ describe('AttackFlow — Min 1 Wound house rule', () => {
     // when damage barely exceeds, we get 1 wound (which is the natural result anyway).
     mockRoll(40); // SL = 5 - 4 = 1, weapon dmg = 8, total = 9
     const character = makeCharacter(withHouseRules({ min1Wound: true }));
-    render(
-      <AttackFlow {...makeProps({ character })} />,
-    );
+    renderAttackFlow({ character });
     // total damage = 9, set TB=4, AP=4 → reduction = 8, net = 1
     // totalDamage(9) > TB+AP(8) → true, netWounds = 1 → effectiveWounds = 1
     advanceToStep4('Hand Weapon', 4, 4);
 
-    // The "1" for net wounds should appear in the net wounds value
-    const netWoundsSection = screen.getByText('Net Wounds').closest('div')!;
-    expect(netWoundsSection.textContent).toContain('1');
+    // The net wounds value should be 1
+    expect(screen.getByLabelText(/Net wounds 1\./)).toBeInTheDocument();
   });
 
   it('shows effective wounds = 0 when min1Wound enabled but damage does NOT exceed TB+AP', () => {
     // totalDamage = TB+AP → 9 > 9 is false → effectiveWounds = 0 even with min1Wound=true
     mockRoll(45); // SL = 1, weapon dmg = 8, total = 9
     const character = makeCharacter(withHouseRules({ min1Wound: true }));
-    render(
-      <AttackFlow {...makeProps({ character })} />,
-    );
+    renderAttackFlow({ character });
     advanceToStep4('Hand Weapon', 5, 4); // reduction = 9, total = 9
 
-    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Net wounds 0\./)).toBeInTheDocument();
   });
 });
 

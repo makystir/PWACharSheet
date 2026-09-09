@@ -66,8 +66,9 @@ function setDamage(value: number) {
 }
 
 function selectLocation(location: string) {
-  const select = screen.getByLabelText('Hit location');
-  fireEvent.change(select, { target: { value: location } });
+  // Location is a chip radiogroup (ux-audit-improvements Req 10.2); each chip is
+  // a radio whose accessible name is the location label (e.g. 'Body', 'Head').
+  fireEvent.click(screen.getByRole('radio', { name: location }));
 }
 
 function togglePenetrating() {

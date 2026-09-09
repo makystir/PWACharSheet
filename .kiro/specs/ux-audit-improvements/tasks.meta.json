@@ -1,0 +1,1104 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Add `combatState.target` and `houseRules.initiativeFormula`": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141174
+      },
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972148706
+      },
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972439738
+      }
+    ],
+    "2.1 Implement target get/set/clear helpers": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141209
+      },
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972443636
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012324
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973020168
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973150021
+      }
+    ],
+    "2.2 Write property test for combat-target helpers": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141237
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012367
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973155995
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973236488
+      }
+    ],
+    "3.1 Add `rollInitiative` and `InitiativeRollResult`": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141283
+      },
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972444298
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012404
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973022821
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973152730
+      }
+    ],
+    "3.2 Write property test for initiative rolling": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141308
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012436
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973158582
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973239189
+      }
+    ],
+    "4. Checkpoint - core combat/initiative logic": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141337
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012465
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973250140
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973262902
+      }
+    ],
+    "5.1 Read/write opponent TB/AP from the Combat_Target": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141364
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012496
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973280784
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973460129
+      }
+    ],
+    "5.2 Add the net-wounds breakdown tooltip": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141398
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012527
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973478363
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973691051
+      }
+    ],
+    "5.3 Log the attack result to the event log (dep: unified-event-log)": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141434
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012558
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973481095
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973695996
+      }
+    ],
+    "5.4 Write render tests for AttackFlow target + logging": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141461
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012590
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973885523
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974270845
+      }
+    ],
+    "6.1 Add the Advanced_Qualities_Section": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141489
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012640
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973283604
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973462702
+      }
+    ],
+    "6.2 Log applied damage and retain the net-wounds tooltip (dep: unified-event-log)": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141516
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012670
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973484970
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973699045
+      }
+    ],
+    "6.3 Write render tests for the advanced-qualities collapse": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141549
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012701
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973888303
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974275835
+      }
+    ],
+    "7.1 Add Roll Initiative controls to `InitiativeTracker.tsx`": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141586
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012731
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973286449
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973465455
+      }
+    ],
+    "7.2 Add the initiative-formula setting to `SettingsPage.tsx`": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141614
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012762
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973487718
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973702043
+      }
+    ],
+    "7.3 Write tests for initiative UI": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141644
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012793
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973894139
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974279990
+      }
+    ],
+    "8. Checkpoint - Tier 1 combat": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141679
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012825
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974514581
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974527592
+      }
+    ],
+    "9.1 Implement `GettingStartedCard.tsx` and mount it in `CharacterPage.tsx`": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141706
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012857
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973289271
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973468576
+      }
+    ],
+    "9.2 Write render tests for the onboarding card": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141738
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012887
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973897189
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974282987
+      }
+    ],
+    "10.1 Implement `useInstallPrompt.ts`": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141767
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012918
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973291740
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973471612
+      }
+    ],
+    "10.2 Add `InstallPromptControl.tsx` to Settings + one-time hint": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141796
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012964
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973492512
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973706079
+      }
+    ],
+    "10.3 Write tests for install affordance": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141829
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973012993
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974297711
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974499449
+      }
+    ],
+    "11.1 Implement `AdvancementChecklist.tsx` and mount near the top of `AdvancementPage.tsx`": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141869
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013023
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973496563
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973711314
+      }
+    ],
+    "11.2 Write render tests for the checklist": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141897
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013053
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974300653
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974502486
+      }
+    ],
+    "12.1 Add a critical hand-off control to `TakeDamagePanel.tsx`": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141926
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013083
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973902069
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974286002
+      }
+    ],
+    "12.2 Write tests for the hand-off": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141953
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013113
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974535837
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975661591
+      }
+    ],
+    "13.1 Improve desktop combat layout and preserve mode state": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972141989
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013143
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974542737
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974810501
+      }
+    ],
+    "13.2 Write tests for mode surfacing": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142025
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013173
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975393649
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975664973
+      }
+    ],
+    "14.1 Replace the Difficulty and Hit-Location selects with chip controls": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142053
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013205
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974548305
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974813807
+      }
+    ],
+    "14.2 Write tests for chip controls (incl. mobile)": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142083
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013237
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974967209
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975385152
+      }
+    ],
+    "15.1 Implement `HouseRuleIndicator.tsx` and render on combat surfaces": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142113
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013282
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973715013
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973880228
+      }
+    ],
+    "15.2 Write tests for the indicator": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142144
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013314
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974303749
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974505607
+      }
+    ],
+    "16. Checkpoint - Tier 2": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142173
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013343
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974945564
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788976358564
+      }
+    ],
+    "17.1 Make picker-backed empty states action-oriented": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142203
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013372
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974835181
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974938458
+      }
+    ],
+    "17.2 Write tests for empty-state copy/actions": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142232
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013401
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975397025
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975668331
+      }
+    ],
+    "18.1 Surface `TimelineView` with roll+combat filters": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142261
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013432
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975682886
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975865242
+      }
+    ],
+    "18.2 Write tests for the history surface": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142292
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013465
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788976362424
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788976555124
+      }
+    ],
+    "19.1 Implement `ShortcutsHelp.tsx` and expose it via the command palette": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142324
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013497
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974551365
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974816995
+      }
+    ],
+    "19.2 Write tests for the shortcut list": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142353
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013529
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975400351
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975672711
+      }
+    ],
+    "20.1 Distinguish quick-switch from full management": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142381
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013581
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974554314
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974820480
+      }
+    ],
+    "20.2 Write tests for switcher clarity": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142405
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013615
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975403532
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975676004
+      }
+    ],
+    "21.1 Clarify the estate section label and sub-tab discoverability": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142435
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013646
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974557388
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974823672
+      }
+    ],
+    "21.2 Write tests for nav labels": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142463
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013677
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975686123
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975765750
+      }
+    ],
+    "22. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972142493
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973013707
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788976559148
+      },
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788976771484
+      }
+    ],
+    "1. Extend the data model for combat target and initiative formula": [
+      {
+        "executionId": "084a2924-7800-4685-b938-fdcf2ac32827",
+        "chatSessionId": "sess_12788a49-c439-48ca-bb5e-d22a0cd641f6",
+        "timestamp": 1788972439768
+      }
+    ],
+    "2. Implement pure combat-target logic in `src/logic/combat-target.ts`": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973236539
+      }
+    ],
+    "3. Implement initiative rolling in `src/logic/initiative.ts`": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788973239222
+      }
+    ],
+    "5. Wire the Combat_Target into `AttackFlow.tsx` (Tier 1, Req 1, 2)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974270892
+      }
+    ],
+    "6. Reduce Take-Damage friction in `TakeDamagePanel.tsx` (Tier 1, Req 3)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974275897
+      }
+    ],
+    "7. Add initiative rolling UI (Tier 1, Req 4)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974280030
+      }
+    ],
+    "9. New-character onboarding card (Tier 1, Req 5)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974283027
+      }
+    ],
+    "10. PWA install affordance (Tier 1, Req 6)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974499484
+      }
+    ],
+    "11. Advancement completion checklist (Tier 2, Req 7)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974502517
+      }
+    ],
+    "15. Active house-rule indicators (Tier 2, Req 11)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788974505648
+      }
+    ],
+    "14. Chip controls for combat values (Tier 2, Req 10)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975385194
+      }
+    ],
+    "12. Take-Damage → critical-wound hand-off (Tier 2, Req 8)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975661629
+      }
+    ],
+    "13. Combat mode surfacing (Tier 2, Req 9)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975665010
+      }
+    ],
+    "17. Actionable empty states (Tier 3, Req 12)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975668363
+      }
+    ],
+    "19. Keyboard-shortcut discoverability (Tier 3, Req 14)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975672761
+      }
+    ],
+    "20. Character switcher consolidation (Tier 3, Req 15)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975676066
+      }
+    ],
+    "21. Navigation label clarity (Tier 3, Req 16)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788975765817
+      }
+    ],
+    "18. History review surface (Tier 3, Req 13) (dep: unified-event-log)": [
+      {
+        "executionId": "42c41ea7-e20f-4e09-a29c-0e2c438a06b0",
+        "chatSessionId": "sess_19bfb8da-4cd8-4d6d-ad8d-7781ac4a2ecf",
+        "timestamp": 1788976555170
+      }
+    ]
+  }
+}

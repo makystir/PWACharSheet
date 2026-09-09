@@ -5,10 +5,16 @@ import { performRoll, applyDifficulty, computeSkillTarget, DIFFICULTY_MODIFIERS 
 import { findSkillForWeapon, calcWeaponDamage, RANGED_GROUPS, hasWeaponQuality } from '../../logic/weapons';
 import { getBonus } from '../../logic/calculators';
 import { computeOffHandTarget, calculateDamage, calculateDamagingSL } from '../../logic/combat';
+import { getCombatTarget, setCombatTargetTB, setCombatTargetAP } from '../../logic/combat-target';
+import { appendEvent } from '../../logic/event-log';
 import { getHitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
+import { EmptyState } from '../shared/EmptyState';
 import { StepIndicator } from './StepIndicator';
+import { ChipGroup } from '../shared/ChipGroup';
+import { Tooltip } from '../shared/Tooltip';
+import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { Crosshair } from 'lucide-react';
 import styles from './AttackFlow.module.css';
@@ -20,6 +26,13 @@ export interface AttackFlowProps {
   character: Character;
   armourPoints: ArmourPoints;
   onRoll: (result: RollResult) => void;
+  updateCharacter: (mutator: (char: Character) => Character) => void;
+  /**
+   * Optional callback to open the weapon picker, wired to the action-oriented
+   * empty state shown when the character has no weapons (ux-audit-improvements
+   * Req 12.1). Optional so existing tests/usages that don't pass it still work.
+   */
+  onAddWeapon?: () => void;
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -32,12 +45,15 @@ const ALL_DIFFICULTIES: DifficultyLevel[] = [
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackFlowProps) {
+export function AttackFlow({ weapons, character, armourPoints, onRoll, updateCharacter, onAddWeapon }: AttackFlowProps) {
   const [selectedWeaponIndex, setSelectedWeaponIndex] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState<AttackFlowStep>(1);
   const [lastRollResult, setLastRollResult] = useState<RollResult | null>(null);
-  const [opponentTB, setOpponentTB] = useState(0);
-  const [opponentAP, setOpponentAP] = useState(0);
+  // Opponent TB/AP are read from the ad-hoc Combat_Target on combatState so they
+  // persist across attacks and combat rounds until combat ends (ux-audit-improvements Req 1.2–1.6).
+  const combatTarget = getCombatTarget(character);
+  const opponentTB = combatTarget.tb;
+  const opponentAP = combatTarget.ap;
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('Challenging');
   const [collapsed, setCollapsed] = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
@@ -46,6 +62,8 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
   const [isSecondAttack, setIsSecondAttack] = useState(false);
   const [firstAttackCompleted, setFirstAttackCompleted] = useState(false);
   const [targetEngagedInMelee, setTargetEngagedInMelee] = useState(false);
+  // Anchor for the net-wounds breakdown tooltip (calculated-total-tooltips steering rule).
+  const [netWoundsTooltipAnchor, setNetWoundsTooltipAnchor] = useState<HTMLElement | null>(null);
 
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
 
@@ -89,8 +107,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
     setSelectedWeaponIndex(index);
     setCurrentStep(2);
     setLastRollResult(null);
-    setOpponentTB(0);
-    setOpponentAP(0);
+    // Opponent TB/AP persist via the Combat_Target — do not reset here (Req 1.4).
     setOffHand(isSecondAttack); // Second attack defaults to off-hand
 
     // Reset target-engaged toggle when weapon changes to non-ranged
@@ -135,8 +152,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
   function handleNewAttack() {
     setCurrentStep(1);
     setLastRollResult(null);
-    setOpponentTB(0);
-    setOpponentAP(0);
+    // Opponent TB/AP persist via the Combat_Target — do not reset here (Req 1.4).
     setOffHand(false);
     setIsSecondAttack(false);
     setFirstAttackCompleted(false);
@@ -146,8 +162,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
   function handleSecondAttack() {
     setCurrentStep(1);
     setLastRollResult(null);
-    setOpponentTB(0);
-    setOpponentAP(0);
+    // Opponent TB/AP persist via the Combat_Target — do not reset here (Req 1.4).
     setIsSecondAttack(true);
     setFirstAttackCompleted(true);
     setOffHand(true);
@@ -155,6 +170,49 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
 
   function toggleStepCollapse(step: number) {
     setCollapsedSteps((prev) => ({ ...prev, [step]: !prev[step] }));
+  }
+
+  /**
+   * Append a `combat.attack` event to the unified event log describing the
+   * produced attack result (ux-audit-improvements Req 2.3, dep: unified-event-log).
+   *
+   * Called once when the final damage result is produced (the Step 3 → Step 4
+   * "Calculate Damage" action), never on every render, to avoid double-logging.
+   * This is display/audit only — AttackFlow does NOT apply wounds to the sheet
+   * owner (Req 2.4); the app never tracks an opponent's wounds either.
+   */
+  function logAttackResult(result: RollResult) {
+    const outcome = result.isFumble
+      ? 'fumble'
+      : result.isCritical
+        ? 'crit'
+        : result.passed
+          ? 'hit'
+          : 'miss';
+    const weaponName = selectedWeapon?.name || 'weapon';
+    const summary = `Attack with ${weaponName}: ${outcome} — ${effectiveWounds} net wound${effectiveWounds === 1 ? '' : 's'}`;
+    // Defensive guard: updateCharacter is a required prop, but guard against a
+    // non-function value so producing an attack result never throws an
+    // unhandled error (no-op when not wired). Behavior is otherwise unchanged.
+    if (typeof updateCharacter === 'function') {
+      updateCharacter((c) =>
+        appendEvent(c, {
+          category: 'combat',
+          type: 'combat.attack',
+          summary,
+          payload: {
+            weapon: weaponName,
+            outcome,
+            netWounds: effectiveWounds,
+            weaponDamage: weaponDamage.num ?? 0,
+            sl: effectiveSL,
+            totalDamage,
+            opponentTB,
+            opponentAP,
+          },
+        }),
+      );
+    }
   }
 
   // ── Hit location (Step 3) ──
@@ -253,19 +311,20 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
         </div>
 
         <div className={styles.infoRow}>
-          <label className={styles.difficultyLabel}>Difficulty:</label>
-          <select
+          <label className={styles.difficultyLabel} id="difficulty-chip-label">Difficulty:</label>
+          {/* Difficulty as a chip group (radiogroup) rather than a native select
+              (ux-audit-improvements Req 10.1). All 7 difficulty levels are
+              preserved, each chip showing its test modifier; the selected chip
+              is indicated and chips are ≥44px for touch (Req 10.3–10.5). */}
+          <ChipGroup<DifficultyLevel>
+            ariaLabel="Difficulty"
             value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)}
-            className={styles.selectStyle}
-            aria-label="Difficulty"
-          >
-            {ALL_DIFFICULTIES.map((d) => (
-              <option key={d} value={d}>
-                {d} ({DIFFICULTY_MODIFIERS[d] >= 0 ? '+' : ''}{DIFFICULTY_MODIFIERS[d]})
-              </option>
-            ))}
-          </select>
+            onChange={(d) => setDifficulty(d)}
+            options={ALL_DIFFICULTIES.map((d) => ({
+              value: d,
+              label: `${d} (${DIFFICULTY_MODIFIERS[d] >= 0 ? '+' : ''}${DIFFICULTY_MODIFIERS[d]})`,
+            }))}
+          />
           <div className={styles.statChip}>
             <span className={styles.statChipLabel}>Target</span>
             <span className={styles.statChipValue}>{modifiedTarget}</span>
@@ -388,7 +447,12 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
           <button
             type="button"
             className={styles.calcDamageBtn}
-            onClick={() => setCurrentStep(4)}
+            onClick={() => {
+              // Produce the final attack result: advance to Step 4 and log it once
+              // (Req 2.3). This is the single point the damage result is produced.
+              setCurrentStep(4);
+              if (lastRollResult) logAttackResult(lastRollResult);
+            }}
           >
             → Calculate Damage
           </button>
@@ -444,7 +508,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
           <input
             type="number"
             value={opponentTB}
-            onChange={(e) => setOpponentTB(Math.max(0, Number(e.target.value) || 0))}
+            onChange={(e) => { const v = Math.max(0, Number(e.target.value) || 0); updateCharacter((c) => setCombatTargetTB(c, v)); }}
             className={styles.inputStyle}
             aria-label="Opponent Toughness Bonus"
             min={0}
@@ -453,25 +517,43 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
           <input
             type="number"
             value={opponentAP}
-            onChange={(e) => setOpponentAP(Math.max(0, Number(e.target.value) || 0))}
+            onChange={(e) => { const v = Math.max(0, Number(e.target.value) || 0); updateCharacter((c) => setCombatTargetAP(c, v)); }}
             className={styles.inputStyle}
             aria-label="Opponent Armour Points"
             min={0}
           />
         </div>
 
+        {/* Net-wounds calculated total with a breakdown tooltip
+            (calculated-total-tooltips steering rule): weaponDamage + SL − TB − AP.
+            Net-wounds math is unchanged and cites the rulebook via combat.ts. */}
         <div className={styles.netWoundsBox}>
           <div className={styles.netWoundsRow}>
             <span className={styles.netWoundsLabel}>Net Wounds</span>
-            <span className={styles.netWoundsValue}>
-              {effectiveWounds}
-            </span>
-          </div>
-          <div className={styles.netWoundsBreakdown}>
-            {totalDamage} − {opponentTB} (TB) − {opponentAP} (AP) = {netWounds}
-            {effectiveWounds !== netWounds ? ' → min 1 wound' : ''}
+            <TooltipTriggerCell
+              tooltipId="tooltip-attack-net-wounds"
+              displayValue={effectiveWounds}
+              isTooltipOpen={netWoundsTooltipAnchor !== null}
+              onOpen={(anchorEl) => setNetWoundsTooltipAnchor(anchorEl)}
+              onClose={() => setNetWoundsTooltipAnchor(null)}
+              className={styles.netWoundsValue}
+              ariaLabel={`Net wounds ${effectiveWounds}. Show breakdown.`}
+            />
           </div>
         </div>
+        {netWoundsTooltipAnchor && (
+          <Tooltip
+            anchorEl={netWoundsTooltipAnchor}
+            title="Net Wounds"
+            onClose={() => setNetWoundsTooltipAnchor(null)}
+            id="tooltip-attack-net-wounds"
+          >
+            <div className={styles.netWoundsBreakdown}>
+              Weapon {weaponDamage.num ?? 0} + SL {effectiveSL >= 0 ? '+' : ''}{effectiveSL} − TB {opponentTB} − AP {opponentAP} = {netWounds}
+              {effectiveWounds !== netWounds ? ' → min 1 wound (house rule)' : ''}
+            </div>
+          </Tooltip>
+        )}
 
         <div className={styles.newAttackMargin}>
           {!isSecondAttack && !firstAttackCompleted && (
@@ -513,12 +595,20 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll }: AttackF
   // ── Main render ──
 
   if (weapons.length === 0) {
+    // Action-oriented empty state directing to the add-weapon action
+    // (ux-audit-improvements Req 12.1). The "Add Weapon" action is only shown
+    // when a callback is wired (CombatPage opens the weapon picker); otherwise
+    // the description still tells the user what to do.
     return (
       <Card>
         <SectionHeader icon={Crosshair} title="Attack Flow" />
-        <div className={styles.emptyMessage}>
-          No weapons available. Add weapons to use the Attack Flow.
-        </div>
+        <EmptyState
+          icon={Crosshair}
+          heading="No weapons available"
+          description="Add a weapon to use the Attack Flow."
+          compact
+          action={onAddWeapon ? { label: 'Add Weapon', onClick: onAddWeapon } : undefined}
+        />
       </Card>
     );
   }

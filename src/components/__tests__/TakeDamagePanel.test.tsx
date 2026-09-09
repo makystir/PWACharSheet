@@ -142,7 +142,7 @@ describe('TakeDamagePanel — basic rendering', () => {
 
   it('renders the hit location selector', () => {
     render(<TakeDamagePanel {...makeProps()} />);
-    expect(screen.getByLabelText('Hit location')).toBeInTheDocument();
+    expect(screen.getByRole('radiogroup', { name: 'Hit location' })).toBeInTheDocument();
   });
 
   it('renders the Apply Wounds button', () => {
@@ -164,22 +164,23 @@ describe('TakeDamagePanel — basic rendering', () => {
 describe('TakeDamagePanel — hit location selector', () => {
   it('defaults to Body', () => {
     render(<TakeDamagePanel {...makeProps()} />);
-    const select = screen.getByLabelText('Hit location') as HTMLSelectElement;
-    expect(select.value).toBe('Body');
+    const body = screen.getByRole('radio', { name: 'Body' });
+    expect(body).toHaveAttribute('aria-checked', 'true');
   });
 
   it('lists all six hit locations', () => {
     render(<TakeDamagePanel {...makeProps()} />);
-    const select = screen.getByLabelText('Hit location') as HTMLSelectElement;
-    const options = Array.from(select.options).map(o => o.text);
+    const group = screen.getByRole('radiogroup', { name: 'Hit location' });
+    const options = Array.from(group.querySelectorAll('[role="radio"]')).map(
+      (el) => el.textContent,
+    );
     expect(options).toEqual(['Head', 'Left Arm', 'Right Arm', 'Body', 'Left Leg', 'Right Leg']);
   });
 
   it('changes selected location', () => {
     render(<TakeDamagePanel {...makeProps()} />);
-    const select = screen.getByLabelText('Hit location');
-    fireEvent.change(select, { target: { value: 'Head' } });
-    expect((select as HTMLSelectElement).value).toBe('Head');
+    fireEvent.click(screen.getByRole('radio', { name: 'Head' }));
+    expect(screen.getByRole('radio', { name: 'Head' })).toHaveAttribute('aria-checked', 'true');
   });
 });
 
@@ -193,13 +194,13 @@ describe('TakeDamagePanel — AP at location', () => {
 
   it('updates AP when location changes to Head (AP = 2)', () => {
     render(<TakeDamagePanel {...makeProps()} />);
-    fireEvent.change(screen.getByLabelText('Hit location'), { target: { value: 'Head' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Head' }));
     expect(screen.getByTestId('ap-at-location')).toHaveTextContent('2');
   });
 
   it('updates AP when location changes to Left Leg (AP = 0)', () => {
     render(<TakeDamagePanel {...makeProps()} />);
-    fireEvent.change(screen.getByLabelText('Hit location'), { target: { value: 'Left Leg' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Left Leg' }));
     expect(screen.getByTestId('ap-at-location')).toHaveTextContent('0');
   });
 });
@@ -245,7 +246,7 @@ describe('TakeDamagePanel — net wounds display', () => {
     // Body: 10 − 4 − 3 = 3
     expect(screen.getByTestId('net-wounds')).toHaveTextContent('3');
     // Switch to Left Leg (AP 0): 10 − 4 − 0 = 6
-    fireEvent.change(screen.getByLabelText('Hit location'), { target: { value: 'Left Leg' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Left Leg' }));
     expect(screen.getByTestId('net-wounds')).toHaveTextContent('6');
   });
 
@@ -316,7 +317,7 @@ describe('TakeDamagePanel — Down alert', () => {
     // wCur=1, Left Leg AP=0, TB=4, damage=6 → net=2, 1-2 → 0
     const onApplyWounds = vi.fn();
     render(<TakeDamagePanel {...makeProps({ wCur: 1, onApplyWounds })} />);
-    fireEvent.change(screen.getByLabelText('Hit location'), { target: { value: 'Left Leg' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Left Leg' }));
     fireEvent.change(screen.getByLabelText('Incoming damage'), { target: { value: '6' } });
     fireEvent.click(screen.getByLabelText('Apply wounds'));
     expect(screen.getByTestId('down-alert')).toBeInTheDocument();
@@ -344,10 +345,10 @@ describe('TakeDamagePanel — reset on apply', () => {
 
   it('retains last location selection after applying', () => {
     render(<TakeDamagePanel {...makeProps()} />);
-    fireEvent.change(screen.getByLabelText('Hit location'), { target: { value: 'Head' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Head' }));
     fireEvent.change(screen.getByLabelText('Incoming damage'), { target: { value: '12' } });
     fireEvent.click(screen.getByLabelText('Apply wounds'));
-    expect((screen.getByLabelText('Hit location') as HTMLSelectElement).value).toBe('Head');
+    expect(screen.getByRole('radio', { name: 'Head' })).toHaveAttribute('aria-checked', 'true');
   });
 });
 
@@ -486,7 +487,7 @@ describe('TakeDamagePanel — min1Wound prop', () => {
       fireEvent.change(screen.getByLabelText('Incoming damage'), { target: { value: '10' } });
       expect(screen.getByTestId('net-wounds')).toHaveTextContent('3');
 
-      fireEvent.change(screen.getByLabelText('Hit location'), { target: { value: 'Left Leg' } });
+      fireEvent.click(screen.getByRole('radio', { name: 'Left Leg' }));
       expect(screen.getByTestId('net-wounds')).toHaveTextContent('6');
     });
 
@@ -498,7 +499,7 @@ describe('TakeDamagePanel — min1Wound prop', () => {
       fireEvent.change(screen.getByLabelText('Incoming damage'), { target: { value: '10' } });
       expect(screen.getByTestId('net-wounds')).toHaveTextContent('3');
 
-      fireEvent.change(screen.getByLabelText('Hit location'), { target: { value: 'Left Leg' } });
+      fireEvent.click(screen.getByRole('radio', { name: 'Left Leg' }));
       expect(screen.getByTestId('net-wounds')).toHaveTextContent('6');
     });
   });

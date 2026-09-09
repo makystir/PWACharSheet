@@ -18,6 +18,13 @@ interface CriticalWoundsPanelProps {
   defaultCollapsed?: boolean;
   preselectedLocation?: HitLocation;
   onAddWound?: (wound: Omit<CriticalWound, 'id' | 'timestamp'>) => void;
+  /**
+   * When true, the panel opens the RollCriticalFlow immediately and expands the
+   * panel. Used by the Take-Damage → critical-wound hand-off
+   * (ux-audit-improvements Req 8.2) so activating "Roll Critical Wound" from the
+   * damage panel surfaces the existing critical flow without navigating away.
+   */
+  autoOpenRollFlow?: boolean;
 }
 
 function getSeverityClass(severity: number): string {
@@ -26,10 +33,22 @@ function getSeverityClass(severity: number): string {
   return styles.severityLow;
 }
 
-export function CriticalWoundsPanel({ criticalWounds, onAdd, onHeal, onUpdate, defaultCollapsed = false, preselectedLocation, onAddWound }: CriticalWoundsPanelProps) {
+export function CriticalWoundsPanel({ criticalWounds, onAdd, onHeal, onUpdate, defaultCollapsed = false, preselectedLocation, onAddWound, autoOpenRollFlow = false }: CriticalWoundsPanelProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [showRollFlow, setShowRollFlow] = useState(false);
   const activeWounds = criticalWounds.filter((w) => !w.healed);
+
+  // Take-Damage → critical hand-off (Req 8.2): when the host requests it, expand
+  // the panel and open the existing RollCriticalFlow. Tracks the trigger value so
+  // a fresh hand-off re-opens the flow even after a prior cancel.
+  const [autoOpenSeen, setAutoOpenSeen] = useState(false);
+  if (autoOpenRollFlow && !autoOpenSeen) {
+    setAutoOpenSeen(true);
+    setCollapsed(false);
+    setShowRollFlow(true);
+  } else if (!autoOpenRollFlow && autoOpenSeen) {
+    setAutoOpenSeen(false);
+  }
 
   function handleRollCriticalConfirm(wound: Omit<CriticalWound, 'id' | 'timestamp'>) {
     if (onAddWound) {

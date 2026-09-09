@@ -18,6 +18,7 @@ import { RuneManager } from '../shared/RuneManager';
 import { RollHistoryPanel } from '../shared/RollHistoryPanel';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { CombatDashboard } from '../combat/CombatDashboard';
+import { HouseRuleIndicator } from '../combat/HouseRuleIndicator';
 import { AttackFlow } from '../combat/AttackFlow';
 import { QuickRollBar } from '../combat/QuickRollBar';
 import { TakeDamagePanel } from '../combat/TakeDamagePanel';
@@ -31,6 +32,9 @@ import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { WEAPONS } from '../../data/weapons';
 import { ARMOURS } from '../../data/armour';
 import { applyCondition, removeCondition, incrementAdvantage, decrementAdvantage } from '../../logic/combat';
+import { clearCombatTarget } from '../../logic/combat-target';
+import { appendEvent, clearEventLog } from '../../logic/event-log';
+import { TimelineView } from '../shared/TimelineView';
 import { recordCriticalWound, healCriticalWound } from '../../logic/critical-wounds';
 import { getBonus } from '../../logic/calculators';
 import { findSkillForWeapon, RANGED_GROUPS } from '../../logic/weapons';
@@ -70,6 +74,9 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
   const [showConditionPicker, setShowConditionPicker] = useState(false);
   const [downLocation, setDownLocation] = useState<HitLocation | undefined>(undefined);
   const [combatMode, setCombatMode] = useState<CombatMode>('attack');
+  // Take-Damage → critical-wound hand-off (ux-audit-improvements Req 8.2): when set,
+  // the Status-mode CriticalWoundsPanel auto-opens the existing RollCriticalFlow.
+  const [rollCriticalHandoff, setRollCriticalHandoff] = useState(false);
   const [expiredConditionQueue, setExpiredConditionQueue] = useState<string[]>([]);
 
   const isMobile = useMediaQuery('(max-width: 767px)');
@@ -133,7 +140,17 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
 
   /* ── START / END COMBAT ── */
   const startCombat = () => { update('combatState.inCombat', true); update('combatState.currentRound', 1); };
-  const endCombat = () => { update('combatState.inCombat', false); update('combatState.currentRound', 0); update('advantage', 0); };
+  const endCombat = () => {
+    // Clear the ad-hoc Combat_Target when combat ends (ux-audit-improvements Req 1.5).
+    updateCharacter((c) => {
+      const cleared = clearCombatTarget(c);
+      return {
+        ...cleared,
+        combatState: { ...cleared.combatState, inCombat: false, currentRound: 0 },
+        advantage: 0,
+      };
+    });
+  };
 
   /* ── Spell casting eligibility ── */
   const hasSpellcasting = character.spells.length > 0 ||
@@ -142,6 +159,9 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
 
   return (
     <div className={styles.sectionGap} data-domain="combat">
+      {/* ── Active house-rule indicator (read-only; ux-audit-improvements Req 11) ── */}
+      <HouseRuleIndicator houseRules={character.houseRules} />
+
       {/* ── Segmented Control: Attack / Defend / Status (active combat only) ── */}
       {inCombat && (
         <div className={`${styles.segmentedControl} ${styles.segmentedControlSticky}`} role="tablist" aria-label="Combat mode">
@@ -150,7 +170,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
             role="tab"
             aria-selected={combatMode === 'attack'}
             className={combatMode === 'attack' ? styles.segmentActive : styles.segment}
-            onClick={() => setCombatMode('attack')}
+            onClick={() => { setRollCriticalHandoff(false); setCombatMode('attack'); }}
           >
             Attack
           </button>
@@ -159,7 +179,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
             role="tab"
             aria-selected={combatMode === 'defend'}
             className={combatMode === 'defend' ? styles.segmentActive : styles.segment}
-            onClick={() => setCombatMode('defend')}
+            onClick={() => { setRollCriticalHandoff(false); setCombatMode('defend'); }}
           >
             Defend
           </button>
@@ -168,7 +188,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
             role="tab"
             aria-selected={combatMode === 'status'}
             className={combatMode === 'status' ? styles.segmentActive : styles.segment}
-            onClick={() => setCombatMode('status')}
+            onClick={() => { setRollCriticalHandoff(false); setCombatMode('status'); }}
           >
             Status
           </button>
@@ -270,21 +290,31 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
         />
       )}
 
-      {/* ── Attack mode panels ── */}
-      {inCombat && combatMode === 'attack' && (
-        <>
+      {/*
+        ── Attack mode panels ──
+        Kept MOUNTED while combat is active and hidden via CSS when another mode
+        is selected, so AttackFlow's internal step/target state persists across
+        mode switches (ux-audit-improvements Req 9.3).
+      */}
+      {inCombat && (
+        <div className={combatMode === 'attack' ? styles.modePanel : styles.modePanelHidden} aria-hidden={combatMode !== 'attack'}>
           <CollapsibleSection title="Attack Flow" storageKey={`collapsible-attack-flow-${characterId}`} defaultExpanded={true}>
-            <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} />
+            <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} updateCharacter={updateCharacter} onAddWeapon={() => setShowWeaponPicker(true)} />
           </CollapsibleSection>
           <CollapsibleSection title="Quick Roll" storageKey={`collapsible-quick-roll-${characterId}`} defaultExpanded={false}>
             <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
           </CollapsibleSection>
-        </>
+        </div>
       )}
 
-      {/* ── Defend mode panels ── */}
-      {inCombat && combatMode === 'defend' && (
-        <>
+      {/*
+        ── Defend mode panels ──
+        Kept MOUNTED while combat is active and hidden via CSS when another mode
+        is selected, so TakeDamagePanel's entered values persist across mode
+        switches (ux-audit-improvements Req 9.3).
+      */}
+      {inCombat && (
+        <div className={combatMode === 'defend' ? styles.modePanel : styles.modePanelHidden} aria-hidden={combatMode !== 'defend'}>
           <CollapsibleSection title="Take Damage" storageKey={`collapsible-take-damage-${characterId}`} defaultExpanded={true}>
             <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} armourList={character.armour} weapons={character.weapons} wCur={character.wCur} totalWounds={totalWounds}
               useCriticalDeflection={character.houseRules?.useCriticalDeflection ?? false}
@@ -296,7 +326,26 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
                 });
               }}
               onApplyWounds={(w) => update('wCur', Math.max(0, character.wCur - w))} min1Wound={character.houseRules.min1Wound}
-              onDown={(location) => setDownLocation(location)} />
+              onLogDamage={(netWounds, newWCur, location) => {
+                updateCharacter((c) =>
+                  appendEvent(c, {
+                    category: 'combat',
+                    type: 'combat.damage',
+                    summary: `Took ${netWounds} wound${netWounds !== 1 ? 's' : ''} to ${location} — Wounds now ${newWCur}`,
+                    payload: { netWounds, newWCur, location },
+                  }),
+                );
+              }}
+              onDown={(location) => setDownLocation(location)}
+              onRollCritical={(location) => {
+                // Hand off to the existing critical-wound flow without navigating away
+                // (ux-audit-improvements Req 8.2, 8.4). Surface it in Status mode and
+                // ask the CriticalWoundsPanel to auto-open RollCriticalFlow with the
+                // hit location preselected. No new critical logic is introduced here.
+                setDownLocation(location);
+                setRollCriticalHandoff(true);
+                setCombatMode('status');
+              }} />
           </CollapsibleSection>
           <CollapsibleSection title="Armour" storageKey={`combat-armour-defend-${characterId}`} defaultExpanded={true}>
             <ArmourMap armourPoints={armourPoints} armourList={character.armour}
@@ -320,7 +369,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
               onOpenArmourPicker={() => setShowArmourPicker(true)}
               onAddCustomArmour={() => updateCharacter((c) => ({ ...c, armour: [...c.armour, { name: '', locations: '', enc: '0', ap: 0, qualities: '' }] }))} />
           </CollapsibleSection>
-        </>
+        </div>
       )}
 
       {/* ── Status mode: Fortune/Resolve and Spells ── */}
@@ -419,13 +468,29 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
               onUpdate={(i, field, value) => updateCharacter((c) => ({ ...c, criticalWounds: c.criticalWounds.map((w, j) => j === i ? { ...w, [field]: value } : w) }))}
               defaultCollapsed={isMobile}
               preselectedLocation={downLocation}
-              onAddWound={(wound) => { updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, wound) })); setDownLocation(undefined); }} />
+              autoOpenRollFlow={rollCriticalHandoff}
+              onAddWound={(wound) => { updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, wound) })); setDownLocation(undefined); setRollCriticalHandoff(false); }} />
           </CollapsibleSection>
           {rollHistory && rollHistory.length > 0 && clearHistory && (
             <CollapsibleSection title="Roll History" storageKey={`combat-history-${characterId}`} defaultExpanded={!isMobile}>
               <RollHistoryPanel history={rollHistory} onClear={clearHistory} defaultExpanded={true} />
             </CollapsibleSection>
           )}
+          {/*
+            ── History (unified event log) ──
+            Surfaces the unified-event-log TimelineView sourced purely from
+            `character.eventLog` — no separate roll store (ux-audit-improvements
+            Req 13.1, 13.4). TimelineView's own category chips already allow
+            filtering to `roll` and `combat` among the other categories (empty
+            selection = show all), satisfying Req 13.3. Clearing mirrors App's
+            pattern via `clearEventLog` through `updateCharacter` (Req 13.2).
+          */}
+          <CollapsibleSection title="History" storageKey={`combat-event-log-${characterId}`} defaultExpanded={!isMobile}>
+            <TimelineView
+              events={character.eventLog ?? []}
+              onClear={() => updateCharacter((c) => clearEventLog(c))}
+            />
+          </CollapsibleSection>
         </>
       )}
 

@@ -205,6 +205,33 @@
   margin-bottom: 10px;
 }
 
+/* ─── Critical-wound hand-off (Req 8.1–8.4) ─────────────────────────────────── */
+
+.rollCriticalBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 20px;
+  background: rgba(200, 80, 80, 0.2);
+  border: 2px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.rollCriticalBtn:hover {
+  background: rgba(200, 80, 80, 0.35);
+}
+
+.rollCriticalBtn:active {
+  transform: scale(0.98);
+}
+
 /* ─── Critical Wound Notification ───────────────────────────────────────────── */
 
 .criticalWoundNotification {

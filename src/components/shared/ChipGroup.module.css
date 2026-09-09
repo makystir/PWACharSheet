@@ -1,0 +1,47 @@
+/* ChipGroup component styles (ux-audit-improvements Req 10)
+   Reuses the app's existing chip/button styling tokens (matching AttackFlow
+   .weaponBtn / .offHandBtn conventions) so the chips look native to combat
+   surfaces. Chips are ≥44px tall for touch targets (ui-layout steering rule). */
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chipSelected {
+  composes: chip;
+  background: rgba(200, 168, 76, 0.2);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.chip:focus-visible,
+.chipSelected:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .chip,
+  .chipSelected {
+    min-height: var(--mobile-touch-min, 44px);
+  }
+}

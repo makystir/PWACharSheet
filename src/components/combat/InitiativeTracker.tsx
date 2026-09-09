@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import type { Character, Combatant } from '../../types/character';
-import { sortByInitiative, nextTurn } from '../../logic/initiative';
+import { sortByInitiative, nextTurn, rollInitiative } from '../../logic/initiative';
+import type { InitiativeRollResult } from '../../logic/initiative';
+import { appendEvent } from '../../logic/event-log';
 import { Card } from '../shared/Card';
+import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
+import { Tooltip } from '../shared/Tooltip';
+import { Dices } from 'lucide-react';
 import styles from './InitiativeTracker.module.css';
 
 interface InitiativeTrackerProps {
@@ -12,6 +17,11 @@ interface InitiativeTrackerProps {
 export function InitiativeTracker({ character, updateCharacter }: InitiativeTrackerProps) {
   const [name, setName] = useState('');
   const [initiative, setInitiative] = useState('');
+  // The most recent roll result, retained so its breakdown can be shown in a
+  // calculated-total tooltip while the value sits in the input awaiting commit
+  // (calculated-total-tooltips steering rule; Req 4.7 — value shown before commit).
+  const [lastRoll, setLastRoll] = useState<InitiativeRollResult | null>(null);
+  const [rollTooltipAnchor, setRollTooltipAnchor] = useState<HTMLElement | null>(null);
 
   const combatants = character.initiativeList ?? [];
   const activeIndex = character.activeInitiativeIndex ?? 0;
@@ -20,6 +30,36 @@ export function InitiativeTracker({ character, updateCharacter }: InitiativeTrac
   const isFormValid = () => {
     const initVal = parseInt(initiative, 10);
     return name.trim() !== '' && !isNaN(initVal);
+  };
+
+  /**
+   * Roll initiative for the PC using the configured house-rule formula
+   * (spec: ux-audit-improvements, Req 4.1, 4.2, 4.4). The rolled value is placed
+   * in the initiative input WITHOUT committing to the list, so the user can
+   * accept or change it before adding (Req 4.7). A `combat` event summarising the
+   * roll (die + formula + value) is appended (Req 4.5) via the unified event log.
+   */
+  const handleRollInitiative = () => {
+    const result = rollInitiative(character.houseRules.initiativeFormula, character);
+    setInitiative(String(result.value));
+    setLastRoll(result);
+    logInitiativeRoll(result);
+  };
+
+  const logInitiativeRoll = (result: InitiativeRollResult) => {
+    updateCharacter((char) =>
+      appendEvent(char, {
+        category: 'combat',
+        type: 'combat.initiative',
+        summary: `Rolled initiative: ${result.breakdown}`,
+        payload: {
+          value: result.value,
+          die: result.die,
+          formula: result.formula,
+          breakdown: result.breakdown,
+        },
+      }),
+    );
   };
 
   const handleAdd = () => {
@@ -38,6 +78,7 @@ export function InitiativeTracker({ character, updateCharacter }: InitiativeTrac
 
     setName('');
     setInitiative('');
+    setLastRoll(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -157,10 +198,26 @@ export function InitiativeTracker({ character, updateCharacter }: InitiativeTrac
               className={sorted.length === 0 ? styles.formInputCompact : styles.formInput}
               placeholder="Init"
               value={initiative}
-              onChange={(e) => setInitiative(e.target.value)}
+              onChange={(e) => {
+                setInitiative(e.target.value);
+                // A manual edit invalidates the roll breakdown tooltip.
+                setLastRoll(null);
+              }}
               onKeyDown={handleKeyDown}
             />
           </div>
+          {/* Roll Initiative for the PC (Req 4.1, 4.2); also serves as the
+              per-combatant roll since the value lands in the shared input before
+              commit (Req 4.3, 4.7). */}
+          <button
+            type="button"
+            className={sorted.length === 0 ? styles.rollBtnCompact : styles.rollBtn}
+            onClick={handleRollInitiative}
+            aria-label="Roll initiative"
+            title="Roll initiative"
+          >
+            <Dices size={16} aria-hidden="true" />
+          </button>
           <button
             type="button"
             className={sorted.length === 0 ? styles.addBtnCompact : styles.addBtn}
@@ -171,6 +228,33 @@ export function InitiativeTracker({ character, updateCharacter }: InitiativeTrac
             +
           </button>
         </div>
+
+        {/* Rolled-value breakdown (calculated-total-tooltips): shows how the
+            initiative value was calculated while it awaits commit (Req 4.7). */}
+        {lastRoll && (
+          <div className={styles.rollBreakdown}>
+            <span className={styles.rollBreakdownLabel}>Rolled</span>
+            <TooltipTriggerCell
+              tooltipId="tooltip-initiative-roll"
+              displayValue={lastRoll.value}
+              isTooltipOpen={rollTooltipAnchor !== null}
+              onOpen={(anchorEl) => setRollTooltipAnchor(anchorEl)}
+              onClose={() => setRollTooltipAnchor(null)}
+              className={styles.rollBreakdownValue}
+              ariaLabel={`Initiative roll ${lastRoll.value}. Show breakdown.`}
+            />
+          </div>
+        )}
+        {lastRoll && rollTooltipAnchor && (
+          <Tooltip
+            anchorEl={rollTooltipAnchor}
+            title="Initiative Roll"
+            onClose={() => setRollTooltipAnchor(null)}
+            id="tooltip-initiative-roll"
+          >
+            <div className={styles.rollTooltipBody}>{lastRoll.breakdown}</div>
+          </Tooltip>
+        )}
       </div>
     </Card>
   );

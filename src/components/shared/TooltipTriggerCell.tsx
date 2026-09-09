@@ -17,6 +17,8 @@ export interface TooltipTriggerCellProps {
   className?: string;
   /** Accessible label for the button role */
   ariaLabel?: string;
+  /** Optional test id forwarded to the cell element */
+  dataTestId?: string;
 }
 
 export function TooltipTriggerCell({
@@ -27,6 +29,7 @@ export function TooltipTriggerCell({
   onClose,
   className,
   ariaLabel,
+  dataTestId,
 }: TooltipTriggerCellProps) {
   const hoverOpenTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -109,6 +112,7 @@ export function TooltipTriggerCell({
       tabIndex={0}
       role="button"
       aria-label={ariaLabel}
+      data-testid={dataTestId}
       aria-describedby={isTooltipOpen ? tooltipId : undefined}
       onClick={handleClick}
       onKeyDown={handleKeyDown}

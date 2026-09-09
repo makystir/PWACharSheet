@@ -276,6 +276,9 @@ export const arbitraryHouseRules: fc.Arbitrary<HouseRules> = fc.record({
   usePsychologyTracker: fc.boolean(),
   useCriticalDeflection: fc.boolean(),
   useEnterprises: fc.boolean(),
+  useCants: fc.boolean(),
+  ignoreBackpackEnc: fc.boolean(),
+  initiativeFormula: fc.constantFrom('initiativePlusD10', 'initiativeAgilityTest'),
 });
 
 export const arbitraryEstate: fc.Arbitrary<Estate> = fc.record({

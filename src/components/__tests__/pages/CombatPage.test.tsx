@@ -146,14 +146,19 @@ describe('CombatPage mode switching', () => {
   });
 
   it('END COMBAT resets inCombat, advantage, and currentRound', () => {
-    const { update } = renderCombatPage({
+    // END COMBAT now performs a single functional updateCharacter that also
+    // clears the ad-hoc Combat_Target (ux-audit-improvements Req 1.5), so we
+    // assert the resulting character state rather than separate update() calls.
+    const { updateCharacter, getCaptured } = renderCombatPage({
       combatState: { inCombat: true, initiative: 0, currentRound: 3, engaged: false, surprised: false },
       advantage: 5,
     });
     fireEvent.click(screen.getByRole('button', { name: 'END COMBAT' }));
-    expect(update).toHaveBeenCalledWith('combatState.inCombat', false);
-    expect(update).toHaveBeenCalledWith('combatState.currentRound', 0);
-    expect(update).toHaveBeenCalledWith('advantage', 0);
+    expect(updateCharacter).toHaveBeenCalled();
+    const result = getCaptured();
+    expect(result.combatState.inCombat).toBe(false);
+    expect(result.combatState.currentRound).toBe(0);
+    expect(result.advantage).toBe(0);
   });
 });
 
