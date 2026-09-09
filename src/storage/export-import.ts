@@ -5,7 +5,7 @@ import { blobToBase64, base64ToBlob, isValidPortraitDataUrl } from './portrait-c
 import { createCharacter, saveCharacter } from './character-manager';
 import { migrateCharacterArmour } from '../logic/armourMigration';
 
-const CURRENT_VERSION = 7;
+const CURRENT_VERSION = 8;
 
 const REQUIRED_TOP_LEVEL_KEYS: (keyof Character)[] = [
   '_v', 'name', 'species', 'chars',
@@ -83,7 +83,7 @@ export function importFromJSON(json: string): { success: boolean; character?: Ch
     structuredClone(BLANK_CHARACTER),
     data,
   );
-  character._v = 7;
+  character._v = 8;
 
   // Migrate armour items to expanded format (defaults currentAp, visorOpen, armourType; renames old entries)
   if (character.armour && character.armour.length > 0) {

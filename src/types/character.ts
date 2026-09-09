@@ -563,8 +563,99 @@ export interface HouseRules {
   ignoreBackpackEnc: boolean;
 }
 
+/**
+ * Unified event log data model (spec: unified-event-log).
+ *
+ * The event log is a single, per-character, append-only stream of structured
+ * display/audit events. It is NEVER read to reconstruct mechanics — advancement
+ * (undo/redo, archive) and the estate ledger (wealth math) remain the
+ * authoritative typed structures and only mirror into this log.
+ */
+
+/** Coarse grouping used for filtering the timeline. (Req 1.3) */
+export type LogCategory =
+  | 'roll'
+  | 'advancement'
+  | 'combat'
+  | 'wealth'
+  | 'condition'
+  | 'session'
+  | 'system';
+
+/**
+ * A single structured record in the event log. (Req 1.2)
+ * Stored oldest-first; the timeline reverses for display.
+ */
+export interface LogEvent {
+  /** Unique within a character's eventLog (UUID-style string). */
+  id: string;
+  /** ms since epoch, set at append time. */
+  timestamp: number;
+  /** Coarse category for filtering. */
+  category: LogCategory;
+  /** Discriminator within a category, e.g. 'roll.skill', 'combat.attack'. */
+  type: string;
+  /** Human-readable, pre-rendered summary for the timeline. */
+  summary: string;
+  /** Structured detail; shape depends on `type` (see per-category payloads). */
+  payload: Record<string, unknown>;
+}
+
+/**
+ * Payload for `category: 'roll'` events (migrated roll history).
+ * Captures enough to render the details roll history previously showed. (Req 4.2)
+ */
+export interface RollEventPayload {
+  /** Skill or characteristic name. */
+  name: string;
+  /** d100 result. */
+  roll: number;
+  /** Target number. */
+  target: number;
+  /** Success levels. */
+  sl: number;
+  /** Whether the roll passed. */
+  passed: boolean;
+  /** True on a critical success. */
+  isCritical?: boolean;
+  /** True on a fumble. */
+  isFumble?: boolean;
+}
+
+/**
+ * Payload for `category: 'advancement'` mirror events. (Req 5.2, 5.4)
+ * Display-only mirror of an `AdvancementEntry`; never read back for mechanics.
+ */
+export interface AdvancementEventPayload {
+  /** Mirrors `AdvancementEntry.type`. */
+  entryType: string;
+  /** Name of the advanced characteristic/skill/talent/etc. */
+  name: string;
+  /** Value before the advance. */
+  from: number;
+  /** Value after the advance. */
+  to: number;
+  /** XP cost of the advance. */
+  xpCost: number;
+  /** True for undo mirror events. */
+  undo?: boolean;
+}
+
+/**
+ * Payload for `category: 'wealth'` mirror events. (Req 6.2)
+ * Display-only mirror of a `LedgerEntry`; never read back for treasury math.
+ */
+export interface WealthEventPayload {
+  /** Mirrors `LedgerEntry.type`. */
+  entryType: string;
+  /** Description of the ledger entry. */
+  description: string;
+  /** Monetary amount in d/ss/gc. */
+  amount: { d: number; ss: number; gc: number };
+}
+
 export interface Character {
-  _v: 7;
+  _v: 8;
   name: string;
   species: string;
   class: string;
@@ -658,6 +749,12 @@ export interface Character {
   arcaneMarks?: string[];
   initiativeList?: Combatant[];
   activeInitiativeIndex?: number;
+  /**
+   * Unified event log (spec: unified-event-log). Optional for backward-compatible
+   * loads of pre-feature characters; concrete (`[]`) on new characters. Display/audit
+   * only — never read to reconstruct mechanics.
+   */
+  eventLog?: LogEvent[];
   log: string[];
 }
 
@@ -695,7 +792,7 @@ const DEFAULT_BONUS_OVERRIDES: Record<CharacteristicKey, boolean> = {
 };
 
 export const BLANK_CHARACTER: Character = {
-  _v: 7,
+  _v: 8,
   name: '',
   species: '',
   class: '',
@@ -832,5 +929,6 @@ export const BLANK_CHARACTER: Character = {
   diseases: [],
   rituals: [],
   arcaneMarks: [],
+  eventLog: [],
   log: [],
 };

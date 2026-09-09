@@ -57,6 +57,8 @@ import { CurrencyInput } from '../shared/CurrencyInput';
 import { ConsumablesPanel } from '../shared/ConsumablesPanel';
 import { UnifiedPsychologyPanel } from './UnifiedPsychologyPanel';
 import { SessionNotesPanel } from '../shared/SessionNotesPanel';
+import { TimelineView } from '../shared/TimelineView';
+import { clearEventLog } from '../../logic/event-log';
 import { applyCurrencyDelta } from '../../logic/currency';
 import { filterSkills } from '../../logic/skill-filter';
 import { SkillFilter } from '../shared/SkillFilter';
@@ -1987,6 +1989,14 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
       {/* Session Notes */}
       <SessionNotesPanel character={character} updateCharacter={updateCharacter} />
+
+      {/* Timeline — minimal standalone entry point for the unified event log (unified-event-log spec §5) */}
+      <CollapsibleSection title="Timeline" storageKey="collapsible-timeline" defaultExpanded={false}>
+        <TimelineView
+          events={character.eventLog ?? []}
+          onClear={() => updateCharacter((c) => clearEventLog(c))}
+        />
+      </CollapsibleSection>
       </>)}
       </div>{/* end expandedContentInner */}</div>{/* end expandedContent */}
 

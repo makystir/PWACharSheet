@@ -31,7 +31,10 @@ import { computeSkillTarget } from './logic/dice-roller';
 import type { RollResult } from './logic/dice-roller';
 import { useCharacterManager } from './hooks/useCharacterManager';
 import { useCharacter } from './hooks/useCharacter';
-import { useRollHistory } from './hooks/useRollHistory';
+import type { RollHistoryEntry } from './hooks/useRollHistory';
+import { appendEvent, clearEventLog } from './logic/event-log';
+import { rollEventsToHistory } from './components/shared/rollHistoryAdapter';
+import type { RollEventPayload } from './types/character';
 import { useHashRoute } from './hooks/useHashRoute';
 import { useStorageErrorToast } from './hooks/useStorageErrorToast';
 import { runMigration } from './storage/migration';
@@ -193,6 +196,27 @@ function fieldToLabel(field: string): string {
   return parts[parts.length - 1];
 }
 
+/**
+ * Build a concise, human-readable summary for a roll event.
+ * e.g. "Melee: 42/55 (SL +1, pass)"
+ */
+function buildRollSummary(result: RollResult): string {
+  return `${result.skillOrCharName}: ${result.roll}/${result.targetNumber} (SL ${result.sl}, ${result.passed ? 'pass' : 'fail'})`;
+}
+
+/** Extract the `RollEventPayload` fields from a completed `RollResult`. (Req 4.2) */
+function toRollPayload(result: RollResult): RollEventPayload {
+  return {
+    name: result.skillOrCharName,
+    roll: result.roll,
+    target: result.targetNumber,
+    sl: result.sl,
+    passed: result.passed,
+    isCritical: result.isCritical,
+    isFumble: result.isFumble,
+  };
+}
+
 function AppWithCharacter({
   manager,
   page,
@@ -205,7 +229,33 @@ function AppWithCharacter({
   navigate: (page: PageSection, subTab?: string | null) => void;
 }) {
   const { character, update, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight } = useCharacter(manager.activeId, manager.activeCharacter!);
-  const { history: rollHistory, addRoll, clearHistory } = useRollHistory();
+
+  // Roll history is now sourced from the unified event log (Req 4.1–4.4, 4.6).
+  // Live rolls are appended as `roll` LogEvents on the active character rather
+  // than the legacy global `wfrp-roll-history` key.
+  const addRoll = useCallback((result: RollResult) => {
+    const summary = buildRollSummary(result);
+    const payload = toRollPayload(result);
+    // `kind` discriminates the roll type within the category; generic for now.
+    const kind = 'generic';
+    updateCharacter((c) =>
+      appendEvent(c, {
+        category: 'roll',
+        type: `roll.${kind}`,
+        summary,
+        payload: payload as unknown as Record<string, unknown>,
+      }),
+    );
+  }, [updateCharacter]);
+
+  const clearHistory = useCallback(() => {
+    // Clear routes through the unified timeline clear path (Req 9.3).
+    updateCharacter((c) => clearEventLog(c));
+  }, [updateCharacter]);
+
+  // Derive the roll-history display list from the event log via the adapter.
+  // The adapter filters to `roll` events and reverses to newest-first (task 6.2).
+  const rollHistory: RollHistoryEntry[] = rollEventsToHistory(character.eventLog ?? []);
   const { theme: currentTheme, setTheme } = useTheme();
   const [showWizard, setShowWizard] = useState(false);
   const [showNewCharChoice, setShowNewCharChoice] = useState(false);

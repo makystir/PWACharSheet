@@ -84,9 +84,9 @@ const arbitraryMissingFieldsJSON: fc.Arbitrary<string> = fc.oneof(
 );
 
 /**
- * Generator for JSON with unsupported version (> 7).
+ * Generator for JSON with unsupported version (> 8).
  */
-const arbitraryUnsupportedVersionJSON: fc.Arbitrary<string> = fc.integer({ min: 8, max: 999 }).map(v =>
+const arbitraryUnsupportedVersionJSON: fc.Arbitrary<string> = fc.integer({ min: 9, max: 999 }).map(v =>
   JSON.stringify({ _v: v, name: 'Test', species: 'Human', chars: {} })
 );
 

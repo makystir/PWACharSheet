@@ -1,0 +1,479 @@
+{
+  "pbtResults": {
+    "2.4 Write property test for capping/rotation": {
+      "status": "passed",
+      "lastRunTimestamp": 1788969205577
+    }
+  },
+  "executionHistory": {
+    "1.1 Define `LogCategory`, `LogEvent`, and per-category payload interfaces": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968810949
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968818011
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968906550
+      }
+    ],
+    "2.1 Implement `appendEvent`, `rotate`, and `EVENT_LOG_CAP`": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968810989
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968910836
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968993228
+      }
+    ],
+    "2.2 Implement `filterByCategory`, `normaliseEventLog`, and `clearEventLog`": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811025
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968996262
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969064832
+      }
+    ],
+    "2.3 Write property test for append behaviour": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811061
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969069859
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969153890
+      }
+    ],
+    "2.4 Write property test for capping/rotation": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811088
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969157529
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969218959
+      }
+    ],
+    "2.5 Write property test for filter and normalise": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811116
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969222331
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969295930
+      }
+    ],
+    "2.6 Write unit test for `clearEventLog` isolation": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811145
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969070794
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969154511
+      }
+    ],
+    "3. Checkpoint - core log service": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811172
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969390876
+      }
+    ],
+    "4.1 Implement `mirrorAdvancement` and `mirrorLedger`": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811201
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969304013
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969391680
+      }
+    ],
+    "4.2 Write unit tests for the mirror helpers": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811229
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969395769
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970292680
+      }
+    ],
+    "5.1 Emit advancement mirror events": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811254
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969396737
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970293612
+      }
+    ],
+    "5.2 Emit wealth mirror events": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811297
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969397635
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970294592
+      }
+    ],
+    "5.3 Write integration test for advancement undo/redo independence": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811325
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970300537
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970466701
+      }
+    ],
+    "6.1 Re-source live roll writes and reads through the event log": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811352
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970301432
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970467795
+      }
+    ],
+    "6.2 Adapt `RollHistoryPanel` to the event-log source": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811378
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970470639
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970906137
+      }
+    ],
+    "6.3 One-time legacy roll-history migration": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811408
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970909325
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971035252
+      }
+    ],
+    "6.4 Write unit tests for roll migration": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811435
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971041876
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971183549
+      }
+    ],
+    "7.1 Normalise the event log on load": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811463
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970910268
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971036125
+      }
+    ],
+    "7.2 Bump the export schema version": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811493
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970910982
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971182582
+      }
+    ],
+    "7.3 Write persistence and export/import tests": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811522
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971193137
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971389805
+      }
+    ],
+    "8.1 Implement `TimelineView` in `src/components/shared/TimelineView.tsx`": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811552
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971042923
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971184931
+      }
+    ],
+    "8.2 Mount `TimelineView` at a minimal standalone surface": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811581
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971394566
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971661409
+      }
+    ],
+    "8.3 Write render tests for `TimelineView`": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811609
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971395459
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971662347
+      }
+    ],
+    "8.4 Confirm no regression in roll display": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811636
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971396228
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971663269
+      }
+    ],
+    "9. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968811681
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971667873
+      },
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971891005
+      }
+    ],
+    "1. Add the event-log data model": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788968906583
+      }
+    ],
+    "2. Implement the pure `Log_Service` in `src/logic/event-log.ts`": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788969295959
+      }
+    ],
+    "4. Implement mirror helpers in `src/logic/event-log-mirrors.ts`": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970292715
+      }
+    ],
+    "5. Wire mirror emission into the authoritative write paths": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788970466723
+      }
+    ],
+    "6. Migrate roll history into the event log": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971183588
+      }
+    ],
+    "7. Persistence, export, and import": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971389844
+      }
+    ],
+    "8. Build the `TimelineView` component": [
+      {
+        "executionId": "94c35b91-77db-40c1-8a85-d4c7c2d75a64",
+        "chatSessionId": "sess_00990471-dd04-49cb-a03b-92d530587f49",
+        "timestamp": 1788971663298
+      }
+    ]
+  }
+}

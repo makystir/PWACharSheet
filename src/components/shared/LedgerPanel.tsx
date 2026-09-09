@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Character, LedgerEntry } from '../../types/character';
 import { applyLedgerEntry } from '../../logic/currency';
+import { mirrorLedger } from '../../logic/event-log-mirrors';
 import { Card } from './Card';
 import styles from './LedgerPanel.module.css';
 
@@ -93,7 +94,9 @@ export function LedgerPanel({ character, updateCharacter }: LedgerPanelProps) {
       };
       const newTreasury = applyLedgerEntry(currentTreasury, newEntry.amount, newEntry.type as 'income' | 'expense');
 
-      return {
+      // Authoritative write: append to estate.ledger and apply treasury.
+      // applyLedgerEntry stays the sole source of truth for wealth math.
+      const withLedger: Character = {
         ...char,
         estate: {
           ...char.estate,
@@ -101,6 +104,12 @@ export function LedgerPanel({ character, updateCharacter }: LedgerPanelProps) {
           treasury: newTreasury,
         },
       };
+
+      // Follow-on display/audit mirror into the unified event log (Req 6.2).
+      // Mirror is a pure transform on the fully-built character: it adds a
+      // 'wealth' eventLog entry on top and leaves ledger + treasury unchanged.
+      // The eventLog is never read to compute treasury/income/expense (Req 6.3).
+      return mirrorLedger(withLedger, newEntry);
     });
 
     setForm(EMPTY_FORM);

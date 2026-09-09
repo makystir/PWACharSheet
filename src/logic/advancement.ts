@@ -2,6 +2,11 @@ import type { Character, CharacteristicKey, AdvancementEntry, Skill, CareerSchem
 import { CAREER_SCHEMES } from '../data/careers';
 import { ADV_SKILL_DB } from '../data/advanced-skills';
 import type { RitualData } from '../data/rituals';
+// Unified event log (spec: unified-event-log, Req 5.2/5.4). Advancement writes
+// are authoritative on `advancementLog`; after each authoritative write we emit
+// a display-only mirror event via `mirrorAdvancement`. The mirror never feeds
+// back into XP/undo/redo mechanics (Req 5.5).
+import { mirrorAdvancement } from './event-log-mirrors';
 
 /** A skill entry tagged with its original array index, type, and career status for sorted rendering. */
 export interface SortedSkillEntry {
@@ -399,13 +404,17 @@ export function learnSpell(
     inCareer: true,
   };
 
-  return {
+  const updated: Character = {
     ...character,
     spells: [...character.spells, { ...spell, memorized: true }],
     xpCur: character.xpCur - cost,
     xpSpent: character.xpSpent + cost,
     advancementLog: [...character.advancementLog, entry],
   };
+
+  // Mirror into the unified event log AFTER the authoritative advancementLog
+  // write (spec: unified-event-log Req 5.2). Only on the success path.
+  return mirrorAdvancement(updated, entry);
 }
 
 /**
@@ -435,13 +444,17 @@ export function advanceCharacteristic(
     inCareer,
   };
 
-  return {
+  const updated: Character = {
     ...character,
     chars: newChars,
     xpCur: character.xpCur - cost,
     xpSpent: character.xpSpent + cost,
     advancementLog: [...character.advancementLog, entry],
   };
+
+  // Mirror into the unified event log AFTER the authoritative advancementLog
+  // write (spec: unified-event-log Req 5.2). Only on the success path.
+  return mirrorAdvancement(updated, entry);
 }
 
 /**
@@ -481,10 +494,12 @@ export function advanceSkill(
     advancementLog: [...character.advancementLog, entry],
   };
 
+  // Mirror into the unified event log AFTER the authoritative advancementLog
+  // write (spec: unified-event-log Req 5.2). Only on the success path.
   if (isBasic) {
-    return { ...character, ...updates, bSkills: newSkills };
+    return mirrorAdvancement({ ...character, ...updates, bSkills: newSkills }, entry);
   } else {
-    return { ...character, ...updates, aSkills: newSkills };
+    return mirrorAdvancement({ ...character, ...updates, aSkills: newSkills }, entry);
   }
 }
 
@@ -667,6 +682,11 @@ export interface UndoResult {
   undoneEntry: AdvancementEntry;
 }
 
+/** Result of a redo operation */
+export interface RedoResult {
+  character: Character;
+}
+
 /**
  * Undo the most recent advancement log entry.
  * Returns the updated character and the undone entry (for pushing onto redo stack),
@@ -688,6 +708,11 @@ export function undoAdvancement(character: Character): UndoResult | null {
     advancementLog: newLog,
   };
 
+  // Compute the undo result against the authoritative `advancementLog` typed
+  // structure (Req 5.3: undo depends only on advancementLog, never eventLog).
+  // We mirror the undone entry into the unified event log AFTER this switch, as
+  // a follow-on transform on result.character (Req 5.4).
+  const result: UndoResult | null = ((): UndoResult | null => {
   switch (entry.type) {
     case 'characteristic': {
       const key = entry.name as CharacteristicKey;
@@ -807,6 +832,17 @@ export function undoAdvancement(character: Character): UndoResult | null {
     default:
       return { character: base, undoneEntry: entry };
   }
+  })();
+
+  if (result === null) return null;
+
+  // Mirror the undo into the unified event log as a display-only follow-on
+  // (spec: unified-event-log Req 5.4). This APPENDS an undo mirror event rather
+  // than mutating/deleting prior events, and never touches advancementLog.
+  return {
+    ...result,
+    character: mirrorAdvancement(result.character, entry, { undo: true }),
+  };
 }
 
 /**
@@ -827,6 +863,10 @@ export function redoAdvancement(character: Character, entry: AdvancementEntry): 
     advancementLog: [...character.advancementLog, entry],
   };
 
+  // Compute the redo result against the authoritative `advancementLog` typed
+  // structure (Req 5.3: redo depends only on advancementLog, never eventLog).
+  // We mirror the redone entry into the unified event log AFTER this switch.
+  const result: RedoResult | null = ((): RedoResult | null => {
   switch (entry.type) {
     case 'characteristic': {
       const key = entry.name as CharacteristicKey;
@@ -916,6 +956,16 @@ export function redoAdvancement(character: Character, entry: AdvancementEntry): 
     default:
       return { character: base };
   }
+  })();
+
+  if (result === null) return null;
+
+  // Mirror the redo into the unified event log as a display-only follow-on
+  // (spec: unified-event-log Req 5.2). Normal (non-undo) advancement mirror.
+  return {
+    ...result,
+    character: mirrorAdvancement(result.character, entry),
+  };
 }
 
 
@@ -979,13 +1029,17 @@ export function learnRitual(
     inCareer: true,
   };
 
-  return {
+  const updated: Character = {
     ...character,
     rituals: [...currentRituals, newRitual],
     xpCur: character.xpCur - cost,
     xpSpent: character.xpSpent + cost,
     advancementLog: [...character.advancementLog, entry],
   };
+
+  // Mirror into the unified event log AFTER the authoritative advancementLog
+  // write (spec: unified-event-log Req 5.2). Only on the success path.
+  return mirrorAdvancement(updated, entry);
 }
 
 // --- Quality-of-life: XP Budget Feedback & Bulk Advancement ---
@@ -1091,9 +1145,18 @@ export function applyBulkAdvancement(
     advancementLog: [...character.advancementLog, ...entries],
   };
 
-  if (isBasic) {
-    return { character: { ...character, ...updates, bSkills: newSkills }, entries };
-  } else {
-    return { character: { ...character, ...updates, aSkills: newSkills }, entries };
-  }
+  const advanced: Character = isBasic
+    ? { ...character, ...updates, bSkills: newSkills }
+    : { ...character, ...updates, aSkills: newSkills };
+
+  // Mirror EACH advance into the unified event log AFTER the authoritative
+  // advancementLog write, so every step in the bulk advance shows in the
+  // timeline (spec: unified-event-log Req 5.2). Success branch only — the
+  // error branches above return before reaching here.
+  const mirrored = entries.reduce<Character>(
+    (acc, entry) => mirrorAdvancement(acc, entry),
+    advanced,
+  );
+
+  return { character: mirrored, entries };
 }
