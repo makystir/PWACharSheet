@@ -103,3 +103,57 @@ export function applyLedgerEntry(
     d: treasury.d + sign * amount.d,
   };
 }
+
+/** Why a transfer was rejected. Discriminates the failure branch of TransferResult. */
+export type TransferFailureReason = 'zero-amount' | 'insufficient-funds';
+
+/** Result of transferFunds: either the two new balances, or a typed failure. */
+export type TransferResult =
+  | { ok: true; source: CurrencyDelta; destination: CurrencyDelta }
+  | { ok: false; reason: TransferFailureReason };
+
+/**
+ * Move `amount` from `source` to `destination`, per denomination.
+ *
+ * Core p.293: coin weight is preserved (1 Enc per 200 coins) and the app never
+ * automatically converts a player's coin between denominations (1 GC = 20 ss =
+ * 240 d is a display/summary convention only). Each denomination moves by
+ * exactly its own counted amount — no cross-denomination conversion here.
+ *
+ * Validation order matters — zero is checked before funds:
+ *  - Zero/empty amount (total <= 0) → { ok: false, reason: 'zero-amount' }
+ *    (reuses isValidLedgerAmount semantics). (Req 6.4)
+ *  - Source cannot cover `amount` in every denomination →
+ *    { ok: false, reason: 'insufficient-funds' } (reuses validateTreasuryDelta
+ *    against a negated amount: applying −amount to source must stay >= 0).
+ *    (Req 1.4, 2.4)
+ *
+ * On success returns source − amount and destination + amount per denomination
+ * via applyCurrencyDelta. (Req 1.2, 2.2, 4.1, 4.2)
+ *
+ * Pure: never mutates its arguments.
+ */
+export function transferFunds(
+  source: CurrencyDelta,
+  destination: CurrencyDelta,
+  amount: CurrencyDelta,
+): TransferResult {
+  // Zero-check first (Req 6.4): reuse the ledger-amount positivity rule.
+  if (!isValidLedgerAmount(amount)) {
+    return { ok: false, reason: 'zero-amount' };
+  }
+
+  // Coverage check (Req 1.4, 2.4): applying −amount to source must not go
+  // below zero in any denomination — reuse the existing negative-balance guard.
+  const negatedAmount: CurrencyDelta = { gc: -amount.gc, ss: -amount.ss, d: -amount.d };
+  if (!validateTreasuryDelta(source, negatedAmount)) {
+    return { ok: false, reason: 'insufficient-funds' };
+  }
+
+  // Balance math (Req 1.2, 2.2, 4.1, 4.2): single source of truth for arithmetic.
+  return {
+    ok: true,
+    source: applyCurrencyDelta(source, negatedAmount),
+    destination: applyCurrencyDelta(destination, amount),
+  };
+}

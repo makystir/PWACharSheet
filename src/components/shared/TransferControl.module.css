@@ -1,0 +1,173 @@
+/* TransferControl — shared coin transfer control (deposit / withdraw) */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.inputRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  /* ≥44px touch target (ui-layout steering) */
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.input:focus {
+  border-color: var(--accent-gold);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.submitButton {
+  /* ≥44px touch target (ui-layout steering) */
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--bg-primary);
+  background: var(--accent-gold);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms ease;
+}
+
+.submitButton:hover {
+  background: var(--accent-gold-dark);
+}
+
+.submitButton:active {
+  transform: scale(0.97);
+}
+
+/* Preview: two pool columns (source / destination) */
+.preview {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.poolColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.poolLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.denomRow {
+  display: flex;
+  gap: 6px;
+}
+
+.denomCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.denomLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.resultValue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* ≥44px touch target (ui-layout steering) */
+  min-height: 44px;
+  min-width: 44px;
+  padding: 4px 8px;
+  width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+/* Tooltip breakdown body */
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.breakdownFormula {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.breakdownRows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.breakdownRowLabel {
+  color: var(--text-muted);
+}
+
+.breakdownRowValue {
+  color: var(--text-primary);
+}
+
+.breakdownTotalRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-top: 1px solid var(--border);
+  padding-top: 2px;
+  margin-top: 2px;
+}
+
+.error {
+  font-size: 12px;
+  color: var(--danger);
+  margin: 0;
+  padding: 2px 0;
+}

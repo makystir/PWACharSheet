@@ -35,8 +35,10 @@ describe('EstatePage tab bar', () => {
   it('defaults to Wealth & Finances tab on mount', () => {
     renderEstatePage();
 
-    // Wealth tab content should be visible: Treasury and Collect button
-    expect(screen.getByText('Treasury')).toBeInTheDocument();
+    // Wealth tab content should be visible: Treasury panel and Collect button.
+    // "Treasury" appears both as the panel heading and as the withdraw
+    // TransferControl's source-pool label, so assert at least one is present.
+    expect(screen.getAllByText('Treasury').length).toBeGreaterThan(0);
     expect(screen.getByText('Collect Monthly Income & Pay Expenses')).toBeInTheDocument();
     expect(screen.getByText('Monthly Financial Summary')).toBeInTheDocument();
 

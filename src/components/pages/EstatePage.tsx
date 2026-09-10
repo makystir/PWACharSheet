@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { Character, Holding, Estate, Hireling } from '../../types/character';
+import type { Character, Holding, Estate, Hireling, LedgerEntry } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -12,9 +12,11 @@ import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { EmptyState } from '../shared/EmptyState';
 import { Toast } from '../shared/Toast';
 import { CurrencyInput } from '../shared/CurrencyInput';
+import { TransferControl } from '../shared/TransferControl';
 import { LedgerPanel } from '../shared/LedgerPanel';
 import { EnterpriseList } from '../enterprise/EnterpriseList';
-import { validateTreasuryDelta, applyCurrencyDelta, type CurrencyDelta } from '../../logic/currency';
+import { validateTreasuryDelta, applyCurrencyDelta, transferFunds, type CurrencyDelta } from '../../logic/currency';
+import { mirrorLedger } from '../../logic/event-log-mirrors';
 import styles from './EstatePage.module.css';
 
 interface CurrencyAmount {
@@ -175,6 +177,65 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
     }));
   };
 
+  // Withdraw coin from the Treasury into personal Wealth (Req 2.1, 2.2, 2.3).
+  // Source = estate.treasury, destination = personal wealth {wGC, wSS, wD}.
+  // Follows the LedgerPanel atomic pattern: transferFunds is the sole source of
+  // truth for the two-pool math (design Decision 1); the LedgerEntry type/amount
+  // are recorded consistently (treasury LOSES coin → 'expense', design Decision 2).
+  const applyTransfer = (direction: 'withdraw', amount: CurrencyDelta) => {
+    const wealth: CurrencyDelta = {
+      gc: character.wGC || 0,
+      ss: character.wSS || 0,
+      d: character.wD || 0,
+    };
+    const treasury: CurrencyDelta = {
+      gc: est.treasury.gc || 0,
+      ss: est.treasury.ss || 0,
+      d: est.treasury.d || 0,
+    };
+
+    // Withdrawal: source = treasury, destination = wealth (Req 2.2).
+    const result = transferFunds(treasury, wealth, amount);
+    if (!result.ok) {
+      // Reuse the Treasury-panel error; mutate nothing (Req 2.4, 3.4, 7.2).
+      setTreasuryError(
+        result.reason === 'zero-amount'
+          ? 'Enter an amount greater than zero.'
+          : 'Insufficient funds — this transfer would overdraw the treasury.',
+      );
+      return;
+    }
+    setTreasuryError(null);
+
+    const newTreasury = result.source;
+    const newWealth = result.destination;
+
+    // Treasury loses coin on a withdrawal → 'expense' (design Decision 2).
+    const entry: LedgerEntry = {
+      timestamp: Date.now(),
+      type: 'expense',
+      description: 'Transfer: Treasury → Personal Wealth',
+      amount, // exact delta moved, per denomination
+    };
+
+    // SINGLE mutation: both pools + ledger + event log move together (Req 7.1).
+    updateCharacter((c) => {
+      const withPoolsAndLedger: Character = {
+        ...c,
+        wGC: newWealth.gc,
+        wSS: newWealth.ss,
+        wD: newWealth.d,
+        estate: {
+          ...c.estate,
+          treasury: newTreasury,
+          ledger: [...(c.estate.ledger ?? []), entry],
+        },
+      };
+      // Follow-on display/audit mirror → appends the 'wealth' eventLog event (Req 3.3).
+      return mirrorLedger(withPoolsAndLedger, entry);
+    });
+  };
+
   return (
     <div className={styles.sectionGap}>
       {/* Sub-tab navigation */}
@@ -288,6 +349,14 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
             {treasuryError && (
               <p className={styles.treasuryError} role="alert">{treasuryError}</p>
             )}
+            <TransferControl
+              direction="withdraw"
+              source={{ gc: est.treasury.gc || 0, ss: est.treasury.ss || 0, d: est.treasury.d || 0 }}
+              destination={{ gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 }}
+              labels={{ source: 'Treasury', destination: 'Wealth' }}
+              onSubmit={(amount) => applyTransfer('withdraw', amount)}
+              error={treasuryError}
+            />
           </div>
         </div>
         <button type="button" onClick={collectMonth} className={styles.collectBtn}>

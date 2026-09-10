@@ -60,7 +60,10 @@ import { UnifiedPsychologyPanel } from './UnifiedPsychologyPanel';
 import { SessionNotesPanel } from '../shared/SessionNotesPanel';
 import { TimelineView } from '../shared/TimelineView';
 import { clearEventLog } from '../../logic/event-log';
-import { applyCurrencyDelta } from '../../logic/currency';
+import { applyCurrencyDelta, transferFunds, type CurrencyDelta } from '../../logic/currency';
+import { TransferControl } from '../shared/TransferControl';
+import { mirrorLedger } from '../../logic/event-log-mirrors';
+import type { LedgerEntry } from '../../types/character';
 import { filterSkills } from '../../logic/skill-filter';
 import { SkillFilter } from '../shared/SkillFilter';
 import { CharCurrentCell } from './CharCurrentCell';
@@ -255,6 +258,72 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const handleTrainedOnlyChange = (enabled: boolean) => {
     setSkillTrainedOnly(enabled);
     try { localStorage.setItem('wfrp-hideUntrainedSkills', String(enabled)); } catch { /* ignore */ }
+  };
+
+  // ─── Wealth → Treasury deposit (wealth-treasury-transfer spec) ──────────────
+  // Inline error shown in the Wealth section when a deposit is blocked.
+  const [depositError, setDepositError] = useState<string | null>(null);
+
+  /**
+   * Apply a coin transfer from Personal Wealth into the estate Treasury
+   * (wealth-treasury-transfer design §"Atomic mutation — applyTransfer").
+   *
+   * Only the 'deposit' direction is handled here; the withdraw side lives on
+   * EstatePage. On success this performs a SINGLE updateCharacter mutation that
+   * writes both pools (wGC/wSS/wD + estate.treasury), appends one 'income'
+   * LedgerEntry, and mirrors the 'wealth' event log entry (Req 7.1). On failure
+   * it sets the inline error and mutates nothing (Req 1.4, 3.4, 7.2).
+   */
+  const applyTransfer = (_direction: 'deposit', amount: CurrencyDelta) => {
+    const wealth: CurrencyDelta = { gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 };
+    const treasury: CurrencyDelta = {
+      gc: character.estate.treasury?.gc || 0,
+      ss: character.estate.treasury?.ss || 0,
+      d: character.estate.treasury?.d || 0,
+    };
+
+    // Deposit: source = personal wealth, destination = treasury (Req 1.2).
+    const result = transferFunds(wealth, treasury, amount);
+    if (!result.ok) {
+      setDepositError(
+        result.reason === 'zero-amount'
+          ? 'Enter an amount greater than zero.'
+          : 'Insufficient funds — this transfer would overdraw your Wealth.',
+      );
+      return; // Nothing changes anywhere (Req 1.4, 3.4, 7.2).
+    }
+    setDepositError(null);
+
+    const newWealth = result.source;
+    const newTreasury = result.destination;
+
+    // Treasury GAINS coin on a deposit → LedgerEntry type 'income'
+    // (design Decision 2: type is from the Treasury's perspective). The amount
+    // is the exact per-denomination delta moved (design Decision 1).
+    const entry: LedgerEntry = {
+      timestamp: Date.now(),
+      type: 'income',
+      description: 'Transfer: Personal Wealth → Treasury',
+      amount,
+    };
+
+    // SINGLE mutation: both pools + ledger + event log move together (Req 7.1).
+    // Writing wGC/wSS/wD triggers the existing coinWeight recompute (Req 5.1).
+    updateCharacter((c) => {
+      const withPoolsAndLedger: Character = {
+        ...c,
+        wGC: newWealth.gc,
+        wSS: newWealth.ss,
+        wD: newWealth.d,
+        estate: {
+          ...c.estate,
+          treasury: newTreasury,
+          ledger: [...(c.estate.ledger ?? []), entry],
+        },
+      };
+      // Follow-on display/audit mirror → appends the 'wealth' event (Req 3.3).
+      return mirrorLedger(withPoolsAndLedger, entry);
+    });
   };
 
   // Personal details: species group + state for random generation
@@ -1901,6 +1970,20 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               update('wSS', result.ss);
               update('wD', result.d);
             }} />
+            {/* Deposit_Control: move coin from Personal Wealth into the estate
+                Treasury (wealth-treasury-transfer Req 1.1). */}
+            <TransferControl
+              direction="deposit"
+              source={{ gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 }}
+              destination={{
+                gc: character.estate.treasury?.gc || 0,
+                ss: character.estate.treasury?.ss || 0,
+                d: character.estate.treasury?.d || 0,
+              }}
+              labels={{ source: 'Wealth', destination: 'Treasury' }}
+              onSubmit={(amount) => applyTransfer('deposit', amount)}
+              error={depositError}
+            />
           </div>
           <div>
             <SectionHeader icon={Scale} title="Encumbrance" />

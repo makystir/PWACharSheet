@@ -1,0 +1,267 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Add the pure `transferFunds` helper to `src/logic/currency.ts`": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767749
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036773559
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036833000
+      }
+    ],
+    "2.1 Property 1 — successful transfer subtracts from source, adds to destination, conserves per-denomination total (both directions).": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767777
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036838142
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036936947
+      }
+    ],
+    "2.2 Property 2 — each denomination moves independently; no cross-denomination conversion.": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767799
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036839045
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036938318
+      }
+    ],
+    "2.3 Property 3 — insufficient funds → `ok:false` reason `'insufficient-funds'`, inputs unchanged.": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767839
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036840485
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036939727
+      }
+    ],
+    "2.4 Property 4 — zero-total amount → `ok:false` reason `'zero-amount'`, inputs unchanged.": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767873
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036841911
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036940680
+      }
+    ],
+    "2.5 Property 5 — deposit then withdraw the same amount restores both pools (round-trip identity).": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767898
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036842847
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036943044
+      }
+    ],
+    "3. Example/unit tests for `transferFunds`": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767919
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036843893
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036943194
+      }
+    ],
+    "4. Checkpoint — run `transferFunds` tests": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767945
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036946386
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036986227
+      }
+    ],
+    "5. Build the shared `TransferControl` component (`src/components/shared/TransferControl.tsx`)": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767971
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036988872
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037103689
+      }
+    ],
+    "6. Render tests for `TransferControl` (`src/components/shared/__tests__/TransferControl.*.test.tsx`)": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036767999
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037106400
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037212244
+      }
+    ],
+    "7. Wire the Deposit_Control into `CharacterPage` Wealth section": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036768025
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037215313
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037313170
+      }
+    ],
+    "8. Wire the Withdraw_Control into `EstatePage` Treasury panel": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036768045
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037216186
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037314125
+      }
+    ],
+    "9. Render tests for Deposit_Control on `CharacterPage`": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036768072
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037318024
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037477014
+      }
+    ],
+    "10. Render tests for Withdraw_Control on `EstatePage`": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036768098
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037317168
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037477889
+      }
+    ],
+    "11. Final checkpoint — full verification": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036768122
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037481000
+      },
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789037973228
+      }
+    ],
+    "2. Property tests for `transferFunds` (`src/logic/__tests__/transfer-funds.property.test.ts`)": [
+      {
+        "executionId": "a12096b2-7b82-41be-8ff2-65f587bdfdda",
+        "chatSessionId": "sess_f6074569-5034-46e0-b900-fa29d3c214cb",
+        "timestamp": 1789036943071
+      }
+    ]
+  }
+}
