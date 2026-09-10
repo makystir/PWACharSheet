@@ -602,7 +602,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                   <div className={styles.ruleDesc} style={!character.houseRules.useEnterprises ? { color: 'var(--text-muted)' } : undefined}>
                     Track business ventures and income sources (Archives Vol. III)
                   </div>
-                  {character.houseRules.useEnterprises && <div className={styles.ruleLocation}>Find it on: Holdings & Wealth page → Enterprises tab</div>}
+                  {character.houseRules.useEnterprises && <div className={styles.ruleLocation}>Find it on: Estate page → Enterprises tab</div>}
                 </div>
                 <button
                   type="button"

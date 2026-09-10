@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { renderHook, act } from '@testing-library/react';
 import fc from 'fast-check';
 import { SubTabBar } from '../SubTabBar';
 import { useTabOrder } from '../../../hooks/useTabOrder';
@@ -32,7 +31,7 @@ vi.mock('../SubTabBar.module.css', () => ({
 const characterTabs = [
   { id: 'identity', label: 'Identity' },
   { id: 'abilities', label: 'Abilities' },
-  { id: 'gear', label: 'Gear & Wealth' },
+  { id: 'gear', label: 'Gear' },
   { id: 'notes', label: 'Notes' },
 ];
 
@@ -117,7 +116,7 @@ describe('SubTabBar Integration Tests', () => {
       const tabButtons = screen.getAllByRole('tab');
       const tabLabels = tabButtons.map((btn) => btn.textContent);
 
-      expect(tabLabels).toEqual(['Gear & Wealth', 'Notes', 'Identity', 'Abilities']);
+      expect(tabLabels).toEqual(['Gear', 'Notes', 'Identity', 'Abilities']);
     });
 
     it('renders tabs in default order when no stored order exists', () => {
@@ -133,7 +132,7 @@ describe('SubTabBar Integration Tests', () => {
       const tabButtons = screen.getAllByRole('tab');
       const tabLabels = tabButtons.map((btn) => btn.textContent);
 
-      expect(tabLabels).toEqual(['Identity', 'Abilities', 'Gear & Wealth', 'Notes']);
+      expect(tabLabels).toEqual(['Identity', 'Abilities', 'Gear', 'Notes']);
     });
   });
 
@@ -163,7 +162,7 @@ describe('SubTabBar Integration Tests', () => {
       // And tabs should still be in custom display order
       const tabButtons = screen.getAllByRole('tab');
       const tabLabels = tabButtons.map((btn) => btn.textContent);
-      expect(tabLabels).toEqual(['Notes', 'Gear & Wealth', 'Abilities', 'Identity']);
+      expect(tabLabels).toEqual(['Notes', 'Gear', 'Abilities', 'Identity']);
     });
 
     it('onTabChange receives the tab ID when tab is clicked outside edit mode', () => {
@@ -211,7 +210,7 @@ describe('SubTabBar Integration Tests', () => {
       let tabButtons = screen.getAllByRole('tab');
       expect(tabButtons.map((btn) => btn.textContent)).toEqual([
         'Notes',
-        'Gear & Wealth',
+        'Gear',
         'Abilities',
         'Identity',
       ]);
@@ -254,7 +253,7 @@ describe('SubTabBar Integration Tests', () => {
       let tabButtons = screen.getAllByRole('tab');
       expect(tabButtons.map((btn) => btn.textContent)).toEqual([
         'Notes',
-        'Gear & Wealth',
+        'Gear',
         'Abilities',
         'Identity',
       ]);

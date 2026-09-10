@@ -410,3 +410,11 @@
   font-size: 12px;
   padding: 8px;
 }
+
+/* Cross-reference hint: points players to the carried Coin Purse on the Character page */
+.crossRefHint {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 8px;
+}

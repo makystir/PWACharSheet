@@ -63,7 +63,7 @@ describe('Navigation mobile touch targets and height', () => {
     const navButtons = screen.getAllByRole('button').filter(
       (btn) => btn.getAttribute('data-section') !== null
     );
-    // 7 nav items (Character, Combat, Retinue, Holdings & Wealth, Endeavours,
+    // 7 nav items (Character, Combat, Retinue, Estate, Endeavours,
     // Advancement, Settings) + Search + Keyboard shortcuts affordance (Req 14.2) = 9
     expect(navButtons).toHaveLength(9);
 
@@ -108,7 +108,7 @@ describe('Navigation mobile touch targets and height', () => {
     renderWithProvider(<Navigation activePage="character" onPageChange={vi.fn()} />);
 
     // Mobile scrollable bar shows all nav items + Search
-    const expectedLabels = ['Character', 'Combat', 'Retinue', 'Holdings & Wealth', 'Endeavours', 'Advancement', 'Settings', 'Search'];
+    const expectedLabels = ['Character', 'Combat', 'Retinue', 'Estate', 'Endeavours', 'Advancement', 'Settings', 'Search'];
 
     expectedLabels.forEach((label) => {
       const labelElement = screen.getByText(label);

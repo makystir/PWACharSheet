@@ -142,7 +142,7 @@ describe('CalculatedTooltips integration', () => {
     it('click encumbrance → shows SB + TB + talent contributions', () => {
       renderCharPage(charWithTalents);
 
-      // Switch to Gear & Wealth tab
+      // Switch to Gear tab
       const gearTab = screen.getByRole('tab', { name: /gear/i });
       fireEvent.click(gearTab);
 
@@ -191,7 +191,7 @@ describe('CalculatedTooltips integration', () => {
 
       renderCharPage(charWithCoins, { coinWeight: 1 });
 
-      // Switch to Gear & Wealth tab
+      // Switch to Gear tab
       const gearTab = screen.getByRole('tab', { name: /gear/i });
       fireEvent.click(gearTab);
 
@@ -237,7 +237,7 @@ describe('CalculatedTooltips integration', () => {
 
       renderCharPage(charNoCoins);
 
-      // Switch to Gear & Wealth tab
+      // Switch to Gear tab
       const gearTab = screen.getByRole('tab', { name: /gear/i });
       fireEvent.click(gearTab);
 

@@ -67,7 +67,7 @@ function renderHarness(char: Character) {
   const changes: Character[] = [];
   const latest = () => (changes.length ? changes[changes.length - 1] : char);
   render(<Harness initial={char} onCharacterChange={(c) => changes.push(c)} />);
-  // The Wealth section is on the Gear & Wealth ("gear") sub-tab.
+  // The Coin Purse section is on the Gear ("gear") sub-tab.
   fireEvent.click(screen.getByRole('tab', { name: /gear/i }));
   return { changes, latest };
 }

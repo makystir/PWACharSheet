@@ -145,7 +145,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     defaultTabs: [
       { id: 'identity', label: 'Identity' },
       { id: 'abilities', label: 'Abilities' },
-      { id: 'gear', label: 'Gear & Wealth' },
+      { id: 'gear', label: 'Gear' },
       { id: 'notes', label: 'Notes' },
     ],
   });
@@ -1642,7 +1642,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       )}
       </div>{/* end abilitiesSection */}
 
-      {/* ═══ GEAR & WEALTH ═══ */}
+      {/* ═══ GEAR ═══ */}
       <div className={`${styles.gearSection}${activeSubTab !== 'gear' ? ` ${styles.mobileHidden}` : ''}`}>
       {/* Encumbrance Indicator */}
       {(() => {
@@ -1984,6 +1984,10 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               onSubmit={(amount) => applyTransfer('deposit', amount)}
               error={depositError}
             />
+            {/* Coin Purse → Treasury cross-reference hint (money-locations-clarity
+                Req 4.1/4.2/4.3). Rendered unconditionally: character.estate is a
+                required field always present via BLANK_CHARACTER (Design Decision 1). */}
+            <p className={styles.crossRefHint}>Estate funds are stored in the Treasury (Estate page).</p>
           </div>
           <div>
             <SectionHeader icon={Scale} title="Encumbrance" />

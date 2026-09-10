@@ -20,7 +20,7 @@ describe('Property 1: Navigation section switching', () => {
 
     expect(screen.getByText('Character')).toBeInTheDocument();
     expect(screen.getByText('Combat')).toBeInTheDocument();
-    expect(screen.getByText('Holdings & Wealth')).toBeInTheDocument();
+    expect(screen.getByText('Estate')).toBeInTheDocument();
     expect(screen.getByText('Endeavours')).toBeInTheDocument();
     expect(screen.getByText('Advancement')).toBeInTheDocument();
     expect(screen.getByText('Settings')).toBeInTheDocument();
@@ -29,7 +29,7 @@ describe('Property 1: Navigation section switching', () => {
   const labelMap: Record<PageSection, string> = {
     character: 'Character',
     combat: 'Combat',
-    estate: 'Holdings & Wealth',
+    estate: 'Estate',
     endeavours: 'Endeavours',
     advancement: 'Advancement',
     settings: 'Settings',

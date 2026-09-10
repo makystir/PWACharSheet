@@ -1,0 +1,158 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Rename the Character gear sub-tab label to \"Gear\"": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963041
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046969715
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047033206
+      }
+    ],
+    "2. Rename the Estate navigation item label and sub-tab hint": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963069
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046970665
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047034154
+      }
+    ],
+    "3. Rename the Estate money sub-tab label to \"Treasury & Finances\"": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963108
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046972097
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047035101
+      }
+    ],
+    "4. Add the Coin Purse → Treasury cross-reference hint": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963136
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046973013
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047036498
+      }
+    ],
+    "5. Add the Treasury → Coin Purse cross-reference hint": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963163
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046973962
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047037455
+      }
+    ],
+    "6. Update the SettingsPage cross-reference terminology": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963188
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047038454
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047067105
+      }
+    ],
+    "7. Update existing tests that assert the OLD labels": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963213
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047071309
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047200527
+      }
+    ],
+    "8. Add new render/label and id-stability tests": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963235
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047201107
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047341859
+      }
+    ],
+    "9. Final checkpoint — full verification": [
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789046963261
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047344516
+      },
+      {
+        "executionId": "e70669d2-a97f-4dee-a892-c33493232000",
+        "chatSessionId": "sess_4020febf-1ac2-44a1-96c0-14f83856f8eb",
+        "timestamp": 1789047530294
+      }
+    ]
+  }
+}

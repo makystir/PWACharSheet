@@ -5,7 +5,7 @@ import { useTabOrder } from '../useTabOrder';
 const defaultTabs = [
   { id: 'identity', label: 'Identity' },
   { id: 'abilities', label: 'Abilities' },
-  { id: 'gear', label: 'Gear & Wealth' },
+  { id: 'gear', label: 'Gear' },
   { id: 'notes', label: 'Notes' },
 ];
 
@@ -150,7 +150,7 @@ describe('useTabOrder', () => {
       expect(result.current.orderedTabs).toEqual([
         { id: 'abilities', label: 'Abilities' },
         { id: 'identity', label: 'Identity' },
-        { id: 'gear', label: 'Gear & Wealth' },
+        { id: 'gear', label: 'Gear' },
         { id: 'notes', label: 'Notes' },
       ]);
     });

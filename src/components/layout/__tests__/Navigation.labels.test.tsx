@@ -60,15 +60,15 @@ describe('Navigation label clarity (Task 21.2)', () => {
 
   // --- Req 16.1: section label conveys the combined scope ---
   describe('Req 16.1: label conveys combined scope', () => {
-    it('the estate NAV_ITEMS entry is labelled "Holdings & Wealth"', () => {
+    it('the estate NAV_ITEMS entry is labelled "Estate"', () => {
       const estate = NAV_ITEMS.find((item) => item.id === 'estate');
       expect(estate).toBeDefined();
-      expect(estate?.label).toBe('Holdings & Wealth');
+      expect(estate?.label).toBe('Estate');
     });
 
-    it('renders the "Holdings & Wealth" label in the desktop sidebar', () => {
+    it('renders the "Estate" label in the desktop sidebar', () => {
       renderNavigation();
-      expect(screen.getByText('Holdings & Wealth')).toBeInTheDocument();
+      expect(screen.getByText('Estate')).toBeInTheDocument();
     });
   });
 
@@ -76,19 +76,19 @@ describe('Navigation label clarity (Task 21.2)', () => {
   describe('Req 16.2: sub-tab presence is discoverable', () => {
     it('the estate NAV_ITEMS entry carries a subTabHint describing its sub-tabs', () => {
       const estate = NAV_ITEMS.find((item) => item.id === 'estate');
-      expect(estate?.subTabHint).toBe('Estate · Holdings · Wealth');
+      expect(estate?.subTabHint).toBe('Estate · Holdings · Treasury · Finances');
     });
 
     it('renders the sub-tab hint text in the desktop sidebar', () => {
       renderNavigation();
-      expect(screen.getByText('Estate · Holdings · Wealth')).toBeInTheDocument();
+      expect(screen.getByText('Estate · Holdings · Treasury · Finances')).toBeInTheDocument();
     });
   });
 
   // --- Req 16.3: routing keys / hash routes unchanged ---
   describe('Req 16.3: routing keys unchanged', () => {
     it('the estate NAV_ITEMS id remains the "estate" routing key', () => {
-      const estate = NAV_ITEMS.find((item) => item.label === 'Holdings & Wealth');
+      const estate = NAV_ITEMS.find((item) => item.id === 'estate');
       expect(estate?.id).toBe('estate');
     });
 
@@ -114,6 +114,38 @@ describe('Navigation label clarity (Task 21.2)', () => {
         'settings',
       ];
       expect(NAV_ITEMS.map((item) => item.id)).toEqual(expectedIds);
+    });
+
+    // money-locations-clarity Req 2.4: the estate keyboard shortcut is stable.
+    it('the estate NAV_ITEMS entry keeps shortcut "4"', () => {
+      const estate = NAV_ITEMS.find((item) => item.id === 'estate');
+      expect(estate?.shortcut).toBe('4');
+    });
+  });
+
+  // ─── money-locations-clarity Req 2.1/2.2/2.3/2.4 ───
+  // The estate nav relabel ("Estate" + new sub-tab hint) must not reintroduce
+  // the old "Holdings & Wealth" / "Estate · Holdings · Wealth" strings, and must
+  // keep the estate routing key + shortcut stable.
+  describe('money-locations-clarity estate relabel', () => {
+    it('does not render the old "Holdings & Wealth" label in the sidebar', () => {
+      renderNavigation();
+      expect(screen.queryByText('Holdings & Wealth')).not.toBeInTheDocument();
+    });
+
+    it('does not render the old "Estate · Holdings · Wealth" sub-tab hint', () => {
+      renderNavigation();
+      expect(screen.queryByText('Estate · Holdings · Wealth')).not.toBeInTheDocument();
+    });
+
+    it('the estate entry keeps its id, shortcut, and shows the new label + hint together', () => {
+      const estate = NAV_ITEMS.find((item) => item.id === 'estate');
+      expect(estate).toMatchObject({
+        id: 'estate',
+        label: 'Estate',
+        shortcut: '4',
+        subTabHint: 'Estate · Holdings · Treasury · Finances',
+      });
     });
   });
 });

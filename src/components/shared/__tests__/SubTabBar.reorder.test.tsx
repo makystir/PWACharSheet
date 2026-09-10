@@ -27,7 +27,7 @@ vi.mock('../SubTabBar.module.css', () => ({
 const baseTabs = [
   { id: 'identity', label: 'Identity' },
   { id: 'abilities', label: 'Abilities' },
-  { id: 'gear', label: 'Gear & Wealth' },
+  { id: 'gear', label: 'Gear' },
   { id: 'notes', label: 'Notes' },
 ];
 

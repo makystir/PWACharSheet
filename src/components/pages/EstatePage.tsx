@@ -72,7 +72,7 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
   // Tab reordering — conditionally include Enterprises tab
   const defaultTabsList = useMemo(() => {
     const tabs = [
-      { id: 'wealth', label: 'Wealth & Finances' },
+      { id: 'wealth', label: 'Treasury & Finances' },
       { id: 'estate', label: 'Estate' },
       { id: 'holdings', label: 'Holdings' },
     ];
@@ -357,6 +357,7 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
               onSubmit={(amount) => applyTransfer('withdraw', amount)}
               error={treasuryError}
             />
+            <p className={styles.crossRefHint}>Carried coin is stored in your Coin Purse (Character page).</p>
           </div>
         </div>
         <button type="button" onClick={collectMonth} className={styles.collectBtn}>
