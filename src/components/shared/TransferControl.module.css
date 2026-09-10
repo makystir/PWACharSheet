@@ -60,19 +60,33 @@
   transform: scale(0.97);
 }
 
-/* Preview: two pool columns (source / destination) */
+/* Preview: two pool panels (source / destination) with a directional separator */
 .preview {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  align-items: stretch;
 }
 
+/* Each pool reads as its own card. The panel background (--bg-secondary) is
+   distinct from the coin cells inside it (--bg-tertiary) so the cells stand out. */
 .poolColumn {
   display: flex;
   flex-direction: column;
   gap: 4px;
   flex: 1;
   min-width: 140px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+/* Destination is the transfer target: subtle gold accent (works for both
+   deposit and withdraw, independent of the label text). */
+.poolColumnDestination {
+  border-left: 3px solid var(--accent-gold);
 }
 
 .poolLabel {
@@ -81,6 +95,39 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+.poolLabelDestination {
+  color: var(--accent-gold);
+}
+
+/* Directional affordance between the two panels. */
+.poolSeparator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+/* Horizontal arrow when side-by-side; vertical arrow when stacked. */
+.poolSeparatorArrowStacked {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .poolSeparatorArrow {
+    display: none;
+  }
+  .poolSeparatorArrowStacked {
+    display: inline;
+  }
+  .poolSeparator {
+    width: 100%;
+  }
 }
 
 .denomRow {

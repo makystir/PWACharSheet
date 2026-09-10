@@ -198,8 +198,16 @@ export function TransferControl({
             )}
           </div>
         </div>
-        <div className={styles.poolColumn}>
-          <span className={styles.poolLabel}>{labels.destination}</span>
+        {/* Directional affordance: source → destination (↓ when stacked). Purely
+            decorative, so hidden from the a11y tree and test queries. */}
+        <span className={styles.poolSeparator} aria-hidden="true">
+          <span className={styles.poolSeparatorArrow}>→</span>
+          <span className={styles.poolSeparatorArrowStacked}>↓</span>
+        </span>
+        <div className={`${styles.poolColumn} ${styles.poolColumnDestination}`}>
+          <span className={`${styles.poolLabel} ${styles.poolLabelDestination}`}>
+            {labels.destination}
+          </span>
           <div className={styles.denomRow}>
             {DENOMINATIONS.map((denom) =>
               renderCell('destination', denom, destination, resultDestination, labels.destination),
