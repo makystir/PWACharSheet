@@ -66,6 +66,15 @@ This plan adds bidirectional coin transfers between a character's Personal Wealt
   - Run `vitest --run`, `tsc`, and lint; fix any failures or type/lint errors introduced (fix-errors steering). Confirm the new controls render on both pages and existing wealth/ledger tests still pass.
   - _Requirements: 1.1, 2.1, 5.1, 5.2, 7.1, 7.2_
 
+- [x] 12. Rename personal-wealth UI labels to "Coin Purse"
+  - In `CharacterPage.tsx`, change the coin section header from "Wealth" to "Coin Purse (carried)" (the `<SectionHeader icon={Coins} title="Wealth" />` block).
+  - In `CharacterPage.tsx`, change the Deposit `TransferControl` source pool label from `'Wealth'` to `'Coin Purse'` (`labels={{ source: 'Coin Purse', destination: 'Treasury' }}`).
+  - In `CharacterPage.tsx`, change the Deposit insufficient-funds inline error string so it refers to the pool as "Coin Purse" (e.g. "...overdraw your Coin Purse.").
+  - In `EstatePage.tsx`, change the Withdraw `TransferControl` destination pool label from `'Wealth'` to `'Coin Purse'` (`labels={{ source: 'Treasury', destination: 'Coin Purse' }}`).
+  - Update the existing render tests that assert on the "Wealth" heading/labels so the suite stays green: `CharacterPage.deposit.test.tsx` (uses `getByRole('heading', { name: 'Wealth' })` and asserts the preview pool label `'Wealth'`), and any `TransferControl.test.tsx` / `EstatePage.withdraw` / tab tests referencing the `'Wealth'`/`'Treasury'` labels. Do not change internal field names (`wGC/wSS/wD`) or the `Personal_Wealth` identifier — labels only.
+  - Run `npx vitest --run`, `npx tsc --noEmit`, and lint on the affected files; fix any failures (fix-errors steering).
+  - _Requirements: 8_
+
 ## Notes
 
 - Each task references specific requirements (granular clauses) for traceability.
@@ -87,7 +96,8 @@ This plan adds bidirectional coin transfers between a character's Personal Wealt
     { "id": 4, "tasks": ["6"] },
     { "id": 5, "tasks": ["7", "8"] },
     { "id": 6, "tasks": ["9", "10"] },
-    { "id": 7, "tasks": ["11"] }
+    { "id": 7, "tasks": ["11"] },
+    { "id": 8, "tasks": ["12"] }
   ]
 }
 ```

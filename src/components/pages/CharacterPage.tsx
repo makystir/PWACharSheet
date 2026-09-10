@@ -288,7 +288,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       setDepositError(
         result.reason === 'zero-amount'
           ? 'Enter an amount greater than zero.'
-          : 'Insufficient funds — this transfer would overdraw your Wealth.',
+          : 'Insufficient funds — this transfer would overdraw your Coin Purse.',
       );
       return; // Nothing changes anywhere (Req 1.4, 3.4, 7.2).
     }
@@ -1959,7 +1959,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       <Card>
         <div className={styles.wealthEncGrid}>
           <div>
-            <SectionHeader icon={Coins} title="Wealth" />
+            <SectionHeader icon={Coins} title="Coin Purse (carried)" />
             <EditableField label="Gold Crowns (GC)" value={character.wGC} type="number" mode="always-editable" onSave={(v) => update('wGC', v)} />
             <EditableField label="Silver Shillings (SS)" value={character.wSS} type="number" mode="always-editable" onSave={(v) => update('wSS', v)} />
             <EditableField label="Brass Pennies (D)" value={character.wD} type="number" mode="always-editable" onSave={(v) => update('wD', v)} />
@@ -1980,7 +1980,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 ss: character.estate.treasury?.ss || 0,
                 d: character.estate.treasury?.d || 0,
               }}
-              labels={{ source: 'Wealth', destination: 'Treasury' }}
+              labels={{ source: 'Coin Purse', destination: 'Treasury' }}
               onSubmit={(amount) => applyTransfer('deposit', amount)}
               error={depositError}
             />

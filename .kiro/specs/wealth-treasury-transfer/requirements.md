@@ -8,7 +8,7 @@ This is bookkeeping over the player's own coin between two pools the character a
 
 ## Glossary
 
-- **Personal_Wealth**: The character's purse, stored as `character.wGC`, `character.wSS`, `character.wD` (Gold Crowns, Silver Shillings, Brass Pennies). Displayed and edited in the Character page "Wealth" section.
+- **Personal_Wealth**: The character's purse, stored as `character.wGC`, `character.wSS`, `character.wD` (Gold Crowns, Silver Shillings, Brass Pennies). Displayed and edited in the Character page coin section. Displayed to the player as "Coin Purse (carried)" (the coin section heading) and "Coin Purse" (the transfer preview pool label); the identifier Personal_Wealth is retained internally, and the data fields `wGC`/`wSS`/`wD` are unchanged.
 - **Treasury**: The estate coin store, stored as `character.estate.treasury.{gc, ss, d}`. Displayed and edited in the Estate page "Wealth & Finances" sub-tab "Treasury" panel.
 - **Transfer_Service**: The pure logic that validates and computes a coin movement between two coin pools, returning the two resulting balances or a failure. Intended to live in `src/logic/currency.ts` as a `transferFunds` helper.
 - **Deposit**: A transfer whose source is Personal_Wealth and whose destination is Treasury.
@@ -95,3 +95,15 @@ This is bookkeeping over the player's own coin between two pools the character a
 
 1. WHEN a transfer is applied, THE System SHALL update Personal_Wealth, Treasury, the Financial_Ledger, and the Event_Log within a single character mutation.
 2. IF a transfer is blocked, THEN THE System SHALL leave Personal_Wealth, Treasury, the Financial_Ledger, and the Event_Log unchanged.
+
+### Requirement 8: Player-facing coin-purse labelling
+
+**User Story:** As a player, I want the personal-coin section labelled as a carried coin purse, so that I understand this money is on my character's person.
+
+#### Acceptance Criteria
+
+1. THE Character_Page SHALL title the Personal_Wealth coin section "Coin Purse (carried)".
+2. WHERE the Deposit_Control preview labels the Personal_Wealth pool, THE Deposit_Control SHALL label that pool "Coin Purse".
+3. WHERE the Withdraw_Control preview labels the Personal_Wealth pool, THE Withdraw_Control SHALL label that pool "Coin Purse".
+4. IF a Deposit is blocked for insufficient funds, THEN THE Deposit_Control SHALL refer to the Personal_Wealth pool as "Coin Purse" in the inline error.
+5. THE System SHALL apply these labels as display text only, leaving the Personal_Wealth identifier and the `wGC`/`wSS`/`wD` data fields unchanged.

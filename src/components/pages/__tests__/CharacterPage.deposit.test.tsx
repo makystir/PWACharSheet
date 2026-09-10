@@ -99,8 +99,8 @@ describe('CharacterPage Deposit_Control (wealth-treasury-transfer Task 9)', () =
   it('renders the Deposit control in the Wealth section (Req 1.1)', () => {
     renderHarness(seededCharacter());
 
-    // Section header (heading, not the preview pool label which also reads "Wealth")
-    expect(screen.getByRole('heading', { name: 'Wealth' })).toBeInTheDocument();
+    // Section header (heading, not the preview pool label which reads "Coin Purse")
+    expect(screen.getByRole('heading', { name: 'Coin Purse (carried)' })).toBeInTheDocument();
     // The control's amount input and Deposit submit button
     expect(screen.getByLabelText('Deposit amount')).toBeInTheDocument();
     const input = screen.getByLabelText('Deposit amount');
@@ -108,7 +108,7 @@ describe('CharacterPage Deposit_Control (wealth-treasury-transfer Task 9)', () =
     expect(within(form).getByRole('button', { name: 'Deposit' })).toBeInTheDocument();
     // Per-denomination preview with both pool labels
     const preview = screen.getByTestId('transfer-preview-deposit');
-    expect(within(preview).getByText('Wealth')).toBeInTheDocument();
+    expect(within(preview).getByText('Coin Purse')).toBeInTheDocument();
     expect(within(preview).getByText('Treasury')).toBeInTheDocument();
   });
 

@@ -353,7 +353,7 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
               direction="withdraw"
               source={{ gc: est.treasury.gc || 0, ss: est.treasury.ss || 0, d: est.treasury.d || 0 }}
               destination={{ gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 }}
-              labels={{ source: 'Treasury', destination: 'Wealth' }}
+              labels={{ source: 'Treasury', destination: 'Coin Purse' }}
               onSubmit={(amount) => applyTransfer('withdraw', amount)}
               error={treasuryError}
             />

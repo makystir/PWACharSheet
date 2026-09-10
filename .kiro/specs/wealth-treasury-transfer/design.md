@@ -74,6 +74,10 @@ Data flow at a glance:
 
 ## Components and Interfaces
 
+### UI terminology / labels (Req 8)
+
+Personal_Wealth is surfaced to players as **"Coin Purse (carried)"** for the CharacterPage coin section header, and **"Coin Purse"** for both transfer-preview pool labels (the Deposit_Control source label and the Withdraw_Control destination label) and the deposit insufficient-funds error copy. This is a display-label change only: the internal `Personal_Wealth` identifier and the `wGC`/`wSS`/`wD` data fields are unchanged. The EstatePage Treasury panel heading and the "Gear & Wealth" tab label are unchanged.
+
 ### 1. Transfer_Service — `transferFunds` (pure, `src/logic/currency.ts`)
 
 A pure function that validates and computes a coin move between two pools. It composes the existing validators rather than duplicating them.
@@ -142,7 +146,8 @@ function applyTransfer(direction: TransferDirection, amount: CurrencyDelta) {
   if (!result.ok) {
     setError(result.reason === 'zero-amount'
       ? 'Enter an amount greater than zero.'
-      : 'Insufficient funds — this transfer would overdraw the source.');
+      // deposit copy refers to the personal pool as "Coin Purse" (Req 8.4)
+      : 'Insufficient funds — this transfer would overdraw your Coin Purse.');
     return; // Req 1.4, 2.4, 3.4, 6.4, 7.2 — nothing changes anywhere
   }
   setError(null);
@@ -213,9 +218,9 @@ Internal behaviour:
 - Renders `error` inline via a `role="alert"` paragraph (matches `CurrencyInput`/EstatePage `treasuryError` styling) (Req 1.4, 2.4 UI).
 - Touch targets (input, submit button, tooltip trigger cells) are ≥44px (steering: ui-layout).
 
-**Deposit_Control** = `TransferControl` mounted in the Character page **Wealth** section (`<SectionHeader icon={Coins} title="Wealth" />`), directly under the existing `CurrencyInput`, with `direction="deposit"`, `source={personal wealth}`, `destination={estate.treasury}`, `labels={{ source: 'Wealth', destination: 'Treasury' }}` (Req 1.1). CharacterPage already receives `updateCharacter`; `applyTransfer` and its error state are added there.
+**Deposit_Control** = `TransferControl` mounted in the Character page coin section (`<SectionHeader icon={Coins} title="Coin Purse (carried)" />`), directly under the existing `CurrencyInput`, with `direction="deposit"`, `source={personal wealth}`, `destination={estate.treasury}`, `labels={{ source: 'Coin Purse', destination: 'Treasury' }}` (Req 1.1, 8.1, 8.2). CharacterPage already receives `updateCharacter`; `applyTransfer` and its error state are added there.
 
-**Withdraw_Control** = `TransferControl` mounted in the Estate page **Treasury** panel (the `styles.treasuryPanel` block, beside the existing `CurrencyInput`/`treasuryError`), with `direction="withdraw"`, `source={estate.treasury}`, `destination={personal wealth}`, `labels={{ source: 'Treasury', destination: 'Wealth' }}` (Req 2.1). EstatePage already has `updateCharacter` and a `treasuryError` state pattern to follow.
+**Withdraw_Control** = `TransferControl` mounted in the Estate page **Treasury** panel (the `styles.treasuryPanel` block, beside the existing `CurrencyInput`/`treasuryError`), with `direction="withdraw"`, `source={estate.treasury}`, `destination={personal wealth}`, `labels={{ source: 'Treasury', destination: 'Coin Purse' }}` (Req 2.1, 8.3). EstatePage already has `updateCharacter` and a `treasuryError` state pattern to follow.
 
 ## Data Models
 
