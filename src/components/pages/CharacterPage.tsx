@@ -1960,34 +1960,45 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         <div className={styles.wealthEncGrid}>
           <div>
             <SectionHeader icon={Coins} title="Coin Purse (carried)" />
-            <EditableField label="Gold Crowns (GC)" value={character.wGC} type="number" mode="always-editable" onSave={(v) => update('wGC', v)} />
-            <EditableField label="Silver Shillings (SS)" value={character.wSS} type="number" mode="always-editable" onSave={(v) => update('wSS', v)} />
-            <EditableField label="Brass Pennies (D)" value={character.wD} type="number" mode="always-editable" onSave={(v) => update('wD', v)} />
-            <CurrencyInput onSubmit={(delta) => {
-              const current = { gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 };
-              const result = applyCurrencyDelta(current, delta);
-              update('wGC', result.gc);
-              update('wSS', result.ss);
-              update('wD', result.d);
-            }} />
-            {/* Deposit_Control: move coin from Personal Wealth into the estate
-                Treasury (wealth-treasury-transfer Req 1.1). */}
-            <TransferControl
-              direction="deposit"
-              source={{ gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 }}
-              destination={{
-                gc: character.estate.treasury?.gc || 0,
-                ss: character.estate.treasury?.ss || 0,
-                d: character.estate.treasury?.d || 0,
-              }}
-              labels={{ source: 'Coin Purse', destination: 'Treasury' }}
-              onSubmit={(amount) => applyTransfer('deposit', amount)}
-              error={depositError}
-            />
-            {/* Coin Purse → Treasury cross-reference hint (money-locations-clarity
-                Req 4.1/4.2/4.3). Rendered unconditionally: character.estate is a
-                required field always present via BLANK_CHARACTER (Design Decision 1). */}
-            <p className={styles.crossRefHint}>Estate funds are stored in the Treasury (Estate page).</p>
+            {/* Balance group: the three editable denomination fields. */}
+            <div className={styles.coinPurseGroup}>
+              <EditableField label="Gold Crowns (GC)" value={character.wGC} type="number" mode="always-editable" onSave={(v) => update('wGC', v)} />
+              <EditableField label="Silver Shillings (SS)" value={character.wSS} type="number" mode="always-editable" onSave={(v) => update('wSS', v)} />
+              <EditableField label="Brass Pennies (D)" value={character.wD} type="number" mode="always-editable" onSave={(v) => update('wD', v)} />
+            </div>
+            {/* Quick Adjust group: add/subtract coin from the carried purse. */}
+            <div className={styles.coinPurseGroup}>
+              <div className={styles.coinPurseGroupLabel}>Quick Adjust</div>
+              <CurrencyInput onSubmit={(delta) => {
+                const current = { gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 };
+                const result = applyCurrencyDelta(current, delta);
+                update('wGC', result.gc);
+                update('wSS', result.ss);
+                update('wD', result.d);
+              }} />
+            </div>
+            {/* Deposit to Treasury group. */}
+            <div className={styles.coinPurseGroup}>
+              <div className={styles.coinPurseGroupLabel}>Deposit to Treasury</div>
+              {/* Deposit_Control: move coin from Personal Wealth into the estate
+                  Treasury (wealth-treasury-transfer Req 1.1). */}
+              <TransferControl
+                direction="deposit"
+                source={{ gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 }}
+                destination={{
+                  gc: character.estate.treasury?.gc || 0,
+                  ss: character.estate.treasury?.ss || 0,
+                  d: character.estate.treasury?.d || 0,
+                }}
+                labels={{ source: 'Coin Purse', destination: 'Treasury' }}
+                onSubmit={(amount) => applyTransfer('deposit', amount)}
+                error={depositError}
+              />
+              {/* Coin Purse → Treasury cross-reference hint (money-locations-clarity
+                  Req 4.1/4.2/4.3). Rendered unconditionally: character.estate is a
+                  required field always present via BLANK_CHARACTER (Design Decision 1). */}
+              <p className={styles.crossRefHint}>Estate funds are stored in the Treasury (Estate page).</p>
+            </div>
           </div>
           <div>
             <SectionHeader icon={Scale} title="Encumbrance" />

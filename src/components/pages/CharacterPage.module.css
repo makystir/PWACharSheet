@@ -438,7 +438,7 @@
 /* Cross-reference hint (money-locations-clarity Req 4). Mirrors the muted-caption
    idiom used by .woundFormulaCalculated. */
 .crossRefHint {
-  margin-top: 8px;
+  margin: 0;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -656,6 +656,32 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+/* Coin Purse sub-sections (money-locations-clarity UI cleanup). Groups the
+   balance fields, quick-adjust, and deposit-to-treasury controls into distinct
+   blocks separated by a subtle top border. */
+.coinPurseGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.coinPurseGroup + .coinPurseGroup {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* Muted uppercase sub-heading. Plain styled div (not a role="heading") so it
+   doesn't collide with existing accessible names in tests. Mirrors the
+   .poolLabel idiom in TransferControl.module.css. */
+.coinPurseGroupLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .encBreakdown {
