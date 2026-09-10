@@ -239,7 +239,7 @@ function AppWithCharacter({
   subTab: string | null;
   navigate: (page: PageSection, subTab?: string | null) => void;
 }) {
-  const { character, update, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight } = useCharacter(manager.activeId, manager.activeCharacter!);
+  const { character, update, updateCharacter, saveNow, totalWounds, armourPoints, maxEncumbrance, coinWeight } = useCharacter(manager.activeId, manager.activeCharacter!);
 
   // Roll history is now sourced from the unified event log (Req 4.1–4.4, 4.6).
   // Live rolls are appended as `roll` LogEvents on the active character rather
@@ -387,7 +387,7 @@ function AppWithCharacter({
     setShowCharSheet(true);
   };
 
-  const pageProps = { character, update: undoableUpdate, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight };
+  const pageProps = { character, update: undoableUpdate, updateCharacter, saveNow, totalWounds, armourPoints, maxEncumbrance, coinWeight };
 
   const getDomain = (): 'combat' | 'character' | 'advancement' | undefined => {
     switch (page) {

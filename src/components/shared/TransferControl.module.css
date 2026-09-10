@@ -60,6 +60,20 @@
   transform: scale(0.97);
 }
 
+/* Caption above the preview grid. Muted by default (fallback = current
+   balances); the projection state reuses the same muted style but the text
+   changes to "After deposit:" / "After withdraw:" and the cells below adopt
+   the .resultValuePreview treatment, so the grid never reads as a committed
+   total. */
+.previewCaption {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
 /* Preview: two pool panels (source / destination) with a directional separator */
 .preview {
   display: flex;
@@ -164,6 +178,18 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-sizing: border-box;
+}
+
+/* Projection modifier: applied to result cells ONLY while a valid amount is
+   entered. Distinguishes the post-transfer projection from a solid committed
+   balance — italic text, a dashed gold border, and a slightly muted backdrop —
+   while preserving the ≥44px touch target and dark/gold theme. */
+.resultValuePreview {
+  font-style: italic;
+  color: var(--accent-gold);
+  background: color-mix(in srgb, var(--bg-tertiary) 85%, transparent);
+  border-style: dashed;
+  border-color: var(--accent-gold);
 }
 
 /* Tooltip breakdown body */

@@ -115,6 +115,8 @@ interface CharacterPageProps {
   characterId: string;
   update: (field: string, value: unknown) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
+  /** Synchronously persist the given (or latest) character; see useCharacter. Optional so tests can omit it. */
+  saveNow?: (explicit?: Character) => void;
   totalWounds: number;
   armourPoints: ArmourPoints;
   maxEncumbrance: number;
@@ -136,7 +138,7 @@ const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
 
 type CharSubTab = 'identity' | 'abilities' | 'gear' | 'notes';
 
-export function CharacterPage({ character, characterId, update, updateCharacter, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
+export function CharacterPage({ character, characterId, update, updateCharacter, saveNow, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
   const VALID_SUBTABS: CharSubTab[] = ['identity', 'abilities', 'gear', 'notes'];
 
   // Tab reordering
@@ -309,21 +311,23 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
     // SINGLE mutation: both pools + ledger + event log move together (Req 7.1).
     // Writing wGC/wSS/wD triggers the existing coinWeight recompute (Req 5.1).
-    updateCharacter((c) => {
-      const withPoolsAndLedger: Character = {
-        ...c,
-        wGC: newWealth.gc,
-        wSS: newWealth.ss,
-        wD: newWealth.d,
-        estate: {
-          ...c.estate,
-          treasury: newTreasury,
-          ledger: [...(c.estate.ledger ?? []), entry],
-        },
-      };
-      // Follow-on display/audit mirror → appends the 'wealth' event (Req 3.3).
-      return mirrorLedger(withPoolsAndLedger, entry);
-    });
+    const withPoolsAndLedger: Character = {
+      ...character,
+      wGC: newWealth.gc,
+      wSS: newWealth.ss,
+      wD: newWealth.d,
+      estate: {
+        ...character.estate,
+        treasury: newTreasury,
+        ledger: [...(character.estate.ledger ?? []), entry],
+      },
+    };
+    // Follow-on display/audit mirror → appends the 'wealth' event (Req 3.3).
+    const next = mirrorLedger(withPoolsAndLedger, entry);
+    updateCharacter(() => next);
+    // Persist the exact deposited state synchronously so the debounced auto-save
+    // race can never drop this discrete money-move (guarded — optional in tests).
+    saveNow?.(next);
   };
 
   // Personal details: species group + state for random generation

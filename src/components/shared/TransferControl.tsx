@@ -81,6 +81,13 @@ export function TransferControl({
   const resultSource = preview.ok ? preview.source : source;
   const resultDestination = preview.ok ? preview.destination : destination;
 
+  // A projection is active only when a valid amount produced a successful
+  // transfer preview. When it is, the shown balances are POST-transfer
+  // projections (not committed totals) so we visually flag them as a preview
+  // and caption the grid "After deposit:" / "After withdraw:". Otherwise the
+  // grid falls back to the current balances and is captioned accordingly.
+  const isProjection = parsed !== null && preview.ok;
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const trimmed = value.trim();
@@ -131,7 +138,11 @@ export function TransferControl({
           isTooltipOpen={isTooltipOpen}
           onOpen={(anchorEl) => setOpenTooltip({ pool, key: denom.key, anchorEl })}
           onClose={() => setOpenTooltip(null)}
-          className={styles.resultValue}
+          className={
+            isProjection
+              ? `${styles.resultValue} ${styles.resultValuePreview}`
+              : styles.resultValue
+          }
           ariaLabel={`${poolLabel} ${denom.label} result ${resultVal}. Tap for breakdown.`}
           dataTestId={`transfer-${direction}-${pool}-${denom.key}`}
         />
@@ -187,6 +198,16 @@ export function TransferControl({
         <button type="submit" className={styles.submitButton}>
           {actionVerb}
         </button>
+      </div>
+
+      {/* State-dependent caption so the grid never silently masquerades as a
+          committed total. Decorative: the per-cell aria-labels already convey
+          the values, so this is hidden from the a11y tree (aria-hidden). */}
+      <div
+        className={styles.previewCaption}
+        aria-hidden="true"
+      >
+        {isProjection ? `After ${actionVerb.toLowerCase()}:` : 'Current balances'}
       </div>
 
       <div className={styles.preview} data-testid={`transfer-preview-${direction}`}>

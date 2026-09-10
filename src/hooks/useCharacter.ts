@@ -19,6 +19,15 @@ export interface UseCharacterResult {
   character: Character;
   update: (field: string, value: unknown) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
+  /**
+   * Synchronously persist the character to storage right now, cancelling any
+   * pending debounced auto-save. Pass an explicit character to persist the exact
+   * post-mutation state when calling immediately after a setCharacter in the
+   * same tick (latestCharRef lags by one effect). Used for discrete money-moves
+   * (deposit / withdraw / collect income) so the write cannot be dropped by the
+   * debounce race.
+   */
+  saveNow: (explicit?: Character) => void;
   totalWounds: number;
   armourPoints: ArmourPoints;
   maxEncumbrance: number;
@@ -171,6 +180,25 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     }
   }, []);
 
+  /**
+   * Synchronously persist the character now and clear any pending debounce.
+   *
+   * `latestCharRef` is updated in an effect that runs AFTER render, so right
+   * after a `setCharacter` in the same tick it can be stale. Callers that just
+   * mutated state (money-moves) pass the exact post-mutation character via
+   * `explicit` so the correct value is persisted synchronously and cannot be
+   * lost by the debounced auto-save race.
+   */
+  const saveNow = useCallback((explicit?: Character) => {
+    const toSave = explicit ?? latestCharRef.current;
+    // Keep the ref coherent so the trailing debounce/flush doesn't re-save stale state.
+    if (explicit) {
+      latestCharRef.current = explicit;
+    }
+    saveCharacter(characterIdRef.current, toSave);
+    pendingRef.current = false;
+  }, []);
+
   // Auto-save debounced 500ms
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -179,12 +207,21 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
       return;
     }
 
-    // Skip auto-save when character was reset from props (not a user edit)
+    // Skip auto-save when character was reset from props (not a user edit).
+    // Only this exact prop-driven reset commit is skipped; the flag is cleared
+    // immediately so any subsequent user edit re-arms the debounce normally.
     if (isResettingRef.current) {
       isResettingRef.current = false;
+      // Keep latestCharRef in sync with the reset state so a later flush that
+      // sees no pending edit never re-persists a mismatched character.
+      latestCharRef.current = character;
       return;
     }
 
+    // Update latestCharRef SYNCHRONOUSLY here (before scheduling) rather than
+    // relying solely on the separate [character] effect, which lags by one
+    // effect. This guarantees flushSave() in cleanup always sees this commit.
+    latestCharRef.current = character;
     pendingRef.current = true;
     const timer = setTimeout(() => {
       if (pendingRef.current) {
@@ -360,6 +397,7 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     character,
     update,
     updateCharacter,
+    saveNow,
     totalWounds,
     armourPoints,
     maxEncumbrance,
