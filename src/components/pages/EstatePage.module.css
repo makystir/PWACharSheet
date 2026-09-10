@@ -130,6 +130,28 @@
   padding: 10px 14px;
 }
 
+/* Grouped treasury controls: separate balance / quick-adjust / withdraw
+   with a green-tinted divider so the two gold buttons don't look melded */
+.treasuryGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.treasuryGroup + .treasuryGroup {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(90, 154, 90, 0.25);
+}
+
+.treasuryGroupLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .treasuryTitle {
   font-family: var(--font-heading);
   font-size: 12px;
@@ -137,7 +159,7 @@
   color: var(--success);
   letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   text-align: center;
 }
 
@@ -146,13 +168,13 @@
   font-weight: 700;
   color: var(--text-primary);
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .treasuryError {
   color: var(--danger);
   font-size: 12px;
-  margin-top: 6px;
+  margin-top: 0;
   text-align: center;
 }
 
@@ -416,5 +438,5 @@
   color: var(--text-muted);
   font-size: 12px;
   font-style: italic;
-  margin-top: 8px;
+  margin-top: 0;
 }

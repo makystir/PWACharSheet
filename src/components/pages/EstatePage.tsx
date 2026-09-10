@@ -341,23 +341,31 @@ export function EstatePage({ character, update, updateCharacter, subTab, onSubTa
       <Card>
         <div>
           <div className={styles.treasuryPanel}>
-            <div className={styles.treasuryTitle}>Treasury</div>
-            <div className={styles.treasuryBalance}>
-              {est.treasury.gc || 0} GC &bull; {est.treasury.ss || 0} SS &bull; {est.treasury.d || 0} D
+            <div className={styles.treasuryGroup}>
+              <div className={styles.treasuryTitle}>Treasury</div>
+              <div className={styles.treasuryBalance}>
+                {est.treasury.gc || 0} GC &bull; {est.treasury.ss || 0} SS &bull; {est.treasury.d || 0} D
+              </div>
             </div>
-            <CurrencyInput onSubmit={handleTreasuryDelta} />
-            {treasuryError && (
-              <p className={styles.treasuryError} role="alert">{treasuryError}</p>
-            )}
-            <TransferControl
-              direction="withdraw"
-              source={{ gc: est.treasury.gc || 0, ss: est.treasury.ss || 0, d: est.treasury.d || 0 }}
-              destination={{ gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 }}
-              labels={{ source: 'Treasury', destination: 'Coin Purse' }}
-              onSubmit={(amount) => applyTransfer('withdraw', amount)}
-              error={treasuryError}
-            />
-            <p className={styles.crossRefHint}>Carried coin is stored in your Coin Purse (Character page).</p>
+            <div className={styles.treasuryGroup}>
+              <div className={styles.treasuryGroupLabel}>Quick Adjust</div>
+              <CurrencyInput onSubmit={handleTreasuryDelta} />
+              {treasuryError && (
+                <p className={styles.treasuryError} role="alert">{treasuryError}</p>
+              )}
+            </div>
+            <div className={styles.treasuryGroup}>
+              <div className={styles.treasuryGroupLabel}>Withdraw to Coin Purse</div>
+              <TransferControl
+                direction="withdraw"
+                source={{ gc: est.treasury.gc || 0, ss: est.treasury.ss || 0, d: est.treasury.d || 0 }}
+                destination={{ gc: character.wGC || 0, ss: character.wSS || 0, d: character.wD || 0 }}
+                labels={{ source: 'Treasury', destination: 'Coin Purse' }}
+                onSubmit={(amount) => applyTransfer('withdraw', amount)}
+                error={treasuryError}
+              />
+              <p className={styles.crossRefHint}>Carried coin is stored in your Coin Purse (Character page).</p>
+            </div>
           </div>
         </div>
         <button type="button" onClick={collectMonth} className={styles.collectBtn}>
