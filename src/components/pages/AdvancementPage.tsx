@@ -393,19 +393,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
 
   return (
     <div className={styles.sectionGap}>
-      {/* Career Selection */}
-      <Card>
-        <SectionHeader icon={GraduationCap} title="Career" action={
-          isComplete ? <span className={styles.completeBadge}><CheckCircle size={14} /> Complete</span> : undefined
-        } />
-        {character.career && character.careerLevel ? (
-          <div className={styles.careerSummaryLine}>
-            <span className={styles.careerSummaryText}>
-              {character.career} &gt; {character.careerLevel} (Level {careerLevelNum}) — {character.status || 'No Status'}
-            </span>
-            <button type="button" onClick={() => setShowCareerPicker(true)} className={styles.careerSummaryEditBtn}>Change</button>
-          </div>
-        ) : (
+      {/* Career Selection — only shown before a career is chosen. Once a career
+          is selected, career info + actions live in the "Career Progress" card. */}
+      {!(character.career && character.careerLevel) && (
+        <Card>
+          <SectionHeader icon={GraduationCap} title="Select Career" />
           <div className={styles.gridAutoFill}>
             <div>
               <span className={styles.fieldLabel}>Class</span>
@@ -421,8 +413,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             </div>
             <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
           </div>
-        )}
-      </Card>
+        </Card>
+      )}
 
       {/* Advancement completion checklist — presentation layer over the existing
           completion computations below (charsMet/skillsMet/talentsMet etc.).
@@ -478,7 +470,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {scheme && (
         <Card>
           <div className={styles.sectionWithHelp}>
-            <SectionHeader icon={CheckCircle} title="Career Progress" />
+            <SectionHeader icon={CheckCircle} title="Career Progress" action={
+              isComplete ? <span className={styles.completeBadge}><CheckCircle size={14} /> Complete</span> : undefined
+            } />
             <HelpPopover concept="career-advancement">{getHelpContent('career-advancement')}</HelpPopover>
           </div>
           <div className={styles.progressPanel}>
@@ -530,6 +524,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                 Advance Career Level ({advanceLevelCost} XP)
               </button>
             )}
+            <button type="button" onClick={() => setShowCareerPicker(true)} className={styles.switchCareerBtn}>
+              Change Career
+            </button>
             <button type="button" onClick={() => setShowSwitchCareerPicker(true)} className={styles.switchCareerBtn}>
               Switch Career
             </button>

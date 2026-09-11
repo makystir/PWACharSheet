@@ -687,26 +687,6 @@
   font-family: var(--font-heading);
 }
 
-/* Career Selection summary line */
-.careerSummaryLine {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0;
-}
-
-.careerSummaryText {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--parchment);
-}
-
-.careerSummaryEditBtn {
-  composes: smallButton from '../shared/styles/shared.module.css';
-  font-size: 11px;
-}
-
 /* XP insufficient shake animation */
 .xpDisplayShake {
   animation: shake 0.4s ease-in-out;
