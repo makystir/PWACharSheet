@@ -11,7 +11,7 @@ import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { AdvancementChecklist } from './AdvancementChecklist';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, formatXpFeedback, applyBulkAdvancement, calculateTierBoundaryCost } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, formatXpFeedback, applyBulkAdvancement, calculateTierBoundaryCost, awardXp, removeXpAward } from '../../logic/advancement';
 import { filterSkillEntries } from '../../logic/skill-filter';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
@@ -25,7 +25,7 @@ import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { RuneLearningPanel } from '../shared/RuneLearningPanel';
 import { SwordDancingPanel } from '../shared/SwordDancingPanel';
 import { DeitySelector } from '../shared/DeitySelector';
-import { GraduationCap, TrendingUp, ScrollText, CheckCircle, Swords, BookOpen, Sparkles, Undo2, Redo2 } from 'lucide-react';
+import { GraduationCap, TrendingUp, ScrollText, CheckCircle, Swords, BookOpen, Sparkles, Undo2, Redo2, Info } from 'lucide-react';
 import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
 import styles from './AdvancementPage.module.css';
@@ -74,6 +74,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     try { localStorage.setItem('wfrp-hideOutOfCareerSkills', String(next)); } catch { /* ignore */ }
   };
   const [xpEditMode, setXpEditMode] = useState(false);
+  const [xpAwardAmount, setXpAwardAmount] = useState('');
+  const [xpAwardReason, setXpAwardReason] = useState('');
+  const [showXpLog, setShowXpLog] = useState(false);
+  const [xpBreakdownAnchor, setXpBreakdownAnchor] = useState<HTMLElement | null>(null);
   const [showArchive, setShowArchive] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSpellLearningPicker, setShowSpellLearningPicker] = useState(false);
@@ -90,6 +94,19 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     setXpShake(true);
     setTimeout(() => setXpShake(false), 400);
   }, []);
+
+  // Award XP: logged/audited grant instead of directly editing the XP fields.
+  const handleAwardXp = () => {
+    const amount = Number(xpAwardAmount);
+    if (!Number.isFinite(amount) || amount === 0) return;
+    updateCharacter((c) => awardXp(c, amount, xpAwardReason));
+    setXpAwardAmount('');
+    setXpAwardReason('');
+  };
+
+  const handleRemoveXpAward = (timestamp: number) => {
+    updateCharacter((c) => removeXpAward(c, timestamp));
+  };
 
   const handleTalentTooltip = (talentName: string, characterDesc: string, event: React.MouseEvent) => {
     const content = resolveTalentTooltip(talentName, characterDesc);
@@ -391,6 +408,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const careerNames = character.class ? getCareersByClass(character.class) : Object.keys(CAREER_SCHEMES);
   const levelTitles = allLevels.map(l => l.title);
 
+  // XP award audit log + derived breakdown for the Current-XP tooltip.
+  const xpLog = character.xpLog ?? [];
+  const totalAwarded = xpLog.reduce((sum, e) => sum + e.amount, 0);
+
   return (
     <div className={styles.sectionGap}>
       {/* Career Selection — only shown before a career is chosen. Once a career
@@ -452,7 +473,18 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           <div className={`${styles.xpDisplayRow} ${xpShake ? styles.xpDisplayShake : ''}`}>
             <div className={styles.xpDisplayItem}>
               <span className={styles.xpDisplayLabel}>Current</span>
-              <span className={styles.xpDisplayValue}>{character.xpCur}</span>
+              <span className={styles.xpDisplayValue}>
+                {character.xpCur}
+                <button
+                  type="button"
+                  className={styles.xpBreakdownBtn}
+                  aria-label="Show XP breakdown"
+                  aria-describedby={xpBreakdownAnchor ? 'tooltip-xp-breakdown' : undefined}
+                  onClick={(e) => setXpBreakdownAnchor(xpBreakdownAnchor ? null : (e.currentTarget as HTMLElement))}
+                >
+                  <Info size={14} />
+                </button>
+              </span>
             </div>
             <div className={styles.xpDisplayItem}>
               <span className={styles.xpDisplayLabel}>Spent</span>
@@ -464,6 +496,82 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             </div>
           </div>
         )}
+
+        {/* Award XP — logged/audited grant instead of directly editing XP. */}
+        <div className={styles.awardXpSection}>
+          <span className={styles.awardXpTitle}>Award XP</span>
+          <div className={styles.awardXpRow}>
+            <div className={styles.awardXpAmount}>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="Amount"
+                aria-label="XP amount to award"
+                value={xpAwardAmount}
+                onChange={(e) => setXpAwardAmount(e.target.value)}
+                className={styles.awardXpInput}
+              />
+            </div>
+            <div className={styles.awardXpReason}>
+              <input
+                type="text"
+                placeholder="Reason (e.g. Session 5)"
+                aria-label="Reason for XP award"
+                value={xpAwardReason}
+                onChange={(e) => setXpAwardReason(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAwardXp(); }}
+                className={styles.awardXpInput}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleAwardXp}
+              disabled={!Number.isFinite(Number(xpAwardAmount)) || Number(xpAwardAmount) === 0}
+              className={(!Number.isFinite(Number(xpAwardAmount)) || Number(xpAwardAmount) === 0) ? styles.awardXpBtnDisabled : styles.awardXpBtn}
+            >
+              Award
+            </button>
+          </div>
+
+          <div className={styles.logActions} style={{ marginTop: '8px' }}>
+            <button type="button" onClick={() => setShowXpLog(!showXpLog)} className={styles.logBtn}>
+              {showXpLog ? 'Hide' : 'Show'} Award Log ({xpLog.length})
+            </button>
+          </div>
+
+          {showXpLog && (
+            xpLog.length === 0 ? (
+              <p className={styles.xpAwardEmpty}>No XP awards logged yet. Awards raise Current and Total XP and are recorded here for auditing.</p>
+            ) : (
+              <table className={styles.tableBase}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>Date</th>
+                    <th className={styles.th}>Amount</th>
+                    <th className={styles.th}>Reason</th>
+                    <th className={styles.th}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...xpLog].reverse().map((entry) => (
+                    <tr key={entry.timestamp}>
+                      <td className={styles.td}>{new Date(entry.timestamp).toLocaleDateString()}</td>
+                      <td className={entry.amount >= 0 ? styles.xpAwardAmountPos : styles.xpAwardAmountNeg}>
+                        {entry.amount >= 0 ? '+' : ''}{entry.amount}
+                      </td>
+                      <td className={styles.td}>{entry.reason || '—'}</td>
+                      <td className={styles.td}>
+                        <button type="button" onClick={() => handleRemoveXpAward(entry.timestamp)} className={styles.logBtn} aria-label={`Remove XP award of ${entry.amount}`}>
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+          )}
+        </div>
       </Card>
 
       {/* Career Progress */}
@@ -1205,6 +1313,23 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           onClose={() => setShowSpellLearningPicker(false)}
           title={`Learn ${spellLearningType === 'petty' ? 'Petty Spell' : spellLearningType === 'arcane' ? 'Arcane Spell' : spellLearningType === 'miracle' ? 'Miracle' : 'Chaos Spell'}`}
         />
+      )}
+
+      {xpBreakdownAnchor && (
+        <Tooltip
+          id="tooltip-xp-breakdown"
+          anchorEl={xpBreakdownAnchor}
+          title="Current XP breakdown"
+          onClose={() => setXpBreakdownAnchor(null)}
+        >
+          <p className={styles.tooltipSectionText}>
+            Total earned {character.xpTotal} − Spent {character.xpSpent} = Current {character.xpTotal - character.xpSpent}
+          </p>
+          <p className={styles.tooltipSectionText}>
+            Of the total, {totalAwarded} XP {totalAwarded === character.xpTotal ? 'is' : 'was'} logged via awards ({xpLog.length} {xpLog.length === 1 ? 'entry' : 'entries'}).
+            {totalAwarded !== character.xpTotal && ` The remaining ${character.xpTotal - totalAwarded} XP was set directly.`}
+          </p>
+        </Tooltip>
       )}
 
       {activeTooltip && (

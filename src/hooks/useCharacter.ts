@@ -77,6 +77,9 @@ export function backfillCharacter(char: Character, weaponsRef?: WeaponData[]): C
   if (!patched.diseases) {
     patched.diseases = [];
   }
+  if (!patched.xpLog) {
+    patched.xpLog = [];
+  }
   // Always sync talent bonuses on load to ensure .b values are correct
   patched = syncTalentBonuses(patched);
 

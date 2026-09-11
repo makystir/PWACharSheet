@@ -282,6 +282,23 @@ export interface AdvancementEntry {
   inCareer: boolean;
 }
 
+/**
+ * A single audited XP award (GM handing out experience). Awarding XP has no
+ * fixed RAW formula — it is GM-side data entry (Core p.36 "Awarding
+ * Experience") — so this is a plain log of the amount granted and why, not a
+ * computed mechanic. Each award raises `xpCur` and `xpTotal` and appends an
+ * entry here so the grant can be reviewed/audited rather than silently editing
+ * the raw XP fields.
+ */
+export interface XpAwardEntry {
+  /** ms since epoch, set at award time. Also the entry's unique key. */
+  timestamp: number;
+  /** XP granted (positive) or removed (negative, e.g. an undo/correction). */
+  amount: number;
+  /** GM-provided reason for the award (e.g. "Session 5", "Great roleplay"). */
+  reason: string;
+}
+
 export interface CriticalWound {
   id: number;
   timestamp: number;
@@ -665,6 +682,17 @@ export interface AdvancementEventPayload {
 }
 
 /**
+ * Payload for `category: 'advancement'` XP-award mirror events.
+ * Display-only mirror of an `XpAwardEntry`; never read back for XP math.
+ */
+export interface XpAwardEventPayload {
+  /** XP granted (positive) or removed (negative). */
+  amount: number;
+  /** GM-provided reason for the award. */
+  reason: string;
+}
+
+/**
  * Payload for `category: 'wealth'` mirror events. (Req 6.2)
  * Display-only mirror of a `LedgerEntry`; never read back for treasury math.
  */
@@ -711,6 +739,12 @@ export interface Character {
   combatState: CombatState;
   advancementLog: AdvancementEntry[];
   advancementLogArchive: AdvancementEntry[];
+  /**
+   * Audit log of XP awards (GM grants). Optional for backward-compatible loads
+   * of pre-feature characters; concrete (`[]`) on new characters. Stored
+   * oldest-first; the UI reverses for display.
+   */
+  xpLog?: XpAwardEntry[];
   sessionHistory: SessionHistoryEntry[];
   quickActions: QuickAction[];
   criticalWounds: CriticalWound[];
@@ -868,6 +902,7 @@ export const BLANK_CHARACTER: Character = {
   },
   advancementLog: [],
   advancementLogArchive: [],
+  xpLog: [],
   sessionHistory: [],
   quickActions: [],
   criticalWounds: [],

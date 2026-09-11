@@ -1,4 +1,4 @@
-import type { Character, CharacteristicKey, AdvancementEntry, Skill, CareerScheme, CareerLevel, RitualItem } from '../types/character';
+import type { Character, CharacteristicKey, AdvancementEntry, XpAwardEntry, Skill, CareerScheme, CareerLevel, RitualItem } from '../types/character';
 import { CAREER_SCHEMES } from '../data/careers';
 import { ADV_SKILL_DB } from '../data/advanced-skills';
 import type { RitualData } from '../data/rituals';
@@ -6,7 +6,7 @@ import type { RitualData } from '../data/rituals';
 // are authoritative on `advancementLog`; after each authoritative write we emit
 // a display-only mirror event via `mirrorAdvancement`. The mirror never feeds
 // back into XP/undo/redo mechanics (Req 5.5).
-import { mirrorAdvancement } from './event-log-mirrors';
+import { mirrorAdvancement, mirrorXpAward } from './event-log-mirrors';
 
 /** A skill entry tagged with its original array index, type, and career status for sorted rendering. */
 export interface SortedSkillEntry {
@@ -420,6 +420,68 @@ export function learnSpell(
 /**
  * Apply a single characteristic advance, deduct XP, and log the entry.
  */
+/**
+ * Award XP to a character, logging it for audit instead of directly editing the
+ * raw XP fields.
+ *
+ * WFRP4e Core p.36 ("Awarding Experience"): the GM grants experience for
+ * completing sessions, objectives, and good play — there is no fixed RAW
+ * formula, so the amount is GM-provided data entry rather than a computed
+ * mechanic. Awarded XP raises both the spendable pool (`xpCur`) and the lifetime
+ * total (`xpTotal`), matching the app convention that advances spend `xpCur` /
+ * add to `xpSpent` while `xpTotal` tracks lifetime earnings.
+ *
+ * Appends an `XpAwardEntry` to `xpLog` (authoritative audit trail), then mirrors
+ * a display-only event into the unified event log. Returns the character
+ * unchanged if the amount is 0 or not finite.
+ */
+export function awardXp(character: Character, amount: number, reason: string): Character {
+  if (!Number.isFinite(amount) || amount === 0) return character;
+
+  const entry: XpAwardEntry = {
+    timestamp: Date.now(),
+    amount,
+    reason: reason.trim(),
+  };
+
+  const updated: Character = {
+    ...character,
+    xpCur: character.xpCur + amount,
+    xpTotal: character.xpTotal + amount,
+    xpLog: [...(character.xpLog ?? []), entry],
+  };
+
+  // Mirror into the unified event log AFTER the authoritative xpLog write.
+  return mirrorXpAward(updated, entry);
+}
+
+/**
+ * Remove/undo a previously logged XP award by its timestamp, reversing its
+ * effect on `xpCur` and `xpTotal`. Records the reversal as a display-only mirror
+ * event (with a negated amount) so the audit trail shows the correction rather
+ * than silently erasing history. Returns the character unchanged if no entry
+ * with the given timestamp exists.
+ */
+export function removeXpAward(character: Character, timestamp: number): Character {
+  const log = character.xpLog ?? [];
+  const entry = log.find(e => e.timestamp === timestamp);
+  if (!entry) return character;
+
+  const updated: Character = {
+    ...character,
+    xpCur: character.xpCur - entry.amount,
+    xpTotal: character.xpTotal - entry.amount,
+    xpLog: log.filter(e => e.timestamp !== timestamp),
+  };
+
+  // Mirror the reversal as a display-only event (negated amount, keep reason).
+  return mirrorXpAward(updated, {
+    timestamp: Date.now(),
+    amount: -entry.amount,
+    reason: entry.reason ? `Removed: ${entry.reason}` : 'Removed award',
+  });
+}
+
 export function advanceCharacteristic(
   character: Character,
   charKey: CharacteristicKey,

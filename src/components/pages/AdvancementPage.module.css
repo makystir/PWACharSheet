@@ -706,3 +706,113 @@
     font-size: 16px;
   }
 }
+
+/* --- Award XP section --- */
+.awardXpSection {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.awardXpTitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.awardXpRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.awardXpAmount {
+  width: 100px;
+  flex: 0 0 auto;
+}
+
+.awardXpReason {
+  flex: 1 1 160px;
+  min-width: 140px;
+}
+
+.awardXpInput {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  min-height: 36px;
+  transition: border-color 0.15s;
+}
+
+.awardXpInput::placeholder {
+  color: var(--text-muted);
+}
+
+.awardXpInput:focus {
+  border-color: var(--accent-gold);
+}
+
+.awardXpBtn {
+  composes: smallButton from '../shared/styles/shared.module.css';
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+.awardXpBtnDisabled {
+  composes: smallButton from '../shared/styles/shared.module.css';
+  min-height: 36px;
+  white-space: nowrap;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Info-style button that reveals the XP breakdown tooltip */
+.xpBreakdownBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+}
+
+.xpBreakdownBtn:hover {
+  color: var(--accent-gold);
+}
+
+.xpAwardAmountPos {
+  color: var(--success, #6bbf59);
+  font-weight: 600;
+}
+
+.xpAwardAmountNeg {
+  color: var(--danger, #c0504d);
+  font-weight: 600;
+}
+
+.xpAwardEmpty {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+@media (max-width: 767px) {
+  .awardXpInput {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .awardXpAmount {
+    width: 100%;
+  }
+}

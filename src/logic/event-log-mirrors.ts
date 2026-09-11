@@ -24,6 +24,8 @@ import type {
   Character,
   LedgerEntry,
   WealthEventPayload,
+  XpAwardEntry,
+  XpAwardEventPayload,
 } from '../types/character';
 import { appendEvent } from './event-log';
 
@@ -148,6 +150,43 @@ export function mirrorLedger(character: Character, entry: LedgerEntry): Characte
   return appendEvent(character, {
     category: 'wealth',
     type: 'wealth.mirror',
+    summary,
+    payload: payload as unknown as Record<string, unknown>,
+  });
+}
+
+/**
+ * Mirror an XP award into the event log as a `category: 'advancement'` event.
+ *
+ * Builds a human-readable summary such as `"XP: +150 XP (Session 5)"`, or for a
+ * removed/corrected award `"XP: −150 XP (Session 5)"`. The sign reflects the
+ * award amount. Summary construction is wrapped in try/catch so a formatting
+ * failure degrades to a generic summary instead of throwing into the
+ * authoritative XP write.
+ *
+ * Pure: returns a NEW character with the mirror event appended; does not read or
+ * mutate `xpLog`, `xpCur`, or `xpTotal`.
+ */
+export function mirrorXpAward(character: Character, entry: XpAwardEntry): Character {
+  let summary: string;
+  try {
+    const sign = entry.amount >= 0 ? '+' : '−';
+    const magnitude = Math.abs(entry.amount);
+    const reason = entry.reason.trim();
+    summary = `XP: ${sign}${magnitude} XP${reason ? ` (${reason})` : ''}`;
+  } catch {
+    // Fallback: never let a summary-formatting error break the source write.
+    summary = 'XP: Award';
+  }
+
+  const payload: XpAwardEventPayload = {
+    amount: entry.amount,
+    reason: entry.reason,
+  };
+
+  return appendEvent(character, {
+    category: 'advancement',
+    type: 'advancement.xpAward',
     summary,
     payload: payload as unknown as Record<string, unknown>,
   });
