@@ -28,16 +28,6 @@ const arbTalent: fc.Arbitrary<Talent> = fc.record({
 
 const arbTalentArray: fc.Arbitrary<Talent[]> = fc.array(arbTalent, { minLength: 0, maxLength: 10 });
 
-/** Generate a talent that matches a given charKey in TALENT_BONUS_MAP */
-function arbMatchingTalent(charKey: CharacteristicKey): fc.Arbitrary<Talent> {
-  const talentName = CHAR_TO_TALENT[charKey];
-  return fc.record({
-    n: fc.constant(talentName),
-    lvl: fc.integer({ min: 1, max: 5 }),
-    desc: fc.string({ maxLength: 50 }),
-  });
-}
-
 // ─── Property Tests ─────────────────────────────────────────────────────────
 
 describe('Feature: characteristic-current-tooltip, getContributingTalent', () => {

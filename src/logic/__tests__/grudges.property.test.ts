@@ -11,7 +11,6 @@ import {
   satisfyGrudge,
   deleteGrudge,
   sortGrudges,
-  getGrudgeXP,
 } from '../grudges';
 import type { GrudgeFormData } from '../grudges';
 

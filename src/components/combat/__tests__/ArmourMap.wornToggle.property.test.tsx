@@ -11,8 +11,6 @@ import type { ArmourItem, ArmourType, ArmourPoints } from '../../../types/charac
 const ZERO_AP: ArmourPoints = { head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 };
 
 const ALL_ARMOUR_TYPES: ArmourType[] = ['SoftKit', 'BoiledLeather', 'Chainmail', 'Brigandine', 'Plate'];
-const STEALTH_PENALTY_TYPES: ArmourType[] = ['Chainmail', 'Plate'];
-const NON_PENALTY_TYPES: ArmourType[] = ['SoftKit', 'BoiledLeather', 'Brigandine'];
 
 type LocationKey = 'head' | 'lArm' | 'rArm' | 'body' | 'lLeg' | 'rLeg';
 const ALL_LOCATION_KEYS: LocationKey[] = ['head', 'lArm', 'rArm', 'body', 'lLeg', 'rLeg'];
@@ -40,30 +38,6 @@ const arbArmourType: fc.Arbitrary<ArmourType> = fc.constantFrom(...ALL_ARMOUR_TY
 
 /** Generate a random location key */
 const arbLocationKey: fc.Arbitrary<LocationKey> = fc.constantFrom(...ALL_LOCATION_KEYS);
-
-/** Generate a location string that covers a specific location key */
-function locationStringFor(locKey: LocationKey): string {
-  return LOCATION_KEY_TO_STRING[locKey];
-}
-
-/** Generate a location string that does NOT cover a specific location key */
-function locationStringNotCovering(locKey: LocationKey): fc.Arbitrary<string> {
-  const others = ALL_LOCATION_KEYS.filter(k => k !== locKey);
-  // For arm/leg keys, we must also avoid "Arms"/"Legs" shorthand
-  const filtered = others.filter(k => {
-    if (locKey === 'lArm' || locKey === 'rArm') {
-      // avoid other arm key too since "Arms" would match both
-      return k !== 'lArm' && k !== 'rArm';
-    }
-    if (locKey === 'lLeg' || locKey === 'rLeg') {
-      return k !== 'lLeg' && k !== 'rLeg';
-    }
-    return true;
-  });
-  // Pick one non-matching location
-  if (filtered.length === 0) return fc.constant('Body');
-  return fc.constantFrom(...filtered.map(k => LOCATION_KEY_TO_STRING[k]));
-}
 
 /** Generate a basic armour item with configurable worn state */
 function arbArmourItem(opts?: {

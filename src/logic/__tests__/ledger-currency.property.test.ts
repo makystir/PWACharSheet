@@ -31,8 +31,6 @@ const arbPositiveAmount: fc.Arbitrary<CurrencyDelta> = fc.record({
   d: fc.integer({ min: 0, max: 999999 }),
 }).filter((a) => a.gc + a.ss + a.d > 0);
 
-const arbLedgerType: fc.Arbitrary<'income' | 'expense'> = fc.constantFrom('income', 'expense');
-
 // ─── Property Tests ─────────────────────────────────────────────────────────
 
 describe('Feature: ux-polish-and-functionality', () => {

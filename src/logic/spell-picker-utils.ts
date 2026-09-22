@@ -185,30 +185,6 @@ export function getAvailableLores(spells: SpellData[]): string[] {
 /** Lores that count as "Petty" magic */
 const PETTY_LORES = ['Petty', 'Elven Petty'];
 
-/** Lores that count as "Arcane" magic (learnable with Arcane Magic talent) */
-const ARCANE_LORES = [
-  'Arcane',
-  'Arcane Utility',
-  'Lore of Beasts',
-  'Lore of Death',
-  'Lore of Fire',
-  'Lore of Heavens',
-  'Lore of Life',
-  'Lore of Light',
-  'Lore of Metal',
-  'Lore of Shadows',
-  'Lore of Hedgecraft',
-  'Lore of Witchcraft',
-  'Lore of Daemonology',
-  'Lore of Necromancy',
-  // Elven arcane lores
-  'Elven Arcane',
-  'High Magic',
-  'Magic of Vaul',
-  'Magic of Mathlann',
-  'Magic of Hoeth',
-];
-
 /** Miracle lores (one per deity) */
 const MIRACLE_LORES = [
   'Miracles of Manann',

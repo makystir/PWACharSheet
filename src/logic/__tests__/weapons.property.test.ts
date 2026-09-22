@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { render } from '@testing-library/react';
 import fc from 'fast-check';
 import { WEAPONS } from '../../data/weapons';
-import { findSkillForWeapon, calcWeaponDamage, RANGED_GROUPS } from '../weapons';
+import { findSkillForWeapon, calcWeaponDamage } from '../weapons';
 import { getRuneDamageBonus } from '../runes';
 import { WeaponCards } from '../../components/combat/WeaponCards';
 import { BLANK_CHARACTER } from '../../types/character';

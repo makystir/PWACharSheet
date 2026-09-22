@@ -7,7 +7,7 @@ import { ensureCareerSkillsExist } from '../logic/advancement';
 import { validateLearnedCants } from '../logic/cants';
 import { CANT_CATALOGUE } from '../data/cants';
 import { CAREER_SCHEMES } from '../data/careers';
-import type { CareerLevel, CareerScheme } from '../types/character';
+import type { CareerLevel } from '../types/character';
 import { getPortraitStore } from './portrait-store';
 import { normaliseEventLog } from '../logic/event-log';
 
@@ -234,9 +234,10 @@ export async function saveCharacterWithPortrait(
   character: Character,
   portraitBlob?: Blob
 ): Promise<StorageWriteResult> {
-  // Create a copy without the portrait field for localStorage
-  const { portrait, ...rest } = character;
-  const charWithoutPortrait = { ...rest, portrait: '' } as Character;
+  // Create a copy with the (potentially large) portrait field blanked out so
+  // localStorage only ever holds an empty string; the real image lives in the
+  // Portrait Store (IndexedDB) via savePortrait below.
+  const charWithoutPortrait = { ...character, portrait: '' };
 
   const result = saveCharacter(id, charWithoutPortrait);
   if (!result.ok) return result;

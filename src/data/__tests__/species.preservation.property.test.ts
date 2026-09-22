@@ -13,33 +13,6 @@ import { SPECIES_DATA } from '../species';
  * the current (unfixed) SPECIES_DATA values.
  */
 
-// ─── Bug Condition Definition ────────────────────────────────────────────────
-// These species+field combos are the ONLY ones being corrected:
-// - Halfling: skills field
-// - High Elf: skills field
-// - High Elves (Sea Elf): talents field
-
-interface BugConditionEntry {
-  speciesKey: string;
-  affectedField: 'skills' | 'talents';
-}
-
-const BUG_CONDITION_ENTRIES: BugConditionEntry[] = [
-  { speciesKey: 'Halfling', affectedField: 'skills' },
-  { speciesKey: 'High Elf', affectedField: 'skills' },
-  { speciesKey: 'High Elves (Sea Elf)', affectedField: 'talents' },
-];
-
-function isBugConditionSpecies(key: string): boolean {
-  return BUG_CONDITION_ENTRIES.some((e) => e.speciesKey === key);
-}
-
-function isAffectedField(speciesKey: string, field: string): boolean {
-  return BUG_CONDITION_ENTRIES.some(
-    (e) => e.speciesKey === speciesKey && e.affectedField === field
-  );
-}
-
 // ─── Observed Snapshot: Completely Unaffected Species ─────────────────────────
 // These species have NO bug condition entries — all fields must be preserved.
 

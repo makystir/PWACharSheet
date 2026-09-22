@@ -442,7 +442,6 @@ export function ArmourMap({
                 const hasRunes = (item.runes?.length ?? 0) > 0;
                 const isEditing = editingIndex === i;
                 const isExpanded = expandedArmourIndex === i;
-                const hasQualities = (item.qualities && item.qualities !== '—') || runeQualities.length > 0;
 
                 return (
                   <div key={i} className={`${styles.armourRow}${item.worn === false ? ` ${styles.armourRowUnworn}` : ''}`} data-testid={`armour-item-${i}`}>

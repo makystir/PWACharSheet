@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { ANCESTOR_GODS } from '../../data/deityRunes';
-import type { AncestorGod } from '../../data/deityRunes';
 import { RUNE_CATALOGUE } from '../../data/runes';
-import type { RuneCategory } from '../../data/runes';
 import { validateRunePlacement, canLearnRune } from '../runes';
 import { BLANK_CHARACTER } from '../../types/character';
 import type { Character } from '../../types/character';
@@ -28,13 +26,6 @@ const PRIEST_CAREER_LEVELS = [
   { career: 'Hearth Priest', level: 2 },
   { career: 'High Hearth Priest', level: 3 },
   { career: 'Arch Hearth Priest', level: 4 },
-] as const;
-
-const RUNESMITH_CAREER_LEVELS = [
-  'Apprentice Runesmith',
-  'Runesmith',
-  'Master Runesmith',
-  'Runelord',
 ] as const;
 
 // Categorised rune IDs from RUNE_CATALOGUE

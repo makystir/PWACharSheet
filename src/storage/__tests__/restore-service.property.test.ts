@@ -338,7 +338,7 @@ describe('Feature: bulk-character-backup, Property 5: Import non-destruction of 
 
           const promise = restoreCharacters(importEntries);
           await vi.runAllTimersAsync();
-          const result = await promise;
+          await promise;
 
           // createCharacter is called for each valid import entry
           expect(newIds.length).toBe(importEntries.length);

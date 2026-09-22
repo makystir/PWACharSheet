@@ -8,6 +8,5 @@
 export {};
 
 declare global {
-  // eslint-disable-next-line no-var
   var __PRECACHE_MANIFEST__: import('./types').PrecacheEntry[] | undefined;
 }

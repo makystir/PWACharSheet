@@ -1,3 +1,10 @@
+/**
+ * Sword-dancing techniques — High Elf Swordmaster martial art.
+ *
+ * Rules source: High Elf Guide, "New Talent: Sword-dancing" (Way of the Sword).
+ * The Sword-dancing talent grants the Ritual of Cleansing technique for free;
+ * each further technique costs 100 XP × the number already known.
+ */
 import { SWORD_DANCING_TECHNIQUES } from '../data/swordDancingTechniques';
 import type { SwordDancingTechnique, Character } from '../types/character';
 
@@ -11,6 +18,14 @@ export function getTechniqueById(id: string): SwordDancingTechnique | undefined 
 
 // --- XP Cost Calculation ---
 
+/**
+ * Cost of the next Sword-dancing technique.
+ *
+ * High Elf Guide: "You can learn additional techniques for 100 XP per technique
+ * you currently know" — e.g. with 3 known, the next costs 300 XP.
+ *
+ * @param knownCount Number of techniques the character already knows.
+ */
 export function getTechniqueXpCost(knownCount: number): number {
   return knownCount * 100;
 }

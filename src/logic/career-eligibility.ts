@@ -137,7 +137,9 @@ export function getExcludedCareers(species: string): string[] {
 
   const isDwarf = isDwarfSpecies(species);
   const isHighElf = isHighElfSpecies(species);
-  const isWoodElf = isWoodElfSpecies(species);
+  // Note: Wood Elves are handled through the generic `isElf` / `!isHuman`
+  // branches below (they don't use the Empire Colleges), so no dedicated
+  // isWoodElf flag is needed here.
   const isElf = isElfSpecies(species);
   const isHalfling = isHalflingSpecies(species);
   const isHuman = isHumanSpecies(species);

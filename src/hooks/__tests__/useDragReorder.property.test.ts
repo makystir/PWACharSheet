@@ -22,13 +22,7 @@ type TargetType = 'grip' | 'card-body' | 'button' | 'input' | 'label' | 'span';
 
 const NON_GRIP_TARGETS: TargetType[] = ['card-body', 'button', 'input', 'label', 'span'];
 
-const arbGripTarget: fc.Arbitrary<TargetType> = fc.constant('grip' as TargetType);
-
 const arbNonGripTarget: fc.Arbitrary<TargetType> = fc.constantFrom(...NON_GRIP_TARGETS);
-
-/** Generate a valid item index for a list of given length */
-const arbIndex = (maxLength: number): fc.Arbitrary<number> =>
-  fc.integer({ min: 0, max: maxLength - 1 });
 
 /** Generate a list of 1-10 items */
 const arbItemCount: fc.Arbitrary<number> = fc.integer({ min: 1, max: 10 });

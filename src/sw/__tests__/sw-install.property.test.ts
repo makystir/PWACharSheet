@@ -90,7 +90,7 @@ describe('Feature: offline-sw-strategy, Property 4: Install caches all manifest 
         } as unknown as CacheStorage;
 
         globalThis.fetch = (input: RequestInfo | URL) => {
-          const url = typeof input === 'string' ? input : input.toString();
+          void input;
           return Promise.resolve(
             new Response(new Blob(['mock-body']), {
               status: 200,
@@ -159,15 +159,6 @@ describe('Feature: offline-sw-strategy, Property 5: Install fails on any non-ok 
 
   /** Type of failure to inject: either a non-ok response or a network error */
   const arbFailureType = fc.constantFrom('non-ok-response', 'network-error') as fc.Arbitrary<'non-ok-response' | 'network-error'>;
-
-  /**
-   * For a given manifest, generate a non-empty set of indices representing
-   * which entries will fail during fetch.
-   */
-  const arbFailureIndices = (manifestLength: number) =>
-    fc
-      .uniqueArray(fc.integer({ min: 0, max: manifestLength - 1 }), { minLength: 1 })
-      .filter((arr) => arr.length >= 1);
 
   it('rejects when at least one fetch returns a non-ok status', async () => {
     await fc.assert(

@@ -1,4 +1,4 @@
-import type { ArmourItem, ArmourType } from '../types/character';
+import type { ArmourItem } from '../types/character';
 import { getRuneAPBonus } from './runes';
 
 export type LocationKey = 'head' | 'lArm' | 'rArm' | 'body' | 'lLeg' | 'rLeg';

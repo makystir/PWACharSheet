@@ -22,12 +22,6 @@ const STORAGE_KEY = 'wfrp-display-mode';
 /** Arbitrary display mode value */
 const arbDisplayMode: fc.Arbitrary<DisplayMode> = fc.constantFrom('compact', 'expanded');
 
-/** Arbitrary sequence of mode values to simulate multiple toggles */
-const arbModeSequence: fc.Arbitrary<DisplayMode[]> = fc.array(arbDisplayMode, {
-  minLength: 1,
-  maxLength: 20,
-});
-
 // ─── Property Tests ─────────────────────────────────────────────────────────
 
 describe('Feature: ux-polish-improvements, Property 9: Display mode persistence round-trip', () => {

@@ -22,8 +22,6 @@ import {
   removeEndeavourEntry,
   updateEndeavourEntry,
   updateDowntimePeriod,
-  movePeriodUp,
-  movePeriodDown,
   moveEntryUp,
   moveEntryDown,
   validateSessionNumber,

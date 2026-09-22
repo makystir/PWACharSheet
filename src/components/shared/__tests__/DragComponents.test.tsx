@@ -1,23 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { DropIndicator } from '../DropIndicator';
 import { AriaLiveAnnouncer } from '../AriaLiveAnnouncer';
-
-describe('DropIndicator', () => {
-  it('renders a div with the indicator class when visible={true}', () => {
-    const { container } = render(<DropIndicator visible={true} />);
-    const indicator = container.firstChild as HTMLElement;
-    expect(indicator).toBeInTheDocument();
-    expect(indicator.tagName).toBe('DIV');
-    expect(indicator.className).toMatch(/indicator/);
-  });
-
-  it('renders nothing when visible={false}', () => {
-    const { container } = render(<DropIndicator visible={false} />);
-    expect(container.firstChild).toBeNull();
-  });
-});
 
 describe('AriaLiveAnnouncer', () => {
   it('renders a div with aria-live="assertive" and role="status"', () => {

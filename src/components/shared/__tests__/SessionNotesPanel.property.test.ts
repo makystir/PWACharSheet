@@ -12,9 +12,6 @@ const arbNoteText = fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.tri
 /** Arbitrary positive timestamp (realistic range: year 2000 to year 2100). */
 const arbTimestamp = fc.integer({ min: 946684800000, max: 4102444800000 });
 
-/** Arbitrary list of distinct timestamps to simulate note additions over time. */
-const arbTimestampList = fc.array(arbTimestamp, { minLength: 1, maxLength: 30 });
-
 /** Arbitrary list of notes: each entry is a {text, timestamp} pair. */
 const arbNoteEntries = fc.array(
   fc.record({ text: arbNoteText, timestamp: arbTimestamp }),

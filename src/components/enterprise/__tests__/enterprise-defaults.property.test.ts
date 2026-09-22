@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import fc from 'fast-check';
 import { BLANK_CHARACTER } from '../../../types/character';
-import type { Character, RangedDamageSBMode, Enterprise, EnterpriseType, EnterpriseCurrency, EnterpriseIncomeSource } from '../../../types/character';
+import type { Character, RangedDamageSBMode, EnterpriseType, EnterpriseCurrency } from '../../../types/character';
 
 /**
  * Property 1: Defaults merging for missing enterprise fields

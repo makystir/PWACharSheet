@@ -21,8 +21,6 @@ import type { CharacteristicKey, CharacteristicValue } from '../../../types/char
 
 // --- Generators ---
 
-const CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
-
 const arbitraryCharacteristicValue: fc.Arbitrary<CharacteristicValue> = fc.record({
   i: fc.integer({ min: 0, max: 99 }),
   a: fc.integer({ min: 0, max: 99 }),

@@ -12,7 +12,6 @@ function enableTouchSupport() {
 }
 
 function disableTouchSupport() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (window as any).ontouchstart;
 }
 

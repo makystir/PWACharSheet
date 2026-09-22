@@ -1,7 +1,7 @@
 // Feature: alternative-channelling-cants, Property 10: Cant categorization correctness
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { computeCantState, getPermittedCantSlots } from '../cants';
+import { computeCantState } from '../cants';
 import { CANT_CATALOGUE, COLOUR_LORES } from '../../data/cants';
 import type { CantEntry } from '../../data/cants';
 import { BLANK_CHARACTER } from '../../types/character';

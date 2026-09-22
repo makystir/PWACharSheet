@@ -32,7 +32,7 @@ const arbPortraitBlob = fc.tuple(
 ).map(([bytes, mime]) => new Blob([bytes], { type: mime }));
 
 /** Arbitrary that generates a valid character ID (non-empty alphanumeric string) */
-const arbCharacterId = fc.stringMatching(/^[a-z0-9\-]{1,36}$/);
+const arbCharacterId = fc.stringMatching(/^[a-z0-9-]{1,36}$/);
 
 describe('Feature: portrait-indexeddb-migration, Property 1: Portrait storage round-trip', () => {
   let store: PortraitStore;

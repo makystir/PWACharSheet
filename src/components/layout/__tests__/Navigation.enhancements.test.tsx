@@ -131,7 +131,7 @@ describe('Navigation badge indicators', () => {
   });
 
   it('renders badge dot on Advancement item when showAdvancementBadge is true', () => {
-    const { container } = renderWithProvider(
+    renderWithProvider(
       <Navigation
         activePage="character"
         onPageChange={vi.fn()}

@@ -9,7 +9,6 @@ import { rollRandomTalent } from '../../data/randomTalents';
 import { ensureCareerSkillsExist } from '../../logic/advancement';
 import { getEligibleCareers } from '../../logic/career-eligibility';
 import { AGE_FORMULAS, HEIGHT_FORMULAS } from '../../data/personal-details';
-import type { HighElfAgeTier } from '../../data/personal-details';
 import {
   getSpeciesGroup,
   generateAge,
@@ -19,7 +18,6 @@ import {
   lookupHairColour,
   getEyeColourOptions,
   getHairColourOptions,
-  formatVariegatedEyes,
 } from '../../logic/personal-details';
 import styles from './CharacterWizard.module.css';
 

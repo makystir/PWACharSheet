@@ -225,8 +225,6 @@ describe('Feature: quality-of-life-improvements - Property 4', () => {
             const history = result.current.history;
             const N = rolls.length;
 
-            // The oldest entries (indices 0 to N-51) should NOT be in the history
-            const discardedRolls = rolls.slice(0, N - 50);
             const retainedRolls = rolls.slice(N - 50);
 
             // Verify retained: all 50 most recent are present (newest first)

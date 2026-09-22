@@ -25,11 +25,6 @@ const arbPathSegment = fc.string({
 /** Generate a valid image file extension */
 const arbImageExtension = fc.constantFrom('.svg', '.png', '.jpg', '.webp', '.ico');
 
-/** Generate a unique image URL path */
-const arbImageUrl = fc
-  .tuple(arbPathSegment, arbPathSegment, arbImageExtension)
-  .map(([dir, name, ext]) => `https://example.com/images/${dir}/${name}${ext}`);
-
 /**
  * Generate a sequence of unique image URLs with length > 60.
  * This ensures we trigger LRU eviction.

@@ -64,7 +64,7 @@ const arbOtherLore = fc.constantFrom(...COLOUR_LORES);
 // Generator for a channelling progress setup with multiple Winds
 const arbDeductionScenario = fc.record({
   targetLore: arbTargetLore,
-  otherLore: arbOtherLore.filter((l) => true), // will filter in property
+  otherLore: arbOtherLore.filter(() => true), // will filter in property
   // Number of entries for the target Wind (1-5)
   targetEntryCount: fc.integer({ min: 1, max: 5 }),
   // SL values for target Wind entries (each 1-20)

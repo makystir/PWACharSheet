@@ -1,3 +1,23 @@
+/**
+ * useDragReorder — pointer-based drag-to-reorder for a list of items.
+ *
+ * Designed to work with mouse, touch, and pen via the Pointer Events API. The
+ * interaction has three phases tracked by `status`:
+ *   - `idle`     — nothing happening.
+ *   - `tracking` — pointer is down on a grip but has not yet moved past
+ *                  DRAG_THRESHOLD_PX, so it is not yet treated as a drag
+ *                  (this lets taps/clicks through without starting a reorder).
+ *   - `dragging` — threshold exceeded; the item follows the pointer and a drop
+ *                  indicator shows where it would land.
+ *
+ * Item rectangles are measured once at drag start (`itemRects`) and reused for
+ * insertion-index maths so layout reads don't happen on every pointer move.
+ * The hook supports both single-column and multi-column (grid) layouts, and
+ * auto-scrolls the container when the pointer nears its top/bottom edge.
+ *
+ * Accessibility: exposes aria-roledescription/aria-grabbed on items and an
+ * `announcementText` string intended for an aria-live region.
+ */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // --- Public Interfaces ---

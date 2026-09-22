@@ -12,14 +12,6 @@ import type { APByLocation } from '../calculators';
 /** Valid singular location keywords that parseLocations recognizes. */
 const LOCATION_KEYWORDS = ['Head', 'Body', 'Arms', 'Legs'] as const;
 
-/** Map from keyword to the body locations it covers in APByLocation keys. */
-const KEYWORD_TO_AP_LOCATIONS: Record<string, (keyof APByLocation)[]> = {
-  Head: ['head'],
-  Body: ['body'],
-  Arms: ['leftArm', 'rightArm'],
-  Legs: ['leftLeg', 'rightLeg'],
-};
-
 /**
  * Generate a locations string from 1-4 distinct keywords, comma-separated.
  */

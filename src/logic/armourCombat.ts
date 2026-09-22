@@ -1,5 +1,5 @@
 import type { ArmourItem, ArmourType } from '../types/character';
-import { type LocationKey, coversLocation, isWeakpointsSuppressed, selectArchives3ContributingItems } from './armourLayering';
+import { type LocationKey, selectArchives3ContributingItems } from './armourLayering';
 
 export interface CombatArmourContext {
   armourItems: ArmourItem[];       // Items covering the hit location (worn, at that location)

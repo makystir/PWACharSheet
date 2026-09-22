@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { getObsessionDisplayState, type ObsessionData } from '../obsessions';
-import type { YenluiState } from '../../types/character';
 
 describe('getObsessionDisplayState', () => {
   const obsession: ObsessionData = {

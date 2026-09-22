@@ -1,3 +1,17 @@
+/**
+ * Dwarf rune magic — placement validation and derived rune effects.
+ *
+ * Rules source: Dwarf Guide, Runesmithing rules. Key constraints enforced here:
+ *   - "Rule of Three": no runic item may bear more than three runes.
+ *   - "Rule of Jealousy": at most one Master Rune per item (master runes are
+ *     never duplicated on the same item).
+ *   - Category placement: weapon runes on weapons, armour runes on armour;
+ *     talismanic runes on either; protection/engineering/doom runes are not
+ *     placed on personal weapons/armour here.
+ *
+ * (The "Property N" references in inline comments map to the property-based
+ * tests in runes*.property.test.ts that pin each of these invariants.)
+ */
 import { RUNE_CATALOGUE } from '../data/runes';
 import type { RuneDefinition, RuneCategory } from '../data/runes';
 import type { WeaponItem, ArmourItem, CharacteristicKey, Character } from '../types/character';

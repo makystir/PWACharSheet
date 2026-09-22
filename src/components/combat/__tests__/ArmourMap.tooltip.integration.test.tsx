@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ArmourMap } from '../ArmourMap';
 import type { ArmourMapProps } from '../ArmourMap';
-import type { ArmourItem, ArmourPoints } from '../../../types/character';
+import type { ArmourItem } from '../../../types/character';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

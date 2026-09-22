@@ -93,21 +93,18 @@ describe('fieldToLabel', () => {
 });
 
 describe('undo keydown handler logic', () => {
-  let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
-
   beforeEach(() => {
-    // Capture the keydown handler
-    vi.spyOn(document, 'addEventListener').mockImplementation((event, handler) => {
-      if (event === 'keydown') {
-        keydownHandler = handler as (e: KeyboardEvent) => void;
-      }
-    });
+    // Stub the global keydown listener registration so useUndoStack() does not
+    // attach a real document listener during these hook-only tests. The tests
+    // below exercise the undo/push/clear logic directly via result.current
+    // rather than by dispatching keyboard events, so the handler itself is
+    // never invoked here.
+    vi.spyOn(document, 'addEventListener').mockImplementation(() => {});
     vi.spyOn(document, 'removeEventListener').mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    keydownHandler = null;
   });
 
   it('Ctrl+Z on body triggers undo (not in input)', () => {

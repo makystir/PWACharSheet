@@ -3,7 +3,6 @@ import { render, screen, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import * as fc from 'fast-check';
 import { CharacterManagementSheet } from '../CharacterManagementSheet';
-import type { CharacterSummary } from '../../../types/character';
 
 // Mock createPortal to render inline instead of into document.body
 vi.mock('react-dom', async () => {

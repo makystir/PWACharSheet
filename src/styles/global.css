@@ -115,12 +115,25 @@ input, select, textarea {
     overflow: visible !important;
   }
 
-  /* Hide navigation, buttons, interactive UI */
+  /*
+   * Whitelist strategy: hide every top-level app-shell sibling by default,
+   * then re-show only the print layout below. The app shell renders
+   * .screen-only, .print-only, modals, Toast, and the status banners
+   * (UpdateBanner / InstallHintBanner, which use role="status") as direct
+   * children of #root, so hiding #root > * catches any non-print overlay —
+   * including future ones — that the denylist below would otherwise miss.
+   */
+  #root > *:not(.print-only) {
+    display: none !important;
+  }
+
+  /* Denylist retained as defense-in-depth for nested interactive UI */
   nav,
   .nav-sidebar,
   .no-print,
   button:not(.print-keep),
   [role="dialog"],
+  [role="status"],
   [data-no-print] {
     display: none !important;
   }
@@ -131,27 +144,6 @@ input, select, textarea {
     max-width: 100% !important;
     margin: 0 !important;
     overflow: visible !important;
-  }
-
-  /* Print layout styles */
-  .print-layout {
-    display: block !important;
-  }
-
-  .print-layout h1 {
-    font-size: 18px;
-    color: black;
-    font-family: 'Cinzel', serif;
-  }
-
-  .print-layout h2 {
-    font-size: 13px;
-    color: black;
-  }
-
-  /* Page break control */
-  .print-layout section {
-    page-break-inside: avoid;
   }
 
   /* Ensure tables print well */

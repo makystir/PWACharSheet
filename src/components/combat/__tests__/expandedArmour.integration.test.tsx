@@ -3,8 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TakeDamagePanel } from '../TakeDamagePanel';
 import type { TakeDamagePanelProps } from '../TakeDamagePanel';
-import type { ArmourItem, ArmourPoints } from '../../../types/character';
-import { migrateCharacterArmour, ARMOUR_NAME_MAP } from '../../../logic/armourMigration';
+import type { ArmourItem } from '../../../types/character';
+import { migrateCharacterArmour } from '../../../logic/armourMigration';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import type { ProtectionItem, EngineeringItem, Character } from '../../types/character';
-import { BLANK_CHARACTER } from '../../types/character';
 
 // Feature: expanded-rune-categories
 

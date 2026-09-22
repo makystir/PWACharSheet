@@ -78,7 +78,7 @@ describe('CharacterManagementSheet Accessibility Property Tests', () => {
         // Basic alphanumeric names
         fc.string({ minLength: 1, maxLength: 30 }).filter((s) => s.trim().length > 0),
         // Names with special characters
-        fc.stringMatching(/^[a-zA-Z0-9!@#$%^&*()\-_=+\[\]{};:'",.<>/?\\|`~]+$/, { minLength: 1, maxLength: 30 }),
+        fc.stringMatching(/^[a-zA-Z0-9!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]+$/, { minLength: 1, maxLength: 30 }),
         // Names with unicode characters (accented, CJK, Cyrillic)
         fc.stringMatching(/^[\u00C0-\u024F\u4E00-\u9FFF\u0400-\u04FF\w]+$/, { minLength: 1, maxLength: 30 })
       );

@@ -1,5 +1,5 @@
 // Feature: expanded-armour-system, Property 11: Stealth Penalty Display Logic
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';

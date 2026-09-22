@@ -7,13 +7,8 @@ import type { PsychologyType, PsychologyTrait } from '../../types/character';
 
 // ─── Generators ─────────────────────────────────────────────────────────────
 
-const allPsychologyTypes: PsychologyType[] = [
-  'Animosity', 'Hatred', 'Fear', 'Terror', 'Frenzy', 'Prejudice', 'Phobia', 'Trauma'
-];
-
 const targetRequiringTypes: PsychologyType[] = ['Animosity', 'Hatred', 'Prejudice', 'Phobia', 'Trauma'];
 const ratingRequiringTypes: PsychologyType[] = ['Fear', 'Terror'];
-const noExtraRequirementTypes: PsychologyType[] = ['Frenzy'];
 
 const arbTargetType: fc.Arbitrary<PsychologyType> = fc.constantFrom(...targetRequiringTypes);
 const arbRatingType: fc.Arbitrary<PsychologyType> = fc.constantFrom(...ratingRequiringTypes);

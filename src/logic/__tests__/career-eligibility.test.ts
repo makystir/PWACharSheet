@@ -7,8 +7,6 @@ import { getExcludedCareers, isCareerEligible } from '../career-eligibility';
  */
 
 describe('Ogre career eligibility', () => {
-  const ogreOnlyCareers = ['Maneater', 'Rhinox Herder', 'Ogre Butcher'];
-
   describe('getExcludedCareers for Ogre', () => {
     const excluded = getExcludedCareers('Ogre');
 

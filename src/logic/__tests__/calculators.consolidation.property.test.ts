@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { calculateArmourPointsUnified, computeAPByLocation, calculateArmourPoints, syncWoundFields, computeWoundMaximum } from '../calculators';
 import type { APByLocation } from '../calculators';
-import type { ArmourItem, ArmourPoints, Character } from '../../types/character';
+import type { ArmourItem, Character } from '../../types/character';
 import { BLANK_CHARACTER } from '../../types/character';
 
 // Feature: app-cleanup-and-optimization, Property 1: Unified AP function equivalence (worn filter)

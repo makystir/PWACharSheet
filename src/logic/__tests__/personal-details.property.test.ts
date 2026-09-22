@@ -28,23 +28,12 @@ const arbSpeciesKey = fc.constantFrom(...allSpeciesKeys);
 
 /** Species keys that contain "dwarf" (case-insensitive) */
 const dwarfKeys = allSpeciesKeys.filter(k => k.toLowerCase().includes('dwarf'));
-const arbDwarfKey = fc.constantFrom(...dwarfKeys);
 
 /** Species keys that match High Elf rules */
 const highElfKeys = allSpeciesKeys.filter(
   k => k === 'High Elf' || k.startsWith('High Elves')
 );
 const arbHighElfKey = fc.constantFrom(...highElfKeys);
-
-/** Halfling keys */
-const halflingKeys = allSpeciesKeys.filter(k => k.toLowerCase().includes('halfling'));
-const arbHalflingKey = fc.constantFrom(...halflingKeys);
-
-/** Human keys */
-const humanKeys = allSpeciesKeys.filter(
-  k => k.toLowerCase().includes('human') || k.toLowerCase().includes('reiklander')
-);
-const arbHumanKey = fc.constantFrom(...humanKeys);
 
 /** Generate strings that should NOT match any species rule */
 const speciesKeywords = ['dwarf', 'elf', 'halfling', 'human', 'reiklander', 'ogre', 'high elves'];

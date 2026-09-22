@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { lookupCriticalWound } from '../critical-wounds';
 import {
   HEAD_CRITICAL_TABLE,
-  ARM_CRITICAL_TABLE,
-  LEG_CRITICAL_TABLE,
 } from '../../data/critical-wound-tables';
 
 // ─── lookupCriticalWound unit tests ──────────────────────────────────────────

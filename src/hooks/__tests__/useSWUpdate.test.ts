@@ -136,7 +136,6 @@ describe('registerServiceWorker', () => {
     });
     // Also need to make `'serviceWorker' in navigator` return false
     // The simplest approach: delete it if possible, or redefine
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (navigator as any).serviceWorker;
   }
 

@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  getTechniqueById,
   getTechniqueXpCost,
-  hasSwordDancingTalent,
   getLearnedTechniques,
   canLearnTechnique,
   learnTechnique,

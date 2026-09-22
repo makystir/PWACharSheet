@@ -82,7 +82,6 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSpellLearningPicker, setShowSpellLearningPicker] = useState(false);
   const [spellLearningType, setSpellLearningType] = useState<'petty' | 'arcane' | 'miracle' | 'chaos'>('petty');
-  const [showRitualPicker, setShowRitualPicker] = useState(false);
   const [xpToastMessage, setXpToastMessage] = useState<string | null>(null);
   const [xpShake, setXpShake] = useState(false);
   const [skillSearchText, setSkillSearchText] = useState('');
@@ -402,7 +401,6 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const handleLearnRitual = (ritual: typeof RITUAL_LIST[number]) => {
     updateCharacter((c) => archiveOldEntries(learnRitual(c, ritual)));
     setRedoStack([]);
-    setShowRitualPicker(false);
   };
 
   const careerNames = character.class ? getCareersByClass(character.class) : Object.keys(CAREER_SCHEMES);

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fc from 'fast-check';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { SettingsPage } from '../SettingsPage';
 import { BLANK_CHARACTER } from '../../../types/character';
@@ -131,32 +131,6 @@ function mockFileReaderWithContent(content: string) {
   }
 
   globalThis.FileReader = MockFileReader as unknown as typeof FileReader;
-}
-
-function renderSettingsPage(overrides: Partial<{
-  character: Character;
-  updateCharacter: ReturnType<typeof vi.fn>;
-  update: ReturnType<typeof vi.fn>;
-}> = {}) {
-  const updateCharacterMock = overrides.updateCharacter ?? vi.fn();
-  const updateMock = overrides.update ?? vi.fn();
-  const character = overrides.character ?? TEST_CHARACTER;
-
-  return {
-    updateCharacterMock,
-    updateMock,
-    ...render(
-      <SettingsPage
-        character={character}
-        update={updateMock}
-        updateCharacter={updateCharacterMock}
-        totalWounds={12}
-        armourPoints={defaultArmourPoints}
-        maxEncumbrance={30}
-        coinWeight={0}
-      />
-    ),
-  };
 }
 
 // --- Test Suite ---

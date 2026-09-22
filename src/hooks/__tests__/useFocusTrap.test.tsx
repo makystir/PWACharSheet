@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
-import { renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRef, useState } from 'react';
 import * as fc from 'fast-check';

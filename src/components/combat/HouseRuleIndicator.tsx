@@ -1,5 +1,5 @@
 import { AlertTriangle, Settings as SettingsIcon } from 'lucide-react';
-import type { Character, HouseRules } from '../../types/character';
+import type { HouseRules } from '../../types/character';
 import { BLANK_CHARACTER } from '../../types/character';
 import styles from './HouseRuleIndicator.module.css';
 

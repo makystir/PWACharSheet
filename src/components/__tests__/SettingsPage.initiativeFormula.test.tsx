@@ -11,7 +11,6 @@ const defaultArmourPoints: ArmourPoints = {
   head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeProps(overrides: Record<string, any> = {}): any {
   return {
     character: structuredClone(BLANK_CHARACTER),

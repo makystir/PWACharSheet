@@ -46,14 +46,6 @@ describe('handleFetch', () => {
     } as unknown as CacheStorage;
   }
 
-  function setupCachesMatch(matchFn: (url: string | Request) => Response | undefined) {
-    globalThis.caches = {
-      ...globalThis.caches,
-      open: (globalThis.caches as CacheStorage).open,
-      match: vi.fn(async (url: string | Request) => matchFn(typeof url === 'string' ? url : url.url ?? url)),
-    } as unknown as CacheStorage;
-  }
-
   function createEmptyMockCache() {
     return {
       match: vi.fn(async () => undefined),

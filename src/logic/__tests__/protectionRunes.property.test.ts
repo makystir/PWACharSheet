@@ -8,10 +8,6 @@ import { validateProtectionPlacement } from '../protectionRunes';
 
 // --- Generators ---
 
-const protectionRuneIds = RUNE_CATALOGUE
-  .filter(r => r.category === 'protection')
-  .map(r => r.id);
-
 const nonMasterProtectionRuneIds = RUNE_CATALOGUE
   .filter(r => r.category === 'protection' && !r.isMaster)
   .map(r => r.id);

@@ -18,16 +18,6 @@ const CHARACTERISTIC_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag
 
 const ALL_LOCATIONS: LocationKey[] = ['head', 'lArm', 'rArm', 'body', 'lLeg', 'rLeg'];
 
-/** Map LocationKey to valid location token strings that coversLocation recognizes */
-const LOCATION_TO_TOKEN: Record<LocationKey, string> = {
-  head: 'Head',
-  lArm: 'Left Arm',
-  rArm: 'Right Arm',
-  body: 'Body',
-  lLeg: 'Left Leg',
-  rLeg: 'Right Leg',
-};
-
 const arbCharKey: fc.Arbitrary<CharacteristicKey> = fc.constantFrom(...CHARACTERISTIC_KEYS);
 
 const arbLocationKey: fc.Arbitrary<LocationKey> = fc.constantFrom(...ALL_LOCATIONS);
@@ -63,29 +53,6 @@ function buildCharsForEncumbrance(
   chars.S = { i: sValue, a: 0, b: 0 };
   chars.T = { i: tValue, a: 0, b: 0 };
   return chars;
-}
-
-/**
- * Generate an armour item that explicitly covers or does not cover a target location.
- */
-function arbArmourItemForLocation(
-  targetLocation: LocationKey,
-  coversTarget: boolean,
-): fc.Arbitrary<ArmourItem> {
-  const locationString = coversTarget
-    ? fc.constant(LOCATION_TO_TOKEN[targetLocation])
-    : fc.constantFrom(
-        ...ALL_LOCATIONS.filter((l) => l !== targetLocation).map((l) => LOCATION_TO_TOKEN[l]),
-      );
-
-  return fc.record({
-    name: fc.string({ minLength: 1, maxLength: 20 }),
-    locations: locationString,
-    enc: fc.constantFrom('0', '1', '2', '3'),
-    ap: fc.integer({ min: 1, max: 5 }),
-    qualities: fc.constant(''),
-    worn: fc.boolean(),
-  });
 }
 
 // ─── Property Tests ─────────────────────────────────────────────────────────

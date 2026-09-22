@@ -224,7 +224,6 @@ describe('handleActivate', () => {
 
   // Test 7: Handles empty cache list gracefully
   it('handles empty cache list gracefully', async () => {
-    const deleteFn = vi.fn(async () => true);
     const mockCacheStorage = createMockCacheStorage({
       cacheNames: [],
       precacheEntries: [],

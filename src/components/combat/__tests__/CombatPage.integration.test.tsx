@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CombatDashboard } from '../CombatDashboard';
@@ -62,7 +62,7 @@ describe('Combat mode switching renders correct sub-components', () => {
   it('CombatPage segmented control renders Attack, Defend, Status tabs', () => {
     // We test that the CombatPage renders a tablist with the three modes
     // by checking the segmented control pattern used in CombatPage
-    const { container } = render(
+    render(
       <div role="tablist" aria-label="Combat mode">
         <button role="tab" aria-selected={true}>Attack</button>
         <button role="tab" aria-selected={false}>Defend</button>

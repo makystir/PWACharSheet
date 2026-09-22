@@ -142,7 +142,7 @@ describe('CombatPage contextual visibility - Roll History', () => {
 
 describe('CombatPage contextual visibility - Fortune/Resolve Panel', () => {
   it('renders Fortune & Resolve as a collapsed section (dashboard shows compact version)', () => {
-    const { container } = renderCombatPage({ combatState: COMBAT_ACTIVE });
+    renderCombatPage({ combatState: COMBAT_ACTIVE });
     // Fortune & Resolve is in Status mode
     fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
     // The Fortune & Resolve section is wrapped in a CollapsibleSection that is collapsed by default

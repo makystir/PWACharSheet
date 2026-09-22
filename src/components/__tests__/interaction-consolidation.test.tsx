@@ -9,7 +9,7 @@ import { CharacterPage } from '../pages/CharacterPage';
 import { BLANK_CHARACTER } from '../../types/character';
 import type { CombatDashboardProps } from '../combat/CombatDashboard';
 import type { ArmourMapProps } from '../combat/ArmourMap';
-import type { Character, CombatState, ArmourPoints, ArmourItem, SpellItem } from '../../types/character';
+import type { Character, CombatState, ArmourPoints, ArmourItem } from '../../types/character';
 
 /**
  * Interaction Consolidation Tests (Task 16.4)
