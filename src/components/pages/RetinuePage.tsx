@@ -28,8 +28,11 @@ interface RetinuePageProps {
 
 type RetinueSubTab = 'hirelings' | 'companions';
 
+// Module-level constant so it has a stable identity across renders (keeps it
+// out of effect dependency arrays).
+const VALID_SUBTABS: RetinueSubTab[] = ['hirelings', 'companions'];
+
 export function RetinuePage({ character, update, updateCharacter, subTab, onSubTabChange }: RetinuePageProps) {
-  const VALID_SUBTABS: RetinueSubTab[] = ['hirelings', 'companions'];
 
   // Tab reordering
   const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
@@ -51,10 +54,13 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
   };
   const [activeSubTab, setActiveSubTabInternal] = useState<RetinueSubTab>(resolveInitialTab);
 
-  // Sync from external subTab prop (e.g. URL hash changes)
+  // Sync from external subTab prop (e.g. URL hash changes).
+  // Intentional setState-in-effect: mirrors an external routing input into
+  // local state (see CharacterPage for the same pattern).
   useEffect(() => {
     if (subTab) {
       if (VALID_SUBTABS.includes(subTab as RetinueSubTab)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActiveSubTabInternal(subTab as RetinueSubTab);
       }
     }

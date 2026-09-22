@@ -227,7 +227,9 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
 
   // ─── Species talent helpers ──────────────────────────────────────────────
 
-  const speciesTalentList = speciesData?.talents ?? [];
+  // Memoised so the `?? []` fallback keeps a stable identity across renders,
+  // which keeps the getResolvedTalents useCallback below stable too.
+  const speciesTalentList = useMemo(() => speciesData?.talents ?? [], [speciesData]);
 
   const parseTalentOptions = useCallback((talent: string): { isChoice: boolean; options: string[] } => {
     if (talent.includes(' or ')) {
@@ -471,7 +473,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
     return ensureCareerSkillsExist(char, careerSkills);
   }, [charName, species, careerScheme, selectedCareer, careerLevel1, getBaseRolls,
       speciesData, charAdvances, extraFate, speciesSkill5, speciesSkill3,
-      careerSkillAdvances, getResolvedTalents, selectedCareerTalent, randomTalents,
+      careerSkillAdvances, getResolvedTalents, getTalentDesc, selectedCareerTalent, randomTalents,
       age, height, hair, eyes, motivation, ambShort, ambLong, totalBonusXP]);
 
   // ─── Step renderers ──────────────────────────────────────────────────────

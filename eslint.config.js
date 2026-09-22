@@ -33,6 +33,14 @@ export default defineConfig([
           destructuredArrayIgnorePattern: '^_',
         },
       ],
+      // Dev-experience only: this rule flags modules that export a component
+      // alongside a constant/helper/type, which disables Vite Fast Refresh for
+      // that file during `npm run dev`. It has no effect on the built app or on
+      // correctness. A handful of files legitimately co-locate a small helper,
+      // re-export, or type with their component; splitting each into a separate
+      // module purely to satisfy Fast Refresh is not worth the churn. Keep it as
+      // a warning so the hint stays visible without failing the lint gate.
+      'react-refresh/only-export-components': 'warn',
     },
   },
   {

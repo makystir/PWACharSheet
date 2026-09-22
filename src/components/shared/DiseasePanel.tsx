@@ -115,6 +115,10 @@ export function DiseasePanel({ character, updateCharacter, onRoll }: DiseasePane
     difficulty: Parameters<typeof performRoll>[1],
   ) {
     const baseTarget = getSymptomTestBaseTarget(character, skill);
+    // Rolling a d100 here is correct: this runs inside a click handler, not
+    // during render, so the impurity lint (react-hooks/purity) is a false
+    // positive — dice rolls must be non-deterministic per user action.
+    // eslint-disable-next-line react-hooks/purity
     const roll = Math.floor(Math.random() * 100) + 1;
     const result = performRoll(baseTarget, difficulty, `${skill} — ${symptomLabel}`, roll);
     onRoll?.(result);

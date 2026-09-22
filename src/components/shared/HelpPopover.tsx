@@ -41,10 +41,13 @@ export function HelpPopover({ concept, children }: HelpPopoverProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const autoShowedRef = useRef(false);
 
-  // Auto-show on first render if not yet suppressed (dismissed < 3 times)
+  // Auto-show on first render if not yet suppressed (dismissed < 3 times).
+  // Intentional setState-in-effect: reads suppression state from an external
+  // store on mount and opens the popover once accordingly.
   useEffect(() => {
     if (!autoShowedRef.current && !isSuppressed(concept)) {
       autoShowedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(true);
     }
   }, [concept]);

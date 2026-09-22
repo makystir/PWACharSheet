@@ -67,9 +67,14 @@ type EstateSubTab = 'estate' | 'holdings' | 'wealth' | 'enterprises';
 export function EstatePage({ character, update, updateCharacter, saveNow, subTab, onSubTabChange }: EstatePageProps) {
   const useEnterprises = character.houseRules.useEnterprises === true;
 
-  const VALID_SUBTABS: EstateSubTab[] = useEnterprises
-    ? ['estate', 'holdings', 'wealth', 'enterprises']
-    : ['estate', 'holdings', 'wealth'];
+  // Memoised so it has a stable identity per useEnterprises value and can be
+  // referenced from effect dependency arrays without changing every render.
+  const VALID_SUBTABS: EstateSubTab[] = useMemo(
+    () => (useEnterprises
+      ? ['estate', 'holdings', 'wealth', 'enterprises']
+      : ['estate', 'holdings', 'wealth']),
+    [useEnterprises],
+  );
 
   // Tab reordering — conditionally include Enterprises tab
   const defaultTabsList = useMemo(() => {
@@ -100,7 +105,9 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
   };
   const [activeSubTab, setActiveSubTabInternal] = useState<EstateSubTab>(resolveInitialTab);
 
-  // Fall back if the current active tab is no longer valid (e.g. enterprises toggled off)
+  // Fall back if the current active tab is no longer valid (e.g. enterprises toggled off).
+  // Intentional setState-in-effect: reacts to an external house-rule toggle
+  // (useEnterprises) that can invalidate the current tab, correcting it.
   useEffect(() => {
     if (!VALID_SUBTABS.includes(activeSubTab)) {
       const fallback = (orderedTabs[0]?.id as EstateSubTab) || 'wealth';
@@ -108,16 +115,23 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
       saveLastSubTab('estate', fallback);
       onSubTabChange?.(fallback);
     }
+    // Intentionally narrow: this is specifically the reaction to the
+    // enterprises house-rule toggling. Re-running on activeSubTab/orderedTabs/
+    // onSubTabChange changes would defeat its purpose (it would fight normal
+    // tab navigation), so only useEnterprises belongs here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useEnterprises]);
 
-  // Sync from external subTab prop (e.g. URL hash changes)
+  // Sync from external subTab prop (e.g. URL hash changes).
+  // Intentional setState-in-effect: mirrors an external routing input into
+  // local state (see CharacterPage for the same pattern).
   useEffect(() => {
     if (subTab) {
       if (VALID_SUBTABS.includes(subTab as EstateSubTab)) {
         setActiveSubTabInternal(subTab as EstateSubTab);
       }
     }
-  }, [subTab]);
+  }, [subTab, VALID_SUBTABS]);
 
   // Wrapper that notifies parent and persists selection
   const setActiveSubTab = (tab: EstateSubTab) => {

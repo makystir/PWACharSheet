@@ -54,7 +54,9 @@ export function WeaponCards({
     if (touch) {
       setContextMenu({ x: touch.clientX, y: touch.clientY, index });
     }
-  }, []);
+    // setContextMenu is a stable useState setter; listing it satisfies the
+    // React Compiler's manual-memoization check without changing behaviour.
+  }, [setContextMenu]);
 
   const longPressHandlers = useLongPress({ onLongPress: handleLongPress });
 

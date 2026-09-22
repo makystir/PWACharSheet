@@ -32,9 +32,11 @@ export function SubTabBar({ tabs, activeTab, onTabChange, editMode }: SubTabBarP
   const [showEditButton, setShowEditButton] = useState(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Show edit button when edit mode is active (user toggled it)
+  // Show edit button when edit mode is active (user toggled it).
+  // Intentional setState-in-effect: reacts to the external editMode prop.
   useEffect(() => {
     if (editMode?.isActive) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowEditButton(true);
     }
   }, [editMode?.isActive]);

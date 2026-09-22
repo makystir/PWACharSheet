@@ -77,6 +77,10 @@ export function SWUpdateProvider({ children }: { children: ReactNode }) {
     dismiss,
   };
 
+  // `value` carries applyUpdate/dismiss, which read apiRef.current — but only
+  // when invoked from user events, never during render. The compiler can't
+  // prove that statically, so the ref-in-render check is suppressed here.
+  // eslint-disable-next-line react-hooks/refs
   return createElement(SWUpdateContext.Provider, { value }, children);
 }
 

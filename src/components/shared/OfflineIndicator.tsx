@@ -16,11 +16,15 @@ export function OfflineIndicator() {
   const [hiding, setHiding] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Intentional setState-in-effect: shows/hides the indicator in response to
+  // the external online/offline status, with a timed hide animation.
   useEffect(() => {
     if (!isOnline) {
       // Going offline: show immediately
+      /* eslint-disable react-hooks/set-state-in-effect */
       setVisible(true);
       setHiding(false);
+      /* eslint-enable react-hooks/set-state-in-effect */
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;

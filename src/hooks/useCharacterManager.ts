@@ -9,7 +9,6 @@ import {
   setActiveCharacter,
   renameCharacter as cmRename,
   duplicateCharacter as cmDuplicate,
-  deleteCharacter as cmDelete,
   deleteCharacterFull as cmDeleteFull,
 } from '../storage/character-manager';
 

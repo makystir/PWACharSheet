@@ -54,7 +54,9 @@ export function EditableField({ label, value, type = 'text', mode = 'tap-to-edit
         }, 1000);
       }
     } else {
-      // Hide hint and clear timer when exiting edit mode
+      // Hide hint and clear timer when exiting edit mode.
+      // Intentional setState-in-effect: reacts to the `editing` transition.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowEscHint(false);
       if (escHintTimerRef.current) {
         clearTimeout(escHintTimerRef.current);
@@ -69,9 +71,13 @@ export function EditableField({ label, value, type = 'text', mode = 'tap-to-edit
     };
   }, [editing]);
 
+  // Intentional setState-in-effect: resyncs the editable draft when the
+  // external `value` prop changes (e.g. undo, character switch).
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setDraft(String(value));
     setError(null);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [value]);
 
   const handleChange = (newDraft: string) => {

@@ -226,17 +226,23 @@ export function CharacterManagementSheet({
     }
   }, [characters]);
 
-  // Reset rename state when sheet closes
+  // Reset rename state when sheet closes.
+  // Intentional setState-in-effect: reacts to the external isOpen prop.
   useEffect(() => {
     if (!isOpen) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setRenamingId(null);
       setRenameValue('');
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [isOpen]);
 
-  // Handle open transition
+  // Handle open transition.
+  // Intentional setState-in-effect: sequences a CSS open animation via
+  // requestAnimationFrame in response to the external isOpen prop.
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAnimating(true);
       // Force a reflow before applying the open class for CSS transition
       const frameId = requestAnimationFrame(() => {
@@ -248,9 +254,12 @@ export function CharacterManagementSheet({
     }
   }, [isOpen]);
 
-  // Handle close transition
+  // Handle close transition.
+  // Intentional setState-in-effect: runs the close animation then unmounts
+  // after a timer, driven by the external isOpen prop.
   useEffect(() => {
     if (!isOpen && visible) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisible(false);
       // Wait for close animation to finish before unmounting
       const timer = setTimeout(() => {

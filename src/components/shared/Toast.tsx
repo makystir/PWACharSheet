@@ -13,11 +13,15 @@ export function Toast({ message, duration = 3000, action }: ToastProps) {
   const [displayAction, setDisplayAction] = useState<ToastProps['action']>(undefined);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Intentional setState-in-effect: shows/hides the toast in response to the
+  // external `message` prop and auto-dismisses it on a timer.
   useEffect(() => {
     if (message) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setDisplayMessage(message);
       setDisplayAction(action);
       setVisible(true);
+      /* eslint-enable react-hooks/set-state-in-effect */
 
       if (timerRef.current) {
         clearTimeout(timerRef.current);

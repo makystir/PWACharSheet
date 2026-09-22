@@ -13,6 +13,15 @@ import { InitiativeTracker } from './InitiativeTracker';
 import { Heart, Zap, Star, Shield, AlertTriangle, Skull, Droplets, ArrowDown, Flame } from 'lucide-react';
 import { applyCondition } from '../../logic/combat';
 import { HelpPopover } from '../shared/HelpPopover';
+import { CombatDashboardCompact } from './CombatDashboardCompact';
+import {
+  getWoundColor,
+  getWoundPct,
+  getWoundClass,
+  getProgressFillClass,
+  getWoundThreshold,
+  getWoundSectionClass,
+} from './combatDashboardHelpers';
 import styles from './CombatDashboard.module.css';
 import pressableStyles from '../../styles/micro-interactions.module.css';
 import microStyles from '../shared/styles/micro-interactions.module.css';
@@ -86,113 +95,40 @@ export interface CombatDashboardProps {
 const FORTUNE_REASONS: FortuneSpendReason[] = ['Reroll', 'Add +1 SL', 'Special Ability'];
 const RESOLVE_REASONS: ResolveSpendReason[] = ['Immunity to Psychology', 'Remove Conditions', 'Special Ability'];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-export type WoundThreshold = 'healthy' | 'caution' | 'danger' | 'critical';
-
-export function getWoundThreshold(wCur: number, totalWounds: number): WoundThreshold {
-  if (totalWounds <= 0) return 'critical';
-  if (wCur <= 0) return 'critical';
-  const pct = (wCur / totalWounds) * 100;
-  if (pct > 50) return 'healthy';
-  if (pct > 25) return 'caution';
-  return 'danger';
-}
-
-function getWoundColor(wCur: number, totalWounds: number): string {
-  const threshold = getWoundThreshold(wCur, totalWounds);
-  switch (threshold) {
-    case 'healthy': return 'var(--success)';
-    case 'caution': return 'var(--accent-gold)';
-    case 'danger': return 'var(--danger)';
-    case 'critical': return 'var(--danger)';
-  }
-}
-
-function getWoundPct(wCur: number, totalWounds: number): number {
-  if (totalWounds <= 0) return 0;
-  return Math.max(0, Math.min(100, (wCur / totalWounds) * 100));
-}
-
-function getWoundClass(wCur: number, totalWounds: number): string {
-  const threshold = getWoundThreshold(wCur, totalWounds);
-  switch (threshold) {
-    case 'healthy': return styles.woundHigh;
-    case 'caution': return styles.woundMedium;
-    case 'danger': return `${styles.woundLow} ${styles.woundDangerPulse}`;
-    case 'critical': return `${styles.woundLow} ${styles.woundCritical}`;
-  }
-}
-
-function getProgressFillClass(wCur: number, totalWounds: number): string {
-  const threshold = getWoundThreshold(wCur, totalWounds);
-  switch (threshold) {
-    case 'healthy': return styles.progressFillHigh;
-    case 'caution': return styles.progressFillMedium;
-    case 'danger': return styles.progressFillLow;
-    case 'critical': return styles.progressFillLow;
-  }
-}
-
-function getWoundSectionClass(wCur: number, totalWounds: number): string {
-  const threshold = getWoundThreshold(wCur, totalWounds);
-  switch (threshold) {
-    case 'healthy': return styles.woundsSection;
-    case 'caution': return `${styles.woundsSection} ${styles.woundsSectionCaution}`;
-    case 'danger': return `${styles.woundsSection} ${styles.woundsSectionDanger}`;
-    case 'critical': return `${styles.woundsSection} ${styles.woundsSectionCritical}`;
-  }
-}
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
+/**
+ * Public entry point. A thin, hook-free dispatcher: it renders either the
+ * compact sticky strip or the full dashboard. Keeping this branch here (rather
+ * than an early `return` inside a single hook-bearing component) means each
+ * rendered variant is its own component instance with a stable set of hooks,
+ * satisfying the Rules of Hooks even if a parent toggles `compact`.
+ */
 export function CombatDashboard(props: CombatDashboardProps) {
+  if (props.compact) {
+    return (
+      <CombatDashboardCompact
+        wCur={props.wCur}
+        totalWounds={props.totalWounds}
+        advantage={props.advantage}
+        conditions={props.conditions}
+      />
+    );
+  }
+  return <CombatDashboardFull {...props} />;
+}
+
+/** Full combat dashboard — all interactive controls, animations, and modals. */
+function CombatDashboardFull(props: CombatDashboardProps) {
   const {
     wCur, totalWounds, advantage, combatState, conditions,
     fortune, fate, resolve, resilience, inCombat, useGroupAdvantage,
-    compact, character, updateCharacter,
+    character, updateCharacter,
     onUpdateWounds, onUpdateAdvantage, onUpdateRound,
     onToggleEngaged, onRemoveCondition,
     onSpendFortune, onSpendResolve, onOpenConditionPicker,
     onEndTurn,
   } = props;
-
-  // ── Compact Sticky Strip Mode (Requirement 9) ──
-  if (compact) {
-    const activeConditionCount = conditions.length;
-    const compactWoundColor = getWoundColor(wCur, totalWounds);
-    return (
-      <div
-        className={styles.compactDashboard}
-        data-testid="combat-dashboard-compact"
-        aria-label="Combat status summary"
-      >
-        <div className={styles.compactItem}>
-          <Heart size={14} color={compactWoundColor} aria-hidden="true" />
-          <span className={styles.compactValue} style={{ color: compactWoundColor }}>
-            {wCur}
-          </span>
-          <span className={styles.compactSeparator}>/</span>
-          <span className={styles.compactMax}>{totalWounds}</span>
-        </div>
-        <div className={styles.compactItem}>
-          <Zap size={14} color="var(--accent-gold)" aria-hidden="true" />
-          <span className={styles.compactValue} style={{ color: 'var(--accent-gold)' }}>
-            {advantage}
-          </span>
-        </div>
-        {activeConditionCount > 0 && (
-          <div className={styles.compactItem}>
-            <AlertTriangle size={14} color="var(--text-muted)" aria-hidden="true" />
-            <span className={styles.compactValue}>{activeConditionCount}</span>
-            <span className={styles.compactLabel}>
-              {activeConditionCount === 1 ? 'condition' : 'conditions'}
-            </span>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   const [conditionTooltip, setConditionTooltip] = useState<{ name: string; anchorEl: HTMLElement } | null>(null);
   const [showFortunePopover, setShowFortunePopover] = useState(false);
@@ -212,7 +148,11 @@ export function CombatDashboard(props: CombatDashboardProps) {
   const [enteringConditions, setEnteringConditions] = useState<Set<string>>(new Set());
   const [exitingConditions, setExitingConditions] = useState<Condition[]>([]);
 
-  // Detect wound changes and trigger bump + flash animation
+  // Detect wound changes and trigger bump + flash animation.
+  // Intentional setState-in-effect: this drives a transient CSS animation in
+  // response to an external prop change (wCur), then clears it on a timer —
+  // exactly the kind of "react to an external change" the effect exists for.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (prevWoundsRef.current !== wCur) {
       const prevVal = prevWoundsRef.current;
@@ -235,7 +175,9 @@ export function CombatDashboard(props: CombatDashboardProps) {
     }
   }, [wCur]);
 
-  // Detect advantage changes and trigger pulse animation (Req 16.1, 16.2, 16.3)
+  // Detect advantage changes and trigger pulse animation (Req 16.1, 16.2, 16.3).
+  // Intentional setState-in-effect: transient animation state driven by an
+  // external prop change, cleared on a timer.
   useEffect(() => {
     if (prevAdvantageRef.current !== advantage) {
       prevAdvantageRef.current = advantage;
@@ -245,7 +187,9 @@ export function CombatDashboard(props: CombatDashboardProps) {
     }
   }, [advantage]);
 
-  // Detect condition additions and removals for animations
+  // Detect condition additions and removals for animations.
+  // Intentional setState-in-effect: diffs the conditions prop against the
+  // previous render to drive enter/exit animations, cleared on a timer.
   useEffect(() => {
     const currentNames = new Set(conditions.map((c) => c.name));
     const prevNames = prevConditionNamesRef.current;
@@ -284,6 +228,7 @@ export function CombatDashboard(props: CombatDashboardProps) {
 
     prevConditionNamesRef.current = currentNames;
   }, [conditions]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Clear initiative list when combat ends (Req 19.7)
   const prevInCombatRef = useRef(inCombat);

@@ -20,7 +20,10 @@ export function useMediaQuery(query: string): boolean {
 
     const mql = window.matchMedia(query);
 
-    // Sync initial value in case query changed between renders
+    // Sync initial value in case query changed between renders.
+    // Intentional setState-in-effect: subscribing to an external system
+    // (matchMedia) requires reading its current value on (re)subscribe.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMatches(mql.matches);
 
     const handler = (event: MediaQueryListEvent) => {

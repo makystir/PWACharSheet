@@ -48,9 +48,12 @@ export function CollapsibleSection({
     return persisted ?? defaultExpanded;
   });
 
-  // Sync with storageKey changes (e.g., character switch)
+  // Sync with storageKey changes (e.g., character switch).
+  // Intentional setState-in-effect: reads persisted expand/collapse state from
+  // localStorage (an external system) when the storageKey changes.
   useEffect(() => {
     const persisted = readPersistedState(storageKey);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExpanded(persisted ?? defaultExpanded);
   }, [storageKey, defaultExpanded]);
 

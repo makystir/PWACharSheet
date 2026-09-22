@@ -276,8 +276,13 @@ function AppWithCharacter({
   // ── Undo Stack ──
   const undoStack = useUndoStack(10);
   const [undoToastMessage, setUndoToastMessage] = useState<string | null>(null);
+  // Mirror the latest character into a ref so undoableUpdate can read the
+  // pre-change value without depending on `character`. Synced in an effect
+  // (after commit) rather than during render to keep render pure.
   const characterRef = useRef(character);
-  characterRef.current = character;
+  useEffect(() => {
+    characterRef.current = character;
+  }, [character]);
 
   // Wrapped update that pushes to undo stack before applying
   const undoableUpdate = useCallback((field: string, value: unknown) => {

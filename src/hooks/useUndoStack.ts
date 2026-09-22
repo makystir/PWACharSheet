@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 export interface UndoEntry {
   field: string;           // dot-notation path (e.g., "chars.WS.a")
@@ -18,8 +18,13 @@ const DEFAULT_MAX_SIZE = 10;
 
 export function useUndoStack(maxSize: number = DEFAULT_MAX_SIZE): UseUndoStackResult {
   const [stack, setStack] = useState<UndoEntry[]>([]);
+  // Mirror the latest stack into a ref so the memoised push/undo callbacks can
+  // read it without needing `stack` in their dependency arrays. Written in an
+  // effect (after commit) rather than during render to keep render pure.
   const stackRef = useRef<UndoEntry[]>(stack);
-  stackRef.current = stack;
+  useEffect(() => {
+    stackRef.current = stack;
+  }, [stack]);
 
   const push = useCallback((entry: Omit<UndoEntry, 'timestamp'>) => {
     const fullEntry: UndoEntry = {

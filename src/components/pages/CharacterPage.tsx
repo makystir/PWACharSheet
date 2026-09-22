@@ -138,8 +138,11 @@ const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
 
 type CharSubTab = 'identity' | 'abilities' | 'gear' | 'notes';
 
+// Module-level constant so it has a stable identity across renders (keeps it
+// out of effect dependency arrays).
+const VALID_SUBTABS: CharSubTab[] = ['identity', 'abilities', 'gear', 'notes'];
+
 export function CharacterPage({ character, characterId, update, updateCharacter, saveNow, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
-  const VALID_SUBTABS: CharSubTab[] = ['identity', 'abilities', 'gear', 'notes'];
 
   // Tab reordering
   const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
@@ -166,10 +169,14 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   };
   const [activeSubTab, setActiveSubTabInternal] = useState<CharSubTab>(resolveInitialTab);
 
-  // Sync from external subTab prop (e.g. URL hash changes)
+  // Sync from external subTab prop (e.g. URL hash changes).
+  // Intentional setState-in-effect: this mirrors an external routing input
+  // (the subTab prop) into local state. It is genuine external-system sync,
+  // not derived state, because the tab is otherwise user-controlled locally.
   useEffect(() => {
     if (subTab) {
       if (VALID_SUBTABS.includes(subTab as CharSubTab)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActiveSubTabInternal(subTab as CharSubTab);
       }
     }
@@ -341,12 +348,17 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   // Dropdown options update automatically since they're derived from speciesGroup.
   // Free-text values (age, height, hair, eyes) are retained — not cleared here.
   const prevSpeciesRef = useRef(character.species);
+  // Intentional setState-in-effect: resets transient roll UI state when the
+  // character's species changes (an external prop), guarded by a ref so it
+  // only fires on an actual change rather than every render.
   useEffect(() => {
     if (prevSpeciesRef.current !== character.species) {
       prevSpeciesRef.current = character.species;
+      /* eslint-disable react-hooks/set-state-in-effect */
       setFirstEyeColour(null);
       setShowSecondEyeRoll(false);
       setSelectedAgeTier(undefined);
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [character.species]);
 

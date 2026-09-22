@@ -39,8 +39,12 @@ export function PageTransition({ pageKey, children }: PageTransitionProps) {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReducedMotion) {
-      // Immediate swap, no animation
+      // Immediate swap, no animation.
+      // Intentional setState-in-effect: this effect orchestrates the page
+      // fade-out/fade-in animation in response to pageKey changes; here it
+      // swaps immediately when the user prefers reduced motion.
       prevKeyRef.current = pageKey;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTransitionState('idle');
       return;
     }

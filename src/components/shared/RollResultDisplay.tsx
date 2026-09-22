@@ -34,8 +34,11 @@ export function RollResultDisplay({ result, onClose }: RollResultDisplayProps) {
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [rolling, setRolling] = useState(!prefersReducedMotion);
 
+  // Intentional setState-in-effect: stops the rolling animation, either
+  // immediately when reduced motion is preferred or after a timer otherwise.
   useEffect(() => {
     if (prefersReducedMotion) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRolling(false);
       return;
     }

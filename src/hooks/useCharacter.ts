@@ -237,7 +237,7 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
       clearTimeout(timer);
       flushSave();
     };
-  }, [character]);
+  }, [character, flushSave]);
 
   // Flush pending save when the browser tab is closed, page is reloaded, or app is backgrounded
   useEffect(() => {
@@ -314,6 +314,11 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     if (result.applied.length > 0) {
       setCharacter(prev => ({ ...prev, conditions: result.conditions }));
     }
+    // conditionsJson is the intentional deep-compare stand-in for
+    // character.conditions (a new array reference every render); depending on
+    // the raw array would re-run this on every render, so it is deliberately
+    // excluded in favour of the stringified value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conditionsJson, character.chars]);
 
   // Derive Strong Back and Sturdy levels from talents

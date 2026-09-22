@@ -171,10 +171,15 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const isComplete = scheme && careerLevelNum > 0 ? isCareerLevelComplete(character, character.career, careerLevelNum) : false;
 
   const careerChars = careerLevel?.characteristics ?? [];
+  // careerSkills is derived from careerLevel each render. Wrapping it in its own
+  // useMemo (as the linter suggests) instead trips preserve-manual-memoization,
+  // so the advisory is suppressed here: the sortedSkills memo below is correct —
+  // it recomputes whenever careerSkills content changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const careerSkills = careerLevel?.skills ?? [];
   const careerTalents = careerLevel?.talents ?? [];
 
-  // Sorted skills: career skills first, then alphabetical within each group
+  // Sorted skills: career skills first, then alphabetical within each group.
   const sortedSkills = useMemo(
     () => sortSkillsByCareerStatus(character.bSkills, character.aSkills, careerSkills),
     [character.bSkills, character.aSkills, careerSkills]

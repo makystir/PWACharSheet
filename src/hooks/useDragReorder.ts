@@ -202,6 +202,9 @@ export function useDragReorder<T>(
   const [dragState, setDragState] = useState<DragState>(IDLE_STATE);
   const [announcementText, setAnnouncementText] = useState('');
   const internalRef = useRef<InternalState | null>(null);
+  // Holds the latest autoScroll callback so the rAF loop can reschedule itself
+  // without referencing its own (not-yet-initialised) binding during creation.
+  const autoScrollRef = useRef<() => void>(() => {});
   const contextMenuSuppressed = useRef(false);
 
   const resetState = useCallback(() => {
@@ -239,8 +242,15 @@ export function useDragReorder<T>(
     if (scrollDelta !== 0) {
       container.scrollTop += scrollDelta;
     }
-    internal.scrollTimerId = requestAnimationFrame(autoScroll);
+    internal.scrollTimerId = requestAnimationFrame(() => autoScrollRef.current());
   }, [containerRef]);
+
+  // Keep the ref pointing at the current autoScroll so the self-scheduling rAF
+  // loop always calls the latest version (kept in an effect rather than during
+  // render to avoid mutating a ref while rendering).
+  useEffect(() => {
+    autoScrollRef.current = autoScroll;
+  }, [autoScroll]);
 
   // --- Pointer handlers ---
 
@@ -359,6 +369,12 @@ export function useDragReorder<T>(
 
   // --- Compute shift transforms for non-dragged items ---
 
+  // Reading internalRef.current during render is intentional and safe here:
+  // itemRects are captured once at drag start and never mutated during a drag,
+  // and this computation is gated on dragState (state) so the component
+  // re-renders whenever the drag position changes. The compiler's
+  // ref-in-render check can't see that invariant, so it is suppressed.
+  /* eslint-disable react-hooks/refs */
   const internal = internalRef.current;
   const shiftTransforms = (
     dragState.status === 'dragging' &&
@@ -368,6 +384,7 @@ export function useDragReorder<T>(
   )
     ? computeShiftTransforms(items.length, dragState.dragIndex, dragState.dropIndex, internal.itemRects)
     : null;
+  /* eslint-enable react-hooks/refs */
 
   // --- Public API ---
 
