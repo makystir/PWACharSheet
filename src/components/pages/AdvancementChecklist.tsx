@@ -5,6 +5,7 @@ import { SectionHeader } from '../shared/SectionHeader';
 import { Tooltip } from '../shared/Tooltip';
 import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
 import { ListChecks } from 'lucide-react';
+import { CHAR_FULL_NAMES } from './characterConstants';
 import styles from './AdvancementChecklist.module.css';
 
 /**
@@ -19,12 +20,6 @@ import styles from './AdvancementChecklist.module.css';
  * L3 15, L4 20, L5 25 advances). This component neither re-derives nor diverges
  * from that logic; it only renders met/outstanding state.
  */
-
-const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
-  WS: 'Weapon Skill', BS: 'Ballistic Skill', S: 'Strength', T: 'Toughness',
-  I: 'Initiative', Ag: 'Agility', Dex: 'Dexterity', Int: 'Intelligence',
-  WP: 'Willpower', Fel: 'Fellowship',
-};
 
 export interface AdvancementChecklistProps {
   /** Career name for the heading context (may be empty). */

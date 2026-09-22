@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { Character, CharacteristicKey, ArmourPoints, Skill, Talent, SpellItem, PsychologyTrait, PsychologyType } from '../../types/character';
+import type { Character, CharacteristicKey, ArmourPoints, Skill, PsychologyTrait, PsychologyType } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -14,7 +14,7 @@ import { FortuneResolvePanel } from '../shared/FortuneResolvePanel';
 import { CharacterPortrait } from '../shared/CharacterPortrait';
 import { Toast } from '../shared/Toast';
 import { Tooltip } from '../shared/Tooltip';
-import { getPortraitStore } from '../../storage/portrait-store';
+import { usePortrait } from '../../hooks/usePortrait';
 import { applySpeciesData } from '../../logic/species';
 import { SPECIES_OPTIONS, SPECIES_DATA } from '../../data/species';
 import { SPELL_LIST } from '../../data/spells';
@@ -69,12 +69,6 @@ import { SkillFilter } from '../shared/SkillFilter';
 import { CharCurrentCell } from './CharCurrentCell';
 import { CharBreakdownContent } from './CharBreakdownContent';
 import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
-import { SkillBreakdownContent } from './SkillBreakdownContent';
-import { CBBreakdownContent } from './CBBreakdownContent';
-import { EncumbranceBreakdownContent } from './EncumbranceBreakdownContent';
-import { CoinWeightBreakdownContent } from './CoinWeightBreakdownContent';
-import { TrappingsBreakdownContent } from './TrappingsBreakdownContent';
-import { getSkillBreakdown, getCBBreakdown, getEncumbranceBreakdown, getCoinWeightBreakdown, getTrappingEncBreakdown } from '../../logic/breakdown-helpers';
 import { getContributingTalent } from '../../logic/talents';
 import { AgeTierSelector } from '../shared/AgeTierSelector';
 import { ProgressBar } from '../shared/ProgressBar';
@@ -99,16 +93,11 @@ import {
 } from '../../logic/personal-details';
 import type { HighElfAgeTier } from '../../data/personal-details';
 import { AGE_FORMULAS, HEIGHT_FORMULAS } from '../../data/personal-details';
+import { CHAR_KEYS, CHAR_FULL_NAMES } from './characterConstants';
+import { CharacterBreakdownTooltips, type BreakdownTooltipState } from './CharacterBreakdownTooltips';
+import { useCharacterEntities, type DeleteTarget } from './useCharacterEntities';
+import { SheetInfoButton, type SheetTooltipState } from './SheetInfoButton';
 import styles from './CharacterPage.module.css';
-
-/** Discriminated union for breakdown tooltips — only one open at a time. */
-export type BreakdownTooltipState =
-  | null
-  | { type: 'skill'; index: number; anchorEl: HTMLElement }
-  | { type: 'cb'; key: CharacteristicKey; anchorEl: HTMLElement }
-  | { type: 'encumbrance'; anchorEl: HTMLElement }
-  | { type: 'coinWeight'; anchorEl: HTMLElement }
-  | { type: 'trappingEnc'; anchorEl: HTMLElement };
 
 interface CharacterPageProps {
   character: Character;
@@ -127,14 +116,6 @@ interface CharacterPageProps {
   subTab?: string | null;
   onSubTabChange?: (tab: string) => void;
 }
-
-const CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
-
-const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
-  WS: 'Weapon Skill', BS: 'Ballistic Skill', S: 'Strength', T: 'Toughness',
-  I: 'Initiative', Ag: 'Agility', Dex: 'Dexterity', Int: 'Intelligence',
-  WP: 'Willpower', Fel: 'Fellowship',
-};
 
 type CharSubTab = 'identity' | 'abilities' | 'gear' | 'notes';
 
@@ -189,73 +170,13 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     onSubTabChange?.(tab);
   };
 
-  // ─── Portrait state (stored in IndexedDB, NOT localStorage) ─────────────────
-  const [portraitURL, setPortraitURL] = useState<string>('');
-  const [portraitError, setPortraitError] = useState<string | null>(null);
-  const portraitURLRef = useRef<string>(portraitURL);
-
-  // Keep ref in sync with state for cleanup
-  useEffect(() => {
-    portraitURLRef.current = portraitURL;
-  }, [portraitURL]);
-
-  // Load portrait URL from IndexedDB when characterId changes or component mounts
-  useEffect(() => {
-    let cancelled = false;
-    const store = getPortraitStore();
-    store.getPortraitURL(characterId).then((result) => {
-      if (cancelled) return;
-      if (result.ok && result.value) {
-        setPortraitURL(result.value);
-      } else {
-        setPortraitURL('');
-      }
-    });
-    return () => { cancelled = true; };
-  }, [characterId]);
-
-  // Object URL cleanup on unmount or when portrait changes
-  useEffect(() => {
-    return () => {
-      if (portraitURLRef.current && portraitURLRef.current.startsWith('blob:')) {
-        getPortraitStore().revokeURL(portraitURLRef.current);
-      }
-    };
-  }, [portraitURL]);
-
-  const handlePortraitUpload = useCallback(async (file: File) => {
-    setPortraitError(null);
-    const store = getPortraitStore();
-    const result = await store.savePortrait(characterId, file);
-    if (!result.ok) {
-      setPortraitError('Portrait could not be saved.');
-      return;
-    }
-    // Revoke old object URL if it was a blob URL
-    if (portraitURLRef.current && portraitURLRef.current.startsWith('blob:')) {
-      store.revokeURL(portraitURLRef.current);
-    }
-    // Get new object URL
-    const urlResult = await store.getPortraitURL(characterId);
-    if (urlResult.ok && urlResult.value) {
-      setPortraitURL(urlResult.value);
-    }
-  }, [characterId]);
-
-  const handlePortraitRemove = useCallback(async () => {
-    setPortraitError(null);
-    const store = getPortraitStore();
-    const result = await store.deletePortrait(characterId);
-    if (!result.ok) {
-      setPortraitError('Portrait could not be removed.');
-      return;
-    }
-    // Revoke old object URL if it was a blob URL
-    if (portraitURLRef.current && portraitURLRef.current.startsWith('blob:')) {
-      store.revokeURL(portraitURLRef.current);
-    }
-    setPortraitURL('');
-  }, [characterId]);
+  // ─── Portrait (stored in IndexedDB, NOT localStorage) ───────────────────────
+  const {
+    portraitURL,
+    portraitError,
+    uploadPortrait: handlePortraitUpload,
+    removePortrait: handlePortraitRemove,
+  } = usePortrait(characterId);
 
   // Skill filter state (search + trained-only toggle)
   const [skillSearchText, setSkillSearchText] = useState('');
@@ -396,10 +317,10 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const [showTBonus, setShowTBonus] = useState(false);
 
   const [expandedSpells, setExpandedSpells] = useState<Set<number>>(new Set());
-  const [deleteTarget, setDeleteTarget] = useState<{ type: string; index: number } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [rollDialogState, setRollDialogState] = useState<{ name: string; baseTarget: number } | null>(null);
   const [rollResultState, setRollResultState] = useState<RollResult | null>(null);
-  const [tooltip, setTooltip] = useState<{ type: 'skill' | 'talent'; index: number; anchorEl: HTMLElement } | null>(null);
+  const [tooltip, setTooltip] = useState<SheetTooltipState | null>(null);
   const [charTooltip, setCharTooltip] = useState<{ key: CharacteristicKey; anchorEl: HTMLElement } | null>(null);
 
   // Breakdown tooltip state — single-tooltip-at-a-time (Req 6.3)
@@ -479,153 +400,30 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const careerSkillSet = new Set(getCareerSkills(character.career, character.careerLevel));
 
   // Advanced skill CRUD
-  const addAdvancedSkillFromPicker = (skill: typeof ADV_SKILL_DB[number]) => {
-    updateCharacter((c) => ({
-      ...c,
-      aSkills: [...c.aSkills, { n: skill.n, c: skill.c, a: 0 }],
-    }));
-    setShowAdvSkillPicker(false);
-  };
-
-  const addCustomAdvancedSkill = () => {
-    updateCharacter((c) => ({
-      ...c,
-      aSkills: [...c.aSkills, { n: '', c: '', a: 0 }],
-    }));
-  };
-
-  const updateAdvancedSkill = (index: number, field: keyof Skill, value: string | number) => {
-    updateCharacter((c) => {
-      const skills = [...c.aSkills];
-      skills[index] = { ...skills[index], [field]: value };
-      return { ...c, aSkills: skills };
-    });
-  };
-
-  const removeAdvancedSkill = (index: number) => {
-    updateCharacter((c) => ({
-      ...c,
-      aSkills: c.aSkills.filter((_, i) => i !== index),
-    }));
-    setDeleteTarget(null);
-  };
-
-  // Talent CRUD
-  const addTalentFromPicker = (talent: typeof TALENT_DB[number]) => {
-    updateCharacter((c) => ({
-      ...c,
-      talents: [...c.talents, { n: talent.name, lvl: 1, desc: talent.desc }],
-    }));
-    setShowTalentPicker(false);
-  };
-
-  const addCustomTalent = () => {
-    updateCharacter((c) => ({
-      ...c,
-      talents: [...c.talents, { n: '', lvl: 1, desc: '' }],
-    }));
-  };
-
-  const updateTalent = (index: number, field: keyof Talent, value: string | number) => {
-    updateCharacter((c) => {
-      const talents = [...c.talents];
-      talents[index] = { ...talents[index], [field]: value };
-      return { ...c, talents };
-    });
-  };
-
-  const removeTalent = (index: number) => {
-    updateCharacter((c) => ({
-      ...c,
-      talents: c.talents.filter((_, i) => i !== index),
-    }));
-    setDeleteTarget(null);
-  };
-
-  // Spell CRUD
-  const addSpellFromPicker = (spell: typeof SPELL_LIST[number]) => {
-    const item: SpellItem = { name: spell.name, cn: spell.cn, range: spell.range, target: spell.target, duration: spell.duration, effect: spell.effect };
-    updateCharacter((c) => ({ ...c, spells: [...c.spells, item] }));
-    setShowSpellPicker(false);
-  };
-
-  const addCustomSpell = () => {
-    updateCharacter((c) => ({
-      ...c,
-      spells: [...c.spells, { name: '', cn: '0', range: '', target: '', duration: '', effect: '' }],
-    }));
-  };
-
-  const updateSpell = (index: number, field: keyof SpellItem, value: string) => {
-    updateCharacter((c) => {
-      const spells = [...c.spells];
-      spells[index] = { ...spells[index], [field]: value };
-      return { ...c, spells };
-    });
-  };
-
-  const removeSpell = (index: number) => {
-    updateCharacter((c) => ({
-      ...c,
-      spells: c.spells.filter((_, i) => i !== index),
-    }));
-    setDeleteTarget(null);
-  };
-
-  const toggleSpellExpanded = (index: number) => {
-    setExpandedSpells((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
-      return next;
-    });
-  };
-
-  // Trapping worn / stored-on-horse mutual exclusivity (Core p.293 Worn Items).
-  // Req 6.1: setting worn=true clears storedOnHorse.
-  const setWorn = (i: number, value: boolean) => {
-    updateCharacter((c) => ({
-      ...c,
-      trappings: c.trappings.map((t, idx) =>
-        idx === i ? { ...t, worn: value, storedOnHorse: value ? false : t.storedOnHorse } : t
-      ),
-    }));
-  };
-
-  // Req 6.2: setting storedOnHorse=true clears worn.
-  const setStoredOnHorse = (i: number, value: boolean) => {
-    updateCharacter((c) => ({
-      ...c,
-      trappings: c.trappings.map((t, idx) =>
-        idx === i ? { ...t, storedOnHorse: value, worn: value ? false : t.worn } : t
-      ),
-    }));
-  };
-
-  // "In backpack" marker (house rule: ignoreBackpackEnc). A packed item is not
-  // being worn and is not on the horse, so setting it clears both.
-  const setInBackpack = (i: number, value: boolean) => {
-    updateCharacter((c) => ({
-      ...c,
-      trappings: c.trappings.map((t, idx) =>
-        idx === i ? { ...t, inBackpack: value, worn: value ? false : t.worn, storedOnHorse: value ? false : t.storedOnHorse } : t
-      ),
-    }));
-  };
-
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    if (deleteTarget.type === 'aSkill') removeAdvancedSkill(deleteTarget.index);
-    else if (deleteTarget.type === 'talent') removeTalent(deleteTarget.index);
-    else if (deleteTarget.type === 'spell') removeSpell(deleteTarget.index);
-    else if (deleteTarget.type === 'trapping') {
-      updateCharacter((c) => ({ ...c, trappings: c.trappings.filter((_, i) => i !== deleteTarget.index) }));
-      setDeleteTarget(null);
-    }
-  };
+  const {
+    addAdvancedSkillFromPicker,
+    addCustomAdvancedSkill,
+    updateAdvancedSkill,
+    addTalentFromPicker,
+    addCustomTalent,
+    updateTalent,
+    addSpellFromPicker,
+    addCustomSpell,
+    updateSpell,
+    toggleSpellExpanded,
+    setWorn,
+    setStoredOnHorse,
+    setInBackpack,
+    handleDelete,
+  } = useCharacterEntities({
+    updateCharacter,
+    deleteTarget,
+    setDeleteTarget,
+    setShowAdvSkillPicker,
+    setShowTalentPicker,
+    setShowSpellPicker,
+    setExpandedSpells,
+  });
 
   return (
     <div className={styles.sectionGap}>
@@ -1177,24 +975,15 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               <div key={i} className={`${styles.skillGridRow}${isCareerSkill ? ` ${styles.skillGridRowCareer}` : ''}`}>
                 <div className={styles.skillGridName}>
                   <div className={styles.inlineRow}>
-                    <button
-                      type="button"
+                    <SheetInfoButton
+                      type="skill"
+                      index={i}
+                      label={skill.n}
                       className={styles.infoBtn}
-                      aria-describedby={tooltip?.type === 'skill' && tooltip.index === i ? `tooltip-skill-${i}` : undefined}
-                      aria-label={`Info for ${skill.n}`}
-                      onClick={(e) => {
-                        if (tooltip?.type === 'skill' && tooltip.index === i) {
-                          setTooltip(null);
-                          return;
-                        }
-                        const content = resolveSkillTooltip(skill.n, skill.c);
-                        if (content) {
-                          setTooltip({ type: 'skill', index: i, anchorEl: e.currentTarget });
-                        }
-                      }}
-                    >
-                      ℹ
-                    </button>
+                      tooltip={tooltip}
+                      setTooltip={setTooltip}
+                      resolveContent={() => resolveSkillTooltip(skill.n, skill.c)}
+                    />
                     <span className={styles.skillNameText}>{skill.n}</span>
                   </div>
                 </div>
@@ -1263,25 +1052,15 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               <div key={i} className={`${styles.skillGridRow}${isCareerSkill ? ` ${styles.skillGridRowCareer}` : ''}`}>
                 <div className={styles.skillGridName}>
                   <div className={styles.inlineRow}>
-                    <button
-                      type="button"
+                    <SheetInfoButton
+                      type="skill"
+                      index={character.bSkills.length + i}
+                      label={skill.n}
                       className={styles.infoBtn}
-                      aria-describedby={tooltip?.type === 'skill' && tooltip.index === character.bSkills.length + i ? `tooltip-skill-${character.bSkills.length + i}` : undefined}
-                      aria-label={`Info for ${skill.n}`}
-                      onClick={(e) => {
-                        const idx = character.bSkills.length + i;
-                        if (tooltip?.type === 'skill' && tooltip.index === idx) {
-                          setTooltip(null);
-                          return;
-                        }
-                        const content = resolveSkillTooltip(skill.n, skill.c);
-                        if (content) {
-                          setTooltip({ type: 'skill', index: idx, anchorEl: e.currentTarget });
-                        }
-                      }}
-                    >
-                      ℹ
-                    </button>
+                      tooltip={tooltip}
+                      setTooltip={setTooltip}
+                      resolveContent={() => resolveSkillTooltip(skill.n, skill.c)}
+                    />
                     <EditableField label="" value={skill.n} onSave={(v) => updateAdvancedSkill(i, 'n', String(v))} />
                   </div>
                 </div>
@@ -1357,24 +1136,15 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
               <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                 <td className={styles.td}>
                   <div className={styles.inlineRow}>
-                    <button
-                      type="button"
+                    <SheetInfoButton
+                      type="talent"
+                      index={i}
+                      label={t.n}
                       className={styles.infoBtn}
-                      aria-describedby={tooltip?.type === 'talent' && tooltip.index === i ? `tooltip-talent-${i}` : undefined}
-                      aria-label={`Info for ${t.n}`}
-                      onClick={(e) => {
-                        if (tooltip?.type === 'talent' && tooltip.index === i) {
-                          setTooltip(null);
-                          return;
-                        }
-                        const content = resolveTalentTooltip(t.n, t.desc);
-                        if (content) {
-                          setTooltip({ type: 'talent', index: i, anchorEl: e.currentTarget });
-                        }
-                      }}
-                    >
-                      ℹ
-                    </button>
+                      tooltip={tooltip}
+                      setTooltip={setTooltip}
+                      resolveContent={() => resolveTalentTooltip(t.n, t.desc)}
+                    />
                     <EditableField label="" value={t.n} onSave={(v) => updateTalent(i, 'n', String(v))} />
                   </div>
                 </td>
@@ -2243,85 +2013,12 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         );
       })()}
 
-      {/* Breakdown Tooltips (Skill, CB, Encumbrance, Coin Weight) */}
-      {breakdownTooltip?.type === 'skill' && (() => {
-        const isAdvanced = breakdownTooltip.index >= character.bSkills.length;
-        const skill = isAdvanced
-          ? character.aSkills[breakdownTooltip.index - character.bSkills.length]
-          : character.bSkills[breakdownTooltip.index];
-        if (!skill) return null;
-        const breakdown = getSkillBreakdown(skill.c as CharacteristicKey, character.chars, skill.a);
-        return (
-          <Tooltip
-            anchorEl={breakdownTooltip.anchorEl}
-            title={`${skill.n} Breakdown`}
-            onClose={closeBreakdownTooltip}
-            id={`tooltip-breakdown-skill-${breakdownTooltip.index}`}
-          >
-            <SkillBreakdownContent {...breakdown} />
-          </Tooltip>
-        );
-      })()}
-
-      {breakdownTooltip?.type === 'cb' && (() => {
-        const breakdown = getCBBreakdown(breakdownTooltip.key, character.chars);
-        return (
-          <Tooltip
-            anchorEl={breakdownTooltip.anchorEl}
-            title={`${CHAR_FULL_NAMES[breakdownTooltip.key]} CB`}
-            onClose={closeBreakdownTooltip}
-            id={`tooltip-breakdown-cb-${breakdownTooltip.key}`}
-          >
-            <CBBreakdownContent {...breakdown} />
-          </Tooltip>
-        );
-      })()}
-
-      {breakdownTooltip?.type === 'encumbrance' && (() => {
-        const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
-        const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
-        const sturdyTalent = character.talents.find(t => t.n === 'Sturdy');
-        const sturdyLevel = sturdyTalent ? sturdyTalent.lvl : 0;
-        const breakdown = getEncumbranceBreakdown(character.chars, strongBackLevel, sturdyLevel);
-        return (
-          <Tooltip
-            anchorEl={breakdownTooltip.anchorEl}
-            title="Max Encumbrance Breakdown"
-            onClose={closeBreakdownTooltip}
-            id="tooltip-breakdown-encumbrance"
-          >
-            <EncumbranceBreakdownContent {...breakdown} />
-          </Tooltip>
-        );
-      })()}
-
-      {breakdownTooltip?.type === 'coinWeight' && (() => {
-        const breakdown = getCoinWeightBreakdown(character.wGC || 0, character.wSS || 0, character.wD || 0);
-        return (
-          <Tooltip
-            anchorEl={breakdownTooltip.anchorEl}
-            title="Coin Weight Breakdown"
-            onClose={closeBreakdownTooltip}
-            id="tooltip-breakdown-coinWeight"
-          >
-            <CoinWeightBreakdownContent {...breakdown} />
-          </Tooltip>
-        );
-      })()}
-
-      {breakdownTooltip?.type === 'trappingEnc' && (() => {
-        const breakdown = getTrappingEncBreakdown(character.trappings, character.houseRules.ignoreBackpackEnc);
-        return (
-          <Tooltip
-            anchorEl={breakdownTooltip.anchorEl}
-            title="Trappings Encumbrance"
-            onClose={closeBreakdownTooltip}
-            id="tooltip-breakdown-trappingEnc"
-          >
-            <TrappingsBreakdownContent {...breakdown} />
-          </Tooltip>
-        );
-      })()}
+      {/* Breakdown Tooltips (Skill, CB, Encumbrance, Coin Weight, Trappings Enc) */}
+      <CharacterBreakdownTooltips
+        breakdownTooltip={breakdownTooltip}
+        character={character}
+        onClose={closeBreakdownTooltip}
+      />
 
       {/* Portrait error toast */}
       <Toast message={portraitError} duration={5000} />

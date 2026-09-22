@@ -1,7 +1,8 @@
 import type { Character, CharacteristicKey, Talent } from '../types/character';
+import { CHARACTERISTIC_KEYS } from '../types/character';
 import { TALENT_BONUS_MAP } from '../data/talents';
 
-const ALL_CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
+const ALL_CHAR_KEYS: CharacteristicKey[] = CHARACTERISTIC_KEYS;
 
 /**
  * Compute characteristic bonuses from talents using TALENT_BONUS_MAP.

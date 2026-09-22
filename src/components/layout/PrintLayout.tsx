@@ -3,6 +3,7 @@ import '@fontsource/cinzel-decorative/900.css';
 import '@fontsource/im-fell-english/400.css';
 
 import type { Character, ArmourPoints, CharacteristicKey } from '../../types/character';
+import { CHARACTERISTIC_KEYS } from '../../types/character';
 import { getBonus, calculateMaxEncumbrance } from '../../logic/calculators';
 import { calculateArmourEncumbrance, calculateCarriedTrappingEnc } from '../../logic/encumbrance';
 import styles from './PrintLayout.module.css';
@@ -13,7 +14,7 @@ interface PrintLayoutProps {
   armourPoints: ArmourPoints;
 }
 
-const CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
+const CHAR_KEYS = CHARACTERISTIC_KEYS;
 
 type SectionKey =
   | 'spells' | 'companions' | 'mutations' | 'criticalWounds'

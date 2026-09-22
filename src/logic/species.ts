@@ -1,7 +1,8 @@
 import type { Character, CharacteristicKey, SpeciesData } from '../types/character';
+import { CHARACTERISTIC_KEYS } from '../types/character';
 import { SPECIES_DATA } from '../data/species';
 
-const ALL_CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
+const ALL_CHAR_KEYS: CharacteristicKey[] = CHARACTERISTIC_KEYS;
 
 /**
  * Lookup species data by name. Returns undefined if not found.

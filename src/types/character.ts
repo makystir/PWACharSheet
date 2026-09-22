@@ -4,6 +4,12 @@ import type { ObsessionData } from '../logic/obsessions';
 
 export type CharacteristicKey = 'WS' | 'BS' | 'S' | 'T' | 'I' | 'Ag' | 'Dex' | 'Int' | 'WP' | 'Fel';
 
+/**
+ * The ten characteristics in canonical WFRP sheet order. Single source of truth
+ * shared by both logic and UI (import this rather than re-declaring the array).
+ */
+export const CHARACTERISTIC_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
+
 // Consumables (Requirement 10)
 export interface Consumable {
   id: string;

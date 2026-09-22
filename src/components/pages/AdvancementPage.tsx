@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import type { Character, ArmourPoints, CharacteristicKey, CareerLevel, AdvancementEntry } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -11,7 +11,7 @@ import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { AdvancementChecklist } from './AdvancementChecklist';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, formatXpFeedback, applyBulkAdvancement, calculateTierBoundaryCost, awardXp, removeXpAward } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, applyBulkAdvancement, calculateTierBoundaryCost } from '../../logic/advancement';
 import { filterSkillEntries } from '../../logic/skill-filter';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
@@ -28,6 +28,8 @@ import { DeitySelector } from '../shared/DeitySelector';
 import { GraduationCap, TrendingUp, ScrollText, CheckCircle, Swords, BookOpen, Sparkles, Undo2, Redo2, Info } from 'lucide-react';
 import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
+import { CHAR_KEYS, CHAR_FULL_NAMES } from './characterConstants';
+import { useXpAward } from './useXpAward';
 import styles from './AdvancementPage.module.css';
 
 interface ActiveTooltip {
@@ -47,15 +49,6 @@ interface AdvancementPageProps {
   coinWeight: number;
 }
 
-const CHAR_KEYS: CharacteristicKey[] = ['WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel'];
-
-const CHAR_FULL_NAMES: Record<CharacteristicKey, string> = {
-  WS: 'Weapon Skill', BS: 'Ballistic Skill', S: 'Strength', T: 'Toughness',
-  I: 'Initiative', Ag: 'Agility', Dex: 'Dexterity', Int: 'Intelligence',
-  WP: 'Willpower', Fel: 'Fellowship',
-};
-
-
 export function AdvancementPage({ character, update, updateCharacter }: AdvancementPageProps) {
   const [showClassPicker, setShowClassPicker] = useState(false);
   const [showCareerPicker, setShowCareerPicker] = useState(false);
@@ -74,38 +67,26 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     try { localStorage.setItem('wfrp-hideOutOfCareerSkills', String(next)); } catch { /* ignore */ }
   };
   const [xpEditMode, setXpEditMode] = useState(false);
-  const [xpAwardAmount, setXpAwardAmount] = useState('');
-  const [xpAwardReason, setXpAwardReason] = useState('');
   const [showXpLog, setShowXpLog] = useState(false);
   const [xpBreakdownAnchor, setXpBreakdownAnchor] = useState<HTMLElement | null>(null);
   const [showArchive, setShowArchive] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSpellLearningPicker, setShowSpellLearningPicker] = useState(false);
   const [spellLearningType, setSpellLearningType] = useState<'petty' | 'arcane' | 'miracle' | 'chaos'>('petty');
-  const [xpToastMessage, setXpToastMessage] = useState<string | null>(null);
-  const [xpShake, setXpShake] = useState(false);
   const [skillSearchText, setSkillSearchText] = useState('');
 
-  const triggerXpFeedback = useCallback((cost: number, available: number) => {
-    // Reset to null first so repeated identical messages still trigger the Toast
-    setXpToastMessage(null);
-    requestAnimationFrame(() => setXpToastMessage(formatXpFeedback(cost, available)));
-    setXpShake(true);
-    setTimeout(() => setXpShake(false), 400);
-  }, []);
-
-  // Award XP: logged/audited grant instead of directly editing the XP fields.
-  const handleAwardXp = () => {
-    const amount = Number(xpAwardAmount);
-    if (!Number.isFinite(amount) || amount === 0) return;
-    updateCharacter((c) => awardXp(c, amount, xpAwardReason));
-    setXpAwardAmount('');
-    setXpAwardReason('');
-  };
-
-  const handleRemoveXpAward = (timestamp: number) => {
-    updateCharacter((c) => removeXpAward(c, timestamp));
-  };
+  // XP award workflow + over-spend feedback (shake/toast).
+  const {
+    xpAwardAmount,
+    setXpAwardAmount,
+    xpAwardReason,
+    setXpAwardReason,
+    xpToastMessage,
+    xpShake,
+    triggerXpFeedback,
+    handleAwardXp,
+    handleRemoveXpAward,
+  } = useXpAward(updateCharacter);
 
   const handleTalentTooltip = (talentName: string, characterDesc: string, event: React.MouseEvent) => {
     const content = resolveTalentTooltip(talentName, characterDesc);
