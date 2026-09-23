@@ -275,11 +275,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   useEffect(() => {
     if (prevSpeciesRef.current !== character.species) {
       prevSpeciesRef.current = character.species;
-      /* eslint-disable react-hooks/set-state-in-effect */
       setFirstEyeColour(null);
       setShowSecondEyeRoll(false);
       setSelectedAgeTier(undefined);
-      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [character.species]);
 

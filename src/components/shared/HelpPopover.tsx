@@ -47,7 +47,6 @@ export function HelpPopover({ concept, children }: HelpPopoverProps) {
   useEffect(() => {
     if (!autoShowedRef.current && !isSuppressed(concept)) {
       autoShowedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(true);
     }
   }, [concept]);

@@ -50,7 +50,7 @@ function subsequenceMatch(query: string, text: string): FuzzyMatchResult | null 
   // Find best match using a greedy approach that prefers word boundaries
   // and consecutive matches
   const matchPositions: number[] = [];
-  let score = 0;
+  let score: number;
   let queryIdx = 0;
   let lastMatchIdx = -1;
 
@@ -70,15 +70,14 @@ function subsequenceMatch(query: string, text: string): FuzzyMatchResult | null 
 
   // If word-boundary pass didn't match all query chars, fill from remaining candidates
   if (queryIdx < queryLen) {
-    // Reset and do a simple greedy match
+    // Reset and do a simple greedy match. (lastMatchIdx is only consulted by the
+    // word-boundary pass above, so it is not tracked here.)
     matchPositions.length = 0;
     queryIdx = 0;
-    lastMatchIdx = -1;
 
     for (let i = 0; i < textLen && queryIdx < queryLen; i++) {
       if (text[i] === query[queryIdx]) {
         matchPositions.push(i);
-        lastMatchIdx = i;
         queryIdx++;
       }
     }

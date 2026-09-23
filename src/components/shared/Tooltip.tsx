@@ -39,8 +39,11 @@ export function Tooltip({ anchorEl, title, children, onClose, id }: TooltipProps
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ top: number; left: number }>(() => computePosition(anchorEl));
 
-  // Recompute position when anchor changes
+  // Recompute position when anchor changes.
+  // Intentional setState-in-effect: repositions relative to an external DOM
+  // anchor element when it changes.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPosition(computePosition(anchorEl));
   }, [anchorEl]);
 

@@ -98,7 +98,7 @@ export function InitiativeTracker({ character, updateCharacter }: InitiativeTrac
 
       // Adjust active index: if the removed combatant was before or at active index
       // in the sorted list, we may need to shift.
-      let newActiveIndex = currentActive;
+      let newActiveIndex: number;
       if (newSorted.length === 0) {
         newActiveIndex = 0;
       } else {

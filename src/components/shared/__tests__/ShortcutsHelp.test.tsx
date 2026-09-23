@@ -1,11 +1,8 @@
-/* eslint-disable react-hooks/globals */
 /*
  * These tests use a throwaway `Probe` component that reads a context value via
  * useCommandPaletteContext() and assigns it to an outer `let` so assertions can
- * inspect the live context. Reassigning an outer variable during render is
- * flagged by react-hooks/globals, but it is a deliberate, well-understood test
- * probe idiom (the component renders nothing meaningful and is discarded), so
- * the rule is intentionally suppressed for this test file only.
+ * inspect the live context — a deliberate, well-understood test probe idiom
+ * (the component renders nothing meaningful and is discarded).
  */
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';

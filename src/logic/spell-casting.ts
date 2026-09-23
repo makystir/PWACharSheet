@@ -346,7 +346,7 @@ export function getHitLocation(reversedRoll: number): string {
 /**
  * Check if the character has the Instinctive Diction talent.
  */
-export function hasInstinctiveDiction(character: Character): boolean {
+function hasInstinctiveDiction(character: Character): boolean {
   return character.talents.some((t) => t.n.startsWith('Instinctive Diction'));
 }
 
@@ -680,7 +680,7 @@ export function isLeatherArmour(item: ArmourItem): boolean {
  * Winds of Magic). Detected by "chaos" in the name or qualities, since the app
  * has no dedicated Chaos armourType.
  */
-export function isChaosArmour(item: ArmourItem): boolean {
+function isChaosArmour(item: ArmourItem): boolean {
   return (
     item.name.toLowerCase().includes('chaos') ||
     item.qualities.toLowerCase().includes('chaos')

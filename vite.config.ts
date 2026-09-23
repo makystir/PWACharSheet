@@ -37,6 +37,11 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
+    // Several suites are fast-check property tests that render the full sheet
+    // ~100 times per case; under jsdom's DOM env and parallel load these can
+    // legitimately exceed the 5s default. 15s leaves ample headroom while still
+    // catching a genuinely hung test.
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

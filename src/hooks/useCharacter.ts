@@ -159,10 +159,13 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
   // Track whether a reset is in progress to avoid spurious auto-saves
   const isResettingRef = useRef(false);
 
-  // Reset state when characterId or initialCharacter changes
+  // Reset state when characterId or initialCharacter changes.
+  // Intentional setState-in-effect: resyncs the store to a new external
+  // character prop (character switch / import).
   useEffect(() => {
     characterIdRef.current = characterId;
     isResettingRef.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCharacter(backfillCharacter(initialCharacter));
   }, [characterId, initialCharacter]);
 
@@ -265,9 +268,12 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     setCharacter((prev) => mutator(structuredClone(prev)));
   }, []);
 
-  // Sync talent bonuses to chars[key].b whenever talents change
+  // Sync talent bonuses to chars[key].b whenever talents change.
+  // Intentional setState-in-effect: keeps derived characteristic bonuses in the
+  // single character store consistent when talents change.
   const talentsJson = JSON.stringify(character.talents);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCharacter((prev) => {
       const synced = syncTalentBonuses(prev);
       // Only update if bonuses actually changed
@@ -291,7 +297,10 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     return speciesData?.woundMultiplier ?? 1;
   }, [character.species]);
 
+  // Intentional setState-in-effect: keeps derived wound fields in the single
+  // character store consistent when chars / woundsUseSB / hardy / multiplier change.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCharacter(prev => {
       let synced = syncWoundFields(prev, hardyLevel, woundMultiplier);
 
@@ -312,6 +321,9 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     const toughnessBonus = getBonus(tChar.i + tChar.a + tChar.b);
     const result = evaluateFatiguedThreshold(character.conditions, toughnessBonus);
     if (result.applied.length > 0) {
+      // Intentional setState-in-effect: applies the derived Fatigued→Unconscious
+      // transition back into the single character store.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCharacter(prev => ({ ...prev, conditions: result.conditions }));
     }
     // conditionsJson is the intentional deep-compare stand-in for
@@ -332,8 +344,11 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     return st ? st.lvl : 0;
   }, [character.talents]);
 
-  // Auto-sync character.ap whenever armour list changes (worn-only AP per WFRP4e Core p.293)
+  // Auto-sync character.ap whenever armour list changes (worn-only AP per WFRP4e Core p.293).
+  // Intentional setState-in-effect: keeps derived armour points in the single
+  // character store consistent when the armour list changes.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCharacter(prev => {
       const unified = calculateArmourPointsUnified(prev.armour, { filterByWorn: true });
       const computed = {

@@ -39,6 +39,10 @@ export function getBurnoutDaysRemaining(burnout: MagicalBurnout | undefined): nu
 /**
  * Calculate burnout risk percentage for a given overcast SL total.
  * Returns 0 if no risk, otherwise the % chance (excess SL over WPB).
+ *
+ * NOTE: not currently wired into the UI — retained for a planned magic-overcast
+ * burnout feature. Kept exported deliberately (removing the export would trip
+ * noUnusedLocals since there is no internal caller yet).
  */
 export function getBurnoutRisk(character: Character, overcastSL: number): number {
   const wpBonus = getBonus(character.chars.WP);

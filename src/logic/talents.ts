@@ -8,7 +8,7 @@ const ALL_CHAR_KEYS: CharacteristicKey[] = CHARACTERISTIC_KEYS;
  * Compute characteristic bonuses from talents using TALENT_BONUS_MAP.
  * Returns a record of characteristic keys to bonus values.
  */
-export function computeTalentBonuses(
+function computeTalentBonuses(
   talents: Talent[]
 ): Record<CharacteristicKey, number> {
   const bonuses: Record<CharacteristicKey, number> = Object.fromEntries(

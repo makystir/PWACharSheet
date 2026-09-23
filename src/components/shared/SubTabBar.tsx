@@ -143,6 +143,7 @@ export function SubTabBar({ tabs, activeTab, onTabChange, editMode }: SubTabBarP
                   data-direction="left"
                   onClick={() => {
                     if (!isFirst) {
+                      // eslint-disable-next-line react-hooks/refs -- runs only on user click; handleMoveLeft writes a ref in an event handler, not during render.
                       handleMoveLeft(index, tab.id);
                     }
                   }}

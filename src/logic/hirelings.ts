@@ -21,7 +21,7 @@ export function computeHirelingUpkeep(hirelings: Hireling[]): { gc: number; ss: 
  * The counter ensures uniqueness even when called multiple times within the same millisecond.
  */
 let _hirelingIdCounter = 0;
-export function generateHirelingId(): number {
+function generateHirelingId(): number {
   _hirelingIdCounter += 1;
   return Date.now() * 1000 + (_hirelingIdCounter % 1000);
 }

@@ -111,6 +111,7 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
   useEffect(() => {
     if (!VALID_SUBTABS.includes(activeSubTab)) {
       const fallback = (orderedTabs[0]?.id as EstateSubTab) || 'wealth';
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveSubTabInternal(fallback);
       saveLastSubTab('estate', fallback);
       onSubTabChange?.(fallback);
@@ -128,6 +129,7 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
   useEffect(() => {
     if (subTab) {
       if (VALID_SUBTABS.includes(subTab as EstateSubTab)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActiveSubTabInternal(subTab as EstateSubTab);
       }
     }

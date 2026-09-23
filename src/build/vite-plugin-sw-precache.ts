@@ -117,7 +117,8 @@ export function swPrecachePlugin(options: SWPrecachePluginOptions): Plugin {
       } catch (err) {
         throw new Error(
           `[sw-precache] Service worker source template not found: ${swSrc}. ` +
-            `Ensure the file exists before building. (${err instanceof Error ? err.message : err})`
+            `Ensure the file exists before building. (${err instanceof Error ? err.message : err})`,
+          { cause: err }
         );
       }
 
@@ -187,7 +188,8 @@ export function swPrecachePlugin(options: SWPrecachePluginOptions): Plugin {
           } catch (err) {
             throw new Error(
               `[sw-precache] Failed to read file for hashing: ${filePath}. ` +
-                `(${err instanceof Error ? err.message : err})`
+                `(${err instanceof Error ? err.message : err})`,
+              { cause: err }
             );
           }
           revision = computeMD5(content);

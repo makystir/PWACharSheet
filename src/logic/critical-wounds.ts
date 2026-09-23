@@ -38,6 +38,10 @@ export function healCriticalWound(
 
 /**
  * Get all active (unhealed) critical wounds.
+ *
+ * NOTE: not currently wired into the UI — retained for a planned critical-wounds
+ * display/summary. Kept exported deliberately (removing the export would trip
+ * noUnusedLocals since there is no internal caller yet).
  */
 export function getActiveCriticalWounds(wounds: CriticalWound[]): CriticalWound[] {
   return wounds.filter(w => !w.healed);

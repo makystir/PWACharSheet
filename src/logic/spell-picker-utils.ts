@@ -296,6 +296,10 @@ export function getEligibleSpells(
 /**
  * Filter the blessings out of a spell list. Blessings are auto-granted with Bless talent
  * and should NOT appear in the learnable spell picker.
+ *
+ * NOTE: not currently wired into the spell picker — retained for a planned
+ * picker refinement. Kept exported deliberately (removing the export would trip
+ * noUnusedLocals since there is no internal caller yet).
  */
 export function excludeBlessings(spells: SpellData[]): SpellData[] {
   return spells.filter(s => s.lore !== 'Blessings');
