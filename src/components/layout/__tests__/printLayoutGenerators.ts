@@ -346,6 +346,5 @@ export function arbitraryCharacter(): fc.Arbitrary<Character> {
   }).map((generated) => ({
     ...BLANK_CHARACTER,
     ...generated,
-    _v: 7 as const,
   }));
 }

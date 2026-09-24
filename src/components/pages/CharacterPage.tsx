@@ -381,13 +381,14 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
   const handleCareerChange = (career: string) => {
     const scheme = getCareerScheme(career);
-    if (scheme) {
+    if (scheme?.level1) {
+      const level1 = scheme.level1;
       updateCharacter((c) => ({
         ...c,
         career,
         class: scheme.class,
-        careerLevel: scheme.level1.title,
-        status: scheme.level1.status,
+        careerLevel: level1.title,
+        status: level1.status,
       }));
     }
   };

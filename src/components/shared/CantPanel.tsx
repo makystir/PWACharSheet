@@ -39,7 +39,7 @@ export function CantPanel({ character, updateCharacter, currentRound }: CantPane
     setConfirmation(null);
   }
 
-  const state = computeCantState(character, CANT_CATALOGUE, SPELL_LIST);
+  const state = computeCantState(character, [...CANT_CATALOGUE], SPELL_LIST);
 
   const wpChar = character.chars.WP;
   const wpBonus = Math.floor((wpChar.i + wpChar.a + wpChar.b) / 10);

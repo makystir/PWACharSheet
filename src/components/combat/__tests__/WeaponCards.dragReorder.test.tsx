@@ -140,14 +140,14 @@ function getGrips() {
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('WeaponCards drag-reorder integration', () => {
-  let mockOnReorderWeapon: ReturnType<typeof vi.fn>;
-  let mockOnRollWeapon: ReturnType<typeof vi.fn>;
+  let mockOnReorderWeapon: ReturnType<typeof vi.fn<(fromIndex: number, toIndex: number) => void>>;
+  let mockOnRollWeapon: ReturnType<typeof vi.fn<(weapon: WeaponItem) => void>>;
   let mockCharacter: Character;
   let mockWeapons: WeaponItem[];
 
   beforeEach(() => {
-    mockOnReorderWeapon = vi.fn();
-    mockOnRollWeapon = vi.fn();
+    mockOnReorderWeapon = vi.fn<(fromIndex: number, toIndex: number) => void>();
+    mockOnRollWeapon = vi.fn<(weapon: WeaponItem) => void>();
     mockCharacter = createMockCharacter();
     mockWeapons = createMockWeapons();
   });

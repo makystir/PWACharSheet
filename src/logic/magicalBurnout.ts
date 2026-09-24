@@ -45,7 +45,10 @@ export function getBurnoutDaysRemaining(burnout: MagicalBurnout | undefined): nu
  * noUnusedLocals since there is no internal caller yet).
  */
 export function getBurnoutRisk(character: Character, overcastSL: number): number {
-  const wpBonus = getBonus(character.chars.WP);
+  // WPB = tens digit of the WillPower total (Initial + Advances + Bonus).
+  // Core p.55: a characteristic's Bonus is the tens digit of its current value.
+  const wp = character.chars.WP;
+  const wpBonus = getBonus(wp.i + wp.a + wp.b);
   if (overcastSL <= wpBonus) return 0;
   return overcastSL - wpBonus;
 }

@@ -125,7 +125,7 @@ describe('EstatePage — Withdraw_Control (Treasury panel)', () => {
 
     // Exactly one wealth event appended (Req 3.3).
     expect(updated.eventLog).toHaveLength(1);
-    expect(updated.eventLog[0].category).toBe('wealth');
+    expect(updated.eventLog![0].category).toBe('wealth');
   });
 
   // Req 2.4, 3.4, 7.2 — over-amount withdrawal blocked; nothing changes.

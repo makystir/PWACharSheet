@@ -309,7 +309,7 @@ describe('Feature: bulk-character-backup, Property 5: Import non-destruction of 
         fc.array(arbCharacterName, { minLength: 1, maxLength: 3 }),
         async (importEntries, existingNames) => {
           // Set up pre-existing character summaries
-          const existingIds = existingNames.map(() => crypto.randomUUID());
+          const existingIds: string[] = existingNames.map(() => crypto.randomUUID());
           const existingSummaries = existingNames.map((name, i) => ({
             id: existingIds[i],
             name,

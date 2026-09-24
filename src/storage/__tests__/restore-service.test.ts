@@ -138,7 +138,7 @@ describe('restoreCharacters — quota error mid-import', () => {
       if (saveCallCount <= 2) {
         return { ok: true };
       }
-      return { ok: false, error: 'QuotaExceededError' };
+      return { ok: false, reason: 'quota-exceeded' };
     });
 
     const characters = [

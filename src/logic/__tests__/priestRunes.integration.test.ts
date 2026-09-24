@@ -18,7 +18,7 @@ function makeForgePriest(overrides: Partial<Character> = {}): Character {
     careerLevel: 'Forge Priest',
     patronDeity: 'Smednir',
     xpCur: 200,
-    talents: [{ n: 'Rune Magic', a: 1 }],
+    talents: [{ n: 'Rune Magic', lvl: 1, desc: '' }],
     knownRunes: [],
     ...overrides,
   };
@@ -32,7 +32,7 @@ function makeDoomPriest(overrides: Partial<Character> = {}): Character {
     careerLevel: 'Doom Priest',
     patronDeity: 'Grungni',
     xpCur: 200,
-    talents: [{ n: 'Rune Magic', a: 1 }],
+    talents: [{ n: 'Rune Magic', lvl: 1, desc: '' }],
     knownRunes: [],
     ...overrides,
   };

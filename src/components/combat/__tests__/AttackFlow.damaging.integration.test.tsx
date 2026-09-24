@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import { AttackFlow } from '../AttackFlow';
 import type { AttackFlowProps } from '../AttackFlow';
 import type { Character, WeaponItem, ArmourPoints } from '../../../types/character';
+import type { RollResult } from '../../../logic/dice-roller';
 import { BLANK_CHARACTER } from '../../../types/character';
 
 // ─── Test Helpers ────────────────────────────────────────────────────────────
@@ -58,7 +59,8 @@ function makeProps(overrides: Partial<AttackFlowProps> = {}): AttackFlowProps {
     weapons: [damagingWeapon()],
     character: makeCharacter(),
     armourPoints: defaultArmourPoints,
-    onRoll: vi.fn(),
+    onRoll: vi.fn<(result: RollResult) => void>(),
+    updateCharacter: vi.fn<(mutator: (char: Character) => Character) => void>(),
     ...overrides,
   };
 }

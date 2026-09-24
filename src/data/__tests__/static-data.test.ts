@@ -120,7 +120,7 @@ describe('Career Data', () => {
 
   it('each career has 4 levels with required fields', () => {
     for (const [name, scheme] of Object.entries(CAREER_SCHEMES)) {
-      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4, (scheme as Record<string, unknown>).level5].filter(Boolean);
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5].filter(Boolean);
       for (const lvl of levels) {
         const level = lvl as { title: string; status: string; characteristics: string[]; skills: string[]; talents: string[] };
         expect(level.title, `${name} missing title`).toBeTruthy();
@@ -135,7 +135,7 @@ describe('Career Data', () => {
   it('spot-check: Cavalryman is a Warriors career', () => {
     expect(CAREER_SCHEMES['Cavalryman']).toBeDefined();
     expect(CAREER_SCHEMES['Cavalryman'].class).toBe('Warriors');
-    expect(CAREER_SCHEMES['Cavalryman'].level1.title).toBe('Horseman');
+    expect(CAREER_SCHEMES['Cavalryman'].level1!.title).toBe('Horseman');
   });
 
   it('spot-check: Wizard is an Academics career', () => {
@@ -1611,7 +1611,7 @@ describe('Up in Arms — Content Presence', () => {
   });
 
   it('spot-check: Archer level1 title is "Bowman"', () => {
-    expect(CAREER_SCHEMES['Archer'].level1.title).toBe('Bowman');
+    expect(CAREER_SCHEMES['Archer'].level1!.title).toBe('Bowman');
   });
 
   it('spot-check: Priest of Myrmidia class is "Warriors"', () => {

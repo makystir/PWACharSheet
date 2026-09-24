@@ -3,9 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { EstatePage } from '../../pages/EstatePage';
 import { BLANK_CHARACTER } from '../../../types/character';
-import type { Character, ArmourPoints } from '../../../types/character';
-
-const defaultAP: ArmourPoints = { head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 };
+import type { Character } from '../../../types/character';
 
 function renderEstatePage(charOverrides: Partial<Character> = {}) {
   const char = structuredClone({ ...BLANK_CHARACTER, ...charOverrides });
@@ -14,10 +12,6 @@ function renderEstatePage(charOverrides: Partial<Character> = {}) {
       character={char}
       update={vi.fn()}
       updateCharacter={vi.fn()}
-      totalWounds={10}
-      armourPoints={defaultAP}
-      maxEncumbrance={5}
-      coinWeight={0}
     />
   );
 }

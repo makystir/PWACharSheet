@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import type { ReactElement } from 'react';
 import { LoadingIndicator, LazyErrorBoundary } from '../PageLoader';
 
 /**
@@ -32,7 +33,7 @@ describe('LazyErrorBoundary', () => {
     console.error = originalConsoleError;
   });
 
-  function ThrowingChild({ error }: { error: Error }) {
+  function ThrowingChild({ error }: { error: Error }): ReactElement {
     throw error;
   }
 

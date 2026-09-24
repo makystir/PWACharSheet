@@ -8,9 +8,11 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:docker": "vite build --base /",
-    "preview": "vite preview"
+    "typecheck": "tsc --build --noEmit",
+    "build": "tsc --build && vite build",
+    "build:docker": "tsc --build && vite build --base /",
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@fontsource/cinzel": "^5.2.8",
@@ -21,6 +23,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
+  "//typescript-eslint-compat": "typescript-eslint@8.70.1 imports the TS compiler API directly and refuses TS 7.0 (peer-dep >=4.8.4 <6.1.0). Per the TS 7.0 migration guide (https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0), we alias `typescript` -> @typescript/typescript6 (the re-exported 6.0 API, so ESLint's parser works) and `@typescript/native` -> real typescript@7.0.2 (which still provides the `tsc` binary, so `npx tsc` / `npm run typecheck` / build type-check on 7.0.2). TODO: remove both aliases and restore a plain `\"typescript\": \"7.0.2\"` once typescript-eslint ships stable-API support for TS >=7.1 (tracking: https://github.com/typescript-eslint/typescript-eslint/issues/10940).",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^7.0.1",
@@ -37,7 +40,8 @@
     "fast-check": "^4.8.0",
     "globals": "^17.4.0",
     "jsdom": "^30.1.1",
-    "typescript": "~5.9.3",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.70.1",
     "vite": "^8.0.1",
     "vitest": "^5.0.1"

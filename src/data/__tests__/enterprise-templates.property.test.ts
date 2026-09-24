@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { ENTERPRISE_TEMPLATES, ENTERPRISE_TEMPLATE_MAP } from '../enterprises';
 import { createEnterpriseFromTemplate } from '../../logic/enterprise-utils';
-import { EnterpriseType } from '../../types/character';
+import type { EnterpriseType } from '../../types/character';
 
 // All valid enterprise types for generators
 const ALL_ENTERPRISE_TYPES: EnterpriseType[] = ENTERPRISE_TEMPLATES.map(t => t.type);

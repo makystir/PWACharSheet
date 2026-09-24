@@ -38,6 +38,7 @@ describe('CharacterPage', () => {
       render(
         <CharacterPage
           character={captured}
+          characterId="test-char-id"
           update={vi.fn()}
           updateCharacter={updateCharacter}
           totalWounds={10}
@@ -79,6 +80,7 @@ describe('CharacterPage', () => {
       render(
         <CharacterPage
           character={char}
+          characterId="test-char-id"
           update={vi.fn()}
           updateCharacter={updateCharacter}
           totalWounds={10}
@@ -114,6 +116,7 @@ describe('CharacterPage', () => {
       render(
         <CharacterPage
           character={char}
+          characterId="test-char-id"
           update={vi.fn()}
           updateCharacter={updateCharacter}
           totalWounds={10}
@@ -152,6 +155,7 @@ describe('CharacterPage', () => {
       render(
         <CharacterPage
           character={char}
+          characterId="test-char-id"
           update={vi.fn()}
           updateCharacter={updateCharacter}
           totalWounds={10}
@@ -182,6 +186,7 @@ describe('CharacterPage', () => {
       render(
         <CharacterPage
           character={char}
+          characterId="test-char-id"
           update={vi.fn()}
           updateCharacter={vi.fn()}
           totalWounds={12}
@@ -206,6 +211,7 @@ describe('CharacterPage', () => {
       render(
         <CharacterPage
           character={char}
+          characterId="test-char-id"
           update={vi.fn()}
           updateCharacter={vi.fn()}
           totalWounds={10}
@@ -238,6 +244,7 @@ describe('Skill tooltips', () => {
     return render(
       <CharacterPage
         character={char}
+        characterId="test-char-id"
         update={vi.fn()}
         updateCharacter={vi.fn()}
         totalWounds={10}
@@ -302,6 +309,7 @@ describe('Talent tooltips', () => {
     return render(
       <CharacterPage
         character={char}
+        characterId="test-char-id"
         update={vi.fn()}
         updateCharacter={vi.fn()}
         totalWounds={10}

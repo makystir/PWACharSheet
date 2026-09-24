@@ -6,7 +6,7 @@ import { formatDamageBreakdown, formatCastDamageBreakdown } from '../spell-casti
 
 interface SpellItem {
   name: string;
-  cn: number;
+  cn: string;
   range: string;
   target: string;
   duration: string;
@@ -17,7 +17,7 @@ interface SpellItem {
 function makeSpell(effect: string): SpellItem {
   return {
     name: 'Test Spell',
-    cn: 0,
+    cn: '0',
     range: '48',
     target: '1',
     duration: 'Instant',

@@ -206,7 +206,7 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
   // Follows the LedgerPanel atomic pattern: transferFunds is the sole source of
   // truth for the two-pool math (design Decision 1); the LedgerEntry type/amount
   // are recorded consistently (treasury LOSES coin → 'expense', design Decision 2).
-  const applyTransfer = (direction: 'withdraw', amount: CurrencyDelta) => {
+  const applyTransfer = (_direction: 'withdraw', amount: CurrencyDelta) => {
     const wealth: CurrencyDelta = {
       gc: character.wGC || 0,
       ss: character.wSS || 0,

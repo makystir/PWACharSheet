@@ -8,10 +8,10 @@ export interface SkillFilterOptions {
  * by trained status (advances > 0).
  * Returns a subset of the input skills matching all active criteria.
  */
-export function filterSkills(
-  skills: { n: string; a: number }[],
+export function filterSkills<T extends { n: string; a: number }>(
+  skills: T[],
   options: SkillFilterOptions
-): { n: string; a: number }[] {
+): T[] {
   const { searchText, trainedOnly } = options;
   const lowerSearch = searchText.toLowerCase();
 

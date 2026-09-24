@@ -58,7 +58,7 @@ function createInPlayCharacter(
   char.woundsUseSB = woundsUseSB;
 
   if (hardyLevel > 0) {
-    char.talents = [{ n: 'Hardy', lvl: hardyLevel, d: '' }];
+    char.talents = [{ n: 'Hardy', lvl: hardyLevel, desc: '' }];
   }
 
   // Calculate wound max so we can set wCur within valid range

@@ -4,7 +4,7 @@ import styles from './CommandPalette.module.css';
 export interface SearchInputProps {
   value: string;
   onChange: (query: string) => void;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   activeDescendantId?: string;
 }
 

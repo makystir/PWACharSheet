@@ -164,6 +164,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
           const { container, unmount } = render(
             <SettingsPage
               character={TEST_CHARACTER}
+              characterId="test-char-id"
               update={vi.fn()}
               updateCharacter={updateCharacterMock}
               totalWounds={12}
@@ -240,6 +241,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
     const { container } = render(
       <SettingsPage
         character={TEST_CHARACTER}
+        characterId="test-char-id"
         update={vi.fn()}
         updateCharacter={updateCharacterMock}
         totalWounds={12}
@@ -298,6 +300,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
     const { container } = render(
       <SettingsPage
         character={TEST_CHARACTER}
+        characterId="test-char-id"
         update={vi.fn()}
         updateCharacter={updateCharacterMock}
         totalWounds={12}
@@ -355,6 +358,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
           const { container, unmount } = render(
             <SettingsPage
               character={TEST_CHARACTER}
+              characterId="test-char-id"
               update={vi.fn()}
               updateCharacter={updateCharacterMock}
               totalWounds={12}

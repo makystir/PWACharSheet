@@ -81,11 +81,11 @@ describe('registerServiceWorker', () => {
     // Mock window.addEventListener for 'load'
     const originalWindowAddEventListener = window.addEventListener.bind(window);
     vi.spyOn(window, 'addEventListener').mockImplementation(
-      (event: string, handler: EventListenerOrEventListenerObject, ...args: unknown[]) => {
+      (event: string, handler: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) => {
         if (event === 'load') {
           loadListeners.push(handler as () => void);
         } else {
-          originalWindowAddEventListener(event, handler, ...(args as [unknown]));
+          originalWindowAddEventListener(event, handler, options);
         }
       },
     );
@@ -193,7 +193,7 @@ describe('registerServiceWorker', () => {
     const registerServiceWorker = await importModule();
 
     const api = registerServiceWorker('/PWACharSheet/');
-    const listener = vi.fn<[SWUpdateState], void>();
+    const listener = vi.fn<(state: SWUpdateState) => void>();
     api.subscribe(listener);
 
     // Fire load
@@ -217,7 +217,7 @@ describe('registerServiceWorker', () => {
     const registerServiceWorker = await importModule();
 
     const api = registerServiceWorker('/PWACharSheet/');
-    const listener = vi.fn<[SWUpdateState], void>();
+    const listener = vi.fn<(state: SWUpdateState) => void>();
     api.subscribe(listener);
 
     // Fire load event
@@ -305,7 +305,7 @@ describe('registerServiceWorker', () => {
     const registerServiceWorker = await importModule();
 
     const api = registerServiceWorker('/PWACharSheet/');
-    const listener = vi.fn<[SWUpdateState], void>();
+    const listener = vi.fn<(state: SWUpdateState) => void>();
     api.subscribe(listener);
 
     // Fire load event
@@ -335,7 +335,7 @@ describe('registerServiceWorker', () => {
     const registerServiceWorker = await importModule();
 
     const api = registerServiceWorker('/PWACharSheet/');
-    const listener = vi.fn<[SWUpdateState], void>();
+    const listener = vi.fn<(state: SWUpdateState) => void>();
     api.subscribe(listener);
 
     // Fire load event to trigger registration and detection of waiting worker
@@ -387,7 +387,7 @@ describe('registerServiceWorker', () => {
     const registerServiceWorker = await importModule();
 
     const api = registerServiceWorker('/PWACharSheet/');
-    const listener = vi.fn<[SWUpdateState], void>();
+    const listener = vi.fn<(state: SWUpdateState) => void>();
 
     api.subscribe(listener);
 

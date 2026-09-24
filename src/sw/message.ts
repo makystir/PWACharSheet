@@ -1,4 +1,8 @@
+/// <reference lib="webworker" />
+
 import type { SkipWaitingMessage } from './types';
+
+declare const self: ServiceWorkerGlobalScope;
 
 /**
  * Handles messages sent to the service worker via postMessage.

@@ -5,6 +5,7 @@ import { Navigation } from '../../layout/Navigation';
 import { RollResultDisplay } from '../RollResultDisplay';
 import { CommandPaletteProvider } from '../../command-palette/CommandPaletteContext';
 import type { ArmourPoints } from '../../../types/character';
+import type { RollResult } from '../../../logic/dice-roller';
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(<CommandPaletteProvider>{ui}</CommandPaletteProvider>);
@@ -23,6 +24,7 @@ describe('Accessibility: ArmourMap hit location buttons (Req 26.5)', () => {
     body: 3,
     lLeg: 0,
     rLeg: 0,
+    shield: 0,
   };
 
   it('renders hit location buttons with ARIA labels', () => {
@@ -53,7 +55,7 @@ describe('Accessibility: ArmourMap hit location buttons (Req 26.5)', () => {
 
 describe('Accessibility: Touch targets meet 44px minimum', () => {
   it('ArmourMap hit location buttons are rendered as buttons (tappable)', () => {
-    const armourPoints: ArmourPoints = { head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0 };
+    const armourPoints: ArmourPoints = { head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 };
     render(<ArmourMap armourPoints={armourPoints} armourList={[]} />);
 
     const buttons = screen.getAllByRole('button');
@@ -127,18 +129,23 @@ describe('Accessibility: Navigation aria-current (Req 4.5)', () => {
 });
 
 describe('Accessibility: RollResultDisplay dialog role', () => {
-  const mockResult = {
+  const mockResult: RollResult = {
     roll: 42,
     targetNumber: 55,
+    baseTarget: 55,
+    difficulty: 'Average',
     sl: 1,
     passed: true,
-    outcome: '+1 SL',
+    outcome: 'Marginal Success',
     skillOrCharName: 'Melee (Basic)',
     isCritical: false,
     isFumble: false,
+    isAutoSuccess: false,
+    isAutoFailure: false,
+    timestamp: 0,
   };
 
-  let matchMediaMock: ReturnType<typeof vi.fn>;
+  let matchMediaMock: ReturnType<typeof vi.fn<(query: string) => MediaQueryList>>;
 
   beforeEach(() => {
     matchMediaMock = vi.fn().mockImplementation((query: string) => ({
@@ -199,15 +206,20 @@ describe('Accessibility: prefers-reduced-motion suppresses animations (Req 7.5)'
       dispatchEvent: vi.fn(),
     }));
 
-    const result = {
+    const result: RollResult = {
       roll: 55,
       targetNumber: 40,
+      baseTarget: 40,
+      difficulty: 'Average',
       sl: -1,
       passed: false,
-      outcome: '-1 SL',
+      outcome: 'Marginal Failure',
       skillOrCharName: 'Athletics',
       isCritical: false,
       isFumble: false,
+      isAutoSuccess: false,
+      isAutoFailure: false,
+      timestamp: 0,
     };
 
     render(<RollResultDisplay result={result} onClose={() => {}} />);

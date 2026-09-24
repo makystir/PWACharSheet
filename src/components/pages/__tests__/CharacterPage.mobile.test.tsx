@@ -126,11 +126,12 @@ function createMockCharacter(): Character {
     knownRunes: [],
     learnedTechniques: [],
     log: [],
-  } as Character;
+  } as unknown as Character;
 }
 
 const defaultProps = {
   character: createMockCharacter(),
+  characterId: 'test-char-id',
   update: vi.fn(),
   updateCharacter: vi.fn(),
   totalWounds: 12,

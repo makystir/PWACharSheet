@@ -116,7 +116,7 @@ describe('useUndoStack — maxSize eviction', () => {
 
     // Undo should only return 10 entries (the 10 most recent)
     let count = 0;
-    let entry: ReturnType<typeof result.current.undo>;
+    let entry: ReturnType<typeof result.current.undo> = null;
     do {
       act(() => { entry = result.current.undo(); });
       if (entry !== null) count++;
@@ -160,7 +160,7 @@ describe('useUndoStack — maxSize eviction', () => {
 
     // Only 5 entries should remain
     let count = 0;
-    let entry: ReturnType<typeof result.current.undo>;
+    let entry: ReturnType<typeof result.current.undo> = null;
     do {
       act(() => { entry = result.current.undo(); });
       if (entry !== null) count++;

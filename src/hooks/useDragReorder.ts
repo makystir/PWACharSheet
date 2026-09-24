@@ -79,7 +79,7 @@ const AUTO_SCROLL_SPEED = 8;
 export function computeInsertionIndex(
   pointerY: number,
   itemRects: DOMRect[],
-  dragIndex: number,
+  _dragIndex: number,
   pointerX?: number
 ): number {
   if (itemRects.length === 0) return 0;

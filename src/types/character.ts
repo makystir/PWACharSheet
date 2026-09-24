@@ -78,6 +78,9 @@ export interface CareerLevel {
 
 export interface CareerScheme {
   class: string;
+  // Optional: a few elite High Elf careers (Smith-Priest of Vaul, Storm Weaver,
+  // Loremaster of Hoeth — High Elf guide) have no level-1 entry and start at
+  // level 2. Consumers must guard `level1` accordingly.
   level1?: CareerLevel;
   level2: CareerLevel;
   level3: CareerLevel;

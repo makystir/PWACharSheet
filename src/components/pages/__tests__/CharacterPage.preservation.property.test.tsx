@@ -136,7 +136,7 @@ function createCharacterWithChars(chars: Record<CharacteristicKey, Characteristi
     knownRunes: [],
     learnedTechniques: [],
     log: [],
-  } as Character;
+  } as unknown as Character;
 }
 
 const defaultArmourPoints: ArmourPoints = { head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 };
@@ -158,6 +158,7 @@ describe('Feature: characteristic-bonus-display — Preservation Properties', ()
           const { container } = render(
             <CharacterPage
               character={character}
+              characterId="test-char-id"
               update={vi.fn()}
               updateCharacter={vi.fn()}
               totalWounds={12}

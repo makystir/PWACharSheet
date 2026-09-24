@@ -43,7 +43,6 @@ const arbitraryCharacteristics: fc.Arbitrary<Record<CharacteristicKey, Character
 function buildCharacter(chars: Record<CharacteristicKey, CharacteristicValue>): Character {
   return {
     ...BLANK_CHARACTER,
-    _v: 7 as const,
     chars,
     name: 'Test',
     species: 'Human',

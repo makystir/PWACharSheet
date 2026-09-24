@@ -172,6 +172,7 @@ describe('Interaction Consolidation — Add Dropdown (Req 9.4)', () => {
     render(
       <CharacterPage
         character={char}
+        characterId="test-char-id"
         update={vi.fn()}
         updateCharacter={vi.fn()}
         totalWounds={10}

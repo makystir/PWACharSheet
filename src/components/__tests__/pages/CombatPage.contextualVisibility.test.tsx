@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import { CombatPage } from '../../pages/CombatPage';
 import { BLANK_CHARACTER } from '../../../types/character';
 import type { Character, ArmourPoints } from '../../../types/character';
+import type { RollHistoryEntry } from '../../../hooks/useRollHistory';
 
 function makeCharacter(overrides: Partial<Character> = {}): Character {
   return structuredClone({ ...BLANK_CHARACTER, ...overrides });
@@ -11,7 +12,7 @@ function makeCharacter(overrides: Partial<Character> = {}): Character {
 
 const defaultAP: ArmourPoints = { head: 0, lArm: 0, rArm: 0, body: 0, lLeg: 0, rLeg: 0, shield: 0 };
 
-function renderCombatPage(overrides: Partial<Character> = {}, extraProps: { rollHistory?: Array<{ name: string; result: number; target: number; sl: number; success: boolean; timestamp: number }>; clearHistory?: () => void } = {}) {
+function renderCombatPage(overrides: Partial<Character> = {}, extraProps: { rollHistory?: RollHistoryEntry[]; clearHistory?: () => void } = {}) {
   const char = makeCharacter(overrides);
   const update = vi.fn();
   const updateCharacter = vi.fn();
@@ -46,7 +47,7 @@ describe('CombatPage contextual visibility - SpellCastingPanel', () => {
 
   it('shows SpellCastingPanel when character has spells', () => {
     renderCombatPage({
-      spells: [{ name: 'Fireball', cn: 6, range: '48', target: '1', duration: 'Instant', effect: 'damage', lore: 'Fire' }],
+      spells: [{ name: 'Fireball', cn: '6', range: '48', target: '1', duration: 'Instant', effect: 'damage' }],
     });
     expect(screen.getByText('Spells & Prayers')).toBeInTheDocument();
   });
@@ -54,7 +55,7 @@ describe('CombatPage contextual visibility - SpellCastingPanel', () => {
   it('shows SpellCastingPanel when character has a spellcasting talent', () => {
     renderCombatPage({
       spells: [],
-      talents: [{ n: 'Arcane Magic', a: 1 }],
+      talents: [{ n: 'Arcane Magic', lvl: 1, desc: '' }],
     });
     expect(screen.getByText('Spells & Prayers')).toBeInTheDocument();
   });
@@ -128,7 +129,15 @@ describe('CombatPage contextual visibility - Roll History', () => {
     renderCombatPage(
       { combatState: COMBAT_ACTIVE },
       {
-        rollHistory: [{ name: 'Melee (Basic)', result: 42, target: 50, sl: 0, success: true, timestamp: Date.now() }],
+        rollHistory: [{
+          id: 1,
+          result: {
+            roll: 42, targetNumber: 50, baseTarget: 50, difficulty: 'Average',
+            passed: true, sl: 0, isCritical: false, isFumble: false,
+            isAutoSuccess: false, isAutoFailure: false, outcome: 'Marginal Success',
+            skillOrCharName: 'Melee (Basic)', timestamp: Date.now(),
+          },
+        }],
         clearHistory: vi.fn(),
       },
     );

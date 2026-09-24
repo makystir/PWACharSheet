@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { addDisease, removeDisease, updateDiseaseNotes, ActiveDisease } from '../diseases';
+import { addDisease, removeDisease, updateDiseaseNotes } from '../diseases';
+import type { ActiveDisease } from '../diseases';
 
 // ─── Disease Tracker edge case unit tests ────────────────────────────────────
 // Validates: Requirements 4.1, 4.2, 4.3

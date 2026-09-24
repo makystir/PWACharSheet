@@ -148,7 +148,7 @@ describe('EmptyState Integration — Session Notes', () => {
   it('renders "No Session Notes" heading when log is undefined', () => {
     const character = makeChar();
     // Ensure log is undefined/empty
-    delete (character as Record<string, unknown>).log;
+    delete (character as unknown as Record<string, unknown>).log;
     render(
       <SessionNotesPanel character={character} updateCharacter={vi.fn()} />,
     );

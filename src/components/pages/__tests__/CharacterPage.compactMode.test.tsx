@@ -154,9 +154,9 @@ describe('CharacterPage compact mode (Req 9.1, 9.2, 9.3, 9.4)', () => {
       const { container } = renderCharPage({
         name: 'Test',
         weapons: [
-          { name: 'Sword', group: 'Basic', damage: '+SB+4', range: '', qualities: '', flaws: '', equipped: true, encumbrance: 1 },
-          { name: 'Dagger', group: 'Basic', damage: '+SB+1', range: '', qualities: '', flaws: '', equipped: true, encumbrance: 0 },
-          { name: 'Bow', group: 'Basic', damage: '+SB+3', range: '20/40', qualities: '', flaws: '', equipped: false, encumbrance: 1 },
+          { name: 'Sword', group: 'Basic', damage: '+SB+4', rangeReach: '', qualities: '', enc: '1', equipped: true },
+          { name: 'Dagger', group: 'Basic', damage: '+SB+1', rangeReach: '', qualities: '', enc: '0', equipped: true },
+          { name: 'Bow', group: 'Basic', damage: '+SB+3', rangeReach: '20/40', qualities: '', enc: '1', equipped: false },
         ],
       });
       const btn = screen.getByRole('button', { name: /switch to compact view/i });

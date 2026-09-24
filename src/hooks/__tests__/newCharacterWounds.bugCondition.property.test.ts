@@ -57,7 +57,7 @@ function createFreshCharacterWithStats(
 
   // Add Hardy talent if applicable
   if (hardyLevel > 0) {
-    char.talents = [{ n: 'Hardy', lvl: hardyLevel, d: '' }];
+    char.talents = [{ n: 'Hardy', lvl: hardyLevel, desc: '' }];
   }
 
   // wCur remains at 0 — the initial value from BLANK_CHARACTER

@@ -303,8 +303,8 @@ describe('Property 5: Rejection of Non-Permitted Runes', () => {
       patronDeity: deity,
       xpCur: 9999, // Sufficient XP to learn any rune
       talents: [
-        { n: 'Rune Magic', a: 0 },
-        { n: 'Master Rune Magic', a: 0 },
+        { n: 'Rune Magic', lvl: 0, desc: '' },
+        { n: 'Master Rune Magic', lvl: 0, desc: '' },
       ],
       knownRunes: [],
     };

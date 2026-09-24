@@ -157,7 +157,7 @@ describe('Feature: dwarf-grudge-system', () => {
         fc.array(arbGrudgeEntry, { minLength: 1, maxLength: 20 }),
         fc.boolean(),
         arbNonDwarfSpecies,
-        (grudges, toggleOff, nonDwarfSpecies) => {
+        (grudges, _toggleOff, nonDwarfSpecies) => {
           // Character with grudges and panel visible
           const character: Character = {
             ...BLANK_CHARACTER,

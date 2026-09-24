@@ -4,7 +4,7 @@ import { render, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { SettingsPage } from '../SettingsPage';
 import { BLANK_CHARACTER } from '../../../types/character';
-import type { CharacteristicKey, CharacteristicValue } from '../../../types/character';
+import type { Character, CharacteristicKey, CharacteristicValue } from '../../../types/character';
 
 /**
  * Validates: Requirements 1.1, 1.2, 2.1
@@ -78,13 +78,13 @@ const arbitraryValidCharacterJSON: fc.Arbitrary<string> = fc.tuple(
 // --- Test Suite ---
 
 describe('Feature: import-overwrite-guard — Bug Condition Exploration', () => {
-  let updateCharacterMock: ReturnType<typeof vi.fn>;
-  let updateMock: ReturnType<typeof vi.fn>;
+  let updateCharacterMock: ReturnType<typeof vi.fn<(mutator: (char: Character) => Character) => void>>;
+  let updateMock: ReturnType<typeof vi.fn<(field: string, value: unknown) => void>>;
   let originalFileReader: typeof FileReader;
 
   beforeEach(() => {
-    updateCharacterMock = vi.fn();
-    updateMock = vi.fn();
+    updateCharacterMock = vi.fn<(mutator: (char: Character) => Character) => void>();
+    updateMock = vi.fn<(field: string, value: unknown) => void>();
     originalFileReader = globalThis.FileReader;
   });
 
@@ -141,7 +141,7 @@ describe('Feature: import-overwrite-guard — Bug Condition Exploration', () => 
         arbitraryValidCharacterJSON,
         (jsonString) => {
           // Reset mocks for each property iteration
-          updateCharacterMock = vi.fn();
+          updateCharacterMock = vi.fn<(mutator: (char: Character) => Character) => void>();
 
           // Mock FileReader to synchronously deliver the JSON content
           mockFileReaderWithContent(jsonString);
@@ -149,6 +149,7 @@ describe('Feature: import-overwrite-guard — Bug Condition Exploration', () => 
           const { container, unmount } = render(
             <SettingsPage
               character={BLANK_CHARACTER}
+              characterId="test-char-id"
               update={updateMock}
               updateCharacter={updateCharacterMock}
               totalWounds={12}

@@ -7,7 +7,12 @@ import { handleActivate } from './sw/activate';
 import { handleFetch } from './sw/fetch';
 import { handleMessage } from './sw/message';
 
-declare const self: ServiceWorkerGlobalScope;
+// The precache manifest is injected as a global by the build plugin
+// (see src/build/vite-plugin-sw-precache). It is not part of the standard
+// ServiceWorkerGlobalScope, so declare it here.
+declare const self: ServiceWorkerGlobalScope & {
+  __PRECACHE_MANIFEST__?: PrecacheEntry[];
+};
 
 // Build plugin injects the precache manifest array below at build time
 const PRECACHE_MANIFEST: PrecacheEntry[] = self.__PRECACHE_MANIFEST__ || [];

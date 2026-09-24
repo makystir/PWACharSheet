@@ -1,0 +1,175 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Establish a clean type-check baseline on the current compiler": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245577863
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245584583
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790247873913
+      }
+    ],
+    "2. Clear stale incremental build artifacts": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245577927
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790247876975
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790247914752
+      }
+    ],
+    "3. Stage through TypeScript 6.0": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245577968
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790247917518
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248022845
+      }
+    ],
+    "4. Upgrade to TypeScript 7.0.2": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245578005
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248025768
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248111050
+      }
+    ],
+    "5. Reconcile tsconfig files with 7.0": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245578046
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248113795
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248166056
+      }
+    ],
+    "6. Verify and reconcile `typescript-eslint`": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245578084
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248168807
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248316067
+      }
+    ],
+    "7. Add the type-check gate to build scripts": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245578119
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248318848
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248377096
+      }
+    ],
+    "8. Add the type-check gate to CI": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245578156
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248379682
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248417089
+      }
+    ],
+    "9. Full verification": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245578218
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248419901
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248596218
+      }
+    ],
+    "10. Document the change for review": [
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790245578252
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248599656
+      },
+      {
+        "executionId": "7f9c17ef-821f-40b0-bc4e-15e522abe567",
+        "chatSessionId": "sess_79e0697e-f85b-4170-84a8-bfafebe172da",
+        "timestamp": 1790248691277
+      }
+    ]
+  }
+}

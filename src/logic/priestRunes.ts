@@ -75,7 +75,7 @@ export function isPriestCareer(career: string): boolean {
  * Returns true if the given career level title corresponds to level 3 or 4
  * in a priest career scheme. This indicates High Priest rank.
  */
-export function isHighPriestLevel(career: string, careerLevel: string): boolean {
+export function isHighPriestLevel(_career: string, careerLevel: string): boolean {
   // careerLevel is the title string (e.g. "High Doom Priest", "Arch Forge Priest")
   const level = TITLE_TO_LEVEL.get(careerLevel);
   if (level !== undefined) {

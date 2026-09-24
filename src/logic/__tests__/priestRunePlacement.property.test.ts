@@ -87,7 +87,7 @@ describe('Property 8: Priest Rune Validation Matches Runesmith Rules', () => {
             fc.constantFrom(...[...weaponRuneIds, ...talismanRuneIds]),
             fc.constantFrom(...[...weaponRuneIds, ...talismanRuneIds])
           ),
-          (priestCareer, deity, newRuneId, [rune1, rune2, rune3]) => {
+          (_priestCareer, _deity, newRuneId, [rune1, rune2, rune3]) => {
             const currentRunes = [rune1, rune2, rune3];
             // validateRunePlacement doesn't depend on character — it's purely item-based
             const result = validateRunePlacement(newRuneId, currentRunes, 'weapon');

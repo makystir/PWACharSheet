@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { PrecacheEntry } from '../types';
-import { handleActivate, ActivateHandlerOptions } from '../activate';
+import { handleActivate } from '../activate';
+import type { ActivateHandlerOptions } from '../activate';
 
 describe('handleActivate', () => {
   let originalCaches: typeof globalThis.caches;

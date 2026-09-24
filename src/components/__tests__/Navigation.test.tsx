@@ -29,6 +29,7 @@ describe('Property 1: Navigation section switching', () => {
   const labelMap: Record<PageSection, string> = {
     character: 'Character',
     combat: 'Combat',
+    retinue: 'Retinue',
     estate: 'Estate',
     endeavours: 'Endeavours',
     advancement: 'Advancement',

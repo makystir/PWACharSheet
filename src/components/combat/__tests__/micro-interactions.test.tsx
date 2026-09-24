@@ -71,11 +71,16 @@ function createRollResult(overrides?: Partial<RollResult>): RollResult {
   return {
     roll: 42,
     targetNumber: 55,
+    baseTarget: 55,
+    difficulty: 'Average',
     sl: 1,
     passed: true,
-    outcome: '+1 SL',
+    outcome: 'Marginal Success',
     isCritical: false,
     isFumble: false,
+    isAutoSuccess: false,
+    isAutoFailure: false,
+    timestamp: 0,
     skillOrCharName: 'Weapon Skill',
     ...overrides,
   };

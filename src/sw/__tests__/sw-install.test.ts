@@ -24,7 +24,6 @@ describe('handleInstall', () => {
     return {
       match: vi.fn(async (url: string) => stored.get(url) ?? null),
       put: vi.fn(async (url: string, response: Response) => {
-        stored.put?.(url, response);
         stored.set(url, response);
       }),
       stored,

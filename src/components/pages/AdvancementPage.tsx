@@ -216,7 +216,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   // Switch career
   const handleSwitchCareer = (newCareer: string) => {
     const newScheme = getCareerScheme(newCareer);
-    if (!newScheme || newCareer === character.career) { setShowSwitchCareerPicker(false); return; }
+    if (!newScheme?.level1 || newCareer === character.career) { setShowSwitchCareerPicker(false); return; }
+    const level1 = newScheme.level1;
     const sameClass = newScheme.class === character.class;
     const switchCost = (readyToProgress ? 100 : 200) + (sameClass ? 0 : 100);
     if (character.xpCur < switchCost) { setShowSwitchCareerPicker(false); return; }
@@ -224,17 +225,17 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       ...c,
       career: newCareer,
       class: newScheme.class,
-      careerLevel: newScheme.level1.title,
-      status: newScheme.level1.status,
+      careerLevel: level1.title,
+      status: level1.status,
       careerPath: c.careerPath ? `${c.careerPath} → ${newCareer}` : `${c.career} → ${newCareer}`,
       xpCur: c.xpCur - switchCost,
       xpSpent: c.xpSpent + switchCost,
       advancementLog: [...c.advancementLog, {
         timestamp: Date.now(), type: 'career_switch', name: `${c.career} → ${newCareer}`,
         from: 0, to: 0, xpCost: switchCost,
-        careerLevel: newScheme.level1.title, inCareer: true,
+        careerLevel: level1.title, inCareer: true,
       }],
-    }), newScheme.level1.skills));
+    }), level1.skills));
     setRedoStack([]);
     setShowSwitchCareerPicker(false);
   };
@@ -243,8 +244,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const handleClassSelect = (cls: string) => { update('class', cls); setShowClassPicker(false); };
   const handleCareerSelect = (career: string) => {
     const s = getCareerScheme(career);
-    if (s) {
-      updateCharacter((c) => ensureCareerSkillsExist({ ...c, career, class: s.class, careerLevel: s.level1.title, status: s.level1.status }, s.level1.skills));
+    if (s?.level1) {
+      const level1 = s.level1;
+      updateCharacter((c) => ensureCareerSkillsExist({ ...c, career, class: s.class, careerLevel: level1.title, status: level1.status }, level1.skills));
     }
     setShowCareerPicker(false);
   };

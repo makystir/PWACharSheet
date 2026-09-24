@@ -11,7 +11,7 @@ function makeCharacter(overrides: Partial<Character>): Character {
 }
 
 // Generator: a fake spell catalogue with unique spell names across colour Lores
-const arbSpellCatalogue = fc.array(
+const arbSpellCatalogue: fc.Arbitrary<SpellData[]> = fc.array(
   fc.record({
     name: fc.string({ minLength: 1, maxLength: 30 }),
     lore: fc.constantFrom(...COLOUR_LORES),

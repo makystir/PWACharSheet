@@ -127,7 +127,7 @@ function createCombatCharacter(): Character {
     knownRunes: [],
     learnedTechniques: [],
     log: [],
-  } as Character;
+  } as unknown as Character;
 }
 
 const combatPageProps = {

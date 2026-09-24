@@ -127,7 +127,7 @@ function createMockCharacter(): Character {
     knownRunes: [],
     learnedTechniques: [],
     log: [],
-  } as Character;
+  } as unknown as Character;
 }
 
 const characterPageProps = {

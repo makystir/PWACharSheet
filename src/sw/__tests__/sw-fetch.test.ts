@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { handleFetch, FetchHandlerConfig } from '../fetch';
+import { handleFetch } from '../fetch';
+import type { FetchHandlerConfig } from '../fetch';
 
 describe('handleFetch', () => {
   let originalCaches: typeof globalThis.caches;

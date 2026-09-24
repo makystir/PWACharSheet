@@ -580,7 +580,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
                 >
                   <div className={styles.boldLabel}>{career}</div>
                   <div className={styles.careerDetailLabel}>
-                    Level 1: {scheme.level1.title} — {scheme.level1.status}
+                    Level 1: {scheme.level1?.title} — {scheme.level1?.status}
                   </div>
                 </button>
               );

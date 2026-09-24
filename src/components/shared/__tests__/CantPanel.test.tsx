@@ -20,10 +20,10 @@ function makeSpell(name: string) {
 }
 
 describe('CantPanel', () => {
-  let updateCharacter: ReturnType<typeof vi.fn>;
+  let updateCharacter: ReturnType<typeof vi.fn<(mutator: (c: Character) => Character) => void>>;
 
   beforeEach(() => {
-    updateCharacter = vi.fn();
+    updateCharacter = vi.fn<(mutator: (c: Character) => Character) => void>();
   });
 
   // **Validates: Requirements 5.6**
@@ -132,8 +132,8 @@ describe('CantPanel', () => {
     const mutator = updateCharacter.mock.calls[0][0];
     const result = mutator(char);
     // Should have added a cant to learnedCants
-    expect(result.learnedCants.length).toBe(1);
-    expect(result.learnedCants[0].lore).toBe('Lore of Beasts');
+    expect(result.learnedCants!.length).toBe(1);
+    expect(result.learnedCants![0].lore).toBe('Lore of Beasts');
   });
 
   // **Validates: Requirements 4.1, 4.5**
