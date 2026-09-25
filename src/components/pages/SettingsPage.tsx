@@ -288,7 +288,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
             { id: 'dark' as ThemeMode, label: '🌙 Dark', desc: 'Default dark fantasy theme' },
             { id: 'light' as ThemeMode, label: '☀️ Light', desc: 'Light parchment theme' },
             { id: 'high-contrast' as ThemeMode, label: '◐ High Contrast', desc: 'Maximum readability' },
-            { id: 'old-guy' as ThemeMode, label: '🔍 Old Guy Mode', desc: 'Larger text, easier on the eyes' },
+            { id: 'old-guy' as ThemeMode, label: '🔍 Old Nerd Mode', desc: 'Larger text, easier on the eyes' },
           ]).map(t => (
             <button
               key={t.id}
