@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { Character, EntryStatus, DowntimePeriod, EndeavourEntry } from '../../types/character';
+import type { Character, EntryStatus, DowntimePeriod, EndeavourEntry, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -39,7 +39,7 @@ import { ENDEAVOUR_TEMPLATES, applyEndeavourTemplate } from '../../logic/endeavo
 
 interface EndeavoursPageProps {
   character: Character;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
 }
 

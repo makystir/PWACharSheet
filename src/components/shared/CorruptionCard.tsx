@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Character, MutationEntry } from '../../types/character';
+import type { Character, MutationEntry, FieldPath, FieldValue } from '../../types/character';
 import { Card } from './Card';
 import { SectionHeader } from './SectionHeader';
 import { HelpPopover } from './HelpPopover';
@@ -23,7 +23,7 @@ import styles from './CorruptionCard.module.css';
 
 interface CorruptionCardProps {
   character: Character;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
 }
 

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { Character, ArmourPoints } from '../../types/character';
+import type { Character, ArmourPoints, FieldPath, FieldValue } from '../../types/character';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import styles from './CombatPage.module.css';
 
@@ -51,7 +51,7 @@ export { RANGED_GROUPS, findSkillForWeapon } from '../../logic/weapons';
 interface CombatPageProps {
   character: Character;
   characterId: string;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   totalWounds: number;
   armourPoints: ArmourPoints;
@@ -455,7 +455,11 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
           {character.ammo.length > 0 && (
             <CollapsibleSection title="Ammo Tracker" storageKey={`combat-ammo-${characterId}`} defaultExpanded={!isMobile}>
               <AmmoTracker ammo={character.ammo}
-                onUpdate={(i, field, value) => update(`ammo.${i}.${field}`, value)}
+                onUpdate={(i, field, value) => updateCharacter((c) => {
+                  const ammo = [...c.ammo];
+                  ammo[i] = { ...ammo[i], [field]: value };
+                  return { ...c, ammo };
+                })}
                 onAdd={() => updateCharacter((c) => ({ ...c, ammo: [...c.ammo, { name: 'New Ammo', quantity: 12, max: 12, enc: '0', qualities: '' }] }))}
                 onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))}
                 defaultCollapsed={isMobile} />

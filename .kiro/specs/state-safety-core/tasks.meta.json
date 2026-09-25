@@ -1,0 +1,267 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Add typed field-path utilities to the Character model": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334165851
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334173613
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334348296
+      }
+    ],
+    "2. Narrow the `update` signature on `useCharacter`": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334165898
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334351419
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334469330
+      }
+    ],
+    "3. Add the typed-update equivalence property test": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334165943
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334474821
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334911941
+      }
+    ],
+    "4. Make the undo system type-safe": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166003
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334474772
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334911892
+      }
+    ],
+    "5. Add the undo round-trip property test": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166040
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334921299
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790335460265
+      }
+    ],
+    "6.1 Migrate mechanical sites in `CharacterPage.tsx`": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166076
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334474852
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334911982
+      }
+    ],
+    "6.2 Migrate `AdvancementPage.tsx`, `CombatPage.tsx`, `CorruptionCard.tsx`, and any remaining update sites": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166111
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334921337
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790335460299
+      }
+    ],
+    "6.3 Fix needs-judgment sites at the source": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166147
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334921366
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336100269
+      }
+    ],
+    "6.4 Remove/deprecate the untyped update surface and prove Req 1.4": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166188
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336107424
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336196880
+      }
+    ],
+    "7. Introduce `commit(next)` and remove the one-effect ref lag": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166222
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336200591
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336458396
+      }
+    ],
+    "8. Route the four Sync_Passes through `commit`": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166260
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336466143
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790337145700
+      }
+    ],
+    "9. Remove the `saveNow(explicit)` requirement at money-move call sites": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166301
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336466187
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790337145655
+      }
+    ],
+    "10. Add no-dropped-edit and same-tick-freshness property tests": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166362
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790337149284
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790338186417
+      }
+    ],
+    "11. Add lifecycle-parity tests": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166407
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336466223
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790337145749
+      }
+    ],
+    "12. Full verification": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790334166453
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790338189815
+      },
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790338426734
+      }
+    ],
+    "6. Migrate string-path `update()` call sites to the typed API": [
+      {
+        "executionId": "0c178831-fb2a-4b6b-93a3-255e6605bc21",
+        "chatSessionId": "sess_d21275b5-fb27-4b22-a9ae-9648291c304a",
+        "timestamp": 1790336196923
+      }
+    ]
+  }
+}

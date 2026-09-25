@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import type { Character, ArmourPoints, RangedDamageSBMode, InitiativeFormula } from '../../types/character';
+import type { Character, ArmourPoints, RangedDamageSBMode, InitiativeFormula, FieldPath, FieldValue } from '../../types/character';
 import { BLANK_CHARACTER } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -27,7 +27,7 @@ const MAX_QUICK_ACTIONS = 6;
 interface SettingsPageProps {
   character: Character;
   characterId: string;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   totalWounds: number;
   armourPoints: ArmourPoints;

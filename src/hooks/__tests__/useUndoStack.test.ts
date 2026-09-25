@@ -58,25 +58,25 @@ describe('useUndoStack — push and undo', () => {
     const { result } = renderHook(() => useUndoStack());
 
     act(() => {
-      result.current.push({ field: 'a', previousValue: 1, newValue: 2 });
+      result.current.push({ field: 'move.m', previousValue: 1, newValue: 2 });
     });
     act(() => {
-      result.current.push({ field: 'b', previousValue: 3, newValue: 4 });
+      result.current.push({ field: 'move.w', previousValue: 3, newValue: 4 });
     });
     act(() => {
-      result.current.push({ field: 'c', previousValue: 5, newValue: 6 });
+      result.current.push({ field: 'move.r', previousValue: 5, newValue: 6 });
     });
 
     let entry: ReturnType<typeof result.current.undo>;
 
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('c');
+    expect(entry!.field).toBe('move.r');
 
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('b');
+    expect(entry!.field).toBe('move.w');
 
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('a');
+    expect(entry!.field).toBe('move.m');
 
     act(() => { entry = result.current.undo(); });
     expect(entry!).toBeNull();
@@ -91,7 +91,7 @@ describe('useUndoStack — push and undo', () => {
     const { result } = renderHook(() => useUndoStack());
 
     act(() => {
-      result.current.push({ field: 'test', previousValue: 'old', newValue: 'new' });
+      result.current.push({ field: 'name', previousValue: 'old', newValue: 'new' });
     });
 
     let entry: ReturnType<typeof result.current.undo>;
@@ -110,7 +110,7 @@ describe('useUndoStack — maxSize eviction', () => {
     // Push 15 entries
     for (let i = 0; i < 15; i++) {
       act(() => {
-        result.current.push({ field: `field-${i}`, previousValue: i, newValue: i + 1 });
+        result.current.push({ field: 'move.m', previousValue: i, newValue: i + 1 });
       });
     }
 
@@ -128,22 +128,22 @@ describe('useUndoStack — maxSize eviction', () => {
   it('evicts oldest entries when exceeding maxSize', () => {
     const { result } = renderHook(() => useUndoStack(3));
 
-    act(() => { result.current.push({ field: 'a', previousValue: 1, newValue: 2 }); });
-    act(() => { result.current.push({ field: 'b', previousValue: 3, newValue: 4 }); });
-    act(() => { result.current.push({ field: 'c', previousValue: 5, newValue: 6 }); });
-    act(() => { result.current.push({ field: 'd', previousValue: 7, newValue: 8 }); });
+    act(() => { result.current.push({ field: 'move.m', previousValue: 1, newValue: 2 }); });
+    act(() => { result.current.push({ field: 'move.w', previousValue: 3, newValue: 4 }); });
+    act(() => { result.current.push({ field: 'move.r', previousValue: 5, newValue: 6 }); });
+    act(() => { result.current.push({ field: 'chars.WS.a', previousValue: 7, newValue: 8 }); });
 
-    // Only 3 entries should remain: d, c, b (oldest 'a' evicted)
+    // Only 3 entries should remain: chars.WS.a, move.r, move.w (oldest move.m evicted)
     let entry: ReturnType<typeof result.current.undo>;
 
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('d');
+    expect(entry!.field).toBe('chars.WS.a');
 
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('c');
+    expect(entry!.field).toBe('move.r');
 
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('b');
+    expect(entry!.field).toBe('move.w');
 
     act(() => { entry = result.current.undo(); });
     expect(entry!).toBeNull();
@@ -154,7 +154,7 @@ describe('useUndoStack — maxSize eviction', () => {
 
     for (let i = 0; i < 10; i++) {
       act(() => {
-        result.current.push({ field: `f-${i}`, previousValue: i, newValue: i + 1 });
+        result.current.push({ field: 'move.m', previousValue: i, newValue: i + 1 });
       });
     }
 
@@ -172,18 +172,18 @@ describe('useUndoStack — maxSize eviction', () => {
   it('most recent entries survive eviction', () => {
     const { result } = renderHook(() => useUndoStack(2));
 
-    act(() => { result.current.push({ field: 'old', previousValue: 0, newValue: 1 }); });
-    act(() => { result.current.push({ field: 'mid', previousValue: 2, newValue: 3 }); });
-    act(() => { result.current.push({ field: 'new', previousValue: 4, newValue: 5 }); });
+    act(() => { result.current.push({ field: 'move.m', previousValue: 0, newValue: 1 }); });
+    act(() => { result.current.push({ field: 'move.w', previousValue: 2, newValue: 3 }); });
+    act(() => { result.current.push({ field: 'move.r', previousValue: 4, newValue: 5 }); });
 
-    // Only 'new' and 'mid' should remain
+    // Only 'move.r' and 'move.w' should remain
     let entry: ReturnType<typeof result.current.undo>;
 
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('new');
+    expect(entry!.field).toBe('move.r');
 
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('mid');
+    expect(entry!.field).toBe('move.w');
 
     act(() => { entry = result.current.undo(); });
     expect(entry!).toBeNull();
@@ -194,8 +194,8 @@ describe('useUndoStack — clear', () => {
   it('empties the stack and sets canUndo to false', () => {
     const { result } = renderHook(() => useUndoStack());
 
-    act(() => { result.current.push({ field: 'a', previousValue: 1, newValue: 2 }); });
-    act(() => { result.current.push({ field: 'b', previousValue: 3, newValue: 4 }); });
+    act(() => { result.current.push({ field: 'move.m', previousValue: 1, newValue: 2 }); });
+    act(() => { result.current.push({ field: 'move.w', previousValue: 3, newValue: 4 }); });
     expect(result.current.canUndo).toBe(true);
 
     act(() => { result.current.clear(); });
@@ -206,7 +206,7 @@ describe('useUndoStack — clear', () => {
   it('undo returns null after clear', () => {
     const { result } = renderHook(() => useUndoStack());
 
-    act(() => { result.current.push({ field: 'a', previousValue: 1, newValue: 2 }); });
+    act(() => { result.current.push({ field: 'move.m', previousValue: 1, newValue: 2 }); });
     act(() => { result.current.clear(); });
 
     let entry: ReturnType<typeof result.current.undo>;
@@ -217,14 +217,14 @@ describe('useUndoStack — clear', () => {
   it('pushing after clear works normally', () => {
     const { result } = renderHook(() => useUndoStack());
 
-    act(() => { result.current.push({ field: 'a', previousValue: 1, newValue: 2 }); });
+    act(() => { result.current.push({ field: 'move.m', previousValue: 1, newValue: 2 }); });
     act(() => { result.current.clear(); });
-    act(() => { result.current.push({ field: 'b', previousValue: 3, newValue: 4 }); });
+    act(() => { result.current.push({ field: 'move.w', previousValue: 3, newValue: 4 }); });
 
     expect(result.current.canUndo).toBe(true);
 
     let entry: ReturnType<typeof result.current.undo>;
     act(() => { entry = result.current.undo(); });
-    expect(entry!.field).toBe('b');
+    expect(entry!.field).toBe('move.w');
   });
 });

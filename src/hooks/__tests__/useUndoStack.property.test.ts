@@ -13,29 +13,44 @@ import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { renderHook, act } from '@testing-library/react';
 import { useUndoStack } from '../useUndoStack';
+import type { Character, FieldPath, FieldValue } from '../../types/character';
 
 // ─── Generators ─────────────────────────────────────────────────────────────
 
-/** Arbitrary field path (dot-notation like "chars.WS.a", "name", "wounds.current") */
-const arbFieldPath: fc.Arbitrary<string> = fc
-  .uniqueArray(
-    fc.string({ minLength: 1, maxLength: 10 }).filter(s => /^[a-zA-Z_]\w*$/.test(s)),
-    { minLength: 1, maxLength: 3 }
-  )
-  .map(parts => parts.join('.'));
+/**
+ * Real numeric-leaf `FieldPath<Character>` values whose leaf type is `number`,
+ * so a single value generator (integers) matches every path. Keeping the field
+ * set to number leaves lets us exercise the stack's ordering/LIFO/round-trip
+ * behavior with fully typed entries (spec: state-safety-core, Req 3.1).
+ */
+const NUMBER_FIELDS = [
+  'move.m',
+  'move.w',
+  'move.r',
+  'chars.WS.a',
+  'chars.BS.a',
+  'chars.S.a',
+  'chars.T.a',
+  'ap.head',
+  'ap.body',
+  'wGC',
+  'wSS',
+  'wD',
+] as const satisfies readonly FieldPath<Character>[];
 
-/** Arbitrary field value (numbers, strings, booleans) */
-const arbFieldValue: fc.Arbitrary<unknown> = fc.oneof(
-  fc.integer({ min: -999, max: 999 }),
-  fc.string({ minLength: 0, maxLength: 20 }),
-  fc.boolean()
-);
+type NumberField = (typeof NUMBER_FIELDS)[number];
+
+/** Arbitrary numeric-leaf field path into `Character`. */
+const arbFieldPath: fc.Arbitrary<NumberField> = fc.constantFrom(...NUMBER_FIELDS);
+
+/** Arbitrary field value matching the number-leaf paths above. */
+const arbFieldValue: fc.Arbitrary<number> = fc.integer({ min: -999, max: 999 });
 
 /** An edit entry representing a single field change */
 interface EditEntry {
-  field: string;
-  previousValue: unknown;
-  newValue: unknown;
+  field: NumberField;
+  previousValue: FieldValue<Character, NumberField>;
+  newValue: FieldValue<Character, NumberField>;
 }
 
 /** Arbitrary edit entry with distinct previous and new values */
@@ -109,7 +124,7 @@ describe('Feature: ux-polish-improvements, Property 3: Undo reverts most recent 
         }
 
         // Undo all and verify reverse order
-        const undoneEntries: EditEntry[] = [];
+        const undoneEntries: { field: FieldPath<Character>; previousValue: unknown; newValue: unknown }[] = [];
         for (let i = 0; i < edits.length; i++) {
           let entry: ReturnType<typeof result.current.undo>;
           act(() => {

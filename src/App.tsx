@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, Component, lazy } from 'react';
 import type { ReactNode } from 'react';
-import type { Character, CharacteristicKey } from './types/character';
+import type { Character, CharacteristicKey, FieldPath, FieldValue } from './types/character';
 import { Navigation } from './components/layout/Navigation';
 import { PageContainer } from './components/layout/PageContainer';
 import { PageLoader } from './components/layout/PageLoader';
@@ -173,26 +173,33 @@ function AppContent() {
 }
 
 /**
- * Retrieves a nested value from an object using dot-notation path.
- * Returns undefined if any segment along the path is missing.
+ * Retrieves the value at a typed dot-notation path within a `Character`.
+ *
+ * Typed over `P extends FieldPath<Character>` (spec: state-safety-core, Req 3.1)
+ * so the returned value is `FieldValue<Character, P>` — the same leaf type the
+ * typed `update` expects for that path. Runtime walk is unchanged: it splits the
+ * path and reads each segment, returning `undefined` if a segment is missing.
  */
-function getNestedValue(obj: unknown, path: string): unknown {
+function getNestedValue<P extends FieldPath<Character>>(
+  obj: Character,
+  path: P,
+): FieldValue<Character, P> {
   const keys = path.split('.');
   let current: unknown = obj;
   for (const key of keys) {
     if (current === null || current === undefined || typeof current !== 'object') {
-      return undefined;
+      return undefined as FieldValue<Character, P>;
     }
     current = (current as Record<string, unknown>)[key];
   }
-  return current;
+  return current as FieldValue<Character, P>;
 }
 
 /**
  * Generates a human-readable label from a dot-notation field path.
  * e.g. "chars.WS.a" → "WS advances", "name" → "name", "wCur" → "wCur"
  */
-function fieldToLabel(field: string): string {
+function fieldToLabel(field: FieldPath<Character>): string {
   const parts = field.split('.');
   // For characteristic fields like "chars.WS.a" or "chars.T.i"
   if (parts[0] === 'chars' && parts.length >= 2) {
@@ -239,7 +246,7 @@ function AppWithCharacter({
   subTab: string | null;
   navigate: (page: PageSection, subTab?: string | null) => void;
 }) {
-  const { character, update, updateCharacter, saveNow, totalWounds, armourPoints, maxEncumbrance, coinWeight } = useCharacter(manager.activeId, manager.activeCharacter!);
+  const { character, update, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight } = useCharacter(manager.activeId, manager.activeCharacter!);
 
   // Roll history is now sourced from the unified event log (Req 4.1–4.4, 4.6).
   // Live rolls are appended as `roll` LogEvents on the active character rather
@@ -284,8 +291,11 @@ function AppWithCharacter({
     characterRef.current = character;
   }, [character]);
 
-  // Wrapped update that pushes to undo stack before applying
-  const undoableUpdate = useCallback((field: string, value: unknown) => {
+  // Wrapped update that pushes to undo stack before applying. Fully typed over
+  // the character field path (spec: state-safety-core, Req 3.1): the recorded
+  // `previousValue`/`newValue` and the forwarded `update` are all checked
+  // against `Character` — no boundary cast is needed here anymore.
+  const undoableUpdate = useCallback(<P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => {
     const previousValue = getNestedValue(characterRef.current, field);
     undoStack.push({ field, previousValue, newValue: value });
     update(field, value);
@@ -319,7 +329,9 @@ function AppWithCharacter({
       const entry = undoStack.undo();
       if (!entry) return;
 
-      // Revert the field to its previous value
+      // Revert the field to its previous value. The undo entry is typed against
+      // `Character` (state-safety-core task 4), so `field`/`previousValue` flow
+      // into the typed `update` without a boundary cast.
       update(entry.field, entry.previousValue);
 
       // Show toast notification
@@ -392,7 +404,7 @@ function AppWithCharacter({
     setShowCharSheet(true);
   };
 
-  const pageProps = { character, update: undoableUpdate, updateCharacter, saveNow, totalWounds, armourPoints, maxEncumbrance, coinWeight };
+  const pageProps = { character, update: undoableUpdate, updateCharacter, totalWounds, armourPoints, maxEncumbrance, coinWeight };
 
   const getDomain = (): 'combat' | 'character' | 'advancement' | undefined => {
     switch (page) {

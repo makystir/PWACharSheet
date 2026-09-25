@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { Character, ArmourPoints, CharacteristicKey, CareerLevel, AdvancementEntry } from '../../types/character';
+import type { Character, ArmourPoints, CharacteristicKey, CareerLevel, AdvancementEntry, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -41,7 +41,7 @@ interface ActiveTooltip {
 
 interface AdvancementPageProps {
   character: Character;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   totalWounds: number;
   armourPoints: ArmourPoints;
@@ -420,7 +420,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
               <span className={styles.fieldLabel}>Level</span>
               <button type="button" onClick={() => setShowLevelPicker(true)} className={styles.smallBtnWide}>{character.careerLevel || 'Select Level'}</button>
             </div>
-            <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
+            <EditableField label="Status" value={character.status} onSave={(v) => update('status', String(v))} />
           </div>
         </Card>
       )}
@@ -453,9 +453,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         } />
         {xpEditMode ? (
           <div className={styles.gridAutoFill}>
-            <EditableField label="Current XP" value={character.xpCur} type="number" onSave={(v) => update('xpCur', v)} />
-            <EditableField label="Spent XP" value={character.xpSpent} type="number" onSave={(v) => update('xpSpent', v)} />
-            <EditableField label="Total XP" value={character.xpTotal} type="number" onSave={(v) => update('xpTotal', v)} />
+            <EditableField label="Current XP" value={character.xpCur} type="number" onSave={(v) => update('xpCur', Number(v))} />
+            <EditableField label="Spent XP" value={character.xpSpent} type="number" onSave={(v) => update('xpSpent', Number(v))} />
+            <EditableField label="Total XP" value={character.xpTotal} type="number" onSave={(v) => update('xpTotal', Number(v))} />
           </div>
         ) : (
           <div className={`${styles.xpDisplayRow} ${xpShake ? styles.xpDisplayShake : ''}`}>

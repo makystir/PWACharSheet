@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { Character, Holding, Estate, Hireling, LedgerEntry } from '../../types/character';
+import type { Character, Holding, Estate, Hireling, LedgerEntry, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -54,17 +54,15 @@ export function computeFinancialSummary(estate: Estate, hirelings: Hireling[] = 
 
 interface EstatePageProps {
   character: Character;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
-  /** Synchronously persist the given (or latest) character; see useCharacter. Optional so tests can omit it. */
-  saveNow?: (explicit?: Character) => void;
   subTab?: string | null;
   onSubTabChange?: (tab: string) => void;
 }
 
 type EstateSubTab = 'estate' | 'holdings' | 'wealth' | 'enterprises';
 
-export function EstatePage({ character, update, updateCharacter, saveNow, subTab, onSubTabChange }: EstatePageProps) {
+export function EstatePage({ character, update, updateCharacter, subTab, onSubTabChange }: EstatePageProps) {
   const useEnterprises = character.houseRules.useEnterprises === true;
 
   // Memoised so it has a stable identity per useEnterprises value and can be
@@ -161,9 +159,10 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
         },
       },
     };
+    // Single commit: the always-current ref makes the post-move state the save
+    // source of truth, so no explicit synchronous flush is needed
+    // (spec: state-safety-core, Req 4.3/5.2).
     updateCharacter(() => next);
-    // Discrete money-move: persist synchronously to dodge the debounce race.
-    saveNow?.(next);
   };
 
   // Add note
@@ -196,9 +195,10 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
         treasury: newTreasury,
       },
     };
+    // Single commit: the always-current ref makes the post-move state the save
+    // source of truth, so no explicit synchronous flush is needed
+    // (spec: state-safety-core, Req 4.3/5.2).
     updateCharacter(() => next);
-    // Discrete money-move: persist synchronously to dodge the debounce race.
-    saveNow?.(next);
   };
 
   // Withdraw coin from the Treasury into personal Wealth (Req 2.1, 2.2, 2.3).
@@ -256,10 +256,10 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
     };
     // Follow-on display/audit mirror → appends the 'wealth' eventLog event (Req 3.3).
     const next = mirrorLedger(withPoolsAndLedger, entry);
+    // Single commit: the always-current ref makes the post-move state the save
+    // source of truth, so no explicit synchronous flush is needed
+    // (spec: state-safety-core, Req 4.3/5.2).
     updateCharacter(() => next);
-    // Persist the exact withdrawn state synchronously so the debounced auto-save
-    // race can never drop this discrete money-move (guarded — optional in tests).
-    saveNow?.(next);
   };
 
   return (
@@ -286,8 +286,8 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
       <Card>
         <SectionHeader icon={Home} title="Estate & Holdings" />
         <div className={styles.twoColGrid}>
-          <EditableField label="Estate Name" value={est.name} onSave={(v) => update('estate.name', v)} />
-          <EditableField label="Location" value={est.location} onSave={(v) => update('estate.location', v)} />
+          <EditableField label="Estate Name" value={est.name} onSave={(v) => update('estate.name', String(v))} />
+          <EditableField label="Location" value={est.location} onSave={(v) => update('estate.location', String(v))} />
         </div>
         <div>
           <span className={styles.descriptionLabel}>Description</span>
@@ -301,17 +301,17 @@ export function EstatePage({ character, update, updateCharacter, saveNow, subTab
           <div className={styles.financePanel}>
             <div className={styles.financePanelTitleIncome}>Monthly Income</div>
             <div className={styles.currencyRow}>
-              <EditableField label="GC" value={est.monthlyIncome.gc} type="number" onSave={(v) => update('estate.monthlyIncome.gc', v)} />
-              <EditableField label="SS" value={est.monthlyIncome.ss} type="number" onSave={(v) => update('estate.monthlyIncome.ss', v)} />
-              <EditableField label="D" value={est.monthlyIncome.d} type="number" onSave={(v) => update('estate.monthlyIncome.d', v)} />
+              <EditableField label="GC" value={est.monthlyIncome.gc} type="number" onSave={(v) => update('estate.monthlyIncome.gc', Number(v))} />
+              <EditableField label="SS" value={est.monthlyIncome.ss} type="number" onSave={(v) => update('estate.monthlyIncome.ss', Number(v))} />
+              <EditableField label="D" value={est.monthlyIncome.d} type="number" onSave={(v) => update('estate.monthlyIncome.d', Number(v))} />
             </div>
           </div>
           <div className={styles.financePanel}>
             <div className={styles.financePanelTitleExpense}>Monthly Expenses</div>
             <div className={styles.currencyRow}>
-              <EditableField label="GC" value={est.monthlyExpenses.gc} type="number" onSave={(v) => update('estate.monthlyExpenses.gc', v)} />
-              <EditableField label="SS" value={est.monthlyExpenses.ss} type="number" onSave={(v) => update('estate.monthlyExpenses.ss', v)} />
-              <EditableField label="D" value={est.monthlyExpenses.d} type="number" onSave={(v) => update('estate.monthlyExpenses.d', v)} />
+              <EditableField label="GC" value={est.monthlyExpenses.gc} type="number" onSave={(v) => update('estate.monthlyExpenses.gc', Number(v))} />
+              <EditableField label="SS" value={est.monthlyExpenses.ss} type="number" onSave={(v) => update('estate.monthlyExpenses.ss', Number(v))} />
+              <EditableField label="D" value={est.monthlyExpenses.d} type="number" onSave={(v) => update('estate.monthlyExpenses.d', Number(v))} />
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { Character, CharacteristicKey, ArmourPoints, Skill, PsychologyTrait, PsychologyType } from '../../types/character';
+import type { Character, CharacteristicKey, ArmourPoints, Skill, PsychologyTrait, PsychologyType, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -102,10 +102,15 @@ import styles from './CharacterPage.module.css';
 interface CharacterPageProps {
   character: Character;
   characterId: string;
-  update: (field: string, value: unknown) => void;
+  /**
+   * Typed single-field update: the path is compile-time-checked against
+   * `Character` (`FieldPath<Character>`) and the value type is inferred from the
+   * addressed leaf (`FieldValue<Character, P>`) — invalid paths or mismatched
+   * value types now fail `tsc` (spec: state-safety-core, Req 1.3/2.1). Mirrors
+   * the narrowed `useCharacter().update` surface.
+   */
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
-  /** Synchronously persist the given (or latest) character; see useCharacter. Optional so tests can omit it. */
-  saveNow?: (explicit?: Character) => void;
   totalWounds: number;
   armourPoints: ArmourPoints;
   maxEncumbrance: number;
@@ -123,7 +128,7 @@ type CharSubTab = 'identity' | 'abilities' | 'gear' | 'notes';
 // out of effect dependency arrays).
 const VALID_SUBTABS: CharSubTab[] = ['identity', 'abilities', 'gear', 'notes'];
 
-export function CharacterPage({ character, characterId, update, updateCharacter, saveNow, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
+export function CharacterPage({ character, characterId, update, updateCharacter, rollHistory = [], addRoll, clearHistory, subTab, onSubTabChange }: CharacterPageProps) {
 
   // Tab reordering
   const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
@@ -252,10 +257,10 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
     };
     // Follow-on display/audit mirror → appends the 'wealth' event (Req 3.3).
     const next = mirrorLedger(withPoolsAndLedger, entry);
+    // Single commit: the always-current ref (set synchronously inside commit)
+    // makes the post-move state the save source of truth, so no explicit
+    // synchronous flush is needed here (spec: state-safety-core, Req 4.3/5.2).
     updateCharacter(() => next);
-    // Persist the exact deposited state synchronously so the debounced auto-save
-    // race can never drop this discrete money-move (guarded — optional in tests).
-    saveNow?.(next);
   };
 
   // Personal details: species group + state for random generation
@@ -536,7 +541,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         <Card style={{ flex: 1 }}>
           <SectionHeader icon={User} title="Personal Details" />
           <div className={styles.gridAutoFill}>
-            <EditableField label="Name" value={character.name} onSave={(v) => update('name', v)} />
+            <EditableField label="Name" value={character.name} onSave={(v) => update('name', String(v))} />
             <div className={styles.selectWrapper}>
               <span className={styles.selectLabel}>Species</span>
               <select
@@ -564,16 +569,18 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
                 {filteredCareers.map((c) => (<option key={c} value={c}>{c}</option>))}
               </select>
             </div>
-            <EditableField label="Career Level" value={character.careerLevel} onSave={(v) => update('careerLevel', v)} />
-            <EditableField label="Career Path" value={character.careerPath} onSave={(v) => update('careerPath', v)} />
+            <EditableField label="Career Level" value={character.careerLevel} onSave={(v) => update('careerLevel', String(v))} />
+            <EditableField label="Career Path" value={character.careerPath} onSave={(v) => update('careerPath', String(v))} />
             <div className={styles.fieldWithHelp}>
-              <EditableField label="Status" value={character.status} onSave={(v) => update('status', v)} />
+              <EditableField label="Status" value={character.status} onSave={(v) => update('status', String(v))} />
               <HelpPopover concept="status-tier">{getHelpContent('status-tier')}</HelpPopover>
             </div>
-            <EditableField label="Age" value={character.age} onSave={(v) => update('age', v)} />
-            <EditableField label="Height" value={character.height} onSave={(v) => update('height', v)} />
-            <EditableField label="Hair" value={character.hair} onSave={(v) => update('hair', v)} />
-            <EditableField label="Eyes" value={character.eyes} onSave={(v) => update('eyes', v)} />
+            <EditableField label="Age" value={character.age} onSave={(v) => update('age', String(v))} />
+            <EditableField label="Height" value={character.height} onSave={(v) => update('height', String(v))} />
+            <EditableField label="Hair" value={character.hair} onSave={(v) => update('hair', String(v))} />
+            <EditableField label="Eyes" value={character.eyes} onSave={(v) => update('eyes', String(v))} />
+            {/* Distinguishing Feature — optional flavour text (dwarfguide.md p.40 "Physical Attributes"); no mechanical effect. */}
+            <EditableField label="Distinguishing Feature" value={character.distinguishingFeature ?? ''} onSave={(v) => update('distinguishingFeature', String(v))} />
           </div>
         </Card>
       </div>
@@ -838,9 +845,9 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         <Card>
           <SectionHeader icon={Footprints} title="Movement" />
           <div className={styles.movementFields}>
-            <EditableField label="Move" value={character.move.m} type="number" onSave={(v) => update('move.m', v)} />
-            <EditableField label="Walk" value={character.move.w} type="number" onSave={(v) => update('move.w', v)} />
-            <EditableField label="Run" value={character.move.r} type="number" onSave={(v) => update('move.r', v)} />
+            <EditableField label="Move" value={character.move.m} type="number" onSave={(v) => update('move.m', Number(v) || 0)} />
+            <EditableField label="Walk" value={character.move.w} type="number" onSave={(v) => update('move.w', Number(v) || 0)} />
+            <EditableField label="Run" value={character.move.r} type="number" onSave={(v) => update('move.r', Number(v) || 0)} />
           </div>
         </Card>
         <FortuneResolvePanel character={character} update={update} updateCharacter={updateCharacter} />
@@ -1745,11 +1752,17 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         <div className={styles.wealthEncGrid}>
           <div>
             <SectionHeader icon={Coins} title="Coin Purse (carried)" />
-            {/* Balance group: the three editable denomination fields. */}
+            {/* Balance group: the three editable denomination fields.
+                Core p.294 "Money": the three currency denominations are Gold
+                Crowns (GC), Silver Shillings (SS), and Brass Pennies (d), each a
+                whole-coin count. EditableField hands back `string | number`, so
+                coerce to a number (empty/invalid → 0) at the source to keep the
+                stored coin counts numeric — do not cast (spec: state-safety-core,
+                Req 2.1/2.3). */}
             <div className={styles.coinPurseGroup}>
-              <EditableField label="Gold Crowns (GC)" value={character.wGC} type="number" mode="always-editable" onSave={(v) => update('wGC', v)} />
-              <EditableField label="Silver Shillings (SS)" value={character.wSS} type="number" mode="always-editable" onSave={(v) => update('wSS', v)} />
-              <EditableField label="Brass Pennies (D)" value={character.wD} type="number" mode="always-editable" onSave={(v) => update('wD', v)} />
+              <EditableField label="Gold Crowns (GC)" value={character.wGC} type="number" mode="always-editable" onSave={(v) => update('wGC', Number(v) || 0)} />
+              <EditableField label="Silver Shillings (SS)" value={character.wSS} type="number" mode="always-editable" onSave={(v) => update('wSS', Number(v) || 0)} />
+              <EditableField label="Brass Pennies (D)" value={character.wD} type="number" mode="always-editable" onSave={(v) => update('wD', Number(v) || 0)} />
             </div>
             {/* Quick Adjust group: add/subtract coin from the carried purse. */}
             <div className={styles.coinPurseGroup}>
@@ -1865,13 +1878,13 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         <div className={styles.ambitionsGrid}>
           <div>
             <SectionHeader icon={BookOpen} title="Ambitions" />
-            <EditableField label="Short-term" value={character.ambS} onSave={(v) => update('ambS', v)} />
-            <EditableField label="Long-term" value={character.ambL} onSave={(v) => update('ambL', v)} />
+            <EditableField label="Short-term" value={character.ambS} onSave={(v) => update('ambS', String(v))} />
+            <EditableField label="Long-term" value={character.ambL} onSave={(v) => update('ambL', String(v))} />
           </div>
           <div>
             <SectionHeader icon={BookOpen} title="Party" />
-            <EditableField label="Name" value={character.partyN} onSave={(v) => update('partyN', v)} />
-            <EditableField label="Members" value={character.partyM} onSave={(v) => update('partyM', v)} />
+            <EditableField label="Name" value={character.partyN} onSave={(v) => update('partyN', String(v))} />
+            <EditableField label="Members" value={character.partyM} onSave={(v) => update('partyM', String(v))} />
           </div>
         </div>
       </Card>

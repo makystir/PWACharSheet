@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Character, SpellItem, MagicSaturation } from '../../types/character';
+import type { Character, SpellItem, MagicSaturation, FieldPath, FieldValue } from '../../types/character';
 import type { RollResult } from '../../logic/dice-roller';
 import {
   computeCastingTarget,
@@ -158,7 +158,7 @@ const SATURATION_MODIFIERS: Record<MagicSaturation, string> = {
 
 interface SpellCastingPanelProps {
   character: Character;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   addRoll?: (result: RollResult) => void;
 }

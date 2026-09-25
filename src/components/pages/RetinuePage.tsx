@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Character, Hireling } from '../../types/character';
+import type { Character, Hireling, Companion, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -20,7 +20,7 @@ import styles from './RetinuePage.module.css';
 
 interface RetinuePageProps {
   character: Character;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   subTab?: string | null;
   onSubTabChange?: (tab: string) => void;
@@ -32,7 +32,7 @@ type RetinueSubTab = 'hirelings' | 'companions';
 // out of effect dependency arrays).
 const VALID_SUBTABS: RetinueSubTab[] = ['hirelings', 'companions'];
 
-export function RetinuePage({ character, update, updateCharacter, subTab, onSubTabChange }: RetinuePageProps) {
+export function RetinuePage({ character, updateCharacter, subTab, onSubTabChange }: RetinuePageProps) {
 
   // Tab reordering
   const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
@@ -210,14 +210,23 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
             )}
 
             {character.companions.map((comp, ci) => {
-              const uc = (field: string, val: unknown) => update(`companions.${ci}.${field}`, val);
+              // Update a single field on this companion. The dot-path
+              // `companions.${ci}.${field}` is built dynamically, so it cannot be a
+              // statically-checked FieldPath literal; route through the typed
+              // updateCharacter mutator instead (spec: state-safety-core, Req 1.3).
+              const uc = <K extends keyof Companion>(field: K, val: Companion[K]) =>
+                updateCharacter((c) => {
+                  const companions = [...c.companions];
+                  companions[ci] = { ...companions[ci], [field]: val };
+                  return { ...c, companions };
+                });
               const charKeys = ['M', 'WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel', 'W'] as const;
               return (
                 <div key={ci} className={comp.isPackAnimal ? styles.companionCardPack : styles.companionCard}>
                   <div className={styles.companionHeader}>
                     <div className={styles.companionHeaderLeft}>
-                      <EditableField label="Name" value={comp.name} onSave={(v) => uc('name', v)} />
-                      <EditableField label="Species" value={comp.species} onSave={(v) => uc('species', v)} />
+                      <EditableField label="Name" value={comp.name} onSave={(v) => uc('name', String(v))} />
+                      <EditableField label="Species" value={comp.species} onSave={(v) => uc('species', String(v))} />
                       <label className={comp.isPackAnimal ? styles.packAnimalLabelActive : styles.packAnimalLabelInactive} title="Designate as pack animal — trappings marked 'stored on horse' will count toward this companion's encumbrance">
                         <input type="checkbox" checked={!!comp.isPackAnimal} onChange={(e) => {
                           // Only one pack animal at a time — unset others
@@ -239,7 +248,7 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
                     {charKeys.map((k) => (
                       <div key={k} className={styles.companionStatCell}>
                         <div className={styles.companionStatLabel}>{k}</div>
-                        <EditableField label="" value={comp[k]} type="number" onSave={(v) => uc(k, v)} style={{ minWidth: '32px' }} />
+                        <EditableField label="" value={comp[k]} type="number" onSave={(v) => uc(k, Number(v))} style={{ minWidth: '32px' }} />
                       </div>
                     ))}
                   </div>
@@ -290,8 +299,8 @@ export function RetinuePage({ character, update, updateCharacter, subTab, onSubT
                       );
                     })}
                   </div>
-                  <EditableField label="Traits" value={comp.traits} onSave={(v) => uc('traits', v)} />
-                  <EditableField label="Notes" value={comp.notes} onSave={(v) => uc('notes', v)} />
+                  <EditableField label="Traits" value={comp.traits} onSave={(v) => uc('traits', String(v))} />
+                  <EditableField label="Notes" value={comp.notes} onSave={(v) => uc('notes', String(v))} />
                 </div>
               );
             })}

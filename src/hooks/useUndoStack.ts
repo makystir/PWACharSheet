@@ -1,14 +1,25 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import type { Character, FieldPath, FieldValue } from '../types/character';
 
-export interface UndoEntry {
-  field: string;           // dot-notation path (e.g., "chars.WS.a")
-  previousValue: unknown;
-  newValue: unknown;
+/**
+ * A single recorded edit in the undo stack.
+ *
+ * Generic over `P extends FieldPath<Character>` so the changed `field` is a
+ * compile-time-checked path into `Character` and the recorded `previousValue`/
+ * `newValue` are typed to that field's leaf value (spec: state-safety-core,
+ * Req 3.1). The default type parameter widens to the full `FieldPath` union so
+ * an `UndoEntry` can be stored heterogeneously in the stack while individual
+ * pushes stay precisely typed.
+ */
+export interface UndoEntry<P extends FieldPath<Character> = FieldPath<Character>> {
+  field: P;                       // dot-notation path (e.g., "chars.WS.a")
+  previousValue: FieldValue<Character, P>;
+  newValue: FieldValue<Character, P>;
   timestamp: number;
 }
 
 export interface UseUndoStackResult {
-  push: (entry: Omit<UndoEntry, 'timestamp'>) => void;
+  push: <P extends FieldPath<Character>>(entry: Omit<UndoEntry<P>, 'timestamp'>) => void;
   undo: () => UndoEntry | null;
   canUndo: boolean;
   clear: () => void;
@@ -26,11 +37,11 @@ export function useUndoStack(maxSize: number = DEFAULT_MAX_SIZE): UseUndoStackRe
     stackRef.current = stack;
   }, [stack]);
 
-  const push = useCallback((entry: Omit<UndoEntry, 'timestamp'>) => {
-    const fullEntry: UndoEntry = {
+  const push = useCallback(<P extends FieldPath<Character>>(entry: Omit<UndoEntry<P>, 'timestamp'>) => {
+    const fullEntry = {
       ...entry,
       timestamp: Date.now(),
-    };
+    } as UndoEntry;
     setStack((prev) => {
       const next = [fullEntry, ...prev];
       // Evict oldest entries when exceeding maxSize

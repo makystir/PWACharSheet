@@ -5,6 +5,45 @@ import type { ObsessionData } from '../logic/obsessions';
 export type CharacteristicKey = 'WS' | 'BS' | 'S' | 'T' | 'I' | 'Ag' | 'Dex' | 'Int' | 'WP' | 'Fel';
 
 /**
+ * `FieldPath<T>` — the union of every dot-notation path that addresses a leaf or
+ * nested node within `T`. Arrays are addressed by a numeric-string index
+ * (`` `${number}` ``), so e.g. `FieldPath<Character>` includes `'name'`,
+ * `'move.m'`, `'chars.WS.a'`, `'bSkills.3.a'`, `'trappings.2.name'`, `'ap.head'`.
+ *
+ * Type-only utility (spec: state-safety-core, Req 1.1/1.5). It introduces no
+ * runtime value and does not change the persisted `Character` shape (Req 2.2).
+ * It powers the compile-time-checked `update<P extends FieldPath<Character>>(...)`
+ * surface so that invalid paths fail `tsc` instead of becoming silent runtime bugs.
+ *
+ * Nesting is bounded in practice (edited fields go ~3 levels deep), so the
+ * recursion terminates well within TypeScript's instantiation-depth limit.
+ */
+export type FieldPath<T> = T extends (infer E)[]
+  ? `${number}` | `${number}.${FieldPath<E>}`
+  : T extends object
+    ? { [K in keyof T & string]: `${K}` | `${K}.${FieldPath<T[K]>}` }[keyof T & string]
+    : never;
+
+/**
+ * `FieldValue<T, P>` — the type of the value found at path `P` within `T`.
+ * Given a `FieldPath<T>` it resolves the leaf type, so the typed `update` can
+ * require a value whose type matches the addressed field (spec:
+ * state-safety-core, Req 1.2). Type-only; no runtime footprint.
+ */
+export type FieldValue<T, P extends string> =
+  P extends `${infer K}.${infer Rest}`
+    ? K extends keyof T
+      ? FieldValue<T[K], Rest>
+      : T extends (infer E)[]
+        ? FieldValue<E, Rest>
+        : never
+    : P extends keyof T
+      ? T[P]
+      : T extends (infer E)[]
+        ? E
+        : never;
+
+/**
  * The ten characteristics in canonical WFRP sheet order. Single source of truth
  * shared by both logic and UI (import this rather than re-declaring the array).
  */
@@ -727,6 +766,14 @@ export interface Character {
   height: string;
   hair: string;
   eyes: string;
+  /**
+   * Optional distinguishing physical feature (dwarfguide.md p.40 "Physical
+   * Attributes" — Distinguishing Features table). Purely flavour text with no
+   * mechanical effect; the guide notes it is optional and meant to help a
+   * Character stand out. Optional here so pre-feature saves load unchanged
+   * (spec: state-safety-core, Req 2.2).
+   */
+  distinguishingFeature?: string;
   chars: Record<CharacteristicKey, CharacteristicValue>;
   charBonusOverrides: Record<CharacteristicKey, boolean>;
   move: { m: number; w: number; r: number };
@@ -870,6 +917,7 @@ export const BLANK_CHARACTER: Character = {
   height: '',
   hair: '',
   eyes: '',
+  distinguishingFeature: '',
   chars: DEFAULT_CHARS,
   charBonusOverrides: DEFAULT_BONUS_OVERRIDES,
   move: { m: 0, w: 0, r: 0 },

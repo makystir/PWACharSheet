@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Character } from '../../types/character';
+import type { Character, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
@@ -12,7 +12,7 @@ import styles from './FortuneResolvePanel.module.css';
 
 interface FortuneResolvePanelProps {
   character: Character;
-  update: (field: string, value: unknown) => void;
+  update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
 }
 

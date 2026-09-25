@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Character, ArmourPoints, WeaponData } from '../types/character';
+import type { Character, ArmourPoints, WeaponData, FieldPath, FieldValue } from '../types/character';
 import { BLANK_CHARACTER } from '../types/character';
 import { saveCharacter } from '../storage/character-manager';
 import {
@@ -17,7 +17,16 @@ import { migrateCharacterArmour } from '../logic/armourMigration';
 
 export interface UseCharacterResult {
   character: Character;
-  update: (field: string, value: unknown) => void;
+  /**
+   * Update a single character field by its dot-notation path. The path is
+   * compile-time-checked against `Character` (`FieldPath<Character>`) and the
+   * value type is inferred from the addressed leaf (`FieldValue<Character, P>`),
+   * so invalid paths or mismatched value types now fail `tsc` instead of
+   * becoming silent runtime bugs (spec: state-safety-core, Req 1.1/1.2/1.3).
+   * Runtime behavior is unchanged — it still routes through `setNestedValue`.
+   * For multi-field / computed mutations use `updateCharacter` instead.
+   */
+  update: <P extends FieldPath<Character>>(path: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   /**
    * Synchronously persist the character to storage right now, cancelling any
@@ -37,8 +46,12 @@ export interface UseCharacterResult {
 /**
  * Sets a value on an object using dot-notation path.
  * e.g. setNestedValue(obj, "chars.WS.a", 10)
+ *
+ * Exported for the typed-update equivalence property test (spec:
+ * state-safety-core, Req 2.1/2.4): the test asserts the typed `update` produces
+ * the same Character this legacy helper produced for the same `(path, value)`.
  */
-function setNestedValue<T extends object>(obj: T, path: string, value: unknown): T {
+export function setNestedValue<T extends object>(obj: T, path: string, value: unknown): T {
   const clone = structuredClone(obj);
   const keys = path.split('.');
   let current = clone as Record<string, unknown>;
@@ -79,6 +92,12 @@ export function backfillCharacter(char: Character, weaponsRef?: WeaponData[]): C
   }
   if (!patched.xpLog) {
     patched.xpLog = [];
+  }
+  // Optional flavour text (dwarfguide.md p.40 "Physical Attributes"). Backfill to
+  // '' for pre-feature saves so it round-trips and is defined on load; no
+  // mechanical effect and no persisted-shape break (spec: state-safety-core, Req 2.2).
+  if (patched.distinguishingFeature == null) {
+    patched.distinguishingFeature = '';
   }
   // Always sync talent bonuses on load to ensure .b values are correct
   patched = syncTalentBonuses(patched);
@@ -169,14 +188,26 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     setCharacter(backfillCharacter(initialCharacter));
   }, [characterId, initialCharacter]);
 
-  // Ref that always holds the most recent character state (for synchronous access in event handlers)
+  // Ref that always holds the most recent character state (for synchronous access
+  // in event handlers). Kept current synchronously via `commit()` below rather
+  // than a separate `[character]` effect, so it never lags by one effect
+  // (spec: state-safety-core, Req 5.1/5.2).
   const latestCharRef = useRef(character);
-  useEffect(() => {
-    latestCharRef.current = character;
-  }, [character]);
 
   // Tracks whether a debounced save is pending
   const pendingRef = useRef(false);
+
+  /**
+   * Central commit path: set `latestCharRef.current` SYNCHRONOUSLY, then queue the
+   * React state update. Both `update` and `updateCharacter` route through this so
+   * any synchronous persist (flushSave / beforeunload / visibilitychange) in the
+   * same tick always reads the just-committed state, eliminating the one-effect
+   * lag (spec: state-safety-core, Req 5.1/5.2; design Decision 2).
+   */
+  const commit = useCallback((next: Character) => {
+    latestCharRef.current = next; // synchronous — no one-effect lag
+    setCharacter(next);
+  }, []);
 
   // Flush any pending debounced save immediately (reused by beforeunload, visibilitychange, cleanup)
   const flushSave = useCallback(() => {
@@ -224,9 +255,12 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
       return;
     }
 
-    // Update latestCharRef SYNCHRONOUSLY here (before scheduling) rather than
-    // relying solely on the separate [character] effect, which lags by one
-    // effect. This guarantees flushSave() in cleanup always sees this commit.
+    // For user edits the ref was already set synchronously by commit(), as are
+    // the derived Sync_Pass writes (talent bonuses, wound fields, Fatigued
+    // threshold, armour AP) which now route through commit() too. This keeps the
+    // ref coherent for any remaining direct setCharacter commits (e.g. the
+    // weapons-backfill effect and the prop-driven reset) so flushSave() always
+    // sees the current committed state (spec: state-safety-core, Req 4.4).
     latestCharRef.current = character;
     pendingRef.current = true;
     const timer = setTimeout(() => {
@@ -236,11 +270,26 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
       }
     }, 500);
 
+    // Cleanup clears only the pending debounce timer. It intentionally does NOT
+    // flush here: this cleanup also runs between rapid successive edits (the
+    // effect re-runs on every `character` change), and now that `commit()` keeps
+    // `latestCharRef` current in the same tick, a flush-on-cleanup would persist
+    // the freshest state on every keystroke and defeat debounce coalescing
+    // (spec: state-safety-core, Req 4.2). Unmount and lifecycle flushes are
+    // handled by the dedicated effects below, so no pending edit is dropped.
     return () => {
       clearTimeout(timer);
-      flushSave();
     };
   }, [character, flushSave]);
+
+  // Flush any pending debounced save when the hook unmounts. This cleanup runs
+  // ONLY on unmount (flushSave is stable), so it does not fire between rapid
+  // edits and cannot cause a redundant write (spec: state-safety-core, Req 4.1).
+  useEffect(() => {
+    return () => {
+      flushSave();
+    };
+  }, [flushSave]);
 
   // Flush pending save when the browser tab is closed, page is reloaded, or app is backgrounded
   useEffect(() => {
@@ -258,31 +307,46 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     };
   }, [flushSave]);
 
-  const update = useCallback((field: string, value: unknown) => {
-    setCharacter((prev) => {
-      return setNestedValue(prev, field, value);
-    });
-  }, []);
+  // Typed public surface: the path is checked against `Character` and the value
+  // type is inferred from the leaf. Runtime is unchanged — `setNestedValue`
+  // still takes a `string` path + `unknown` value, so the generic args are
+  // widened at this internal boundary only (spec: state-safety-core, Req 1.1/2.1).
+  const update = useCallback(
+    <P extends FieldPath<Character>>(path: P, value: FieldValue<Character, P>) => {
+      // Compute the next state from the always-current ref (kept coherent by
+      // commit), then commit it so the ref reflects this edit in the same tick.
+      const next = setNestedValue(latestCharRef.current, path, value);
+      commit(next);
+    },
+    [commit]
+  );
 
   const updateCharacter = useCallback((mutator: (char: Character) => Character) => {
-    setCharacter((prev) => mutator(structuredClone(prev)));
-  }, []);
+    // Mutate a clone of the always-current committed state, then commit the result.
+    const next = mutator(structuredClone(latestCharRef.current));
+    commit(next);
+  }, [commit]);
 
   // Sync talent bonuses to chars[key].b whenever talents change.
   // Intentional setState-in-effect: keeps derived characteristic bonuses in the
   // single character store consistent when talents change.
   const talentsJson = JSON.stringify(character.talents);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCharacter((prev) => {
-      const synced = syncTalentBonuses(prev);
-      // Only update if bonuses actually changed
-      const changed = Object.keys(synced.chars).some(
-        (k) => synced.chars[k as keyof typeof synced.chars].b !== prev.chars[k as keyof typeof prev.chars].b
-      );
-      return changed ? synced : prev;
-    });
-  }, [talentsJson]);
+    // Route the derived write through commit() so the ref reflects the synced
+    // talent bonuses and the derived write persists. This runs after the
+    // triggering edit already committed, so that edit is never dropped
+    // (spec: state-safety-core, Req 4.4). Compute from the always-current ref
+    // and short-circuit when nothing changed to avoid a re-render loop.
+    const base = latestCharRef.current;
+    const synced = syncTalentBonuses(base);
+    // Only commit if bonuses actually changed
+    const changed = Object.keys(synced.chars).some(
+      (k) => synced.chars[k as keyof typeof synced.chars].b !== base.chars[k as keyof typeof base.chars].b
+    );
+    if (changed) {
+      commit(synced);
+    }
+  }, [talentsJson, commit]);
 
   // Sync wound component fields whenever chars, woundsUseSB, or hardyLevel change
   const hardyLevel = useMemo(() => {
@@ -300,38 +364,50 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
   // Intentional setState-in-effect: keeps derived wound fields in the single
   // character store consistent when chars / woundsUseSB / hardy / multiplier change.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCharacter(prev => {
-      let synced = syncWoundFields(prev, hardyLevel, woundMultiplier);
+    // Route the derived wound-field write through commit() so the ref reflects
+    // the synced wounds and the derived write persists without dropping the
+    // triggering edit (spec: state-safety-core, Req 4.4). Compute from the
+    // always-current ref and short-circuit when nothing changed to avoid a
+    // re-render loop.
+    const base = latestCharRef.current;
+    let synced = syncWoundFields(base, hardyLevel, woundMultiplier);
 
-      // Auto-initialize wCur when characteristics first become non-zero
-      const totalWounds = calculateTotalWounds(synced.chars, synced.woundsUseSB, hardyLevel, woundMultiplier);
-      if (synced.wCur === 0 && totalWounds > 0) {
-        synced = synced === prev ? { ...prev, wCur: totalWounds } : { ...synced, wCur: totalWounds };
-      }
+    // Auto-initialize wCur when characteristics first become non-zero
+    // (WFRP4e Core p.36–37: Wounds max = SB + 2×TB + WPB, new characters start
+    // at maximum Wounds).
+    const totalWounds = calculateTotalWounds(synced.chars, synced.woundsUseSB, hardyLevel, woundMultiplier);
+    if (synced.wCur === 0 && totalWounds > 0) {
+      synced = synced === base ? { ...base, wCur: totalWounds } : { ...synced, wCur: totalWounds };
+    }
 
-      return synced === prev ? prev : synced;
-    });
-  }, [character.chars, character.woundsUseSB, hardyLevel, woundMultiplier]);
+    if (synced !== base) {
+      commit(synced);
+    }
+  }, [character.chars, character.woundsUseSB, hardyLevel, woundMultiplier, commit]);
 
   // Evaluate Fatigued→Unconscious threshold after any condition update
   const conditionsJson = JSON.stringify(character.conditions);
   useEffect(() => {
-    const tChar = character.chars.T;
+    const base = latestCharRef.current;
+    const tChar = base.chars.T;
     const toughnessBonus = getBonus(tChar.i + tChar.a + tChar.b);
-    const result = evaluateFatiguedThreshold(character.conditions, toughnessBonus);
+    // WFRP4e Core p.170: a character gains a level of Fatigued when they would
+    // exceed the Fatigued threshold (Toughness Bonus), converting the excess to
+    // Unconscious.
+    const result = evaluateFatiguedThreshold(base.conditions, toughnessBonus);
     if (result.applied.length > 0) {
-      // Intentional setState-in-effect: applies the derived Fatigued→Unconscious
-      // transition back into the single character store.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCharacter(prev => ({ ...prev, conditions: result.conditions }));
+      // Route the derived Fatigued→Unconscious transition through commit() so
+      // the ref reflects it and it persists without dropping the triggering
+      // edit (spec: state-safety-core, Req 4.4).
+      commit({ ...base, conditions: result.conditions });
     }
     // conditionsJson is the intentional deep-compare stand-in for
     // character.conditions (a new array reference every render); depending on
     // the raw array would re-run this on every render, so it is deliberately
-    // excluded in favour of the stringified value.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conditionsJson, character.chars]);
+    // used in its place. The effect reads the live conditions from
+    // latestCharRef.current (a ref, not a dep) so no exhaustive-deps override is
+    // needed here.
+  }, [conditionsJson, character.chars, commit]);
 
   // Derive Strong Back and Sturdy levels from talents
   const strongBackLevel = useMemo(() => {
@@ -348,42 +424,46 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
   // Intentional setState-in-effect: keeps derived armour points in the single
   // character store consistent when the armour list changes.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCharacter(prev => {
-      const unified = calculateArmourPointsUnified(prev.armour, { filterByWorn: true });
-      const computed = {
-        head: unified.head,
-        lArm: unified.leftArm,
-        rArm: unified.rightArm,
-        body: unified.body,
-        lLeg: unified.leftLeg,
-        rLeg: unified.rightLeg,
-      };
-      const ap = prev.ap;
-      if (
-        ap.head === computed.head &&
-        ap.lArm === computed.lArm &&
-        ap.rArm === computed.rArm &&
-        ap.body === computed.body &&
-        ap.lLeg === computed.lLeg &&
-        ap.rLeg === computed.rLeg
-      ) {
-        return prev;
-      }
-      return {
-        ...prev,
-        ap: {
-          ...prev.ap,
-          head: computed.head,
-          lArm: computed.lArm,
-          rArm: computed.rArm,
-          body: computed.body,
-          lLeg: computed.lLeg,
-          rLeg: computed.rLeg,
-        },
-      };
+    // Route the derived armour-points write through commit() so the ref reflects
+    // the worn-only AP and the derived write persists without dropping the
+    // triggering edit (spec: state-safety-core, Req 4.4). Compute from the
+    // always-current ref and short-circuit when AP is unchanged to avoid a
+    // re-render loop.
+    const base = latestCharRef.current;
+    // Worn-only AP per WFRP4e Core p.293 (armour only protects while worn).
+    const unified = calculateArmourPointsUnified(base.armour, { filterByWorn: true });
+    const computed = {
+      head: unified.head,
+      lArm: unified.leftArm,
+      rArm: unified.rightArm,
+      body: unified.body,
+      lLeg: unified.leftLeg,
+      rLeg: unified.rightLeg,
+    };
+    const ap = base.ap;
+    if (
+      ap.head === computed.head &&
+      ap.lArm === computed.lArm &&
+      ap.rArm === computed.rArm &&
+      ap.body === computed.body &&
+      ap.lLeg === computed.lLeg &&
+      ap.rLeg === computed.rLeg
+    ) {
+      return;
+    }
+    commit({
+      ...base,
+      ap: {
+        ...base.ap,
+        head: computed.head,
+        lArm: computed.lArm,
+        rArm: computed.rArm,
+        body: computed.body,
+        lLeg: computed.lLeg,
+        rLeg: computed.rLeg,
+      },
     });
-  }, [character.armour]);
+  }, [character.armour, commit]);
 
   const totalWounds = useMemo(
     () => calculateTotalWounds(character.chars, character.woundsUseSB, hardyLevel, woundMultiplier),
