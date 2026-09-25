@@ -65,12 +65,17 @@ describe('Upload button', () => {
   });
 });
 
-// ─── Req 2.6: Guidance text "200×280" is visible ─────────────────────────────
+// ─── Req 2.6: Guidance text with dimensions and size limit is visible ────────
 
 describe('Guidance text', () => {
-  it('displays guidance text with dimensions', () => {
+  it('displays guidance text with recommended dimensions', () => {
     renderPortrait();
-    expect(screen.getByText(/200×280/)).toBeInTheDocument();
+    expect(screen.getByText(/400×560/)).toBeInTheDocument();
+  });
+
+  it('displays guidance text with the max file size', () => {
+    renderPortrait();
+    expect(screen.getByText(/5 MB/i)).toBeInTheDocument();
   });
 });
 
@@ -97,6 +102,65 @@ describe('Remove button interaction', () => {
     const { props } = renderPortrait({ portrait: 'data:image/png;base64,abc123' });
     fireEvent.click(screen.getByRole('button', { name: /remove/i }));
     expect(props.onRemove).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ─── Enlarged portrait (lightbox) ────────────────────────────────────────────
+
+describe('Enlarged portrait lightbox', () => {
+  it('exposes a button to view the enlarged portrait when a portrait is set', () => {
+    renderPortrait({ portrait: 'data:image/png;base64,abc123', characterName: 'Sigmar' });
+    expect(
+      screen.getByRole('button', { name: /view enlarged portrait of sigmar/i })
+    ).toBeInTheDocument();
+  });
+
+  it('does not expose an enlarge trigger when no portrait is set', () => {
+    renderPortrait({ portrait: '' });
+    expect(screen.queryByRole('button', { name: /view enlarged portrait/i })).not.toBeInTheDocument();
+  });
+
+  it('opens a dialog with the enlarged image when the portrait is clicked', () => {
+    renderPortrait({ portrait: 'data:image/png;base64,abc123', characterName: 'Sigmar' });
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /view enlarged portrait/i }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    // Both the thumbnail and the enlarged image are present while open.
+    const enlargedImg = screen.getByAltText('Enlarged portrait of Sigmar');
+    expect(enlargedImg).toHaveAttribute('src', 'data:image/png;base64,abc123');
+  });
+
+  it('closes the enlarged view when the close button is clicked', () => {
+    renderPortrait({ portrait: 'data:image/png;base64,abc123' });
+    fireEvent.click(screen.getByRole('button', { name: /view enlarged portrait/i }));
+    fireEvent.click(screen.getByRole('button', { name: /close enlarged portrait/i }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('closes the enlarged view when the backdrop is clicked', () => {
+    renderPortrait({ portrait: 'data:image/png;base64,abc123' });
+    fireEvent.click(screen.getByRole('button', { name: /view enlarged portrait/i }));
+    fireEvent.click(screen.getByRole('dialog'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('does not close when the enlarged image itself is clicked', () => {
+    renderPortrait({ portrait: 'data:image/png;base64,abc123', characterName: 'Sigmar' });
+    fireEvent.click(screen.getByRole('button', { name: /view enlarged portrait/i }));
+    fireEvent.click(screen.getByAltText('Enlarged portrait of Sigmar'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('closes the enlarged view when Escape is pressed', () => {
+    renderPortrait({ portrait: 'data:image/png;base64,abc123' });
+    fireEvent.click(screen.getByRole('button', { name: /view enlarged portrait/i }));
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 
@@ -140,17 +204,19 @@ describe('Validation error — invalid file type', () => {
 // ─── Req 2.5: Error message displayed for oversized file ────────────────────
 
 describe('Validation error — oversized file', () => {
-  it('displays an error when a file exceeds 2 MB', async () => {
+  it('displays an error when a file exceeds 5 MB', async () => {
     renderPortrait();
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    // Create a file just over 2 MB
-    const oversizedContent = new Uint8Array(2 * 1024 * 1024 + 1);
+    // Create a file just over 5 MB
+    const oversizedContent = new Uint8Array(5 * 1024 * 1024 + 1);
     const oversizedFile = new File([oversizedContent], 'big.png', { type: 'image/png' });
 
     fireEvent.change(fileInput, { target: { files: [oversizedFile] } });
 
     await waitFor(() => {
-      expect(screen.getByText(/2 MB/i)).toBeInTheDocument();
+      // Assert on the specific error copy so it doesn't also match the
+      // "(max 5 MB)" guidance hint, which is always present.
+      expect(screen.getByText(/5 MB or smaller/i)).toBeInTheDocument();
     });
   });
 });

@@ -25,7 +25,11 @@ import { PortraitStore } from '../portrait-store';
 /** Arbitrary that generates a valid portrait MIME type */
 const arbMimeType = fc.constantFrom('image/jpeg', 'image/png', 'image/webp');
 
-/** Arbitrary that generates a valid portrait Blob (random content, random MIME, ≤2 MB) */
+/**
+ * Arbitrary that generates a valid portrait Blob (random content, random MIME).
+ * The store round-trip is independent of blob size, so we cap the generated
+ * size well under the 5 MB app limit to keep the property test fast.
+ */
 const arbPortraitBlob = fc.tuple(
   fc.uint8Array({ minLength: 1, maxLength: 2 * 1024 * 1024 }),
   arbMimeType
@@ -50,7 +54,7 @@ describe('Feature: portrait-indexeddb-migration, Property 1: Portrait storage ro
    * Validates: Requirements 1.1, 1.2, 1.3
    *
    * For any valid Blob (generated with arbitrary content and random MIME from
-   * jpeg/png/webp, ≤2 MB), savePortrait then getPortraitBlob returns a Blob
+   * jpeg/png/webp), savePortrait then getPortraitBlob returns a Blob
    * with identical size and type.
    */
   it('savePortrait then getPortraitBlob returns a Blob with identical size and type', async () => {

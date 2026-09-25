@@ -7,8 +7,8 @@ import {
 } from '../portrait';
 
 describe('portrait constants', () => {
-  it('PORTRAIT_MAX_BYTES is 2 MB', () => {
-    expect(PORTRAIT_MAX_BYTES).toBe(2 * 1024 * 1024);
+  it('PORTRAIT_MAX_BYTES is 5 MB', () => {
+    expect(PORTRAIT_MAX_BYTES).toBe(5 * 1024 * 1024);
   });
 
   it('PORTRAIT_ACCEPTED_TYPES contains jpeg, png, webp', () => {
@@ -34,7 +34,7 @@ describe('validatePortraitFile', () => {
     expect(result).toEqual({ valid: true });
   });
 
-  it('accepts a valid WebP file at exactly 2 MB boundary', () => {
+  it('accepts a valid WebP file at exactly 5 MB boundary', () => {
     const result = validatePortraitFile(makeFile('image/webp', PORTRAIT_MAX_BYTES));
     expect(result).toEqual({ valid: true });
   });
@@ -57,10 +57,10 @@ describe('validatePortraitFile', () => {
     expect(result.error).toMatch(/JPEG.*PNG.*WebP/i);
   });
 
-  it('rejects a JPEG at 2 MB + 1 byte with size error', () => {
+  it('rejects a JPEG at 5 MB + 1 byte with size error', () => {
     const result = validatePortraitFile(makeFile('image/jpeg', PORTRAIT_MAX_BYTES + 1));
     expect(result.valid).toBe(false);
-    expect(result.error).toMatch(/2 MB/i);
+    expect(result.error).toMatch(/5 MB/i);
   });
 
   it('accepts a 0-byte JPEG', () => {
@@ -72,7 +72,7 @@ describe('validatePortraitFile', () => {
     const result = validatePortraitFile(makeFile('image/gif', PORTRAIT_MAX_BYTES + 1));
     expect(result.valid).toBe(false);
     expect(result.error).toMatch(/JPEG.*PNG.*WebP/i);
-    expect(result.error).not.toMatch(/2 MB/i);
+    expect(result.error).not.toMatch(/5 MB/i);
   });
 });
 

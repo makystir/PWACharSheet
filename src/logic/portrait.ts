@@ -1,5 +1,5 @@
-/** Maximum portrait file size in bytes (2 MB) */
-export const PORTRAIT_MAX_BYTES = 2 * 1024 * 1024;
+/** Maximum portrait file size in bytes (5 MB) */
+export const PORTRAIT_MAX_BYTES = 5 * 1024 * 1024;
 
 /** Accepted MIME types for portrait images */
 export const PORTRAIT_ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -18,7 +18,7 @@ export function validatePortraitFile(file: File): PortraitValidationResult {
     return { valid: false, error: 'File must be a JPEG, PNG, or WebP image.' };
   }
   if (file.size > PORTRAIT_MAX_BYTES) {
-    return { valid: false, error: 'File must be 2 MB or smaller.' };
+    return { valid: false, error: 'File must be 5 MB or smaller.' };
   }
   return { valid: true };
 }
