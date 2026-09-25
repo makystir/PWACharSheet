@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { WhatsNewPanel, shouldShowWhatsNew } from '../WhatsNewPanel';
+import { WhatsNewPanel } from '../WhatsNewPanel';
+import { shouldShowWhatsNew } from '../whatsNewStorage';
 
 const entries = [
   { title: 'New Combat UI', description: 'Redesigned combat flow with step indicators.' },

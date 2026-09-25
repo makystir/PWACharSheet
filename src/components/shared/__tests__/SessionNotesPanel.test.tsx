@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { SessionNotesPanel } from '../SessionNotesPanel';
-import { parseLogEntry, createLogEntry } from '../SessionNotesPanel';
+import { parseLogEntry, createLogEntry } from '../sessionNotesLog';
 import { BLANK_CHARACTER } from '../../../types/character';
 
 function makeCharacterWithLog(log: string[] = []) {

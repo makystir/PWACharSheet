@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { TakeDamagePanel, calculateNetWounds } from '../combat/TakeDamagePanel';
+import { TakeDamagePanel } from '../combat/TakeDamagePanel';
+import { calculateNetWounds } from '../combat/takeDamageMath';
 import type { TakeDamagePanelProps } from '../combat/TakeDamagePanel';
 import type { ArmourPoints } from '../../types/character';
 

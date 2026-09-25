@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { Character, Holding, Estate, Hireling, LedgerEntry, FieldPath, FieldValue } from '../../types/character';
+import type { Character, Holding, LedgerEntry, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EditableField } from '../shared/EditableField';
@@ -17,40 +17,8 @@ import { LedgerPanel } from '../shared/LedgerPanel';
 import { EnterpriseList } from '../enterprise/EnterpriseList';
 import { validateTreasuryDelta, applyCurrencyDelta, transferFunds, type CurrencyDelta } from '../../logic/currency';
 import { mirrorLedger } from '../../logic/event-log-mirrors';
+import { computeFinancialSummary } from './estateFinance';
 import styles from './EstatePage.module.css';
-
-interface CurrencyAmount {
-  gc: number;
-  ss: number;
-  d: number;
-}
-
-interface FinancialSummary {
-  totalIncome: CurrencyAmount;
-  totalExpenses: CurrencyAmount;
-  profit: CurrencyAmount;
-}
-
-export function computeFinancialSummary(estate: Estate, hirelings: Hireling[] = []): FinancialSummary {
-  const props = estate.properties || [];
-  const hirelingUpkeep = computeHirelingUpkeep(hirelings);
-  const totalIncome = {
-    gc: (estate.monthlyIncome.gc || 0) + props.reduce((s, p) => s + (p.monthlyIncome?.gc || 0), 0),
-    ss: (estate.monthlyIncome.ss || 0) + props.reduce((s, p) => s + (p.monthlyIncome?.ss || 0), 0),
-    d: (estate.monthlyIncome.d || 0) + props.reduce((s, p) => s + (p.monthlyIncome?.d || 0), 0),
-  };
-  const totalExpenses = {
-    gc: (estate.monthlyExpenses.gc || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.gc || 0), 0) + hirelingUpkeep.gc,
-    ss: (estate.monthlyExpenses.ss || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.ss || 0), 0) + hirelingUpkeep.ss,
-    d: (estate.monthlyExpenses.d || 0) + props.reduce((s, p) => s + (p.monthlyExpenses?.d || 0), 0) + hirelingUpkeep.d,
-  };
-  const profit = {
-    gc: totalIncome.gc - totalExpenses.gc,
-    ss: totalIncome.ss - totalExpenses.ss,
-    d: totalIncome.d - totalExpenses.d,
-  };
-  return { totalIncome, totalExpenses, profit };
-}
 
 interface EstatePageProps {
   character: Character;

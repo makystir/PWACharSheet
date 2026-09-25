@@ -3,15 +3,13 @@ import type { Character } from '../../types/character';
 import { Card } from './Card';
 import { EmptyState } from './EmptyState';
 import { BookOpen } from 'lucide-react';
+import { parseLogEntry, createLogEntry } from './sessionNotesLog';
 import styles from './SessionNotesPanel.module.css';
 
 interface SessionNotesPanelProps {
   character: Character;
   updateCharacter: (mutator: (char: Character) => Character) => void;
 }
-
-/** Separator between timestamp and note text in each log entry string */
-const SEPARATOR = '|';
 
 /** Format a timestamp as a human-readable date/time string */
 function formatTimestamp(ts: number): string {
@@ -23,25 +21,6 @@ function formatTimestamp(ts: number): string {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-/** Parse a log entry string into timestamp and text parts */
-export function parseLogEntry(entry: string): { timestamp: number; text: string } {
-  const sepIndex = entry.indexOf(SEPARATOR);
-  if (sepIndex > 0) {
-    const tsStr = entry.slice(0, sepIndex);
-    const ts = Number(tsStr);
-    if (!isNaN(ts) && ts > 0) {
-      return { timestamp: ts, text: entry.slice(sepIndex + 1) };
-    }
-  }
-  // Legacy entry without timestamp — treat as epoch 0
-  return { timestamp: 0, text: entry };
-}
-
-/** Create a log entry string from text and current time */
-export function createLogEntry(text: string, now: number = Date.now()): string {
-  return `${now}${SEPARATOR}${text}`;
 }
 
 export function SessionNotesPanel({ character, updateCharacter }: SessionNotesPanelProps) {

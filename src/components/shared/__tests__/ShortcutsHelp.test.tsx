@@ -15,7 +15,7 @@ import {
   useCommandPaletteContext,
 } from '../../command-palette/CommandPaletteContext';
 import { SHORTCUT_GROUPS } from '../../../config/shortcuts';
-import { NAV_ITEMS } from '../../layout/Navigation';
+import { NAV_ITEMS } from '../../layout/navItems';
 
 /**
  * Feature: ux-audit-improvements, Task 19.2 — Keyboard-shortcut discoverability tests.

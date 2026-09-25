@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Navigation, NAV_ITEMS } from '../Navigation';
-import type { PageSection } from '../Navigation';
+import { Navigation } from '../Navigation';
+import { NAV_ITEMS } from '../navItems';
+import type { PageSection } from '../navItems';
 import { CommandPaletteProvider } from '../../command-palette/CommandPaletteContext';
 
 /**

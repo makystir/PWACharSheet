@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeFinancialSummary } from '../../pages/EstatePage';
+import { computeFinancialSummary } from '../../pages/estateFinance';
 import type { Estate, Holding } from '../../../types/character';
 
 /** Helper: create a Holding with fields intentionally set to undefined to simulate legacy data */

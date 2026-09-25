@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { GettingStartedCard, isBrandNewCharacter } from '../GettingStartedCard';
+import { GettingStartedCard } from '../GettingStartedCard';
+import { isBrandNewCharacter } from '../gettingStartedUtils';
 
 // Feature: ux-audit-improvements, Req 5 — new-character onboarding card.
 

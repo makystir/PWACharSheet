@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { groupItems } from '../Picker';
+import { groupItems } from '../pickerUtils';
 
 // Feature: ux-improvements, Property 12: Picker group ordering preserves first-seen order
 // Feature: ux-improvements, Property 13: Picker search filters correctly across groups

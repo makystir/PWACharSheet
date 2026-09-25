@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Sparkles, X, User, Dices, Swords } from 'lucide-react';
 import { Card } from './Card';
+import { isBrandNewCharacter } from './gettingStartedUtils';
 import styles from './GettingStartedCard.module.css';
 
 /**
@@ -14,15 +15,6 @@ import styles from './GettingStartedCard.module.css';
  */
 
 const STORAGE_PREFIX = 'wfrp-getting-started-dismissed-';
-
-/**
- * "Brand-new" definition (design decision, Req 5.1): a character with no XP
- * spent and no career selected — i.e. a fresh quick-start character. Imported or
- * advanced characters are excluded.
- */
-export function isBrandNewCharacter(xpSpent: number, career: string): boolean {
-  return xpSpent === 0 && career === '';
-}
 
 function isDismissed(characterId: string): boolean {
   try {

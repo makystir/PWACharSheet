@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { parseLogEntry, createLogEntry } from '../SessionNotesPanel';
+import { parseLogEntry, createLogEntry } from '../sessionNotesLog';
 
 // Feature: ux-polish-and-functionality, Property 4: Session Notes Chronological Ordering
 

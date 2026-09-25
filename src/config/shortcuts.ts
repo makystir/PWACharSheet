@@ -1,4 +1,4 @@
-import { NAV_ITEMS } from '../components/layout/Navigation';
+import { NAV_ITEMS } from '../components/layout/navItems';
 
 /**
  * Single source of truth for the app's keyboard shortcuts.

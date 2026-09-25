@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { computeFinancialSummary } from '../../components/pages/EstatePage';
+import { computeFinancialSummary } from '../../components/pages/estateFinance';
 import { computeHirelingUpkeep } from '../hirelings';
 import type { Estate, Holding, Hireling } from '../../types/character';
 
