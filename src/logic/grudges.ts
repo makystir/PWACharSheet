@@ -1,4 +1,5 @@
 import type { Character, GrudgeEntry, GrudgeType } from '../types/character';
+import { generateUUID } from './uuid';
 
 /** Form data for creating a new grudge. */
 export interface GrudgeFormData {
@@ -62,21 +63,6 @@ export function validateGrudgeForm(form: GrudgeFormData): ValidationResult {
 }
 
 /**
- * Generate a UUID using crypto.randomUUID() with a Math.random fallback.
- */
-function generateId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  // Fallback: generate a pseudo-random UUID v4
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
-/**
  * Get today's date as an ISO date string (YYYY-MM-DD).
  */
 function todayISO(): string {
@@ -89,7 +75,7 @@ function todayISO(): string {
  */
 export function createGrudgeEntry(character: Character, form: GrudgeFormData): Character {
   const newEntry: GrudgeEntry = {
-    id: generateId(),
+    id: generateUUID(),
     offence: form.offence.trim(),
     perpetrator: form.perpetrator.trim(),
     restitution: form.restitution.trim(),

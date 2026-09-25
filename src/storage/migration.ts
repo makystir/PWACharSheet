@@ -2,6 +2,7 @@ import type { Character, CharacterIndex, CharacterSummary, LogEvent } from '../t
 import { BLANK_CHARACTER } from '../types/character';
 import type { RollResult } from '../logic/dice-roller';
 import { normaliseEventLog } from '../logic/event-log';
+import { generateUUID } from '../logic/uuid';
 import { getItem, setItem, removeItem } from './local-storage';
 
 const INDEX_KEY = 'wfrp4e-characters';
@@ -42,18 +43,6 @@ function deepMerge<T extends object>(target: T, source: Record<string, unknown>)
     }
   }
   return result as T;
-}
-
-function generateUUID(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  // Fallback for environments without crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
 }
 
 function migrateToMultiChar(character: Character): void {

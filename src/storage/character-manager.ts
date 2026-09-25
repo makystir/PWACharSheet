@@ -10,20 +10,10 @@ import { CAREER_SCHEMES } from '../data/careers';
 import type { CareerLevel } from '../types/character';
 import { getPortraitStore } from './portrait-store';
 import { normaliseEventLog } from '../logic/event-log';
+import { generateUUID } from '../logic/uuid';
 
 const INDEX_KEY = 'wfrp4e-characters';
 const CHAR_KEY_PREFIX = 'wfrp4e-char-';
-
-function generateUUID(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  // Fallback for environments without crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
-}
 
 function charKey(id: string): string {
   return `${CHAR_KEY_PREFIX}${id}`;

@@ -1,4 +1,5 @@
 import type { DowntimePeriod, EndeavourEntry, EntryStatus } from '../types/character';
+import { generateUUID } from './uuid';
 
 /** General Endeavours available to all characters. */
 export const GENERAL_ENDEAVOURS: string[] = [
@@ -230,19 +231,11 @@ export function isElf(species: string): boolean {
 }
 
 /**
- * Generate a UUID using crypto.randomUUID() with a Math.random fallback.
+ * Generate a UUID. Public alias of the shared {@link generateUUID}, kept under
+ * the original `generateId` export name to preserve the existing public API
+ * (imported by EndeavoursPage). Single source of truth lives in `./uuid`.
  */
-export function generateId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  // Fallback: generate a pseudo-random UUID v4
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
+export const generateId = generateUUID;
 
 /**
  * Cycle an entry's status in the order: pending → in_progress → completed → pending.

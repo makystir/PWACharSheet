@@ -11,6 +11,7 @@
  * See spec: .kiro/specs/unified-event-log (design.md §2 "Log_Service").
  */
 import type { Character, LogCategory, LogEvent } from '../types/character';
+import { generateUUID } from './uuid';
 
 /**
  * Maximum number of active LogEvents retained before rotation. (Req 3.1)
@@ -27,24 +28,6 @@ export interface AppendEventInput {
   type: string;
   summary: string;
   payload?: Record<string, unknown>;
-}
-
-/**
- * Generate a unique string id.
- *
- * Reuses the `crypto.randomUUID()` + fallback pattern already used in
- * `character-manager.ts` so ids are consistent across producers (rolls, mirrors,
- * native events) without a shared counter. (Req 2.2)
- */
-function generateEventId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  // Fallback for environments without crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
 }
 
 /**
@@ -70,7 +53,7 @@ export function rotate(events: LogEvent[], cap: number = EVENT_LOG_CAP): LogEven
  */
 export function appendEvent(character: Character, input: AppendEventInput): Character {
   const event: LogEvent = {
-    id: generateEventId(),
+    id: generateUUID(),
     timestamp: Date.now(),
     category: input.category,
     type: input.type,
