@@ -127,7 +127,33 @@ describe('handleFetch', () => {
   // --- Navigation request tests ---
 
   describe('navigation requests', () => {
-    it('returns cached app shell for navigation requests', async () => {
+    it('serves the fresh network shell and refreshes the precache when online', async () => {
+      // Network-first: a fresh shell references the currently-deployed chunk
+      // hashes, avoiding stale-chunk preload failures after a new deploy.
+      const networkShell = createMockResponse('<html>fresh</html>');
+      const precacheStore = {
+        match: vi.fn(async () => undefined),
+        put: vi.fn(async () => undefined),
+        delete: vi.fn(async () => true),
+        keys: vi.fn(async () => []),
+      };
+
+      globalThis.caches = {
+        open: vi.fn(async () => precacheStore),
+        match: vi.fn(async () => createMockResponse('<html>stale-cached</html>')),
+      } as unknown as CacheStorage;
+      globalThis.fetch = vi.fn(async () => networkShell);
+
+      const request = createRequest('https://example.com/PWACharSheet/some-page', { mode: 'navigate' });
+      const result = await handleFetch(request, defaultConfig);
+
+      expect(globalThis.fetch).toHaveBeenCalled();
+      expect(await result!.text()).toBe('<html>fresh</html>');
+      // The fresh shell is written back into the precache under the shell URL.
+      expect(precacheStore.put).toHaveBeenCalledWith('/PWACharSheet/index.html', expect.anything());
+    });
+
+    it('falls back to the cached app shell when the network fails', async () => {
       const appShellResponse = createMockResponse('<html>app</html>');
 
       globalThis.caches = {
@@ -138,16 +164,34 @@ describe('handleFetch', () => {
           return undefined;
         }),
       } as unknown as CacheStorage;
-      globalThis.fetch = vi.fn();
+      globalThis.fetch = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
 
       const request = createRequest('https://example.com/PWACharSheet/some-page', { mode: 'navigate' });
       const result = await handleFetch(request, defaultConfig);
 
       expect(result).toBe(appShellResponse);
-      expect(globalThis.fetch).not.toHaveBeenCalled();
     });
 
-    it('returns offline.html when app shell is not cached', async () => {
+    it('falls back to the cached app shell when the network returns a non-ok response', async () => {
+      const appShellResponse = createMockResponse('<html>app</html>');
+
+      globalThis.caches = {
+        open: vi.fn(async () => createEmptyMockCache()),
+        match: vi.fn(async (url: string | Request) => {
+          const u = typeof url === 'string' ? url : url.toString();
+          if (u === '/PWACharSheet/index.html') return appShellResponse;
+          return undefined;
+        }),
+      } as unknown as CacheStorage;
+      globalThis.fetch = vi.fn(async () => createMockResponse('not found', 404));
+
+      const request = createRequest('https://example.com/PWACharSheet/some-page', { mode: 'navigate' });
+      const result = await handleFetch(request, defaultConfig);
+
+      expect(result).toBe(appShellResponse);
+    });
+
+    it('returns offline.html when network fails and app shell is not cached', async () => {
       const offlineResponse = createMockResponse('<html>offline</html>');
 
       globalThis.caches = {
@@ -158,7 +202,7 @@ describe('handleFetch', () => {
           return undefined;
         }),
       } as unknown as CacheStorage;
-      globalThis.fetch = vi.fn();
+      globalThis.fetch = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
 
       const request = createRequest('https://example.com/PWACharSheet/some-page', { mode: 'navigate' });
       const result = await handleFetch(request, defaultConfig);
@@ -166,12 +210,12 @@ describe('handleFetch', () => {
       expect(result).toBe(offlineResponse);
     });
 
-    it('returns 503 when no cached fallbacks are available for navigation', async () => {
+    it('returns 503 when network fails and no cached fallbacks are available', async () => {
       globalThis.caches = {
         open: vi.fn(async () => createEmptyMockCache()),
         match: vi.fn(async () => undefined),
       } as unknown as CacheStorage;
-      globalThis.fetch = vi.fn();
+      globalThis.fetch = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
 
       const request = createRequest('https://example.com/PWACharSheet/some-page', { mode: 'navigate' });
       const result = await handleFetch(request, defaultConfig);

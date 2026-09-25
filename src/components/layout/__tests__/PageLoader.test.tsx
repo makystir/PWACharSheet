@@ -64,6 +64,52 @@ describe('LazyErrorBoundary', () => {
     ).toBeInTheDocument();
   });
 
+  it('treats a Vite "Unable to preload CSS" error as a chunk-load error', () => {
+    console.error = vi.fn();
+
+    // Vite's module-preload helper throws this when a stale shell references a
+    // hashed CSS chunk that a newer deployment no longer serves.
+    const preloadError = new Error(
+      'Unable to preload CSS for https://makystir.github.io/PWACharSheet/assets/EstatePage-COLqlO-I.css'
+    );
+
+    render(
+      <LazyErrorBoundary>
+        <ThrowingChild error={preloadError} />
+      </LazyErrorBoundary>
+    );
+
+    expect(screen.getByText('Page could not be loaded')).toBeInTheDocument();
+    expect(
+      screen.getByText('A network error prevented this page from loading. Please check your connection and try again.')
+    ).toBeInTheDocument();
+  });
+
+  it('clicking retry triggers window.location.reload for CSS preload errors', async () => {
+    console.error = vi.fn();
+    const user = userEvent.setup();
+
+    const reloadMock = vi.fn();
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, reload: reloadMock },
+      writable: true,
+    });
+
+    const preloadError = new Error(
+      'Unable to preload CSS for https://makystir.github.io/PWACharSheet/assets/EstatePage-COLqlO-I.css'
+    );
+
+    render(
+      <LazyErrorBoundary>
+        <ThrowingChild error={preloadError} />
+      </LazyErrorBoundary>
+    );
+
+    await user.click(screen.getByRole('button', { name: /retry/i }));
+
+    expect(reloadMock).toHaveBeenCalledTimes(1);
+  });
+
   it('renders a "Retry" button on error', () => {
     console.error = vi.fn();
 

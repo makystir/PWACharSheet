@@ -17,13 +17,16 @@ export function LoadingIndicator() {
 /**
  * Determines whether an error is a chunk-load failure.
  * Webpack uses "ChunkLoadError", Vite/Rollup uses "TypeError" with dynamic import messages.
+ * Vite's module-preload helper throws "Unable to preload CSS for <url>" when a
+ * hashed CSS chunk referenced by a stale shell is missing after a new deploy.
  */
 function isChunkLoadError(error: Error): boolean {
   return (
     error.name === 'ChunkLoadError' ||
     error.message.includes('Failed to fetch dynamically imported module') ||
     error.message.includes('Loading chunk') ||
-    error.message.includes('Loading CSS chunk')
+    error.message.includes('Loading CSS chunk') ||
+    error.message.includes('Unable to preload CSS')
   );
 }
 
