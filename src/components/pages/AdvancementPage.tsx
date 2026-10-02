@@ -10,11 +10,12 @@ import { Tooltip } from '../shared/Tooltip';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { AdvancementChecklist } from './AdvancementChecklist';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
-import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, applyBulkAdvancement, calculateTierBoundaryCost } from '../../logic/advancement';
+import { getCareersByClass, getCareerScheme, getSpecialisationOptions } from '../../logic/careers';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, getCareerLevelProgress, careerSkillMatches, careerTalentMatches, getCareerTalentCards, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, applyBulkAdvancement, calculateTierBoundaryCost } from '../../logic/advancement';
 import { filterSkillEntries } from '../../logic/skill-filter';
 import { getBonus } from '../../logic/calculators';
-import { TALENT_DB } from '../../data/talents';
+import { findTalentData } from '../../logic/talents';
+import { isPlaceholderName, parseGroupedName, specialiseName } from '../../logic/grouped-names';
 import { SPELL_LIST } from '../../data/spells';
 import { RITUAL_LIST } from '../../data/rituals';
 import { resolveTalentTooltip, resolveSkillTooltip } from '../../logic/tooltip-content';
@@ -73,6 +74,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSpellLearningPicker, setShowSpellLearningPicker] = useState(false);
   const [spellLearningType, setSpellLearningType] = useState<'petty' | 'arcane' | 'miracle' | 'chaos'>('petty');
+  // Grouped talent entry ("Etiquette (Any)") awaiting a specialisation before purchase.
+  const [talentSpecEntry, setTalentSpecEntry] = useState<string | null>(null);
   const [skillSearchText, setSkillSearchText] = useState('');
 
   // XP award workflow + over-spend feedback (shake/toast).
@@ -149,7 +152,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     : [];
   const careerLevel = allLevels.find(l => l.title === character.careerLevel);
   const careerLevelNum = allLevels.findIndex(l => l.title === character.careerLevel) + 1;
-  const isComplete = scheme && careerLevelNum > 0 ? isCareerLevelComplete(character, character.career, careerLevelNum) : false;
+  // Single source for the completion rule (thresholds, skill slots, talents).
+  const progress = scheme && careerLevelNum > 0 ? getCareerLevelProgress(character, character.career, careerLevelNum) : null;
+  const isComplete = progress?.complete ?? false;
 
   const careerChars = careerLevel?.characteristics ?? [];
   // Memoised on careerLevel so the `?? []` fallback has a stable identity and
@@ -176,18 +181,22 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const inCareerSkills = filteredSkills.filter(e => e.inCareer);
   const outCareerSkills = filteredSkills.filter(e => !e.inCareer);
 
-  // Career progress analysis — WFRP 4e completion thresholds: Level 1=5, 2=10, 3=15, 4=20, 5=25
-  const completionThreshold = ({ 1: 5, 2: 10, 3: 15, 4: 20, 5: 25 } as Record<number, number>)[careerLevelNum] ?? 5;
+  // Career progress analysis — read from getCareerLevelProgress, never re-derived here.
+  const completionThreshold = progress?.threshold ?? 5;
   const maxLevel = allLevels.length;
   const isMaxLevel = careerLevelNum >= maxLevel;
-  const charsProgress = careerChars.map(k => ({ name: k, advances: character.chars[k].a, met: character.chars[k].a >= completionThreshold }));
-  const charsMet = charsProgress.every(c => c.met);
-  const allSkills = [...character.bSkills, ...character.aSkills];
-  const skillsWithAdvances = careerSkills.filter(sn => allSkills.some(s => careerSkillMatches(sn, s.n) && s.a >= completionThreshold));
-  const skillsMet = skillsWithAdvances.length >= Math.min(8, careerSkills.length);
-  const talentsOwned = getCurrentLevelTalents(character.career, careerLevelNum).filter(tn => character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' (')));
-  const talentsMet = talentsOwned.length >= 1;
-  const readyToProgress = charsMet && skillsMet && talentsMet;
+  const charsProgress = progress?.chars ?? [];
+  const charsMet = progress?.charsMet ?? true;
+  const skillsRequired = progress?.skillsRequired ?? 0;
+  // Met career skill entries. A grouped entry names the skill counted for it:
+  // "Language (Any): Language (Bretonnian)".
+  const skillsWithAdvances = (progress?.skills ?? []).flatMap(s =>
+    s.filledBy ? [s.filledBy.n === s.entry ? s.entry : `${s.entry}: ${s.filledBy.n}`] : []
+  );
+  const skillsMet = progress?.skillsMet ?? true;
+  const talentsOwned = progress?.talentsOwned ?? [];
+  const talentsMet = progress?.talentsMet ?? false;
+  const readyToProgress = isComplete;
   const advanceLevelCost = readyToProgress ? 100 : 200;
   const canAffordAdvance = character.xpCur >= advanceLevelCost;
 
@@ -338,7 +347,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
 
   // Acquire talent using the WFRP 4e cost: 100 × (times taken + 1) in-career, doubled out
   const handleAcquireTalent = (talentName: string) => {
-    const inCareer = careerTalents.some(ct => talentName === ct || talentName.startsWith(ct + ' (') || ct.startsWith(talentName + ' ('));
+    const inCareer = careerTalents.some(ct => careerTalentMatches(ct, talentName));
     const existing = character.talents.find(t => t.n === talentName);
     const timesTaken = existing ? existing.lvl : 0;
     const cost = getAdvancementCost('talent', timesTaken, inCareer);
@@ -356,7 +365,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         const idx = newTalents.findIndex(t => t.n === talentName);
         newTalents[idx] = { ...existingInner, lvl: existingInner.lvl + 1 };
       } else {
-        newTalents.push({ n: talentName, lvl: 1, desc: TALENT_DB.find(t => t.name === talentName)?.desc ?? '' });
+        newTalents.push({ n: talentName, lvl: 1, desc: findTalentData(talentName)?.desc ?? '' });
       }
       return archiveOldEntries({
         ...c,
@@ -371,6 +380,16 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       });
     });
     setRedoStack([]);
+  };
+
+  // A grouped talent ("Etiquette (Any)") needs its specialisation chosen before purchase.
+  const requestAcquireTalent = (talentName: string) => {
+    if (isPlaceholderName(talentName)) setTalentSpecEntry(talentName);
+    else handleAcquireTalent(talentName);
+  };
+  const handleAcquireSpecialisedTalent = (talentName: string) => {
+    handleAcquireTalent(talentName);
+    setTalentSpecEntry(null);
   };
 
   // Learn spell from picker
@@ -395,6 +414,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
 
   const careerNames = character.class ? getCareersByClass(character.class) : Object.keys(CAREER_SCHEMES);
   const levelTitles = allLevels.map(l => l.title);
+  const outOfCareerTalents = character.talents.filter(t => !careerTalents.some(ct => careerTalentMatches(ct, t.n)));
+  // Dropdown suggestions for the grouped talent being acquired; a custom entry is offered beside them.
+  const talentSpecOptions = talentSpecEntry ? getSpecialisationOptions(talentSpecEntry, 'talent') : null;
 
   // XP award audit log + derived breakdown for the Current-XP tooltip.
   const xpLog = character.xpLog ?? [];
@@ -435,7 +457,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           charsProgress={charsProgress}
           charsMet={charsMet}
           skillsWithAdvances={skillsWithAdvances}
-          skillsRequired={Math.min(8, careerSkills.length)}
+          skillsRequired={skillsRequired}
           skillsMet={skillsMet}
           talentsOwned={talentsOwned}
           talentsMet={talentsMet}
@@ -591,7 +613,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                 ))}
               </div>
               <div className={skillsMet ? styles.checklistItemMet : styles.checklistItemUnmet}>
-                {skillsMet ? '✓' : '✗'} Skills: {skillsWithAdvances.length}/{Math.min(8, careerSkills.length)} at {completionThreshold}+
+                {skillsMet ? '✓' : '✗'} Skills: {skillsWithAdvances.length}/{skillsRequired} at {completionThreshold}+
               </div>
               <div className={`${styles.talentChecklistItem} ${talentsMet ? styles.checklistItemMet : styles.checklistItemUnmet}`}>
                 {talentsMet ? '✓' : '✗'} Talent: {talentsOwned.length > 0 ? talentsOwned.join(', ') : 'none'}
@@ -822,16 +844,18 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           <>
             <div className={styles.talentGroupLabelInCareer}>In-Career Talents</div>
             <div className={styles.talentGrid}>
-              {careerTalents.map((talentName) => {
-                const existing = character.talents.find(t => t.n === talentName);
-                const timesTaken = existing ? existing.lvl : 0;
+              {/* A grouped entry ("Etiquette (Any)") shows one card per owned
+                  specialisation plus one card for taking a new one. */}
+              {getCareerTalentCards(careerTalents, character.talents).map((card, i) => {
+                const talentName = card.name;
+                const timesTaken = card.owned ? card.owned.lvl : 0;
                 const cost = getAdvancementCost('talent', timesTaken, true);
                 const canAfford = character.xpCur >= cost;
                 return (
-                  <div key={talentName} className={styles.talentCardInCareer}>
+                  <div key={`${card.entry}-${i}`} className={styles.talentCardInCareer}>
                     <button
                       type="button"
-                      onClick={(e) => handleTalentTooltip(talentName, existing?.desc ?? '', e)}
+                      onClick={(e) => handleTalentTooltip(talentName, card.owned?.desc ?? '', e)}
                       aria-describedby={
                         activeTooltip?.type === 'talent' && activeTooltip.key === talentName
                           ? `tooltip-talent-${talentName}`
@@ -840,10 +864,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                       className={styles.talentName}
                     >{talentName}</button>
                     <div className={styles.talentMeta}>
-                      Level: {timesTaken} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
+                      {card.needsSpecialisation ? 'New specialisation' : `Level: ${timesTaken}`} | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
                     </div>
-                    <button type="button" onClick={() => handleAcquireTalent(talentName)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
-                      {timesTaken === 0 ? 'Acquire' : '+1 Level'} ({cost} XP)
+                    <button type="button" onClick={() => card.needsSpecialisation ? setTalentSpecEntry(card.entry) : handleAcquireTalent(talentName)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
+                      {card.needsSpecialisation ? 'Choose & Acquire' : timesTaken === 0 ? 'Acquire' : '+1 Level'} ({cost} XP)
                     </button>
                   </div>
                 );
@@ -851,11 +875,11 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             </div>
           </>
         )}
-        {character.talents.filter(t => !careerTalents.includes(t.n)).length > 0 && (
+        {outOfCareerTalents.length > 0 && (
           <>
             <div className={styles.talentGroupLabelOutCareer}>Out-of-Career Talents (owned)</div>
             <div className={styles.talentGrid}>
-              {character.talents.filter(t => !careerTalents.includes(t.n)).map((talent) => {
+              {outOfCareerTalents.map((talent) => {
                 const cost = getAdvancementCost('talent', talent.lvl, false);
                 const canAfford = character.xpCur >= cost;
                 const futureLevel = getFutureCareerLevel(character.career, careerLevelNum, { type: 'talent', name: talent.n });
@@ -888,13 +912,14 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         )}
         {/* Future career talents not yet owned and not currently in-career */}
         {scheme && careerLevelNum < maxLevel && (() => {
-          const ownedNames = new Set(character.talents.map(t => t.n));
+          // A grouped entry stays on offer while only other specialisations of it are owned.
+          const isOwned = (tn: string) => character.talents.some(t => t.n === tn || (!isPlaceholderName(tn) && careerTalentMatches(tn, t.n)));
           const inCareerSet = new Set(careerTalents);
           const futureTalents: { name: string; level: number }[] = [];
           for (let lvl = careerLevelNum + 1; lvl <= maxLevel; lvl++) {
             const lvlData = scheme[`level${lvl}` as keyof typeof scheme] as CareerLevel;
             for (const tn of lvlData.talents) {
-              if (!inCareerSet.has(tn) && !ownedNames.has(tn) && !futureTalents.some(ft => ft.name === tn)) {
+              if (!inCareerSet.has(tn) && !isOwned(tn) && !futureTalents.some(ft => ft.name === tn)) {
                 futureTalents.push({ name: tn, level: lvl });
               }
             }
@@ -923,8 +948,8 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
                         Not owned | Next: <span className={canAfford ? styles.canAfford : styles.cannotAfford}>{cost} XP</span>
                         {' '}<span className={styles.futureCareerWarning}>In-career at CL{level}</span>
                       </div>
-                      <button type="button" onClick={() => handleAcquireTalent(talentName)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
-                        Acquire ({cost} XP)
+                      <button type="button" onClick={() => requestAcquireTalent(talentName)} disabled={!canAfford} className={canAfford ? styles.talentAcquireBtn : styles.talentAcquireBtnDisabled}>
+                        {isPlaceholderName(talentName) ? 'Choose & Acquire' : 'Acquire'} ({cost} XP)
                       </button>
                     </div>
                   );
@@ -1291,6 +1316,17 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       )}
       {showSwitchCareerPicker && (
         <Picker items={getEligibleCareers(character.species).filter(c => c !== character.career)} getLabel={(c) => c} getGroup={(c) => { const s = getCareerScheme(c); return s ? s.class : 'Other'; }} onSelect={handleSwitchCareer} onClose={() => setShowSwitchCareerPicker(false)} title="Switch to Career" />
+      )}
+      {talentSpecEntry && talentSpecOptions && (
+        <Picker
+          items={talentSpecOptions.names}
+          getLabel={(n) => parseGroupedName(n).spec ?? n}
+          isDisabled={(n) => character.talents.some(t => t.n.toLowerCase() === n.toLowerCase())}
+          onSelect={handleAcquireSpecialisedTalent}
+          onCustom={talentSpecOptions.allowCustom ? (text) => handleAcquireSpecialisedTalent(specialiseName(talentSpecEntry, text)) : undefined}
+          onClose={() => setTalentSpecEntry(null)}
+          title={`${parseGroupedName(talentSpecEntry).base}: choose specialisation`}
+        />
       )}
       {showSpellLearningPicker && (
         <SpellPicker

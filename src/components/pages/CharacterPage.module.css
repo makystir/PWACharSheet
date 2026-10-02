@@ -500,6 +500,34 @@
   gap: 4px;
 }
 
+/* Choose-specialisation button, shown only on placeholder rows such as
+   "Language (Any)". Icon-only and 24px so the name keeps its width. */
+.chooseSpecBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  cursor: pointer;
+}
+
+.chooseSpecBtn:hover {
+  background: var(--bg-tertiary);
+}
+
+@media (hover: none) {
+  .chooseSpecBtn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 .actionRow {
   display: flex;
   gap: 4px;

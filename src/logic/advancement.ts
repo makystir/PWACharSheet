@@ -1,7 +1,9 @@
-import type { Character, CharacteristicKey, AdvancementEntry, XpAwardEntry, Skill, CareerScheme, CareerLevel, RitualItem } from '../types/character';
+import type { Character, CharacteristicKey, AdvancementEntry, XpAwardEntry, Skill, Talent, CareerScheme, CareerLevel, RitualItem } from '../types/character';
+import { BLANK_CHARACTER } from '../types/character';
 import { CAREER_SCHEMES } from '../data/careers';
 import { ADV_SKILL_DB } from '../data/advanced-skills';
 import type { RitualData } from '../data/rituals';
+import { parseGroupedName, parseRequirement, isPlaceholderName, satisfiesRequirement, assignSlots, getSkillGroup } from './grouped-names';
 // Unified event log (spec: unified-event-log, Req 5.2/5.4). Advancement writes
 // are authoritative on `advancementLog`; after each authoritative write we emit
 // a display-only mirror event via `mirrorAdvancement`. The mirror never feeds
@@ -59,43 +61,28 @@ export function sortSkillsByCareerStatus(
   return entries;
 }
 
-/** Well-known characteristic links for skill bases that can't be looked up in ADV_SKILL_DB */
-const SKILL_CHAR_FALLBACKS: Record<string, string> = {
-  'Channelling': 'WP',
-  'Language': 'Int',
-  'Lore': 'Int',
-  'Melee': 'WS',
-  'Ranged': 'BS',
-  'Ride': 'Ag',
-  'Sail': 'Ag',
-  'Stealth': 'Ag',
-  'Entertain': 'Fel',
-  'Trade': 'Dex',
-  'Perform': 'Ag',
-  'Secret Signs': 'Int',
-  'Play': 'Dex',
-  'Animal Training': 'Int',
-  'Art': 'Dex',
-};
-
 /**
- * Resolve the characteristic for a career skill name.
- * Tries exact match in ADV_SKILL_DB first, then falls back to base-name lookup.
+ * Resolve the linked characteristic for a skill name.
+ * Tries exact match in ADV_SKILL_DB first, then the skill's group in SKILL_GROUPS.
+ * Shared by career-skill creation, the character wizard and the random generator.
  */
-function resolveSkillCharacteristic(careerSkillName: string): string {
+export function resolveSkillCharacteristic(skillName: string): string {
   // Exact match in database
-  const exact = ADV_SKILL_DB.find(s => s.n === careerSkillName);
+  const exact = ADV_SKILL_DB.find(s => s.n === skillName);
   if (exact) return exact.c;
 
-  // Extract base name (before parentheses) and look up fallback
-  const parenIdx = careerSkillName.indexOf(' (');
-  const baseName = parenIdx !== -1 ? careerSkillName.substring(0, parenIdx) : careerSkillName;
+  // Group (the part before the parentheses) with a known characteristic
+  const { base } = parseGroupedName(skillName);
+  const group = getSkillGroup(base);
+  if (group) return group.c;
 
-  // Check if we have a known fallback for this base
-  if (SKILL_CHAR_FALLBACKS[baseName]) return SKILL_CHAR_FALLBACKS[baseName];
+  // A specialisation of a skill that also exists unspecialised
+  // ("Drive (Skycutter)") shares that skill's characteristic
+  const plain = ADV_SKILL_DB.find(s => s.n === base) ?? BLANK_CHARACTER.bSkills.find(s => s.n === base);
+  if (plain) return plain.c;
 
   // Check if any ADV_SKILL_DB entry starts with the same base
-  const dbMatch = ADV_SKILL_DB.find(s => s.n.startsWith(baseName + ' ('));
+  const dbMatch = ADV_SKILL_DB.find(s => s.n.startsWith(base + ' ('));
   if (dbMatch) return dbMatch.c;
 
   // Default to Int as safest fallback
@@ -116,7 +103,7 @@ export function ensureCareerSkillsExist(character: Character, careerSkills: stri
 
   for (const careerSkill of careerSkills) {
     // Skip wildcard skills — the player needs to choose a specialisation
-    if (careerSkill.includes('(Any)') || careerSkill.includes('(Any ')) continue;
+    if (parseRequirement(careerSkill).kind === 'any') continue;
 
     // Check if ANY existing skill already matches this career skill
     const alreadyExists = allExistingSkills.some(s => careerSkillMatches(careerSkill, s.n));
@@ -252,7 +239,7 @@ export function getFutureCareerLevel(
         if (careerLevel.skills.some(cs => careerSkillMatches(cs, target.name))) return level;
         break;
       case 'talent':
-        if (careerLevel.talents.includes(target.name)) return level;
+        if (careerLevel.talents.some(ct => careerTalentMatches(ct, target.name))) return level;
         break;
     }
   }
@@ -574,40 +561,71 @@ const CAREER_COMPLETION_THRESHOLDS: Record<number, number> = { 1: 5, 2: 10, 3: 1
 /**
  * Check if a career skill name matches a character's skill.
  * Handles grouped skills: career "Melee (Any)" matches character "Melee (Basic)",
- * career "Channelling (Any Colour)" matches character "Channelling (Aqshy)",
- * career "Art (Calligraphy or Engraving)" matches character "Art (Calligraphy)",
- * career "Melee (Basic)" matches character "Melee (Basic)" exactly,
- * and career "Stealth" matches character "Stealth (Urban)" etc.
+ * career "Channelling (Any Colour)" matches character "Channelling (Aqshy)" or
+ * plain "Channelling", career "Art (Calligraphy or Engraving)" matches character
+ * "Art (Calligraphy)", career "Melee (Basic)" matches character "Melee (Basic)"
+ * exactly, and career "Stealth" matches character "Stealth (Urban)" etc.
+ *
+ * The comparison is by group and specialisation (see grouped-names.ts), so
+ * spacing, capitalisation and homebrew specialisations do not break it.
  */
 export function careerSkillMatches(careerSkillName: string, characterSkillName: string): boolean {
-  if (careerSkillName === characterSkillName) return true;
-  // "(Any)" grouped skill: "Melee (Any)" matches any "Melee (...)"
-  if (careerSkillName.includes('(Any)')) {
-    const base = careerSkillName.replace('(Any)', '').trim();
-    return characterSkillName.startsWith(base + ' (') || characterSkillName === base;
+  return satisfiesRequirement(careerSkillName, characterSkillName);
+}
+
+/**
+ * Check if a career talent name matches a talent the character owns.
+ * Same rule as careerSkillMatches, plus the leniency talents have always had:
+ * a talent written without its specialisation ("Strider") counts for a career
+ * entry that names one ("Strider (Woodlands)").
+ */
+export function careerTalentMatches(careerTalentName: string, characterTalentName: string): boolean {
+  return satisfiesRequirement(careerTalentName, characterTalentName, { bareOwnedSatisfiesSpecific: true });
+}
+
+/** A card in the career talent list: something the character can buy or raise. */
+export interface CareerTalentCard {
+  /** Career entry the card belongs to. */
+  entry: string;
+  /** Talent the card buys: the owned talent's own name, or the entry. */
+  name: string;
+  owned: Talent | undefined;
+  /** True when a specialisation must be chosen before buying ("Etiquette (Any)"). */
+  needsSpecialisation: boolean;
+}
+
+/**
+ * Build the career talent cards for a level.
+ * A specific entry gives one card. A grouped entry ("Arcane Magic (Any Arcane
+ * Lore)") gives one card per specialisation the character already owns, plus one
+ * card for taking a new specialisation.
+ */
+export function getCareerTalentCards(careerTalents: string[], ownedTalents: Talent[]): CareerTalentCard[] {
+  // A talent named by a specific entry belongs to that entry, not to a wildcard beside it.
+  const claimed = new Set<Talent>();
+  const specific = new Map<string, Talent | undefined>();
+  for (const entry of careerTalents) {
+    if (isPlaceholderName(entry)) continue;
+    const match = ownedTalents.find(t => t.n === entry) ?? ownedTalents.find(t => careerTalentMatches(entry, t.n));
+    specific.set(entry, match);
+    if (match) claimed.add(match);
   }
-  // "(Any X)" grouped skill: "Channelling (Any Colour)" matches any "Channelling (...)"
-  if (careerSkillName.includes('(Any ')) {
-    const base = careerSkillName.substring(0, careerSkillName.indexOf(' (Any'));
-    return characterSkillName.startsWith(base + ' (');
-  }
-  // "(X or Y)" choice pattern: "Art (Calligraphy or Engraving)" matches "Art (Calligraphy)" or "Art (Engraving)"
-  const parenOpen = careerSkillName.indexOf('(');
-  const parenClose = careerSkillName.indexOf(')');
-  if (parenOpen !== -1 && parenClose !== -1) {
-    const parenContent = careerSkillName.substring(parenOpen + 1, parenClose);
-    if (parenContent.includes(' or ')) {
-      const base = careerSkillName.substring(0, parenOpen).trimEnd();
-      const options = parenContent.split(' or ');
-      return options.some(option => characterSkillName === base + ' (' + option.trim() + ')');
+
+  const cards: CareerTalentCard[] = [];
+  for (const entry of careerTalents) {
+    if (!isPlaceholderName(entry)) {
+      const match = specific.get(entry);
+      cards.push({ entry, name: match?.n ?? entry, owned: match, needsSpecialisation: false });
+      continue;
     }
+    for (const talent of ownedTalents) {
+      if (claimed.has(talent) || !careerTalentMatches(entry, talent.n)) continue;
+      claimed.add(talent);
+      cards.push({ entry, name: talent.n, owned: talent, needsSpecialisation: false });
+    }
+    cards.push({ entry, name: entry, owned: undefined, needsSpecialisation: true });
   }
-  // Ungrouped career skill matching a specialised character skill:
-  // e.g., career "Stealth" matches character "Stealth (Urban)"
-  if (!careerSkillName.includes('(') && characterSkillName.startsWith(careerSkillName + ' (')) {
-    return true;
-  }
-  return false;
+  return cards;
 }
 
 /**
@@ -638,59 +656,122 @@ export function getCurrentLevelTalents(
   return careerLevel.talents.filter(t => !prevTalents.includes(t));
 }
 
+/** A career skill entry and the character skill counted for it, if any. */
+export interface CareerSkillSlot {
+  /** The entry as the career lists it, e.g. "Language (Any)". */
+  entry: string;
+  /** The character skill counted for this entry, or null while it is unmet. */
+  filledBy: Skill | null;
+}
+
+/** Progress towards completing a career level. */
+export interface CareerLevelProgress {
+  /** Advances needed in each characteristic and each counted skill. */
+  threshold: number;
+  chars: { name: CharacteristicKey; advances: number; met: boolean }[];
+  charsMet: boolean;
+  /** Every career skill entry of the level, in career order. */
+  skills: CareerSkillSlot[];
+  skillsRequired: number;
+  skillsMet: boolean;
+  /** Career talents new at this level that the character owns. */
+  talentsOwned: string[];
+  talentsMet: boolean;
+  complete: boolean;
+}
+
 /**
- * Check if a career level is complete per WFRP 4e rules (p.48).
+ * Work out how far a character is through a career level per WFRP 4e rules (p.48).
+ * This is the single source for the completion rule; isCareerLevelComplete and
+ * the Advancement page both read it.
  *
  * To complete a career level, you must have:
  * - The level's required advances (5/10/15/20) in ALL career level characteristics
  * - The level's required advances in at least 8 of the career level's available skills
  * - At least 1 talent from the CURRENT career level (NOT lower levels)
  *
+ * Each career skill entry is one slot and each character skill is counted for at
+ * most one slot. "Language (Magick)" is met only by Language (Magick), while
+ * "Language (Any)" is met by any other language; one skill never counts twice.
+ * (User-confirmed reading of grouped entries; rulebook page reference to be filled in.)
+ *
  * Per Core Rulebook p.47: "Talents are only available when you are in the level of the Career
  * that lists them." The completion check enforces this by requiring a talent that is NEW at
  * the current level.
  *
  * Skills and characteristics gained from prior careers count towards completion.
+ * Returns null for an unknown career or level.
+ */
+export function getCareerLevelProgress(
+  character: Character,
+  careerName: string,
+  level: number,
+): CareerLevelProgress | null {
+  const scheme = CAREER_SCHEMES[careerName];
+  if (!scheme) return null;
+
+  const careerLevel = scheme[`level${level}` as keyof typeof scheme] as CareerLevel | undefined;
+  if (!careerLevel) return null;
+
+  const threshold = CAREER_COMPLETION_THRESHOLDS[level];
+  if (!threshold) return null;
+
+  // Characteristics: ALL must have >= threshold advances
+  const chars = careerLevel.characteristics.map(name => {
+    const advances = character.chars[name].a;
+    return { name, advances, met: advances >= threshold };
+  });
+  const charsMet = chars.every(c => c.met);
+
+  // Skills: at least 8 (or all if fewer than 8) entries must be met by a skill with
+  // >= threshold advances. Candidates are the skills that reach the threshold, one
+  // per distinct name (a duplicated row counts once), best first.
+  const best = new Map<string, Skill>();
+  for (const skill of [...character.bSkills, ...character.aSkills]) {
+    if (skill.n.trim() === '' || skill.a < threshold) continue;
+    const { base, spec } = parseGroupedName(skill.n);
+    const key = `${base}|${spec ?? ''}`.toLowerCase();
+    const current = best.get(key);
+    if (!current || skill.a > current.a) best.set(key, skill);
+  }
+  const candidates = [...best.values()].sort((a, b) => b.a - a.a);
+  const filledBy = assignSlots(careerLevel.skills, candidates.map(s => s.n));
+  const skills = careerLevel.skills.map((entry, i) => ({
+    entry,
+    filledBy: filledBy[i] === -1 ? null : candidates[filledBy[i]],
+  }));
+  const skillsRequired = Math.min(8, careerLevel.skills.length);
+  const skillsMet = skills.filter(s => s.filledBy !== null).length >= skillsRequired;
+
+  // Talents: at least 1 from CURRENT career level only (not cumulative lower levels)
+  const talentsOwned = getCurrentLevelTalents(careerName, level).filter(tn =>
+    character.talents.some(t => careerTalentMatches(tn, t.n))
+  );
+  const talentsMet = talentsOwned.length >= 1;
+
+  return {
+    threshold,
+    chars,
+    charsMet,
+    skills,
+    skillsRequired,
+    skillsMet,
+    talentsOwned,
+    talentsMet,
+    complete: charsMet && skillsMet && talentsMet,
+  };
+}
+
+/**
+ * Check if a career level is complete per WFRP 4e rules (p.48).
+ * See getCareerLevelProgress for the rule.
  */
 export function isCareerLevelComplete(
   character: Character,
   careerName: string,
   level: number,
 ): boolean {
-  const scheme = CAREER_SCHEMES[careerName];
-  if (!scheme) return false;
-
-  const careerLevel = scheme[`level${level}` as keyof typeof scheme] as CareerLevel | undefined;
-  if (!careerLevel) return false;
-
-  const threshold = CAREER_COMPLETION_THRESHOLDS[level];
-  if (!threshold) return false;
-
-  // Check characteristics: ALL must have >= threshold advances
-  for (const charKey of careerLevel.characteristics) {
-    if (character.chars[charKey].a < threshold) return false;
-  }
-
-  // Check skills: at least 8 (or all if fewer than 8) must have >= threshold advances
-  const allSkills = [...character.bSkills, ...character.aSkills];
-  const requiredSkillCount = Math.min(8, careerLevel.skills.length);
-  let matchedSkills = 0;
-
-  for (const careerSkillName of careerLevel.skills) {
-    const skill = allSkills.find(s => careerSkillMatches(careerSkillName, s.n));
-    if (skill && skill.a >= threshold) {
-      matchedSkills++;
-    }
-  }
-
-  // Check talents: at least 1 from CURRENT career level only (not cumulative lower levels)
-  // Per Core Rulebook p.47: "Talents are only available when you are in the level of the Career that lists them."
-  const currentLevelTalents = getCurrentLevelTalents(careerName, level);
-  const hasTalent = currentLevelTalents.some(tn =>
-    character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' ('))
-  );
-
-  return matchedSkills >= requiredSkillCount && hasTalent;
+  return getCareerLevelProgress(character, careerName, level)?.complete ?? false;
 }
 
 /**

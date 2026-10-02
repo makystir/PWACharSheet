@@ -24,6 +24,15 @@ interface RollDialogProps {
    * the preference.
    */
   diceEntryMode?: DiceEntryMode;
+  /**
+   * Several skills that could make this test (e.g. one Channelling skill per
+   * Wind). With two or more options a Skill dropdown is shown; the caller
+   * passes the chosen skill back in as `skillOrCharName` and `baseTarget`.
+   */
+  skillChoice?: {
+    options: { name: string; target: number }[];
+    onChange: (name: string) => void;
+  };
 }
 
 const DIFFICULTY_LABELS: { level: DifficultyLevel; label: string }[] = [
@@ -53,6 +62,7 @@ export function RollDialog({
   onRoll,
   onClose,
   diceEntryMode,
+  skillChoice,
 }: RollDialogProps) {
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(defaultDifficulty);
   const [opposedMode, setOpposedMode] = useState(false);
@@ -179,6 +189,24 @@ export function RollDialog({
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Roll Dialog">
       <div ref={dialogRef} className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>{skillOrCharName}</h2>
+
+        {skillChoice && skillChoice.options.length > 1 && (
+          <div>
+            <div className={styles.label}>Skill</div>
+            <select
+              className={styles.select}
+              value={skillOrCharName}
+              onChange={(e) => skillChoice.onChange(e.target.value)}
+              aria-label="Skill"
+            >
+              {skillChoice.options.map(({ name, target }) => (
+                <option key={name} value={name}>
+                  {name} — {target}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <div className={styles.label}>Base Target</div>

@@ -5,7 +5,7 @@ import type { RNG } from '../random-character-generator';
 import { BLANK_CHARACTER } from '../../types/character';
 import type { Character } from '../../types/character';
 import { SPECIES_DATA } from '../../data/species';
-import { ADV_SKILL_DB } from '../../data/advanced-skills';
+import { resolveSkillCharacteristic } from '../advancement';
 
 /**
  * Deterministic seeded RNG (mulberry32) — TEST UTILITY ONLY.
@@ -25,29 +25,13 @@ function mulberry32(seed: number): RNG {
 }
 
 /**
- * Mirror of the generator's private `resolveSkillChar` (and the proven
- * CharacterWizard pattern): exact ADV_SKILL_DB match → base-name fallback map →
- * prefix match → default 'Int'. Replicated here because the production helper is
- * module-private; the test asserts advanced species skills land with the SAME
- * linked characteristic the generator computes (Core p.35 skill resolution).
+ * The linked characteristic is resolved by the shared `resolveSkillCharacteristic`
+ * (exact ADV_SKILL_DB match → skill group in SKILL_GROUPS → prefix match → default
+ * 'Int'), the same helper the generator and the CharacterWizard call; the test
+ * asserts advanced species skills land with that characteristic (Core p.35 skill
+ * resolution). The resolver's own values are pinned in advancement.test.ts.
  */
-const SKILL_CHAR_FALLBACKS: Record<string, string> = {
-  Melee: 'WS', Ranged: 'BS', Channelling: 'WP', Language: 'Int',
-  Lore: 'Int', Perform: 'Ag', Sail: 'Ag', Trade: 'Dex',
-  'Secret Signs': 'Int', 'Animal Training': 'Int', Art: 'Dex',
-  Entertain: 'Fel', Ride: 'Ag', Stealth: 'Ag', Play: 'Dex',
-};
-
-function resolveSkillChar(skillName: string): string {
-  const exact = ADV_SKILL_DB.find((s) => s.n === skillName);
-  if (exact) return exact.c;
-  const parenIdx = skillName.indexOf(' (');
-  const baseName = parenIdx !== -1 ? skillName.substring(0, parenIdx) : skillName;
-  if (SKILL_CHAR_FALLBACKS[baseName]) return SKILL_CHAR_FALLBACKS[baseName];
-  const dbMatch = ADV_SKILL_DB.find((s) => s.n.startsWith(baseName + ' ('));
-  if (dbMatch) return dbMatch.c;
-  return 'Int';
-}
+const resolveSkillChar = resolveSkillCharacteristic;
 
 /** The set of Basic skill names seeded on a blank character (bSkills). */
 const BASIC_SKILL_NAMES = new Set(BLANK_CHARACTER.bSkills.map((s) => s.n));

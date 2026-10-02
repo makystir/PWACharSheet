@@ -5,7 +5,12 @@ import {
   advanceCharacteristic,
   advanceSkill,
   isCareerLevelComplete,
+  getCareerLevelProgress,
   careerSkillMatches,
+  careerTalentMatches,
+  getCareerTalentCards,
+  getFutureCareerLevel,
+  resolveSkillCharacteristic,
   sortSkillsByCareerStatus,
   ensureCareerSkillsExist,
 } from '../advancement';
@@ -915,5 +920,291 @@ describe('ensureCareerSkillsExist', () => {
     // Stealth (Rural) is a different specialisation from Stealth (Urban), so it should be added
     expect(result.aSkills).toHaveLength(2);
     expect(result.aSkills[1].n).toBe('Stealth (Rural)');
+  });
+});
+
+// ─── Grouped career entries: abstract skill, not specialisation ──────────────
+// A career entry such as "Language (Any)" or "Channelling (Any Colour)" is a
+// slot. Each character skill fills at most one slot, and a specific slot
+// ("Language (Magick)") is only filled by that specialisation.
+
+describe('careerSkillMatches — tolerant grouped matching', () => {
+  it('plain Channelling satisfies Channelling (Any Colour)', () => {
+    expect(careerSkillMatches('Channelling (Any Colour)', 'Channelling')).toBe(true);
+  });
+
+  it('matches whatever the spacing or spelling of the group', () => {
+    expect(careerSkillMatches('Channelling (Any Colour)', 'Channeling (Aqshy)')).toBe(true);
+    expect(careerSkillMatches('Channelling (Any Colour)', 'Channelling(Aqshy)')).toBe(true);
+  });
+
+  it('matches a homebrew specialisation', () => {
+    expect(careerSkillMatches('Channelling (Any Colour)', 'Channelling (Homebrew Wind)')).toBe(true);
+    expect(careerSkillMatches('Language (Any)', 'Language (Homebrew Tongue)')).toBe(true);
+  });
+
+  it('matches every option of a comma list', () => {
+    const entry = 'Trade (Blacksmith, Goldsmith, or Engineer)';
+    expect(careerSkillMatches(entry, 'Trade (Blacksmith)')).toBe(true);
+    expect(careerSkillMatches(entry, 'Trade (Goldsmith)')).toBe(true);
+    expect(careerSkillMatches(entry, 'Trade (Engineer)')).toBe(true);
+    expect(careerSkillMatches(entry, 'Trade (Cook)')).toBe(false);
+  });
+
+  it('ignores capitalisation inside a choice', () => {
+    expect(careerSkillMatches('Melee (Basic or Two-handed)', 'Melee (Two-Handed)')).toBe(true);
+  });
+
+  it('does not add a second placeholder once a comma-list skill is specialised', () => {
+    const character: Character = {
+      ...BLANK_CHARACTER,
+      aSkills: [{ n: 'Trade (Goldsmith)', c: 'Dex', a: 5 }],
+    };
+    const result = ensureCareerSkillsExist(character, ['Trade (Blacksmith, Goldsmith, or Engineer)']);
+    expect(result).toBe(character);
+  });
+});
+
+describe('getCareerLevelProgress — one skill per career entry', () => {
+  // High Elf Mage level 3 ("Mage"): threshold 15. Its 19 skill entries include
+  // "Channelling (Any Colour)" + "Channelling (Qhaysh)" and
+  // "Language (Any)" + "Language (Magick)".
+  function mageSlots(aSkills: Skill[]): Record<string, string | null> {
+    const char = makeTestCharacter({ career: 'Mage', careerLevel: 'Mage', bSkills: [], aSkills });
+    const progress = getCareerLevelProgress(char, 'Mage', 3);
+    expect(progress).not.toBeNull();
+    expect(progress!.threshold).toBe(15);
+    return Object.fromEntries(progress!.skills.map(s => [s.entry, s.filledBy?.n ?? null]));
+  }
+  const at15 = (n: string): Skill => ({ n, c: 'Int', a: 15 });
+
+  it('Language (Magick) alone fills only its own entry, not Language (Any) as well', () => {
+    const slots = mageSlots([at15('Language (Magick)')]);
+    expect(slots['Language (Magick)']).toBe('Language (Magick)');
+    expect(slots['Language (Any)']).toBeNull();
+  });
+
+  it('two languages that are not Magick fill only the wildcard entry', () => {
+    const slots = mageSlots([at15('Language (Bretonnian)'), at15('Language (Tilean)')]);
+    expect(slots['Language (Any)']).toBe('Language (Bretonnian)');
+    expect(slots['Language (Magick)']).toBeNull();
+  });
+
+  it('Magick plus another language fill both entries', () => {
+    const slots = mageSlots([at15('Language (Bretonnian)'), at15('Language (Magick)')]);
+    expect(slots['Language (Magick)']).toBe('Language (Magick)');
+    expect(slots['Language (Any)']).toBe('Language (Bretonnian)');
+  });
+
+  it('a low Channelling row listed first does not hide a high one', () => {
+    const slots = mageSlots([{ n: 'Channelling (Azyr)', c: 'WP', a: 3 }, at15('Channelling (Aqshy)')]);
+    expect(slots['Channelling (Any Colour)']).toBe('Channelling (Aqshy)');
+  });
+
+  it('Channelling (Qhaysh) alone fills one entry, its own', () => {
+    const slots = mageSlots([at15('Channelling (Qhaysh)')]);
+    expect(slots['Channelling (Qhaysh)']).toBe('Channelling (Qhaysh)');
+    expect(slots['Channelling (Any Colour)']).toBeNull();
+  });
+
+  it('a colour and Qhaysh fill both Channelling entries', () => {
+    const slots = mageSlots([at15('Channelling (Hysh)'), at15('Channelling (Qhaysh)')]);
+    expect(slots['Channelling (Any Colour)']).toBe('Channelling (Hysh)');
+    expect(slots['Channelling (Qhaysh)']).toBe('Channelling (Qhaysh)');
+  });
+
+  it.each([
+    'Channelling',
+    'Channeling(Aqshy)',
+    'Channelling (Homebrew Wind)',
+  ])('"%s" fills Channelling (Any Colour)', (name) => {
+    expect(mageSlots([at15(name)])['Channelling (Any Colour)']).toBe(name);
+  });
+
+  it('a homebrew language fills Language (Any)', () => {
+    expect(mageSlots([at15('Language (Homebrew Tongue)')])['Language (Any)']).toBe('Language (Homebrew Tongue)');
+  });
+
+  it('nine Channelling specialisations still count as one wildcard entry plus Qhaysh', () => {
+    const winds = ['Aqshy', 'Azyr', 'Chamon', 'Ghur', 'Ghyran', 'Hysh', 'Shyish', 'Ulgu', 'Qhaysh'];
+    const slots = mageSlots(winds.map(w => at15(`Channelling (${w})`)));
+    const filled = Object.values(slots).filter(v => v !== null);
+    expect(filled).toHaveLength(2);
+    expect(slots['Channelling (Qhaysh)']).toBe('Channelling (Qhaysh)');
+  });
+
+  it('a duplicated row counts once', () => {
+    const slots = mageSlots([at15('Language (Bretonnian)'), at15('Language (Bretonnian)')]);
+    expect(Object.values(slots).filter(v => v !== null)).toHaveLength(1);
+  });
+
+  it('a skill below the threshold fills nothing', () => {
+    const slots = mageSlots([{ n: 'Language (Magick)', c: 'Int', a: 14 }]);
+    expect(slots['Language (Magick)']).toBeNull();
+  });
+
+  /** A Mage at level 3 with every characteristic at 15 and a level-3 talent. */
+  function mageAtLevel3(aSkills: Skill[]): Character {
+    const char = makeTestCharacter({
+      career: 'Mage',
+      careerLevel: 'Mage',
+      bSkills: ['Charm', 'Cool', 'Gossip', 'Intuition', 'Perception'].map(n => ({ n, c: 'Fel', a: 15 })),
+      aSkills,
+      talents: [{ n: 'High Magic', lvl: 1, desc: '' }],
+    });
+    for (const key of ['Int', 'WP', 'Fel', 'Dex', 'WS'] as CharacteristicKey[]) char.chars[key].a = 15;
+    return char;
+  }
+
+  it('completes with eight distinct entries filled', () => {
+    const char = mageAtLevel3([at15('Language (Magick)'), at15('Lore (Magic)'), at15('Channelling (Aqshy)')]);
+    const progress = getCareerLevelProgress(char, 'Mage', 3)!;
+    expect(progress.skillsRequired).toBe(8);
+    expect(progress.skills.filter(s => s.filledBy).length).toBe(8);
+    expect(progress.complete).toBe(true);
+    expect(isCareerLevelComplete(char, 'Mage', 3)).toBe(true);
+  });
+
+  it('does not complete on seven skills by counting Language (Magick) twice', () => {
+    const char = mageAtLevel3([at15('Language (Magick)'), at15('Lore (Magic)')]);
+    const progress = getCareerLevelProgress(char, 'Mage', 3)!;
+    expect(progress.skills.filter(s => s.filledBy).length).toBe(7);
+    expect(progress.skillsMet).toBe(false);
+    expect(isCareerLevelComplete(char, 'Mage', 3)).toBe(false);
+  });
+
+  it('reports characteristics, talents and the same verdict as isCareerLevelComplete', () => {
+    const char = makeTestCharacter();
+    char.chars.WS.a = 5;
+    char.chars.T.a = 4;
+    char.chars.WP.a = 5;
+    char.talents = [{ n: 'Marksman', lvl: 1, desc: '' }];
+    const progress = getCareerLevelProgress(char, 'Soldier', 1)!;
+    expect(progress.threshold).toBe(5);
+    expect(progress.chars).toEqual([
+      { name: 'WS', advances: 5, met: true },
+      { name: 'T', advances: 4, met: false },
+      { name: 'WP', advances: 5, met: true },
+    ]);
+    expect(progress.charsMet).toBe(false);
+    expect(progress.talentsOwned).toEqual(['Marksman']);
+    expect(progress.talentsMet).toBe(true);
+    expect(progress.complete).toBe(isCareerLevelComplete(char, 'Soldier', 1));
+  });
+
+  it('returns null for an unknown career or level', () => {
+    const char = makeTestCharacter();
+    expect(getCareerLevelProgress(char, 'Unknown', 1)).toBeNull();
+    expect(getCareerLevelProgress(char, 'Soldier', 5)).toBeNull();
+  });
+});
+
+describe('careerTalentMatches — grouped talents', () => {
+  it.each([
+    ['Arcane Magic (Any Arcane Lore)', 'Arcane Magic (Fire)', true],
+    ['Arcane Magic (Any Arcane Lore)', 'Arcane Magic (Homebrew Lore)', true],
+    ['Etiquette (Any)', 'Etiquette (Nobles)', true],
+    ['Craftsman (Blacksmith, Goldsmith, or Engineer)', 'Craftsman (Goldsmith)', true],
+    ['Acute Sense (Taste or Touch)', 'Acute Sense (Touch)', true],
+    ['Acute Sense (Taste or Touch)', 'Acute Sense (Sight)', false],
+    ['Etiquette (Nobles)', 'Etiquette (Guilders)', false],
+    ['Marksman', 'Marksman', true],
+    ['Marksman', 'Hardy', false],
+    // A talent written without its specialisation has always counted.
+    ['Strider (Woodlands)', 'Strider', true],
+    ['Etiquette', 'Etiquette (Nobles)', true],
+  ])('career "%s" vs owned "%s" -> %s', (careerTalent, owned, expected) => {
+    expect(careerTalentMatches(careerTalent, owned)).toBe(expected);
+  });
+
+  it('a filled-in grouped talent satisfies the level talent requirement', () => {
+    // Wizard level 2 adds "Arcane Magic (Any Arcane Lore)".
+    const char = makeTestCharacter({ career: 'Wizard', careerLevel: 'Wizard', talents: [{ n: 'Arcane Magic (Fire)', lvl: 1, desc: '' }] });
+    const progress = getCareerLevelProgress(char, 'Wizard', 2)!;
+    expect(progress.talentsOwned).toContain('Arcane Magic (Any Arcane Lore)');
+    expect(progress.talentsMet).toBe(true);
+  });
+
+  it('getFutureCareerLevel recognises a filled-in grouped talent', () => {
+    expect(getFutureCareerLevel('Wizard', 1, { type: 'talent', name: 'Arcane Magic (Fire)' })).toBe(2);
+    expect(getFutureCareerLevel('Wizard', 1, { type: 'talent', name: 'Hardy' })).toBeNull();
+  });
+});
+
+describe('getCareerTalentCards', () => {
+  const talent = (n: string, lvl = 1) => ({ n, lvl, desc: '' });
+
+  it('gives one card per specific entry, owned or not', () => {
+    const marksman = talent('Marksman', 2);
+    expect(getCareerTalentCards(['Marksman', 'Diceman'], [marksman])).toEqual([
+      { entry: 'Marksman', name: 'Marksman', owned: marksman, needsSpecialisation: false },
+      { entry: 'Diceman', name: 'Diceman', owned: undefined, needsSpecialisation: false },
+    ]);
+  });
+
+  it('gives a grouped entry one card per owned specialisation plus a new-specialisation card', () => {
+    const nobles = talent('Etiquette (Nobles)');
+    const scholars = talent('Etiquette (Scholars)', 2);
+    expect(getCareerTalentCards(['Etiquette (Any)'], [nobles, talent('Hardy'), scholars])).toEqual([
+      { entry: 'Etiquette (Any)', name: 'Etiquette (Nobles)', owned: nobles, needsSpecialisation: false },
+      { entry: 'Etiquette (Any)', name: 'Etiquette (Scholars)', owned: scholars, needsSpecialisation: false },
+      { entry: 'Etiquette (Any)', name: 'Etiquette (Any)', owned: undefined, needsSpecialisation: true },
+    ]);
+  });
+
+  it('leaves a talent named by a specific entry to that entry', () => {
+    const soldiers = talent('Etiquette (Soldiers)');
+    const nobles = talent('Etiquette (Nobles)');
+    const cards = getCareerTalentCards(['Etiquette (Any)', 'Etiquette (Soldiers)'], [soldiers, nobles]);
+    expect(cards.map(c => [c.entry, c.name])).toEqual([
+      ['Etiquette (Any)', 'Etiquette (Nobles)'],
+      ['Etiquette (Any)', 'Etiquette (Any)'],
+      ['Etiquette (Soldiers)', 'Etiquette (Soldiers)'],
+    ]);
+  });
+
+  it('shows a talent owned without its specialisation under the specific entry', () => {
+    const strider = talent('Strider');
+    expect(getCareerTalentCards(['Strider (Woodlands)'], [strider])).toEqual([
+      { entry: 'Strider (Woodlands)', name: 'Strider', owned: strider, needsSpecialisation: false },
+    ]);
+  });
+});
+
+describe('resolveSkillCharacteristic', () => {
+  it.each([
+    // exact ADV_SKILL_DB rows
+    ['Language (Magick)', 'Int'],
+    ['Pick Lock', 'Dex'],
+    ['Channelling (Qhaysh)', 'WP'],
+    // by skill group, for specialisations with no row of their own
+    ['Animal Training (Badgers)', 'Int'],
+    ['Art (Painting)', 'Dex'],
+    ['Channelling (Homebrew Wind)', 'WP'],
+    ['Channelling', 'WP'],
+    ['Entertain (Sing)', 'Fel'],
+    ['Language (Homebrew Tongue)', 'Int'],
+    ['Lore (Reikland)', 'Int'],
+    ['Melee (Flail)', 'WS'],
+    ['Perform (Fire Eating)', 'Ag'],
+    ['Play (Lute)', 'Dex'],
+    ['Ranged (Harpoon)', 'BS'],
+    ['Ride (Badger)', 'Ag'],
+    ['Sail (Any)', 'Ag'],
+    ['Secret Signs (Homebrew)', 'Int'],
+    ['Stealth (Urban)', 'Ag'],
+    ['Trade (Brewer)', 'Dex'],
+    // spelling and spacing of the group do not matter
+    ['Channeling (Aqshy)', 'WP'],
+    ['Melee(Flail)', 'WS'],
+    // a specialisation of an otherwise unspecialised skill shares its characteristic
+    ['Drive (Skycutter)', 'Ag'],
+    ['Animal Care (Swiftfeather Roc)', 'Int'],
+    // nothing on record
+    ['Made Up Skill (Thing)', 'Int'],
+    ['toString (Thing)', 'Int'],
+    ['constructor', 'Int'],
+  ])('"%s" links to %s', (skillName, characteristic) => {
+    expect(resolveSkillCharacteristic(skillName)).toBe(characteristic);
   });
 });

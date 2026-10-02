@@ -1,7 +1,7 @@
 import { getSkillDescription } from '../data/skill-descriptions';
 import { CONDITIONS } from '../data/conditions';
-import { TALENT_DB } from '../data/talents';
-import { TALENT_ALIASES } from '../data/talent-aliases';
+import { canonicalTalentName, findTalentData } from './talents';
+import { parseGroupedName } from './grouped-names';
 
 /** Structured content for a tooltip popover */
 export interface TooltipContent {
@@ -14,7 +14,10 @@ export function resolveSkillTooltip(
   skillName: string,
   characteristic: string,
 ): TooltipContent | null {
-  const description = getSkillDescription(skillName);
+  // Retry with the canonical group name so unusual spacing or spelling of a
+  // grouped skill ("Channeling(Hysh)") still finds its group's description.
+  const description = getSkillDescription(skillName)
+    || getSkillDescription(parseGroupedName(skillName).base);
   if (!description) return null;
 
   return {
@@ -49,14 +52,26 @@ export function resolveTalentTooltip(
   talentName: string,
   characterDesc: string,
 ): TooltipContent | null {
-  const canonicalName = TALENT_ALIASES[talentName] ?? talentName;
-  const dbEntry = TALENT_DB.find((t) => t.name === canonicalName);
+  const canonicalName = canonicalTalentName(talentName);
+  const dbEntry = findTalentData(talentName);
 
-  if (dbEntry) {
+  if (dbEntry && dbEntry.name === canonicalName) {
     return {
       title: dbEntry.name,
       sections: [
         { label: 'Description', text: dbEntry.desc },
+        { label: 'Max', text: dbEntry.max },
+      ],
+    };
+  }
+
+  // A specialisation with no row of its own ("Etiquette (Nobles)") borrows its
+  // group's row; the character's own description, when present, still wins.
+  if (dbEntry) {
+    return {
+      title: talentName,
+      sections: [
+        { label: 'Description', text: characterDesc || dbEntry.desc },
         { label: 'Max', text: dbEntry.max },
       ],
     };

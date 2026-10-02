@@ -1,7 +1,9 @@
-import type { Character, ArmourItem, SpellItem } from '../types/character';
+import type { Character, ArmourItem, SpellItem, Skill } from '../types/character';
 import type { RollResult } from './dice-roller';
 import { tensDigit } from './dice-roller';
 import { getBonus, computeAPByLocation } from './calculators';
+import { inGroup, parseGroupedName } from './grouped-names';
+import { WIND_DISPLAY_NAMES, OTHER_LORE_WINDS } from '../data/cants';
 import {
   MINOR_MISCAST_TABLE,
   MAJOR_MISCAST_TABLE,
@@ -204,18 +206,60 @@ export function computeCastingTarget(character: Character): number {
 }
 
 /**
+ * The character's Channelling skills: plain "Channelling" and/or one per Wind
+ * ("Channelling (Aqshy)", homebrew included), each listed once, in sheet order.
+ */
+export function getChannellingSkills(character: Character): Skill[] {
+  const skills: Skill[] = [];
+  for (const s of [...character.bSkills, ...character.aSkills]) {
+    if (s.n.trim() === '' || !inGroup(s.n, 'Channelling')) continue;
+    if (!skills.some((known) => known.n === s.n)) skills.push(s);
+  }
+  return skills;
+}
+
+/**
+ * The Wind behind a spell Lore: the eight Colleges from the Lore → Wind table
+ * the Cants use (Archives of the Empire III, "Lore of Fire" → "Aqshy"), plus
+ * OTHER_LORE_WINDS ("High Magic" → "Qhaysh"). Null for Lores with no Wind of
+ * their own (Petty, Arcane, Hedgecraft, …).
+ */
+export function getWindOfLore(lore: string | undefined): string | null {
+  if (lore === undefined) return null;
+  if (Object.hasOwn(WIND_DISPLAY_NAMES, lore)) {
+    return parseGroupedName(WIND_DISPLAY_NAMES[lore as keyof typeof WIND_DISPLAY_NAMES]).spec;
+  }
+  return Object.hasOwn(OTHER_LORE_WINDS, lore) ? OTHER_LORE_WINDS[lore] : null;
+}
+
+/**
+ * The Channelling skill to suggest for a spell: the one for the spell's Wind
+ * when the character has it ("Channelling (Aqshy)" for a Lore of Fire spell),
+ * otherwise the character's highest Channelling skill (first on the sheet on a
+ * tie), as for Petty and Arcane spells. Only a suggestion; the player can pick
+ * any of their Channelling skills when rolling.
+ */
+export function getDefaultChannellingSkill(character: Character, spellLore: string | undefined): Skill | undefined {
+  const skills = getChannellingSkills(character);
+  const wind = getWindOfLore(spellLore);
+  const forWind = wind === null
+    ? undefined
+    : skills.find((s) => parseGroupedName(s.n).spec?.toLowerCase() === wind.toLowerCase());
+  return forWind ?? skills.reduce<Skill | undefined>((best, s) => (best === undefined || s.a > best.a ? s : best), undefined);
+}
+
+/**
  * Compute the base target number for a Channelling test.
  * Returns WP total (i + a + b) + Channelling skill advances.
- * Checks for both "Channelling" and "Channelling (Lore)" variants using startsWith.
+ * Uses the named Channelling skill when given (one per Wind: "Channelling (Aqshy)"),
+ * otherwise the first Channelling skill on the sheet, plain or specialised.
  */
-export function computeChannellingTarget(character: Character): number {
+export function computeChannellingTarget(character: Character, skillName?: string): number {
   const wpChar = character.chars.WP;
   const wpTotal = wpChar.i + wpChar.a + wpChar.b;
 
-  const allSkills = [...character.bSkills, ...character.aSkills];
-  const channelling = allSkills.find(
-    (s) => s.n === 'Channelling' || s.n.startsWith('Channelling ('),
-  );
+  const skills = getChannellingSkills(character);
+  const channelling = skills.find((s) => s.n === skillName) ?? skills[0];
   const advances = channelling ? channelling.a : 0;
 
   return wpTotal + advances;

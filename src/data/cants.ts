@@ -49,6 +49,19 @@ export const WIND_DISPLAY_NAMES: Record<ColourLore, string> = {
   "Lore of Shadows": "Shadows (Ulgu)",
 };
 
+/**
+ * Wind channelled for spell Lores outside the eight Colleges (those are mapped
+ * by WIND_DISPLAY_NAMES above). Used to suggest which Channelling skill to roll;
+ * Lores not listed here or above have no Wind of their own (Petty, Arcane,
+ * Hedgecraft, …). User-confirmed: High Magic → Qhaysh, Dark Magic → Dhar.
+ */
+export const OTHER_LORE_WINDS: Record<string, string> = {
+  "High Magic": "Qhaysh",
+  // Dark Magic
+  "Lore of Daemonology": "Dhar",
+  "Lore of Necromancy": "Dhar",
+};
+
 /** Complete catalogue of all 24 Alternative Channelling Cants */
 export const CANT_CATALOGUE: readonly CantEntry[] = [
   // ─── Lore of Beasts (Ghur) ────────────────────────────────────────

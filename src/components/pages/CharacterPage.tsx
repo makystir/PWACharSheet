@@ -14,7 +14,9 @@ import { SPELL_LIST } from '../../data/spells';
 import { ADV_SKILL_DB } from '../../data/advanced-skills';
 import { TALENT_DB } from '../../data/talents';
 import { TRAPPING_LIST } from '../../data/trappings';
-import { getCareersByClass, getCareerScheme, getCareerSkills } from '../../logic/careers';
+import { getCareersByClass, getCareerScheme, getCareerSkills, getSpecialisationOptions } from '../../logic/careers';
+import { sortSkillsByCareerStatus } from '../../logic/advancement';
+import { parseGroupedName, specialiseName } from '../../logic/grouped-names';
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../logic/tooltip-content';
 import { computeSkillTarget, computeCharacteristicTarget, type RollResult } from '../../logic/dice-roller';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
@@ -49,7 +51,7 @@ import { CharacterBreakdownTooltips, type BreakdownTooltipState } from './Charac
 import { useCharacterEntities, type DeleteTarget } from './useCharacterEntities';
 import { type SheetTooltipState } from './SheetInfoButton';
 import { CompactSummary } from './character/CompactSummary';
-import { AbilitiesTab } from './character/AbilitiesTab';
+import { AbilitiesTab, type SpecTarget } from './character/AbilitiesTab';
 import { GearTab } from './character/GearTab';
 import { PersonalDetailsSection } from './character/PersonalDetailsSection';
 import { CharacteristicsSection } from './character/CharacteristicsSection';
@@ -171,6 +173,8 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   const [showSpellPicker, setShowSpellPicker] = useState(false);
   const [showAdvSkillPicker, setShowAdvSkillPicker] = useState(false);
   const [showTalentPicker, setShowTalentPicker] = useState(false);
+  // Placeholder skill/talent row ("Language (Any)") whose specialisation is being chosen.
+  const [specTarget, setSpecTarget] = useState<SpecTarget | null>(null);
   const [showTrappingPicker, setShowTrappingPicker] = useState(false);
   const [editingTrappingIndex, setEditingTrappingIndex] = useState<number | null>(null);
 
@@ -279,8 +283,14 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
 
   const filteredCareers = character.class ? getCareersByClass(character.class) : [];
 
-  // Career skill highlighting: compute the set of skills for the current career level
-  const careerSkillSet = new Set(getCareerSkills(character.career, character.careerLevel));
+  // Career skill highlighting: the character's skills that count as career skills
+  // at the current level. Reuses the Advancement page's in-career test, so a
+  // filled-in grouped skill ("Language (Bretonnian)" for "Language (Any)") stays marked.
+  const careerSkillSet = new Set(
+    sortSkillsByCareerStatus(character.bSkills, character.aSkills, getCareerSkills(character.career, character.careerLevel))
+      .filter((entry) => entry.inCareer)
+      .map((entry) => entry.skill.n)
+  );
 
   // Advanced skill CRUD. The full hook result is captured as `entities` so it
   // can be injected into AbilitiesTab (spec: character-page-decomposition,
@@ -298,10 +308,32 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
   });
   const {
     addAdvancedSkillFromPicker,
+    updateAdvancedSkill,
     addTalentFromPicker,
+    updateTalent,
     addSpellFromPicker,
     handleDelete,
   } = entities;
+
+  // Specialisation picker for a placeholder row. The options are suggestions
+  // drawn from the game data; a custom specialisation can always be typed.
+  const specTargetNames = specTarget?.type === 'aSkill'
+    ? [...character.bSkills, ...character.aSkills].map((s) => s.n)
+    : character.talents.map((t) => t.n);
+  const specTargetName = specTarget
+    ? (specTarget.type === 'aSkill' ? character.aSkills[specTarget.index]?.n : character.talents[specTarget.index]?.n)
+    : undefined;
+  const specOptions = specTarget && specTargetName !== undefined
+    ? getSpecialisationOptions(specTargetName, specTarget.type === 'aSkill' ? 'skill' : 'talent')
+    : null;
+  const isNameOnSheet = (name: string) => specTargetNames.some((n) => n.toLowerCase() === name.toLowerCase());
+  const handleChooseSpecialisation = (name: string) => {
+    if (specTarget && !isNameOnSheet(name)) {
+      if (specTarget.type === 'aSkill') updateAdvancedSkill(specTarget.index, 'n', name);
+      else updateTalent(specTarget.index, 'n', name);
+    }
+    setSpecTarget(null);
+  };
 
   return (
     <div className={styles.sectionGap}>
@@ -494,6 +526,7 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
         setShowTalentPicker={setShowTalentPicker}
         setShowSpellPicker={setShowSpellPicker}
         setDeleteTarget={setDeleteTarget}
+        setSpecTarget={setSpecTarget}
         openSkillRoll={openSkillRoll}
       />
       </div>{/* end abilitiesSection */}
@@ -562,6 +595,17 @@ export function CharacterPage({ character, characterId, update, updateCharacter,
       )}
       {showTalentPicker && (
         <Picker items={TALENT_DB} getLabel={(t) => t.name} onSelect={addTalentFromPicker} onClose={() => setShowTalentPicker(false)} title="Select Talent" />
+      )}
+      {specOptions && specTargetName !== undefined && (
+        <Picker
+          items={specOptions.names}
+          getLabel={(n) => parseGroupedName(n).spec ?? 'No specialisation'}
+          isDisabled={isNameOnSheet}
+          onSelect={handleChooseSpecialisation}
+          onCustom={specOptions.allowCustom ? (text) => handleChooseSpecialisation(specialiseName(specTargetName, text)) : undefined}
+          onClose={() => setSpecTarget(null)}
+          title={`${parseGroupedName(specTargetName).base}: choose specialisation`}
+        />
       )}
       {showSpellPicker && (
         <SpellPicker

@@ -8,14 +8,22 @@ interface PickerProps<T> {
   getGroup?: (item: T) => string;
   isDisabled?: (item: T) => boolean;
   onSelect: (item: T) => void;
+  /**
+   * When provided, the typed search text can be used as a custom entry: a
+   * `Use "<text>"` row is offered whenever the text matches no item exactly.
+   */
+  onCustom?: (text: string) => void;
   onClose: () => void;
   title?: string;
 }
 
-export function Picker<T>({ items, getLabel, getGroup, isDisabled, onSelect, onClose, title }: PickerProps<T>) {
+export function Picker<T>({ items, getLabel, getGroup, isDisabled, onSelect, onCustom, onClose, title }: PickerProps<T>) {
   const [search, setSearch] = useState('');
 
   const searchLower = search.toLowerCase();
+  const customText = search.trim();
+  const showCustom = onCustom !== undefined && customText !== ''
+    && !items.some((item) => getLabel(item).toLowerCase() === customText.toLowerCase());
 
   const filtered = useMemo(
     () => items.filter((item) => getLabel(item).toLowerCase().includes(searchLower)),
@@ -48,6 +56,8 @@ export function Picker<T>({ items, getLabel, getGroup, isDisabled, onSelect, onC
     if (!getGroup) {
       // Flat list (existing behaviour when no getGroup provided)
       if (filtered.length === 0) {
+        // The custom row below is the only thing to show; no "No items" message.
+        if (showCustom) return null;
         return (
           <div className={styles.emptyMessage}>
             No items found
@@ -91,6 +101,7 @@ export function Picker<T>({ items, getLabel, getGroup, isDisabled, onSelect, onC
     });
 
     if (!hasAnyVisibleItem) {
+      if (showCustom) return null;
       return (
         <div className={styles.emptyMessage}>
           No items found
@@ -118,6 +129,11 @@ export function Picker<T>({ items, getLabel, getGroup, isDisabled, onSelect, onC
           autoFocus
         />
         <div className={styles.list}>
+          {showCustom && (
+            <button type="button" className={styles.item} onClick={() => onCustom(customText)}>
+              Use &ldquo;{customText}&rdquo;
+            </button>
+          )}
           {renderList()}
         </div>
         <button type="button" onClick={onClose} className={styles.close}>

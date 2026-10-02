@@ -6,10 +6,11 @@ import { SectionHeader } from '../../shared/SectionHeader';
 import { EditableField } from '../../shared/EditableField';
 import { EmptyState } from '../../shared/EmptyState';
 import { SkillFilter } from '../../shared/SkillFilter';
-import { BookOpen, Sparkles, Wand2, Hammer, Lock, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { BookOpen, Sparkles, Wand2, Hammer, Lock, ChevronDown, ChevronRight, ChevronsUpDown, Plus } from 'lucide-react';
 import RunePanel from '../../runes/RunePanel';
 import { filterSkills } from '../../../logic/skill-filter';
 import { getCareerSkills } from '../../../logic/careers';
+import { inGroup, isPlaceholderName } from '../../../logic/grouped-names';
 import { resolveSkillTooltip, resolveTalentTooltip } from '../../../logic/tooltip-content';
 import { getRuneById } from '../../../logic/runes';
 import { RUNE_CATALOGUE } from '../../../data/runes';
@@ -25,6 +26,12 @@ import type { DeleteTarget, useCharacterEntities } from '../useCharacterEntities
 // byte-identical after extraction (spec: character-page-decomposition, Req 3.3).
 import styles from '../CharacterPage.module.css';
 
+/** A placeholder row ("Language (Any)") whose specialisation is being chosen. */
+export interface SpecTarget {
+  type: 'aSkill' | 'talent';
+  index: number;
+}
+
 interface AbilitiesTabProps {
   character: Character;
   /** Typed single-field update, unchanged from CharacterPageProps (Req 6.1, 6.2). */
@@ -35,7 +42,11 @@ interface AbilitiesTabProps {
   setSkillSearchText: (text: string) => void;
   skillTrainedOnly: boolean;
   onTrainedOnlyChange: (enabled: boolean) => void;
-  /** Set of career skill names for the current career level (highlighting). */
+  /**
+   * Names of the character's skills that count as career skills at the current
+   * career level (highlighting). Grouped entries are already resolved, so
+   * "Language (Bretonnian)" is in the set when the career lists "Language (Any)".
+   */
   careerSkillSet: Set<string>;
   /**
    * Single-tooltip state owned by the shell (Lifted_State — Req 5.1, 5.4):
@@ -59,6 +70,8 @@ interface AbilitiesTabProps {
   setShowSpellPicker: Dispatch<SetStateAction<boolean>>;
   /** Pending-deletion setter (Lifted_State in the shell). */
   setDeleteTarget: Dispatch<SetStateAction<DeleteTarget | null>>;
+  /** Opens the specialisation picker for a placeholder row (Lifted_State in the shell). */
+  setSpecTarget: Dispatch<SetStateAction<SpecTarget | null>>;
   /** Opens the skill roll dialog (stays lifted in the shell). */
   openSkillRoll: (skill: Skill) => void;
 }
@@ -80,8 +93,10 @@ interface AbilitiesTabProps {
  * `Tooltip` / `TooltipTriggerCell` wiring unchanged (Req 6.3, 6.4;
  * calculated-totals rule — breakdown is Characteristic + Advances).
  *
- * The Spells & Prayers visibility predicate is copied VERBATIM (no logic
- * change — rules-compliance; design "Error Handling").
+ * The Spells & Prayers visibility predicate is the shell's original one (no
+ * rules change — rules-compliance; design "Error Handling"); its Channelling
+ * test reads the skill's group via `inGroup`, so any spelling or specialisation
+ * of Channelling counts.
  */
 export function AbilitiesTab({
   character,
@@ -105,6 +120,7 @@ export function AbilitiesTab({
   setShowTalentPicker,
   setShowSpellPicker,
   setDeleteTarget,
+  setSpecTarget,
   openSkillRoll,
 }: AbilitiesTabProps) {
   const {
@@ -236,6 +252,17 @@ export function AbilitiesTab({
                       resolveContent={() => resolveSkillTooltip(skill.n, skill.c)}
                     />
                     <EditableField label="" value={skill.n} onSave={(v) => updateAdvancedSkill(i, 'n', String(v))} />
+                    {isPlaceholderName(skill.n) && (
+                      <button
+                        type="button"
+                        className={styles.chooseSpecBtn}
+                        onClick={() => setSpecTarget({ type: 'aSkill', index: i })}
+                        title="Choose specialisation"
+                        aria-label={`Choose specialisation for ${skill.n}`}
+                      >
+                        <ChevronsUpDown size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className={styles.skillGridChar}>
@@ -320,6 +347,17 @@ export function AbilitiesTab({
                       resolveContent={() => resolveTalentTooltip(t.n, t.desc)}
                     />
                     <EditableField label="" value={t.n} onSave={(v) => updateTalent(i, 'n', String(v))} />
+                    {isPlaceholderName(t.n) && (
+                      <button
+                        type="button"
+                        className={styles.chooseSpecBtn}
+                        onClick={() => setSpecTarget({ type: 'talent', index: i })}
+                        title="Choose specialisation"
+                        aria-label={`Choose specialisation for ${t.n}`}
+                      >
+                        <ChevronsUpDown size={14} />
+                      </button>
+                    )}
                   </div>
                 </td>
                 <td className={styles.td}>
@@ -342,10 +380,10 @@ export function AbilitiesTab({
       {(character.spells.length > 0 || character.talents.some(t =>
         t.n.includes('Magic') || t.n.includes('Pray') || t.n.includes('Invoke') || t.n.includes('Bless')
       ) || character.aSkills.some(s =>
-        s.n.startsWith('Channelling') || s.n.startsWith('Language (Magick)') || s.n === 'Pray'
+        inGroup(s.n, 'Channelling') || s.n.startsWith('Language (Magick)') || s.n === 'Pray'
       ) || (() => {
         const careerSkills = getCareerSkills(character.career, character.careerLevel);
-        return careerSkills.includes('Pray') || careerSkills.some(s => s.startsWith('Channelling'));
+        return careerSkills.includes('Pray') || careerSkills.some(s => inGroup(s, 'Channelling'));
       })()) && (
       <Card>
         <SectionHeader icon={Wand2} title="Spells & Prayers" action={

@@ -1,8 +1,31 @@
-import type { Character, CharacteristicKey, Talent } from '../types/character';
+import type { Character, CharacteristicKey, Talent, TalentData } from '../types/character';
 import { CHARACTERISTIC_KEYS } from '../types/character';
-import { TALENT_BONUS_MAP } from '../data/talents';
+import { TALENT_BONUS_MAP, TALENT_DB } from '../data/talents';
+import { TALENT_ALIASES } from '../data/talent-aliases';
+import { inGroup } from './grouped-names';
 
 const ALL_CHAR_KEYS: CharacteristicKey[] = CHARACTERISTIC_KEYS;
+
+/**
+ * The TALENT_DB spelling of a talent name ("Warleader" -> "War Leader").
+ * Only the alias map's own entries count, so a name such as "constructor" is
+ * never mistaken for an inherited object property.
+ */
+export function canonicalTalentName(talentName: string): string {
+  return Object.hasOwn(TALENT_ALIASES, talentName) ? TALENT_ALIASES[talentName] : talentName;
+}
+
+/**
+ * Find the TALENT_DB row describing a talent name.
+ * Tries the exact name first (after spelling aliases), then the row of the same
+ * talent group, so "Etiquette (Nobles)" resolves to "Etiquette (Group)" and a
+ * homebrew specialisation still gets its group's description and max.
+ */
+export function findTalentData(talentName: string): TalentData | undefined {
+  const canonicalName = canonicalTalentName(talentName);
+  return TALENT_DB.find(t => t.name === canonicalName)
+    ?? TALENT_DB.find(t => inGroup(t.name, canonicalName));
+}
 
 /**
  * Compute characteristic bonuses from talents using TALENT_BONUS_MAP.

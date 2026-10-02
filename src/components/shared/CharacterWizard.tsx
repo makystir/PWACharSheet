@@ -3,10 +3,9 @@ import type { Character, CharacteristicKey, CareerScheme, CareerLevel } from '..
 import { BLANK_CHARACTER, CHARACTERISTIC_KEYS } from '../../types/character';
 import { SPECIES_DATA, SPECIES_OPTIONS } from '../../data/species';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
-import { TALENT_DB } from '../../data/talents';
-import { ADV_SKILL_DB } from '../../data/advanced-skills';
 import { rollRandomTalent } from '../../data/randomTalents';
-import { ensureCareerSkillsExist } from '../../logic/advancement';
+import { ensureCareerSkillsExist, resolveSkillCharacteristic } from '../../logic/advancement';
+import { findTalentData } from '../../logic/talents';
 import { getEligibleCareers } from '../../logic/career-eligibility';
 import { AGE_FORMULAS, HEIGHT_FORMULAS } from '../../data/personal-details';
 import { SPECIES_FLAVOR, CLASS_FLAVOR } from '../../data/wizard-flavor';
@@ -23,26 +22,6 @@ import {
 import styles from './CharacterWizard.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-/** Skill characteristic fallback map for base names without parentheses */
-const SKILL_CHAR_FALLBACKS: Record<string, string> = {
-  'Melee': 'WS', 'Ranged': 'BS', 'Channelling': 'WP', 'Language': 'Int',
-  'Lore': 'Int', 'Perform': 'Ag', 'Sail': 'Ag', 'Trade': 'Dex',
-  'Secret Signs': 'Int', 'Animal Training': 'Int', 'Art': 'Dex',
-  'Entertain': 'Fel', 'Ride': 'Ag', 'Stealth': 'Ag', 'Play': 'Dex',
-};
-
-/** Resolve the correct characteristic for a skill by name */
-function resolveSkillChar(skillName: string): string {
-  const exact = ADV_SKILL_DB.find(s => s.n === skillName);
-  if (exact) return exact.c;
-  const parenIdx = skillName.indexOf(' (');
-  const baseName = parenIdx !== -1 ? skillName.substring(0, parenIdx) : skillName;
-  if (SKILL_CHAR_FALLBACKS[baseName]) return SKILL_CHAR_FALLBACKS[baseName];
-  const dbMatch = ADV_SKILL_DB.find(s => s.n.startsWith(baseName + ' ('));
-  if (dbMatch) return dbMatch.c;
-  return 'Int';
-}
 
 interface CharacterWizardProps {
   onComplete: (character: Character) => void;
@@ -208,8 +187,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
   }, []);
 
   const getTalentDesc = useCallback((name: string): string => {
-    const t = TALENT_DB.find(t => t.name === name || name.startsWith(t.name.split(' (')[0]));
-    return t?.desc ?? '';
+    return findTalentData(name)?.desc ?? '';
   }, []);
 
   const getResolvedTalents = useCallback((): string[] => {
@@ -372,7 +350,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
         if (existing >= 0) {
           char.aSkills[existing] = { ...char.aSkills[existing], a: char.aSkills[existing].a + 5 };
         } else {
-          char.aSkills.push({ n: skillName, c: resolveSkillChar(skillName), a: 5 });
+          char.aSkills.push({ n: skillName, c: resolveSkillCharacteristic(skillName), a: 5 });
         }
       }
     }
@@ -385,7 +363,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
         if (existing >= 0) {
           char.aSkills[existing] = { ...char.aSkills[existing], a: char.aSkills[existing].a + 3 };
         } else {
-          char.aSkills.push({ n: skillName, c: resolveSkillChar(skillName), a: 3 });
+          char.aSkills.push({ n: skillName, c: resolveSkillCharacteristic(skillName), a: 3 });
         }
       }
     }
@@ -403,7 +381,7 @@ export function CharacterWizard({ onComplete, onCancel }: CharacterWizardProps) 
         if (existing >= 0) {
           char.aSkills[existing] = { ...char.aSkills[existing], a: char.aSkills[existing].a + adv };
         } else {
-          char.aSkills.push({ n: skillName, c: resolveSkillChar(skillName), a: adv });
+          char.aSkills.push({ n: skillName, c: resolveSkillCharacteristic(skillName), a: adv });
         }
       }
     }
