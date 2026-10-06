@@ -173,7 +173,7 @@ describe('Feature: import-overwrite-guard — Bug Condition Exploration', () => 
           fireEvent.change(fileInput);
 
           // ASSERT 1: A ConfirmDialog should be rendered (role="dialog")
-          const dialog = container.querySelector('[role="dialog"]');
+          const dialog = document.querySelector('[role="dialog"]');
           expect(dialog).not.toBeNull();
 
           // ASSERT 2: updateCharacter should NOT have been called yet (before confirmation)

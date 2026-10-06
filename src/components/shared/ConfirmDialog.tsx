@@ -1,3 +1,4 @@
+import { ModalOverlay } from './ModalOverlay';
 import styles from './ConfirmDialog.module.css';
 
 interface ConfirmDialogProps {
@@ -16,7 +17,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancel',
 }: ConfirmDialogProps) {
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-label="Confirmation">
+    <ModalOverlay onClick={onCancel} role="dialog" aria-label="Confirmation">
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <p className={styles.message}>{message}</p>
         <div className={styles.actions}>
@@ -28,6 +29,6 @@ export function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

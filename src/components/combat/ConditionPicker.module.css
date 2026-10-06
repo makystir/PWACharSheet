@@ -1,9 +1,5 @@
 /* ConditionPicker component styles */
 
-.overlay {
-  composes: overlay from '../shared/styles/shared.module.css';
-}
-
 .modal {
   composes: animateEnter from '../shared/styles/micro-interactions.module.css';
   background: var(--bg-secondary);

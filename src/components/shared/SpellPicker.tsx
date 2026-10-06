@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { SpellData, Talent } from '../../types/character';
 import { deriveCharacterLore, filterSpells, groupByLore, getAvailableLores } from '../../logic/spell-picker-utils';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './SpellPicker.module.css';
 
 interface SpellPickerProps {
@@ -114,7 +115,7 @@ export function SpellPicker({
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-label={title || 'Spell Picker'}>
+    <ModalOverlay onClick={onClose} role="dialog" aria-label={title || 'Spell Picker'}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h3 className={styles.title}>{title || 'Select Spell'}</h3>
@@ -160,6 +161,6 @@ export function SpellPicker({
           {renderSpellList()}
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

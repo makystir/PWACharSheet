@@ -188,7 +188,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
           fireEvent.change(fileInput);
 
           // ASSERT 1: No ConfirmDialog rendered
-          const dialog = container.querySelector('[role="dialog"]');
+          const dialog = document.querySelector('[role="dialog"]');
           expect(dialog).toBeNull();
 
           // ASSERT 2: updateCharacter was NOT called
@@ -269,7 +269,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
     fireEvent.click(clipboardBtn!);
 
     // No ConfirmDialog after clipboard export
-    let dialog = container.querySelector('[role="dialog"]');
+    let dialog = document.querySelector('[role="dialog"]');
     expect(dialog).toBeNull();
 
     // Re-open dropdown for download test
@@ -282,7 +282,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
     fireEvent.click(downloadBtn2!);
 
     // No ConfirmDialog after file export
-    dialog = container.querySelector('[role="dialog"]');
+    dialog = document.querySelector('[role="dialog"]');
     expect(dialog).toBeNull();
 
     // updateCharacter was never called by export actions
@@ -316,14 +316,14 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
     expect(clearBtn).toBeDefined();
 
     // No dialog initially
-    let dialog = container.querySelector('[role="dialog"]');
+    let dialog = document.querySelector('[role="dialog"]');
     expect(dialog).toBeNull();
 
     // Click Clear Sheet
     fireEvent.click(clearBtn!);
 
     // ConfirmDialog should appear
-    dialog = container.querySelector('[role="dialog"]');
+    dialog = document.querySelector('[role="dialog"]');
     expect(dialog).not.toBeNull();
     expect(dialog!.textContent).toContain('Clear all character data');
 
@@ -336,7 +336,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
     expect(updateCharacterMock).toHaveBeenCalledTimes(1);
 
     // Dialog should be dismissed
-    dialog = container.querySelector('[role="dialog"]');
+    dialog = document.querySelector('[role="dialog"]');
     expect(dialog).toBeNull();
   });
 
@@ -378,7 +378,7 @@ describe('Feature: import-overwrite-guard — Preservation Properties', () => {
           fireEvent.change(fileInput);
 
           // No dialog shown
-          const dialog = container.querySelector('[role="dialog"]');
+          const dialog = document.querySelector('[role="dialog"]');
           expect(dialog).toBeNull();
 
           // Character not modified

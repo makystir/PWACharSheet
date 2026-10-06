@@ -20,10 +20,9 @@ import type {
 import { BLANK_CHARACTER, CHARACTERISTIC_KEYS } from '../types/character';
 import { SPECIES_DATA } from '../data/species';
 import { CAREER_SCHEMES } from '../data/careers';
-import { TALENT_DB } from '../data/talents';
-import { ADV_SKILL_DB } from '../data/advanced-skills';
 import { rollRandomTalent } from '../data/randomTalents';
-import { ensureCareerSkillsExist } from './advancement';
+import { ensureCareerSkillsExist, resolveSkillCharacteristic } from './advancement';
+import { findTalentData } from './talents';
 import { getEligibleCareers } from './career-eligibility';
 import { resolveTrapping } from './trapping-resolver';
 import { CLASS_TRAPPINGS } from '../data/class-trappings';
@@ -84,41 +83,10 @@ export function pick<T>(rng: RNG, items: T[]): T {
 }
 
 // ─── Skill-characteristic resolution ─────────────────────────────────────────
-
-/**
- * Well-known characteristic links for skill bases that can't be looked up by an
- * exact name in ADV_SKILL_DB. Mirrors the proven `resolveSkillChar` fallback map in
- * CharacterWizard so the generator links species/career skills to the same
- * characteristics the wizard does.
- */
-const SKILL_CHAR_FALLBACKS: Record<string, string> = {
-  Melee: 'WS', Ranged: 'BS', Channelling: 'WP', Language: 'Int',
-  Lore: 'Int', Perform: 'Ag', Sail: 'Ag', Trade: 'Dex',
-  'Secret Signs': 'Int', 'Animal Training': 'Int', Art: 'Dex',
-  Entertain: 'Fel', Ride: 'Ag', Stealth: 'Ag', Play: 'Dex',
-};
-
-/**
- * Resolve the linked characteristic for a skill by name — exact ADV_SKILL_DB match,
- * then base-name fallback, then a prefix match, defaulting to Int. Mirrors
- * CharacterWizard.resolveSkillChar (the proven wizard pattern).
- */
-function resolveSkillChar(skillName: string): string {
-  const exact = ADV_SKILL_DB.find((s) => s.n === skillName);
-  if (exact) return exact.c;
-  const parenIdx = skillName.indexOf(' (');
-  const baseName = parenIdx !== -1 ? skillName.substring(0, parenIdx) : skillName;
-  if (SKILL_CHAR_FALLBACKS[baseName]) return SKILL_CHAR_FALLBACKS[baseName];
-  const dbMatch = ADV_SKILL_DB.find((s) => s.n.startsWith(baseName + ' ('));
-  if (dbMatch) return dbMatch.c;
-  return 'Int';
-}
-
-/** Look up a talent's description for the character sheet (mirrors the wizard). */
-function talentDesc(name: string): string {
-  const t = TALENT_DB.find((d) => d.name === name || name.startsWith(d.name.split(' (')[0]));
-  return t?.desc ?? '';
-}
+//
+// Linked characteristics come from the shared `resolveSkillCharacteristic` and
+// talent descriptions from the shared `findTalentData`, the same helpers the
+// CharacterWizard uses, so the generator and the wizard cannot drift apart.
 
 /**
  * Apply `advances` to a named skill on the character, mirroring the wizard's
@@ -138,13 +106,13 @@ function applySkillAdvance(char: Character, skillName: string, advances: number)
     char.aSkills[aIdx] = { ...char.aSkills[aIdx], a: char.aSkills[aIdx].a + advances };
     return;
   }
-  char.aSkills.push({ n: skillName, c: resolveSkillChar(skillName), a: advances });
+  char.aSkills.push({ n: skillName, c: resolveSkillCharacteristic(skillName), a: advances });
 }
 
 /** Push a talent (deduplicated by name), mirroring the wizard's talent assembly. */
 function addTalent(char: Character, name: string): void {
   if (char.talents.some((t) => t.n === name)) return;
-  char.talents.push({ n: name, lvl: 1, desc: talentDesc(name) });
+  char.talents.push({ n: name, lvl: 1, desc: findTalentData(name)?.desc ?? '' });
 }
 
 // ─── Step 1: Species — Random Species Table (Core p.24) ──────────────────────

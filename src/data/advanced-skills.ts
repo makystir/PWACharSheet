@@ -21,8 +21,8 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Channelling (Aqshy)', c: 'WP' }, { n: 'Channelling (Azyr)', c: 'WP' },
   { n: 'Channelling (Chamon)', c: 'WP' }, { n: 'Channelling (Dhar)', c: 'WP' },
   { n: 'Channelling (Ghur)', c: 'WP' }, { n: 'Channelling (Ghyran)', c: 'WP' },
-  { n: 'Channelling (Hysh)', c: 'WP' }, { n: 'Channelling (Shyish)', c: 'WP' },
-  { n: 'Channelling (Ulgu)', c: 'WP' },
+  { n: 'Channelling (Hysh)', c: 'WP' }, { n: 'Channelling (Qhaysh)', c: 'WP' },
+  { n: 'Channelling (Shyish)', c: 'WP' }, { n: 'Channelling (Ulgu)', c: 'WP' },
   // General
   { n: 'Evaluate', c: 'Int' },
   { n: 'Heal', c: 'Int' },
@@ -92,3 +92,38 @@ export const ADV_SKILL_DB: AdvancedSkillData[] = [
   { n: 'Trade (Smith)', c: 'Dex' }, { n: 'Trade (Tanner)', c: 'Dex' },
   { n: 'Trade (Weaponsmith)', c: 'Dex' },
 ];
+
+/**
+ * Grouped skills, keyed by group name (the part before the parentheses).
+ * This is the single place a skill group is described; specialisations are
+ * never listed here, so homebrew specialisations need no entry.
+ */
+export interface SkillGroupData {
+  /** Linked characteristic shared by every specialisation of the group. */
+  c: string;
+  /** Other spellings of the group name accepted when matching. */
+  aliases?: string[];
+  /** Offer a "no specialisation" choice in the specialisation picker. */
+  unspecialised?: boolean;
+}
+
+export const SKILL_GROUPS: Record<string, SkillGroupData> = {
+  'Animal Training': { c: 'Int' },
+  'Art': { c: 'Dex' },
+  // Channelling may be taken with a wind (Aqshy, Azyr, Chamon, Dhar, Ghur, Ghyran,
+  // Hysh, Qhaysh, Shyish, Ulgu) or with no specialisation at all. User-confirmed
+  // rule; rulebook page reference to be filled in.
+  'Channelling': { c: 'WP', aliases: ['Channeling'], unspecialised: true },
+  'Entertain': { c: 'Fel' },
+  'Language': { c: 'Int' },
+  'Lore': { c: 'Int' },
+  'Melee': { c: 'WS' },
+  'Perform': { c: 'Ag' },
+  'Play': { c: 'Dex' },
+  'Ranged': { c: 'BS' },
+  'Ride': { c: 'Ag' },
+  'Sail': { c: 'Ag' },
+  'Secret Signs': { c: 'Int' },
+  'Stealth': { c: 'Ag' },
+  'Trade': { c: 'Dex' },
+};

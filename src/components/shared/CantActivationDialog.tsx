@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { CantEntry } from '../../data/cants';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './CantActivationDialog.module.css';
 
 interface CantActivationDialogProps {
@@ -42,7 +43,7 @@ export function CantActivationDialog({
   };
 
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-label={`Activate ${cant.name}`}>
+    <ModalOverlay onClick={onCancel} role="dialog" aria-label={`Activate ${cant.name}`}>
       <form className={styles.dialog} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
         <h3 className={styles.title}>{cant.name}</h3>
         <p className={styles.effect}>{cant.effect}</p>
@@ -78,6 +79,6 @@ export function CantActivationDialog({
           </button>
         </div>
       </form>
-    </div>
+    </ModalOverlay>
   );
 }

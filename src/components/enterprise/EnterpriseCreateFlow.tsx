@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { EnterpriseType } from '../../types/character';
 import { ENTERPRISE_TEMPLATES } from '../../data/enterprises';
+import { ModalOverlay } from '../shared/ModalOverlay';
 import styles from './EnterpriseCreateFlow.module.css';
 
 interface EnterpriseCreateFlowProps {
@@ -37,7 +38,7 @@ export function EnterpriseCreateFlow({ onConfirm, onCancel }: EnterpriseCreateFl
   };
 
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-label="Create Enterprise">
+    <ModalOverlay className={styles.overlay} onClick={onCancel} role="dialog" aria-label="Create Enterprise">
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         {step === 1 && (
           <>
@@ -92,6 +93,6 @@ export function EnterpriseCreateFlow({ onConfirm, onCancel }: EnterpriseCreateFl
           </>
         )}
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

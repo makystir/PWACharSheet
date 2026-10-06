@@ -1,3 +1,4 @@
+import { ModalOverlay } from './ModalOverlay';
 import styles from './WhatsNewPanel.module.css';
 import { acknowledgeVersion } from './whatsNewStorage';
 
@@ -14,7 +15,7 @@ export function WhatsNewPanel({ version, entries, onDismiss }: WhatsNewPanelProp
   };
 
   return (
-    <div className={styles.overlay} onClick={handleDismiss} role="dialog" aria-label="What's New">
+    <ModalOverlay onClick={handleDismiss} role="dialog" aria-label="What's New">
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>
@@ -40,6 +41,6 @@ export function WhatsNewPanel({ version, entries, onDismiss }: WhatsNewPanelProp
           ))}
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

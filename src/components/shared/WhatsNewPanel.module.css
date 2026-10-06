@@ -1,9 +1,5 @@
 /* WhatsNewPanel component styles */
 
-.overlay {
-  composes: overlay from './styles/shared.module.css';
-}
-
 .panel {
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);

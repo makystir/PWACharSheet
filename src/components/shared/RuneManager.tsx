@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getRuneById, getAvailableRunesForItem, validateRunePlacement } from '../../logic/runes';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './RuneManager.module.css';
 
 interface RuneManagerProps {
@@ -45,7 +46,7 @@ export function RuneManager({
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-label={`Rune Manager — ${itemName}`}>
+    <ModalOverlay onClick={onClose} role="dialog" aria-label={`Rune Manager — ${itemName}`}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.titleRow}>
           <h3 className={styles.title}>{itemName}</h3>
@@ -115,6 +116,6 @@ export function RuneManager({
           Close
         </button>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

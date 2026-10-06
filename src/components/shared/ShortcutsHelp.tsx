@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { SHORTCUT_GROUPS } from '../../config/shortcuts';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './ShortcutsHelp.module.css';
 
 export interface ShortcutsHelpProps {
@@ -41,8 +41,8 @@ export function ShortcutsHelp({ onClose }: ShortcutsHelpProps) {
     panelRef.current?.focus();
   }, []);
 
-  return createPortal(
-    <div
+  return (
+    <ModalOverlay
       className={styles.overlay}
       onClick={onClose}
       role="dialog"
@@ -85,7 +85,6 @@ export function ShortcutsHelp({ onClose }: ShortcutsHelpProps) {
           ))}
         </div>
       </div>
-    </div>,
-    document.body,
+    </ModalOverlay>
   );
 }

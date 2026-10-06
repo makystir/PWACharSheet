@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react';
 import { Upload, Trash2, ImageOff, X, Sparkles } from 'lucide-react';
 import { validatePortraitFile } from '../../logic/portrait';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './CharacterPortrait.module.css';
 
 interface CharacterPortraitProps {
@@ -115,7 +116,7 @@ export function CharacterPortrait({ portrait, characterName, onUpload, onRemove,
       </div>
 
       {enlarged && portrait && (
-        <div
+        <ModalOverlay
           ref={overlayRef}
           className={styles.overlay}
           role="dialog"
@@ -138,7 +139,7 @@ export function CharacterPortrait({ portrait, characterName, onUpload, onRemove,
             className={styles.overlayImg}
             onClick={(e) => e.stopPropagation()}
           />
-        </div>
+        </ModalOverlay>
       )}
     </div>
   );

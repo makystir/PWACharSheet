@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { EndOfTurnEffect, EndOfTurnResult } from '../../logic/end-of-turn';
+import { ModalOverlay } from '../shared/ModalOverlay';
 import styles from './EndOfTurnReportModal.module.css';
 import pressableStyles from '../../styles/micro-interactions.module.css';
 
@@ -45,7 +46,7 @@ export function EndOfTurnReportModal({ effects, result, onApply, onCancel }: End
   const hasEffects = effects.length > 0;
 
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick} data-testid="end-of-turn-modal-overlay">
+    <ModalOverlay onClick={handleOverlayClick} data-testid="end-of-turn-modal-overlay">
       <div
         ref={modalRef}
         className={styles.modal}
@@ -139,6 +140,6 @@ export function EndOfTurnReportModal({ effects, result, onApply, onCancel }: End
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

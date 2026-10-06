@@ -4,6 +4,60 @@ import {
   resolveConditionTooltip,
   resolveTalentTooltip,
 } from '../tooltip-content';
+import { findTalentData } from '../talents';
+
+describe('grouped names in tooltips', () => {
+  it('finds the group description for a skill written with odd spacing or spelling', () => {
+    const result = resolveSkillTooltip('Channeling(Hysh)', 'WP');
+    expect(result).not.toBeNull();
+    expect(result!.title).toBe('Channeling(Hysh)');
+    expect(result!.sections[0].text).toContain('Winds of Magic');
+  });
+
+  it('gives a specialised talent its group description and max under its own name', () => {
+    const result = resolveTalentTooltip('Etiquette (Nobles)', '');
+    expect(result).toEqual({
+      title: 'Etiquette (Nobles)',
+      sections: [
+        { label: 'Description', text: 'Blend in socially with chosen group' },
+        { label: 'Max', text: 'Fel Bonus' },
+      ],
+    });
+  });
+
+  it('keeps the character\'s own description for a specialised talent when there is one', () => {
+    const result = resolveTalentTooltip('Etiquette (Nobles)', 'Court manners of Altdorf');
+    expect(result!.sections[0].text).toBe('Court manners of Altdorf');
+    expect(result!.sections[1].text).toBe('Fel Bonus');
+  });
+});
+
+describe('findTalentData', () => {
+  it('prefers the exact row over another row of the same group', () => {
+    expect(findTalentData('Acute Sense (Sight)')?.name).toBe('Acute Sense (Sight)');
+    expect(findTalentData('Acute Sense (Touch)')?.name).toBe('Acute Sense (Touch)');
+  });
+
+  it('follows spelling aliases', () => {
+    expect(findTalentData('Warleader')?.name).toBe('War Leader');
+  });
+
+  it('falls back to the row of the same group for a specialisation, homebrew included', () => {
+    expect(findTalentData('Etiquette (Nobles)')?.name).toBe('Etiquette (Group)');
+    expect(findTalentData('Arcane Magic (Homebrew Lore)')?.name).toBe('Arcane Magic (Lore)');
+  });
+
+  it('returns undefined when nothing matches', () => {
+    expect(findTalentData('Not A Talent')).toBeUndefined();
+    expect(findTalentData('')).toBeUndefined();
+  });
+
+  it('is not fooled by names of built-in object properties', () => {
+    expect(findTalentData('toLocaleString')).toBeUndefined();
+    expect(findTalentData('constructor')).toBeUndefined();
+    expect(resolveTalentTooltip('toLocaleString', '')).toBeNull();
+  });
+});
 
 describe('resolveSkillTooltip', () => {
   it('returns description and characteristic for a known basic skill', () => {

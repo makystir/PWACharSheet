@@ -518,6 +518,11 @@ td, th, label {
   min-height: calc(100vh / 1.2);  /* ensures full viewport coverage */
 }
 
+/* Modals portal outside #root (see ModalOverlay), so scale their content to match */
+[data-theme="old-guy"] [data-modal-overlay] > * {
+  scale: 1.2;
+}
+
 [data-theme="light"] ::selection {
   background: rgba(138, 106, 32, 0.3);
   color: var(--text-primary);

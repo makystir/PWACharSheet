@@ -40,6 +40,7 @@ import { getBonus } from '../../logic/calculators';
 import { findSkillForWeapon, RANGED_GROUPS } from '../../logic/weapons';
 import { computeSkillTarget, type RollResult, type DifficultyLevel } from '../../logic/dice-roller';
 import { decrementConditionDurations } from '../../logic/condition-duration';
+import { inGroup } from '../../logic/grouped-names';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
 import type { CharacteristicKey } from '../../types/character';
 import type { HitLocation } from '../combat/hitLocationTable';
@@ -155,7 +156,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
   /* ── Spell casting eligibility ── */
   const hasSpellcasting = character.spells.length > 0 ||
     character.talents.some(t => t.n.includes('Magic') || t.n.includes('Pray') || t.n.includes('Invoke')) ||
-    character.aSkills.some(s => s.n.startsWith('Channelling') || s.n.startsWith('Language (Magick)'));
+    character.aSkills.some(s => inGroup(s.n, 'Channelling') || s.n.startsWith('Language (Magick)'));
 
   return (
     <div className={styles.sectionGap} data-domain="combat">

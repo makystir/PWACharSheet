@@ -5,6 +5,7 @@ import {
   calculateOpposedResult,
 } from '../../logic/dice-roller';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './RollResultDisplay.module.css';
 import microStyles from './styles/micro-interactions.module.css';
 
@@ -62,7 +63,7 @@ export function RollResultDisplay({ result, onClose }: RollResultDisplayProps) {
       : '';
 
   return (
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-label="Roll Result">
+    <ModalOverlay onClick={onClose} role="dialog" aria-label="Roll Result">
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.title}>{result.skillOrCharName}</div>
 
@@ -125,6 +126,6 @@ export function RollResultDisplay({ result, onClose }: RollResultDisplayProps) {
           Dismiss
         </button>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

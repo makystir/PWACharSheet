@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { useState } from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { AbilitiesTab } from '../AbilitiesTab';
+import { AbilitiesTab, type SpecTarget } from '../AbilitiesTab';
 import { useCharacterEntities, type DeleteTarget } from '../../useCharacterEntities';
 import { CharacterBreakdownTooltips, type BreakdownTooltipState } from '../../CharacterBreakdownTooltips';
 import type { SheetTooltipState } from '../../SheetInfoButton';
@@ -48,6 +48,7 @@ function Harness({ character, openSkillRoll = noop, updateCharacter = noop }: Ha
   const [showAdvSkillPicker, setShowAdvSkillPicker] = useState(false);
   const [showTalentPicker, setShowTalentPicker] = useState(false);
   const [showSpellPicker, setShowSpellPicker] = useState(false);
+  const [specTarget, setSpecTarget] = useState<SpecTarget | null>(null);
   const [expandedSpells, setExpandedSpells] = useState<Set<number>>(new Set());
   const [skillSearchText, setSkillSearchText] = useState('');
   const [skillTrainedOnly, setSkillTrainedOnly] = useState(false);
@@ -77,6 +78,7 @@ function Harness({ character, openSkillRoll = noop, updateCharacter = noop }: Ha
         data-adv-skill={String(showAdvSkillPicker)}
         data-talent={String(showTalentPicker)}
         data-spell={String(showSpellPicker)}
+        data-spec-target={specTarget ? `${specTarget.type}:${specTarget.index}` : ''}
       />
       <AbilitiesTab
         character={character}
@@ -100,6 +102,7 @@ function Harness({ character, openSkillRoll = noop, updateCharacter = noop }: Ha
         setShowTalentPicker={setShowTalentPicker}
         setShowSpellPicker={setShowSpellPicker}
         setDeleteTarget={setDeleteTarget}
+        setSpecTarget={setSpecTarget}
         openSkillRoll={openSkillRoll}
       />
       <CharacterBreakdownTooltips
@@ -211,5 +214,27 @@ describe('AbilitiesTab (extracted seam e)', () => {
     render(<Harness character={char} />);
     expect(screen.getByText('Known Runes')).toBeInTheDocument();
     expect(screen.getByText('Rune Management')).toBeInTheDocument();
+  });
+
+  it('shows a Choose button on placeholder rows only and routes it to the specialisation setter', () => {
+    const char = makeCharacter({
+      aSkills: [
+        { n: 'Language (Any)', c: 'Int', a: 5 },
+        { n: 'Language (Battle)', c: 'Int', a: 0 },
+      ],
+      talents: [
+        { n: 'Hardy', lvl: 1, desc: '' },
+        { n: 'Etiquette (Any)', lvl: 1, desc: '' },
+      ],
+    });
+    render(<Harness character={char} />);
+    expect(screen.queryByRole('button', { name: 'Choose specialisation for Language (Battle)' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Choose specialisation for Hardy' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose specialisation for Language (Any)' }));
+    expect(screen.getByTestId('picker-flags')).toHaveAttribute('data-spec-target', 'aSkill:0');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose specialisation for Etiquette (Any)' }));
+    expect(screen.getByTestId('picker-flags')).toHaveAttribute('data-spec-target', 'talent:1');
   });
 });

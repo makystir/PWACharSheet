@@ -40,6 +40,7 @@ import { rollEventsToHistory } from './components/shared/rollHistoryAdapter';
 import type { RollEventPayload } from './types/character';
 import { useHashRoute } from './hooks/useHashRoute';
 import { useStorageErrorToast } from './hooks/useStorageErrorToast';
+import { useStripLeadingZeros } from './hooks/useStripLeadingZeros';
 import { runMigration } from './storage/migration';
 import { saveCharacter } from './storage/character-manager';
 import { getPortraitStore } from './storage/portrait-store';
@@ -586,6 +587,9 @@ export default function App() {
     }
     initApp();
   }, []);
+
+  // Typing into a number field that shows 0 gives "51", not "051".
+  useStripLeadingZeros();
 
   if (!migrated) {
     return null;

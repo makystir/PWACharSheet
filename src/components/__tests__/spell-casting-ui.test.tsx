@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { SpellCastingPanel } from '../shared/SpellCastingPanel';
 import { OvercastAllocator } from '../shared/OvercastAllocator';
@@ -116,6 +116,82 @@ describe('SpellCastingPanel — Channel button opens RollDialog', () => {
     fireEvent.click(screen.getByLabelText('Channel Bolt'));
     expect(screen.getByRole('dialog', { name: 'Roll Dialog' })).toBeInTheDocument();
     expect(screen.getByText('Channelling')).toBeInTheDocument();
+  });
+});
+
+// ─── Choosing the Channelling skill (one per Wind) ───────────────────────────
+
+describe('SpellCastingPanel — choosing the Channelling skill', () => {
+  // "Aqshy's Aegis" is a Lore of Fire spell in the spell catalogue, so its Wind is Aqshy.
+  const aegis: SpellItem = { name: "Aqshy's Aegis", cn: '5', range: 'You', target: 'You', duration: 'WPB rounds', effect: 'Ward', memorized: true };
+  // WP is 30 + 5 = 35 in makeSpellChar, so Hysh (5) → 40 and Aqshy (10) → 45.
+  const twoWinds = {
+    aSkills: [
+      { n: 'Language (Magick)', c: 'Int', a: 15 },
+      { n: 'Channelling (Hysh)', c: 'WP', a: 5 },
+      { n: 'Channelling (Aqshy)', c: 'WP', a: 10 },
+    ],
+    spells: [aegis],
+  };
+
+  function openChannelDialog() {
+    fireEvent.click(screen.getByText("Aqshy's Aegis"));
+    fireEvent.click(screen.getByLabelText("Channel Aqshy's Aegis"));
+    return screen.getByRole('dialog', { name: 'Roll Dialog' });
+  }
+
+  /** The value shown under the dialog's "Base Target" label. */
+  const baseTargetIn = (dialog: HTMLElement) => within(dialog).getByText('Base Target').nextElementSibling?.textContent;
+
+  it('suggests the skill for the spell Wind and lists every Channelling skill with its target', () => {
+    renderPanel(twoWinds);
+    const dialog = openChannelDialog();
+
+    expect(within(dialog).getByRole('heading', { name: 'Channelling (Aqshy)' })).toBeInTheDocument();
+    expect(baseTargetIn(dialog)).toBe('45');
+    const select = within(dialog).getByLabelText('Skill') as HTMLSelectElement;
+    expect(select.value).toBe('Channelling (Aqshy)');
+    expect([...select.options].map((o) => o.textContent)).toEqual([
+      'Channelling (Hysh) — 40',
+      'Channelling (Aqshy) — 45',
+    ]);
+  });
+
+  it('switches skill and target, and remembers the choice for the spell', () => {
+    renderPanel(twoWinds);
+    let dialog = openChannelDialog();
+    fireEvent.change(within(dialog).getByLabelText('Skill'), { target: { value: 'Channelling (Hysh)' } });
+    expect(within(dialog).getByRole('heading', { name: 'Channelling (Hysh)' })).toBeInTheDocument();
+    expect(baseTargetIn(dialog)).toBe('40');
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByLabelText("Channel Aqshy's Aegis"));
+    dialog = screen.getByRole('dialog', { name: 'Roll Dialog' });
+    expect((within(dialog).getByLabelText('Skill') as HTMLSelectElement).value).toBe('Channelling (Hysh)');
+  });
+
+  it('records the roll under the chosen skill', () => {
+    const { addRoll } = renderPanel(twoWinds);
+    const dialog = openChannelDialog();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Roll' }));
+    expect(addRoll).toHaveBeenCalledWith(expect.objectContaining({ skillOrCharName: 'Channelling (Aqshy)', baseTarget: 45 }));
+  });
+
+  it('starts an Arcane spell (no Wind of its own) on the highest Channelling skill', () => {
+    // "Bolt" is an Arcane spell in the catalogue.
+    renderPanel({ aSkills: twoWinds.aSkills });
+    fireEvent.click(screen.getByText('Bolt'));
+    fireEvent.click(screen.getByLabelText('Channel Bolt'));
+    const dialog = screen.getByRole('dialog', { name: 'Roll Dialog' });
+    expect((within(dialog).getByLabelText('Skill') as HTMLSelectElement).value).toBe('Channelling (Aqshy)');
+    expect(baseTargetIn(dialog)).toBe('45');
+  });
+
+  it('shows no Skill dropdown with a single Channelling skill', () => {
+    renderPanel();
+    fireEvent.click(screen.getByText('Bolt'));
+    fireEvent.click(screen.getByLabelText('Channel Bolt'));
+    expect(screen.queryByLabelText('Skill')).not.toBeInTheDocument();
   });
 });
 

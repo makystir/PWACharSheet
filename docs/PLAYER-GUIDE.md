@@ -205,6 +205,10 @@ Enabled via the Psychology Tracker house rule. Add traits by type (Animosity, Ha
 
 Use the **Add** menu to add advanced skills, talents, or spells from the rulebook or as custom entries.
 
+#### Choosing a specialisation
+
+Careers often list grouped skills and talents such as *Language (Any)*, *Channelling (Any Colour)*, *Art (Calligraphy or Engraving)* or *Etiquette (Any)*. A row still named like that shows a **choose** button (⇅) next to its name. It opens a list of specialisations the game data knows (for Channelling: the eight colours, Dhar, Qhaysh, or no specialisation), and you can type your own, homebrew included. The row is renamed to the usual *Group (Specialisation)* form, e.g. *Channelling (Aqshy)*. Renaming the row by hand works too; spacing and capitalisation don't matter.
+
 #### Consumables
 
 Track potions, draughts, antidotes, and other limited-use items: add with name, max doses, and effect; adjust remaining doses with +/−; items grey out when depleted; delete when gone.
@@ -292,6 +296,7 @@ A visual armour map shows AP at each location (Head, L/R Arm, Body, L/R Leg) usi
 For characters with a spellcasting talent (Arcane/Petty Magic, Bless, or Invoke):
 - **Memorized Spells** with CN, range, target, duration, effect
 - **Cast** opens a roll dialog; **Channel** accumulates SL toward a spell's CN; progress shown per spell
+- With more than one Channelling skill (e.g. *Channelling (Aqshy)* and *Channelling (Hysh)*), the Channel dialog has a **Skill** dropdown listing each with its target. It starts on the skill for the spell's Wind (Lore of Fire → Aqshy, High Magic → Qhaysh, Necromancy and Daemonology → Dhar) when you have it, otherwise on your highest Channelling skill (e.g. for Petty and Arcane spells), and remembers your pick for that spell until you leave the page
 - **Magic Saturation** selector (Low … Corrupted), **Armour Casting Penalty**, **Overcast allocation**, and automatic **Miscast** tables
 - With the **Alternative Channelling Cants** house rule, spend gathered channelling SL on minor effects
 - **Manage Spells** to memorize/unmemorize
@@ -316,6 +321,8 @@ A badge dot appears on the Advancement nav item when you have unspent XP.
 
 - View your current Class / Career / Level.
 - **Career Progress** checklist: characteristics at threshold, career skills at threshold, and at least one career talent.
+  - Each skill the career lists counts once, and each of your skills counts for one of them. *Language (Any)* is met by any language, while *Language (Magick)* is met only by Magick, so one Language (Magick) cannot tick both. Several Channelling colours meet *Channelling (Any Colour)* once; every one of them is still advanced at the in-career price.
+  - The checklist names the skill counted for a grouped entry, e.g. *Language (Any): Language (Bretonnian)*.
 - **Advance Career Level (N XP)** — advances to the next level (cheaper when requirements are met).
 - **Change Career** and **Switch Career** — two ways to move to a new career; eligibility filtering shows only valid options and the XP cost depends on same-class vs. different-class.
 - **Help popovers** (ℹ️) explain the rules in context.
@@ -334,7 +341,7 @@ A table (career skills first, in gold) with name, characteristic, advances, tota
 
 ### Acquiring Talents
 
-- **In-Career Talents** from your current level (cost scales with times taken)
+- **In-Career Talents** from your current level (cost scales with times taken). A grouped talent such as *Arcane Magic (Any Arcane Lore)* shows a card for each specialisation you own plus a **Choose & Acquire** card that asks for the new specialisation first.
 - **Out-of-Career Talents** you already own (double cost)
 - A view of **future career talents** you'll gain at later levels
 

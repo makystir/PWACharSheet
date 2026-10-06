@@ -1,3 +1,4 @@
+import { ModalOverlay } from './ModalOverlay';
 import styles from './RestoreConfirmDialog.module.css';
 
 const MAX_DISPLAYED_NAMES = 50;
@@ -22,7 +23,7 @@ export function RestoreConfirmDialog({
   const remainingCount = characterNames.length - displayedNames.length;
 
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-label="Restore confirmation">
+    <ModalOverlay onClick={onCancel} role="dialog" aria-label="Restore confirmation">
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.heading}>Restore {characterCount} character{characterCount !== 1 ? 's' : ''}?</h3>
 
@@ -55,6 +56,6 @@ export function RestoreConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

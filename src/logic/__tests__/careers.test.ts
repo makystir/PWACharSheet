@@ -7,8 +7,77 @@ import {
   applyCareerSkills,
   resolveCareerName,
   getCareerSkills,
+  getSpecialisationOptions,
 } from '../careers';
 import { BLANK_CHARACTER } from '../../types/character';
+import { inGroup } from '../grouped-names';
+
+// ─── getSpecialisationOptions: dropdown suggestions for placeholders ─────────
+// Suggestions only: they are derived from the game data and never gate
+// matching, so a custom (homebrew) specialisation is always allowed for "(Any)".
+
+describe('getSpecialisationOptions', () => {
+  const TEN_WINDS = [
+    'Channelling (Aqshy)', 'Channelling (Azyr)', 'Channelling (Chamon)', 'Channelling (Dhar)',
+    'Channelling (Ghur)', 'Channelling (Ghyran)', 'Channelling (Hysh)', 'Channelling (Qhaysh)',
+    'Channelling (Shyish)', 'Channelling (Ulgu)',
+  ];
+
+  it('suggests "no specialisation" first, then the ten winds, with custom allowed', () => {
+    const { names, allowCustom } = getSpecialisationOptions('Channelling (Any Colour)', 'skill');
+    expect(names[0]).toBe('Channelling');
+    expect(names).toEqual(expect.arrayContaining(TEN_WINDS));
+    // Anything else comes from the game data (e.g. the Ogre Butcher career), never from a hand-kept list.
+    expect(names.every(n => inGroup(n, 'Channelling'))).toBe(true);
+    expect(allowCustom).toBe(true);
+  });
+
+  it('reads the placeholder tolerantly', () => {
+    expect(getSpecialisationOptions('Channeling (Any)', 'skill')).toEqual(
+      getSpecialisationOptions('Channelling (Any Colour)', 'skill'),
+    );
+  });
+
+  it('collects languages from skill, career and species data, without a bare option', () => {
+    const { names, allowCustom } = getSpecialisationOptions('Language (Any)', 'skill');
+    expect(names).toEqual(expect.arrayContaining([
+      'Language (Battle)', 'Language (Magick)', 'Language (Khazalid)', 'Language (Eltharin)',
+    ]));
+    expect(names).not.toContain('Language');
+    expect(names.every(n => n.startsWith('Language ('))).toBe(true);
+    expect(allowCustom).toBe(true);
+  });
+
+  it('offers exactly the listed options for a choice, without custom entry', () => {
+    expect(getSpecialisationOptions('Art (Calligraphy or Engraving)', 'skill')).toEqual({
+      names: ['Art (Calligraphy)', 'Art (Engraving)'],
+      allowCustom: false,
+    });
+  });
+
+  it('uses the canonical spelling of a listed option when the data has one', () => {
+    expect(getSpecialisationOptions('Melee (Basic or Two-handed)', 'skill').names).toEqual([
+      'Melee (Basic)', 'Melee (Two-Handed)',
+    ]);
+  });
+
+  it('suggests talent specialisations named in career data, not talent-list templates', () => {
+    const { names, allowCustom } = getSpecialisationOptions('Etiquette (Any)', 'talent');
+    expect(names).toEqual(expect.arrayContaining(['Etiquette (Nobles)', 'Etiquette (Soldiers)']));
+    expect(names).not.toContain('Etiquette (Group)');
+    expect(allowCustom).toBe(true);
+  });
+
+  it('suggests every sense the talent list names separately', () => {
+    expect(getSpecialisationOptions('Acute Sense (Any)', 'talent').names).toEqual(expect.arrayContaining([
+      'Acute Sense (Hearing)', 'Acute Sense (Sight)', 'Acute Sense (Smell)', 'Acute Sense (Taste)', 'Acute Sense (Touch)',
+    ]));
+  });
+
+  it('still allows a custom entry for a group the data does not know', () => {
+    expect(getSpecialisationOptions('Made Up Group (Any)', 'skill')).toEqual({ names: [], allowCustom: true });
+  });
+});
 
 // ─── Property 11: Career class filtering returns correct careers ─────────────
 // Validates: Requirements 6.1

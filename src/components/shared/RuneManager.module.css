@@ -1,9 +1,5 @@
 /* RuneManager — co-located CSS Module */
 
-.overlay {
-  composes: overlay from './styles/shared.module.css';
-}
-
 .modal {
   composes: modalPanel from './styles/shared.module.css';
   padding: 20px;

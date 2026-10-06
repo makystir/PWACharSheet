@@ -1,9 +1,5 @@
 /* EndOfTurnReportModal — CSS Module */
 
-.overlay {
-  composes: overlay from '../shared/styles/shared.module.css';
-}
-
 .modal {
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);

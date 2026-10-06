@@ -13,6 +13,7 @@ import {
   createBlankHireling,
   rollRandomQuirk,
 } from '../../logic/hirelings';
+import { ModalOverlay } from '../shared/ModalOverlay';
 import styles from './HirelingCreationFlow.module.css';
 
 interface HirelingCreationFlowProps {
@@ -78,7 +79,7 @@ export function HirelingCreationFlow({ onConfirm, onCancel }: HirelingCreationFl
   }
 
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-label="Hire New Follower">
+    <ModalOverlay onClick={onCancel} role="dialog" aria-label="Hire New Follower">
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <span className={styles.title}>Hire New Follower</span>
@@ -243,6 +244,6 @@ export function HirelingCreationFlow({ onConfirm, onCancel }: HirelingCreationFl
           )}
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

@@ -1,9 +1,5 @@
 /* CantActivationDialog component styles */
 
-.overlay {
-  composes: overlay from './styles/shared.module.css';
-}
-
 .dialog {
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);

@@ -4,6 +4,8 @@ import type { RollResult } from '../../logic/dice-roller';
 import {
   computeCastingTarget,
   computeChannellingTarget,
+  getChannellingSkills,
+  getDefaultChannellingSkill,
   resolveCastingResult,
   resolveChannellingResult,
   lookupMiscast,
@@ -186,6 +188,8 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
   const [miscastResult, setMiscastResult] = useState<MiscastResult | null>(null);
   const [expandedSpell, setExpandedSpell] = useState<string | null>(null);
   const [saturationExpanded, setSaturationExpanded] = useState(false);
+  // Channelling skill last chosen per spell, so a multi-round channel keeps its Wind.
+  const [channelSkillBySpell, setChannelSkillBySpell] = useState<Record<string, string>>({});
 
   const canCastSpells = hasSpellcastingTalent(character);
 
@@ -218,13 +222,22 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
   };
 
   const openChannelDialog = (spell: typeof character.spells[number]) => {
-    const baseTarget = computeChannellingTarget(character);
+    // The skill last chosen for this spell, else the one for the spell's Wind.
+    const remembered = getChannellingSkills(character).find((s) => s.n === channelSkillBySpell[spell.name]);
+    const skill = remembered ?? getDefaultChannellingSkill(character, SPELL_LIST.find((s) => s.name === spell.name)?.lore);
     setRollDialogState({
-      name: 'Channelling',
-      baseTarget,
+      name: skill?.n ?? 'Channelling',
+      baseTarget: computeChannellingTarget(character, skill?.n),
       spell,
       isChannelling: true,
     });
+  };
+
+  const chooseChannellingSkill = (skillName: string) => {
+    if (!rollDialogState) return;
+    const spellName = rollDialogState.spell.name;
+    setChannelSkillBySpell((prev) => ({ ...prev, [spellName]: skillName }));
+    setRollDialogState({ ...rollDialogState, name: skillName, baseTarget: computeChannellingTarget(character, skillName) });
   };
 
   const cancelChannelling = (spellName: string) => {
@@ -520,6 +533,10 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
         <RollDialog
           skillOrCharName={rollDialogState.name}
           baseTarget={rollDialogState.baseTarget}
+          skillChoice={rollDialogState.isChannelling ? {
+            options: getChannellingSkills(character).map((s) => ({ name: s.n, target: computeChannellingTarget(character, s.n) })),
+            onChange: chooseChannellingSkill,
+          } : undefined}
           onRoll={handleRollResult}
           onClose={() => setRollDialogState(null)}
         />

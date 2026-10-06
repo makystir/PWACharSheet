@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   computeCastingTarget,
   computeChannellingTarget,
+  getChannellingSkills,
+  getWindOfLore,
+  getDefaultChannellingSkill,
   resolveCastingResult,
   computeOvercastSlots,
   computeOvercastOptions,
@@ -166,6 +169,116 @@ describe('computeChannellingTarget — Property 2: Channelling target computatio
   it('missing Channelling skill → advances treated as 0', () => {
     const char = makeCharacter({ wpI: 42 });
     expect(computeChannellingTarget(char)).toBe(42);
+  });
+
+  it('uses the named Channelling skill when several are on the sheet', () => {
+    const char = makeCharacter({
+      wpI: 30,
+      aSkills: [
+        { n: 'Channelling (Azyr)', c: 'WP', a: 3 },
+        { n: 'Channelling (Aqshy)', c: 'WP', a: 15 },
+      ],
+    });
+    expect(computeChannellingTarget(char)).toBe(33); // first on the sheet, as before
+    expect(computeChannellingTarget(char, 'Channelling (Aqshy)')).toBe(45);
+    expect(computeChannellingTarget(char, 'Channelling (Azyr)')).toBe(33);
+  });
+
+  it('falls back to the first Channelling skill when the named one is gone', () => {
+    const char = makeCharacter({ wpI: 30, aSkills: [{ n: 'Channelling (Hysh)', c: 'WP', a: 8 }] });
+    expect(computeChannellingTarget(char, 'Channelling (Aqshy)')).toBe(38);
+  });
+});
+
+// ─── Choosing a Channelling skill per Wind ───────────────────────────────────
+
+describe('getChannellingSkills', () => {
+  it('lists plain and specialised Channelling skills once each, in sheet order, homebrew included', () => {
+    const char = makeCharacter({
+      aSkills: [
+        { n: 'Channelling (Hysh)', c: 'WP', a: 5 },
+        { n: 'Language (Magick)', c: 'Int', a: 10 },
+        { n: 'Channeling(Qhaysh)', c: 'WP', a: 2 },
+        { n: 'Channelling (Homebrew Wind)', c: 'WP', a: 1 },
+        { n: 'Channelling (Hysh)', c: 'WP', a: 0 },
+        { n: 'Channelling', c: 'WP', a: 4 },
+      ],
+    });
+    expect(getChannellingSkills(char).map((s) => s.n)).toEqual([
+      'Channelling (Hysh)', 'Channeling(Qhaysh)', 'Channelling (Homebrew Wind)', 'Channelling',
+    ]);
+  });
+
+  it('is empty without a Channelling skill', () => {
+    expect(getChannellingSkills(makeCharacter({}))).toEqual([]);
+  });
+});
+
+describe('getWindOfLore', () => {
+  it.each([
+    ['Lore of Fire', 'Aqshy'],
+    ['Lore of Heavens', 'Azyr'],
+    ['Lore of Metal', 'Chamon'],
+    ['Lore of Beasts', 'Ghur'],
+    ['Lore of Life', 'Ghyran'],
+    ['Lore of Light', 'Hysh'],
+    ['Lore of Death', 'Shyish'],
+    ['Lore of Shadows', 'Ulgu'],
+    // Beyond the eight Colleges (user-confirmed)
+    ['High Magic', 'Qhaysh'],
+    ['Lore of Daemonology', 'Dhar'],
+    ['Lore of Necromancy', 'Dhar'],
+  ])('%s → %s', (lore, wind) => {
+    expect(getWindOfLore(lore)).toBe(wind);
+  });
+
+  it.each(['Petty', 'Arcane', 'Elven Arcane', 'Lore of Hedgecraft', 'Chaos', 'constructor', undefined])('%s → no Wind', (lore) => {
+    expect(getWindOfLore(lore)).toBeNull();
+  });
+});
+
+describe('getDefaultChannellingSkill', () => {
+  const mage = makeCharacter({
+    aSkills: [
+      { n: 'Channelling (Azyr)', c: 'WP', a: 3 },
+      { n: 'channelling (aqshy)', c: 'WP', a: 15 },
+      { n: 'Channelling (Qhaysh)', c: 'WP', a: 10 },
+      { n: 'Channelling (Dhar)', c: 'WP', a: 1 },
+    ],
+  });
+
+  it('suggests the skill for the spell Wind, whatever its capitalisation', () => {
+    expect(getDefaultChannellingSkill(mage, 'Lore of Fire')?.n).toBe('channelling (aqshy)');
+  });
+
+  it('suggests Qhaysh for High Magic and Dhar for Dark Magic, even when another skill is higher', () => {
+    expect(getDefaultChannellingSkill(mage, 'High Magic')?.n).toBe('Channelling (Qhaysh)');
+    expect(getDefaultChannellingSkill(mage, 'Lore of Necromancy')?.n).toBe('Channelling (Dhar)');
+    expect(getDefaultChannellingSkill(mage, 'Lore of Daemonology')?.n).toBe('Channelling (Dhar)');
+  });
+
+  it('suggests the highest Channelling skill for a Lore with no Wind of its own', () => {
+    expect(getDefaultChannellingSkill(mage, 'Arcane')?.n).toBe('channelling (aqshy)');
+    expect(getDefaultChannellingSkill(mage, 'Petty')?.n).toBe('channelling (aqshy)');
+    expect(getDefaultChannellingSkill(mage, undefined)?.n).toBe('channelling (aqshy)');
+  });
+
+  it('suggests the highest Channelling skill when the spell Wind is not on the sheet', () => {
+    expect(getDefaultChannellingSkill(mage, 'Lore of Death')?.n).toBe('channelling (aqshy)');
+  });
+
+  it('breaks a tie for highest by sheet order', () => {
+    const tied = makeCharacter({
+      aSkills: [
+        { n: 'Channelling (Hysh)', c: 'WP', a: 10 },
+        { n: 'Channelling (Ulgu)', c: 'WP', a: 10 },
+      ],
+    });
+    expect(getDefaultChannellingSkill(tied, 'Arcane')?.n).toBe('Channelling (Hysh)');
+  });
+
+  it('suggests nothing without a Channelling skill', () => {
+    expect(getDefaultChannellingSkill(makeCharacter({}), 'Lore of Fire')).toBeUndefined();
   });
 });
 

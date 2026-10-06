@@ -1,9 +1,5 @@
 /* Picker component styles */
 
-.overlay {
-  composes: overlay from './styles/shared.module.css';
-}
-
 .modal {
   composes: modalPanel from './styles/shared.module.css';
   max-height: 70vh;

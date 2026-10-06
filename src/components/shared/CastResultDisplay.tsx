@@ -10,6 +10,7 @@ import {
 import { getCharacterLore } from '../../logic/advancement';
 import { getArcaneMarksTable, type ArcaneMarkEntry } from '../../data/arcane-marks';
 import { OvercastAllocator } from './OvercastAllocator';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './CastResultDisplay.module.css';
 
 interface CastResultDisplayProps {
@@ -59,7 +60,7 @@ export function CastResultDisplay({
   const passColorClass = castSuccess ? styles.passColor : styles.failColor;
 
   return (
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-label="Cast Result">
+    <ModalOverlay onClick={onClose} role="dialog" aria-label="Cast Result">
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         {/* 1. Header — Spell name */}
         <div className={styles.header}>{spell.name}</div>
@@ -288,6 +289,6 @@ export function CastResultDisplay({
           Dismiss
         </button>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

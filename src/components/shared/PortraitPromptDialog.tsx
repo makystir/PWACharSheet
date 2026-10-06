@@ -4,6 +4,7 @@ import type { Character } from '../../types/character';
 import { buildPortraitPrompt } from '../../logic/portrait-prompt';
 import type { PortraitFraming } from '../../logic/portrait-prompt';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './PortraitPromptDialog.module.css';
 
 interface PortraitPromptDialogProps {
@@ -71,9 +72,8 @@ export function PortraitPromptDialog({ character, onClose }: PortraitPromptDialo
   };
 
   return (
-    <div
+    <ModalOverlay
       ref={overlayRef}
-      className={styles.overlay}
       role="dialog"
       aria-modal="true"
       aria-label="Generate portrait prompt"
@@ -147,6 +147,6 @@ export function PortraitPromptDialog({ character, onClose }: PortraitPromptDialo
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

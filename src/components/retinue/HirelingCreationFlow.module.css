@@ -1,9 +1,5 @@
 /* HirelingCreationFlow component styles */
 
-.overlay {
-  composes: overlay from '../shared/styles/shared.module.css';
-}
-
 .dialog {
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);

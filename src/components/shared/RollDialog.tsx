@@ -10,6 +10,7 @@ import {
 import { triggerRollHaptic } from '../../logic/haptics';
 import { getDiceEntryMode, type DiceEntryMode } from '../../hooks/useDiceEntryMode';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { ModalOverlay } from './ModalOverlay';
 import styles from './RollDialog.module.css';
 
 interface RollDialogProps {
@@ -24,6 +25,15 @@ interface RollDialogProps {
    * the preference.
    */
   diceEntryMode?: DiceEntryMode;
+  /**
+   * Several skills that could make this test (e.g. one Channelling skill per
+   * Wind). With two or more options a Skill dropdown is shown; the caller
+   * passes the chosen skill back in as `skillOrCharName` and `baseTarget`.
+   */
+  skillChoice?: {
+    options: { name: string; target: number }[];
+    onChange: (name: string) => void;
+  };
 }
 
 const DIFFICULTY_LABELS: { level: DifficultyLevel; label: string }[] = [
@@ -53,6 +63,7 @@ export function RollDialog({
   onRoll,
   onClose,
   diceEntryMode,
+  skillChoice,
 }: RollDialogProps) {
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(defaultDifficulty);
   const [opposedMode, setOpposedMode] = useState(false);
@@ -131,7 +142,7 @@ export function RollDialog({
   // When showing opposed result, render the result view instead of the form
   if (opposedResult) {
     return (
-      <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Opposed Test Result">
+      <ModalOverlay className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Opposed Test Result">
         <div ref={dialogRef} className={styles.dialog} onClick={(e) => e.stopPropagation()}>
           <h2 className={styles.title}>{skillOrCharName} — Opposed Test</h2>
 
@@ -171,14 +182,32 @@ export function RollDialog({
             Dismiss
           </button>
         </div>
-      </div>
+      </ModalOverlay>
     );
   }
 
   return (
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Roll Dialog">
+    <ModalOverlay className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Roll Dialog">
       <div ref={dialogRef} className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>{skillOrCharName}</h2>
+
+        {skillChoice && skillChoice.options.length > 1 && (
+          <div>
+            <div className={styles.label}>Skill</div>
+            <select
+              className={styles.select}
+              value={skillOrCharName}
+              onChange={(e) => skillChoice.onChange(e.target.value)}
+              aria-label="Skill"
+            >
+              {skillChoice.options.map(({ name, target }) => (
+                <option key={name} value={name}>
+                  {name} — {target}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <div className={styles.label}>Base Target</div>
@@ -287,6 +316,6 @@ export function RollDialog({
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

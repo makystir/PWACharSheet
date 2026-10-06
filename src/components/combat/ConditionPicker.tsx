@@ -4,6 +4,7 @@ import { CONDITIONS } from '../../data/conditions';
 import { resolveConditionTooltip } from '../../logic/tooltip-content';
 import { Tooltip } from '../shared/Tooltip';
 import { Check, Info, X } from 'lucide-react';
+import { ModalOverlay } from '../shared/ModalOverlay';
 import styles from './ConditionPicker.module.css';
 import pressableStyles from '../../styles/micro-interactions.module.css';
 
@@ -58,7 +59,7 @@ export function ConditionPicker({ conditions, onApply, onRemove, onClose }: Cond
   };
 
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick} data-testid="condition-picker-overlay">
+    <ModalOverlay onClick={handleOverlayClick} data-testid="condition-picker-overlay">
       <div
         ref={modalRef}
         className={styles.modal}
@@ -172,6 +173,6 @@ export function ConditionPicker({ conditions, onApply, onRemove, onClose }: Cond
           </Tooltip>
         );
       })()}
-    </div>
+    </ModalOverlay>
   );
 }

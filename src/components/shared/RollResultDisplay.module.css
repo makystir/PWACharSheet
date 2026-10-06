@@ -1,9 +1,5 @@
 /* RollResultDisplay component styles */
 
-.overlay {
-  composes: overlay from './styles/shared.module.css';
-}
-
 .dialog {
   composes: animateEnter from './styles/micro-interactions.module.css';
   background: var(--bg-secondary);
