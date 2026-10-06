@@ -18,6 +18,7 @@ import { CurrencyInput } from '../../shared/CurrencyInput';
 import { ConsumablesPanel } from '../../shared/ConsumablesPanel';
 import { ViewModeToggle } from '../../shared/ViewModeToggle';
 import { useViewMode } from '../../../hooks/useViewMode';
+import { useMediaQuery } from '../../../hooks/useMediaQuery';
 import { TransferControl } from '../../shared/TransferControl';
 import { TooltipTriggerCell } from '../../shared/TooltipTriggerCell';
 import type { CurrencyDelta } from '../../../logic/currency';
@@ -118,6 +119,9 @@ export function GearTab({
 }: GearTabProps) {
   const { setWorn, setStoredOnHorse, setInBackpack } = entities;
   const { mode: trappingsView, setMode: setTrappingsView } = useViewMode('viewmode-trappings', 'cards');
+  // On mobile the small gear cards misalign, so list view is the only option there.
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const effectiveTrappingsView = isMobile ? 'list' : trappingsView;
 
   return (
     <>
@@ -149,7 +153,7 @@ export function GearTab({
       <Card>
         <SectionHeader icon={Package} title="Trappings" action={
           <div className={styles.actionRow}>
-            {character.trappings.length > 0 && (
+            {character.trappings.length > 0 && !isMobile && (
               <ViewModeToggle mode={trappingsView} onChange={setTrappingsView} label="Trappings view" />
             )}
             <AddButton label="Add from Rulebook" onClick={() => setShowTrappingPicker(true)} />
@@ -163,7 +167,7 @@ export function GearTab({
             compact
             action={{ label: '+ Add', onClick: () => setShowTrappingPicker(true) }}
           />
-        ) : trappingsView === 'list' ? (
+        ) : effectiveTrappingsView === 'list' ? (
           <div className={styles.trappingsList}>
             {character.trappings.map((t, i) =>
               editingTrappingIndex === i ? (

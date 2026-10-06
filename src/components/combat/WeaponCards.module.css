@@ -353,7 +353,31 @@
 }
 
 @media (max-width: 767px) {
+  /* Horizontal space is tight on phones: stack the row so the weapon name gets
+     the full width and can wrap to two lines instead of truncating. */
+  .listRow {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .listName {
+    /* Give the name the whole first line, wrapping up to two lines. */
+    flex-basis: 100%;
+    white-space: normal;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    line-height: 1.25;
+  }
+
   .listMeta {
     font-size: 13px;
+  }
+
+  /* Meta + actions share the second line; actions pushed to the right. */
+  .listActions {
+    margin-left: auto;
   }
 }

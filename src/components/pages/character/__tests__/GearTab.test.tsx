@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useState, useRef } from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -294,5 +294,54 @@ describe('GearTab — Trappings view mode toggle', () => {
     const second = render(<Harness character={withTrappings()} />);
     expect(screen.getByRole('radio', { name: /list view/i })).toHaveAttribute('aria-checked', 'true');
     expect(second.container.querySelector('[class*="trappingsList"]')).toBeInTheDocument();
+  });
+});
+
+
+describe('GearTab — mobile forces list view', () => {
+  const originalMatchMedia = window.matchMedia;
+
+  beforeEach(() => {
+    try { localStorage.clear(); } catch { /* ignore */ }
+    // Simulate mobile viewport: all queries <= 767px report true.
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(max-width: 767px)' ? true : false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as typeof window.matchMedia;
+  });
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia;
+  });
+
+  const withTrappings = () =>
+    makeCharacter({
+      trappings: [
+        { name: 'Rope', enc: '1', quantity: 1 },
+        { name: 'Torch', enc: '0', quantity: 2 },
+      ],
+    });
+
+  it('hides the view toggle and forces list view on mobile', () => {
+    const { container } = render(<Harness character={withTrappings()} />);
+    // No toggle visible (mobile has no card/list choice — always list).
+    expect(screen.queryByRole('radio', { name: /card view/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: /list view/i })).not.toBeInTheDocument();
+    // List rendered, not cards.
+    expect(container.querySelector('[class*="trappingsList"]')).toBeInTheDocument();
+    expect(container.querySelector('[class*="trappingsGrid"]')).not.toBeInTheDocument();
+  });
+
+  it('forces list view even when localStorage has cards preference', () => {
+    localStorage.setItem('viewmode-trappings', 'cards');
+    const { container } = render(<Harness character={withTrappings()} />);
+    expect(container.querySelector('[class*="trappingsList"]')).toBeInTheDocument();
+    expect(container.querySelector('[class*="trappingsGrid"]')).not.toBeInTheDocument();
   });
 });
