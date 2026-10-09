@@ -252,7 +252,7 @@ Confirmed interpretation decisions baked into these tasks (no longer open):
       throwing.
     - _Requirements: 16.1, 16.3, 16.4, 16.5, 16.6_
 
-- [ ] 12. Prove personal-details correctness with property-based tests
+- [x] 12. Prove personal-details correctness with property-based tests
   - [x] 12.1 Property 22 — personal details are populated and race-appropriate
     - **Property 22: Personal details are populated and race-appropriate**
     - **Validates: Requirements 16.1, 16.2, 16.4, 16.5, 16.6**
