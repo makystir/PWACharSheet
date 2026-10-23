@@ -567,9 +567,20 @@ export function advanceSkill(
 
 /**
  * WFRP 4e career completion advance thresholds by level.
- * Level 1 = 5, Level 2 = 10, Level 3 = 15, Level 4 = 20.
+ * Core p.48: Level 1 = 5, Level 2 = 10, Level 3 = 15, Level 4 = 20 Advances.
+ * (The app extends L5 → 25 for 5-level careers — a pre-existing app convention.)
+ * Exported so the planner and AdvancementPage share one source of truth rather
+ * than duplicating the `{1:5,…}` map (rules-compliance steering).
  */
-const CAREER_COMPLETION_THRESHOLDS: Record<number, number> = { 1: 5, 2: 10, 3: 15, 4: 20, 5: 25 };
+export const CAREER_COMPLETION_THRESHOLDS: Record<number, number> = { 1: 5, 2: 10, 3: 15, 4: 20, 5: 25 };
+
+/**
+ * WFRP 4e Advance-Career-Level fee (Core p.48): 100 XP to change career level
+ * once the current level is completed, 200 XP if it is not yet complete.
+ * Exported as the single source of truth for both AdvancementPage (which charges
+ * it) and the planner (which projects it).
+ */
+export const ADVANCE_LEVEL_FEE = { ready: 100, notReady: 200 } as const; // Core p.48
 
 /**
  * Check if a career skill name matches a character's skill.

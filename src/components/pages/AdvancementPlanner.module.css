@@ -1,0 +1,247 @@
+/* Read-only advancement planner panel. Mirrors AdvancementChecklist's layout
+   and the gold=in-career / grey=out-of-career conventions from
+   AdvancementPage.module.css. Follows the ui-layout steering rule: readable
+   spacing, ≥44px touch targets on interactive cells. */
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.neutral {
+  padding: 10px 12px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid var(--accent-gold);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  text-align: center;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.itemMet,
+.itemUnmet {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+}
+
+.itemMet {
+  background: rgba(90, 154, 90, 0.12);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.itemUnmet {
+  background: var(--bg-secondary);
+  color: var(--accent-gold);
+}
+
+.status {
+  font-weight: 700;
+  font-size: 15px;
+  width: 16px;
+  text-align: center;
+}
+
+.label {
+  font-weight: 700;
+  min-width: 96px;
+}
+
+.total {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.advisory {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.grandRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.grandTotal {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 15px;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  border-radius: 4px;
+}
+
+.affordYes,
+.affordNo {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.affordYes {
+  background: rgba(90, 154, 90, 0.12);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.affordNo {
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.pathSection {
+  margin-top: 12px;
+}
+
+.pathHeading {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pathList {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pathStepInCareer {
+  color: var(--success);
+}
+
+.pathStepOutCareer {
+  color: var(--accent-gold);
+}
+
+.pathStepLabel {
+  color: var(--text-primary);
+}
+
+.budgetSection {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.budgetLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.budgetInput {
+  max-width: 160px;
+  padding: 8px 10px;
+  min-height: 40px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.budgetInput:focus {
+  border-color: var(--accent-gold);
+  outline: none;
+}
+
+.budgetResult {
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.budgetLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.budgetNext {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Breakdown tooltip content */
+.tooltipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tooltipFormula {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltipNote {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.tooltipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}

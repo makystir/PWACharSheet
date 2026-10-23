@@ -9,9 +9,11 @@ import { Toast } from '../shared/Toast';
 import { Tooltip } from '../shared/Tooltip';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { AdvancementChecklist } from './AdvancementChecklist';
+import { AdvancementPlanner } from './AdvancementPlanner';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, applyBulkAdvancement, calculateTierBoundaryCost } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, applyBulkAdvancement, calculateTierBoundaryCost, CAREER_COMPLETION_THRESHOLDS, ADVANCE_LEVEL_FEE } from '../../logic/advancement';
+import { planNextCareerLevel } from '../../logic/advancement-planner';
 import { filterSkillEntries } from '../../logic/skill-filter';
 import { getBonus } from '../../logic/calculators';
 import { TALENT_DB } from '../../data/talents';
@@ -176,8 +178,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const inCareerSkills = filteredSkills.filter(e => e.inCareer);
   const outCareerSkills = filteredSkills.filter(e => !e.inCareer);
 
-  // Career progress analysis — WFRP 4e completion thresholds: Level 1=5, 2=10, 3=15, 4=20, 5=25
-  const completionThreshold = ({ 1: 5, 2: 10, 3: 15, 4: 20, 5: 25 } as Record<number, number>)[careerLevelNum] ?? 5;
+  // Career progress analysis — WFRP 4e completion thresholds (Core p.48): single
+  // source of truth shared with the planner (CAREER_COMPLETION_THRESHOLDS).
+  const completionThreshold = CAREER_COMPLETION_THRESHOLDS[careerLevelNum] ?? 5;
   const maxLevel = allLevels.length;
   const isMaxLevel = careerLevelNum >= maxLevel;
   const charsProgress = careerChars.map(k => ({ name: k, advances: character.chars[k].a, met: character.chars[k].a >= completionThreshold }));
@@ -188,8 +191,13 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const talentsOwned = getCurrentLevelTalents(character.career, careerLevelNum).filter(tn => character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' (')));
   const talentsMet = talentsOwned.length >= 1;
   const readyToProgress = charsMet && skillsMet && talentsMet;
-  const advanceLevelCost = readyToProgress ? 100 : 200;
+  // Core p.48 level-change fee — shared constant (single source of truth).
+  const advanceLevelCost = readyToProgress ? ADVANCE_LEVEL_FEE.ready : ADVANCE_LEVEL_FEE.notReady;
   const canAffordAdvance = character.xpCur >= advanceLevelCost;
+
+  // Read-only cheapest-path projection for the planner panel. Pure derivation —
+  // computes nothing on the character (FR-6).
+  const plan = useMemo(() => planNextCareerLevel(character), [character]);
 
   // Advance career level
   const handleAdvanceLevel = () => {
@@ -219,7 +227,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     if (!newScheme?.level1 || newCareer === character.career) { setShowSwitchCareerPicker(false); return; }
     const level1 = newScheme.level1;
     const sameClass = newScheme.class === character.class;
-    const switchCost = (readyToProgress ? 100 : 200) + (sameClass ? 0 : 100);
+    const switchCost = (readyToProgress ? ADVANCE_LEVEL_FEE.ready : ADVANCE_LEVEL_FEE.notReady) + (sameClass ? 0 : 100);
     if (character.xpCur < switchCost) { setShowSwitchCareerPicker(false); return; }
     updateCharacter((c) => ensureCareerSkillsExist(archiveOldEntries({
       ...c,
@@ -441,6 +449,16 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           talentsMet={talentsMet}
           completionThreshold={completionThreshold}
           isMaxLevel={isMaxLevel}
+        />
+      )}
+
+      {/* Read-only cost-to-complete planner — augments the checklist above with
+          the cheapest set of advances and their XP cost (never mutates). */}
+      {scheme && careerLevelNum > 0 && !isMaxLevel && (
+        <AdvancementPlanner
+          plan={plan}
+          career={character.career}
+          careerLevel={character.careerLevel}
         />
       )}
 
