@@ -139,7 +139,10 @@ describe('Property 5: Poisoned end-of-turn damage', () => {
   const woundsArb = fc.integer({ min: 1, max: 30 });
   const poisonedLevelArb = fc.integer({ min: 1, max: 10 });
 
-  it('wounds decrease by poisonedLevel (floored at 0) when currentWounds > 0', () => {
+  // Core p.169: Poisoned loses a FLAT 1 Wound at end of round, ignoring all
+  // modifiers — it does NOT scale with the number of Poisoned Conditions (unlike
+  // Bleeding, whose per-Condition stacking the rulebook states explicitly).
+  it('wounds decrease by a flat 1 (regardless of level, floored at 0) when currentWounds > 0', () => {
     fc.assert(
       fc.property(woundsArb, poisonedLevelArb, (currentWounds, poisonedLevel) => {
         const result = processEndOfTurn({
@@ -149,7 +152,7 @@ describe('Property 5: Poisoned end-of-turn damage', () => {
           tb: 0,
           lowestAP: 0,
         });
-        const expected = Math.max(0, currentWounds - poisonedLevel);
+        const expected = Math.max(0, currentWounds - 1);
         expect(result.newWounds).toBe(expected);
       }),
       { numRuns: 1000 }
@@ -172,7 +175,7 @@ describe('Property 5: Poisoned end-of-turn damage', () => {
     );
   });
 
-  it('Poisoned damage is flat (ignores TB and AP)', () => {
+  it('Poisoned damage is flat 1 (ignores TB, AP, and level)', () => {
     fc.assert(
       fc.property(
         woundsArb,
@@ -187,7 +190,7 @@ describe('Property 5: Poisoned end-of-turn damage', () => {
             tb,
             lowestAP,
           });
-          const expected = Math.max(0, currentWounds - poisonedLevel);
+          const expected = Math.max(0, currentWounds - 1);
           expect(result.newWounds).toBe(expected);
         }
       ),

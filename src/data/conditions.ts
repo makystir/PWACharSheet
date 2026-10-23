@@ -8,7 +8,8 @@ export const CONDITIONS: ConditionData[] = [
     description: "You are on fire. At end of each round, suffer 1d10 + (level-1) Wounds reduced by TB and lowest AP (minimum 1 Wound). Athletics test to extinguish (each SL removes 1 level).",
     effects: "1d10 + (level-1) Damage at end of round, reduced by TB and lowest AP (minimum 1 Wound)",
     defaultDuration: "Until extinguished",
-    removedBy: "Agility test (end of round) or water/smothering"
+    // Core p.167: extinguished with an Athletics Test (each SL removes 1 level).
+    removedBy: "Athletics test (end of round) or water/smothering"
   },
   {
     name: "Bleeding",
@@ -29,49 +30,65 @@ export const CONDITIONS: ConditionData[] = [
     removedBy: "Automatically removed 1 level per 2 Rounds, or magical healing"
   },
   {
+    // Core p.167-168: Broken stacks (e.g. Terror inflicts Broken equal to its
+    // Rating); each Broken gives -10 to all Tests; you must use your Move to flee
+    // the source. At the end of a Round (if not Engaged) attempt a Cool Test to
+    // remove one Broken, each SL removing an extra. It grants no Stunned.
     name: "Broken",
-    stackable: false,
-    maxLevel: 1,
-    description: "Your spirit is crushed. You must flee or surrender. If you cannot, you cower and gain the Stunned condition.",
-    effects: "Must flee or surrender; if unable, gain Stunned condition",
+    stackable: true,
+    maxLevel: 10,
+    description: "Your resolve is shaken. Suffer -10 to all Tests per level of Broken, and you must use your Move each turn to flee the source of your fear. At the end of a Round, if you are not Engaged, you may attempt a Cool Test to remove a Broken Condition, each SL removing an extra.",
+    effects: "-10 to all Tests per level; must use Move to flee the source",
     defaultDuration: "Until rallied",
-    removedBy: "Cool test (end of round) or ally uses Leadership to rally"
+    removedBy: "Cool test at end of round when not Engaged (each SL removes extra), or ally uses Leadership to rally"
   },
   {
+    // Core p.168: -10 to hearing-based Tests per level; opponents gain +10 to hit
+    // you from the flank or rear. One Deafened is removed at the end of every
+    // other Round.
     name: "Deafened",
     stackable: true,
     maxLevel: 10,
-    description: "You cannot hear. All Tests relying on hearing fail automatically. Surprised by attacks you cannot see coming.",
-    effects: "Hearing-based tests auto-fail; may be Surprised by unseen attacks",
-    defaultDuration: "Until condition removed",
-    removedBy: "Varies by source (temporary deafness ends after duration, permanent requires healing)"
+    description: "Your hearing is impaired. Suffer -10 to all Tests relying on hearing per level, and opponents gain +10 to hit you from the flank or rear per level. One Deafened Condition is removed at the end of every other Round.",
+    effects: "-10 to hearing-based Tests per level; opponents gain +10 to hit from flank/rear per level",
+    defaultDuration: "Until condition removed (one level removed every other Round)",
+    removedBy: "Automatically removed 1 level per 2 Rounds, or magical healing"
   },
   {
+    // Core p.167: Entangled imposes -10 to Tests involving movement and you
+    // cannot move away from what entangles you; freed via an Opposed test against
+    // the entangler (or the entangler's rating).
     name: "Entangled",
     stackable: false,
     maxLevel: 1,
-    description: "You are trapped or restrained. You cannot move and all Tests involving physical movement suffer -20 penalty.",
-    effects: "Cannot move; physical movement tests at -20",
+    description: "You are trapped or restrained. You cannot move away from whatever entangles you, and suffer -10 to all Tests involving movement.",
+    effects: "Cannot move away from the entangler; movement-based Tests at -10",
     defaultDuration: "Until freed",
-    removedBy: "Strength test to break free, or ally frees you"
+    removedBy: "Opposed test to break free, or ally frees you"
   },
   {
+    // Core p.168: Fatigued imposes -10 to all Tests per level (it does not reduce
+    // Movement). How rest removes it is left to the GM.
     name: "Fatigued",
     stackable: true,
     maxLevel: 10,
-    description: "You are exhausted. Reduce Movement by 1 per level (Walk by 2, Run by 4). At level equal to TB or higher, gain Unconscious condition.",
-    effects: "Movement -1 per level (Walk -2, Run -4); Unconscious at level ≥ TB",
+    description: "You are exhausted. Suffer -10 to all Tests per level of Fatigued.",
+    effects: "-10 to all Tests per level",
     defaultDuration: "Until rested",
-    removedBy: "Rest (remove 1 level per hour of rest)"
+    removedBy: "Rest (amount of rest to remove a level is up to the GM)"
   },
   {
+    // Core p.169: At the end of each Round lose 1 Wound (flat, ignoring all
+    // modifiers) and suffer -10 to all Tests. At the end of a Round you may
+    // attempt an Endurance Test to remove a Poisoned Condition, each SL removing
+    // an extra; a Heal Test works too. Test difficulty is set by the poison.
     name: "Poisoned",
     stackable: true,
     maxLevel: 10,
-    description: "You are poisoned. Effects vary by poison type. Typically suffer ongoing damage or penalties until poison is neutralized.",
-    effects: "Varies by poison (ongoing damage, penalties, etc.)",
+    description: "You have been poisoned. At the end of each Round, lose 1 Wound, ignoring all modifiers (a flat 1 Wound, not per level). Also suffer -10 to all Tests.",
+    effects: "Lose 1 Wound at end of round (flat, ignoring modifiers); -10 to all Tests",
     defaultDuration: "Until poison runs its course or is neutralized",
-    removedBy: "Endurance test (varies by poison) or antidote"
+    removedBy: "Endurance test at end of round (each SL removes extra; difficulty set by the poison), Heal test, or antidote"
   },
   {
     name: "Prone",

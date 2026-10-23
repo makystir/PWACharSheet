@@ -1,449 +1,224 @@
-# Rules Compliance Audit Report
+# Rules Compliance Audit Report (Refreshed)
 
-A comprehensive cross-reference of all game mechanics logic in the app against the WFRP 4e Core Rulebook, Up In Arms, Dwarf Player's Guide, and High Elf Player's Guide.
+A comprehensive cross-reference of all game-mechanics logic in the app against the WFRP 4e Core Rulebook, Up In Arms, Winds of Magic, Archives of the Empire, and the Dwarf / High Elf Player's Guides.
+
+> **This report supersedes the prior audit.** The earlier version flagged Ablaze, Stunned, combat-damage SL, ranged ½SB, opposed-test tie-break, and magic-missile damage as broken. **Those have since been fixed in the source.** This re-run re-read the present code, confirms each former issue's current status, and adds audits for the four newly shipped features (attack-consequences pipeline, proactive reminders, advancement planner, GM read-only share/export). Page citations are from `docs/WarhammerFantasyRoleplay4e.md`. `docs/Errata.pdf` is a binary PDF and could not be read in this environment — noted where relevant.
+
+Verified by reading the current source and running `npx vitest run` on the eight relevant test files (end-of-turn, reminders, attack-consequences, advancement-planner, sheet-totals, combat, dice-roller, spell-casting): **360 tests passing**.
 
 ---
 
 ## Summary
 
-| Category | Status | Issues |
-|----------|--------|--------|
-| Dice Rolling & SL | ✅ Compliant | 1 minor |
-| Opposed Tests | ⚠️ Non-Compliant | 1 issue |
-| Wound Formula | ✅ Compliant | 0 |
-| XP Advancement Costs | ⚠️ Partially Compliant | 1 issue |
-| Combat Damage | ⚠️ Non-Compliant | 2 issues |
-| Armour Stacking | ✅ Compliant | 0 |
-| Off-Hand Penalty | ✅ Compliant | 0 |
-| Conditions (Bleeding) | ✅ Compliant | 0 |
-| Conditions (Ablaze) | ❌ Non-Compliant | 1 critical |
-| Conditions (Stunned) | ⚠️ Partially Compliant | 1 issue |
-| Spell Casting | ⚠️ Partially Compliant | 2 issues |
-| Channelling | ✅ Compliant | 0 |
-| Magic Missile Damage | ⚠️ Non-Compliant | 1 issue |
-| Overcasting | ✅ Compliant | 0 |
-| Miscast Triggers | ⚠️ Non-Compliant | 1 issue |
-| Fortune/Resolve | ✅ Compliant | 0 |
-| Critical Wounds | ✅ Compliant | 0 |
-| Corruption | ✅ Compliant | 0 |
-| Psychology | ✅ Compliant | 0 |
-| Initiative | ✅ Compliant | 0 |
-| Weapons | ✅ Compliant | 0 |
-| Runes (Dwarf) | ✅ Compliant | 0 |
-| Grudges (Dwarf) | ✅ Compliant | 0 |
-| Yenlui (High Elf) | ✅ Compliant | 0 |
-| Sword-Dancing (High Elf) | ✅ Compliant | 0 |
-| Diseases | ✅ Compliant | 0 |
+| Category | Status | Notes |
+|----------|--------|-------|
+| Dice Rolling & SL | ✅ Compliant | — |
+| Opposed Tests (tie-break) | ✅ Compliant | **Fixed** — now breaks ties on tested skill/characteristic (Core p.153) |
+| Wound Formula | ✅ Compliant | — |
+| XP Advancement Costs | ✅ Compliant | 0–50 exact (Core p.44); 51–70+ is a documented app convention |
+| Combat Damage (SL) | ✅ Compliant | **Fixed** — `Damage = WeaponDamage + SL − (AP+TB)`, min 1 (Core p.159) |
+| Ranged Damage (½SB) | ✅ Compliant | **Fixed** — RAW formula; ½SB is now an opt-in house rule, default off |
+| Armour Stacking / Worn Filter | ✅ Compliant | — |
+| Off-Hand Penalty | ✅ Compliant | — |
+| Conditions — Bleeding | ✅ Compliant | — |
+| Conditions — Ablaze | ✅ Compliant | **Fixed** — 1d10 + (level−1) − TB − lowestAP, min 1 (Core p.166–167) |
+| Conditions — Stunned | ✅ Compliant | **Fixed** — Endurance-test reminder, stackable (Core p.169) |
+| Conditions — Poisoned (end-of-turn damage) | ❌ Non-Compliant | **New bug** — subtracts per-level; RAW is flat 1 (Core p.168–169) |
+| Conditions — data text (Broken/Deafened/Fatigued/Entangled) | ⚠️ Partially Compliant | Pre-existing description inaccuracies |
+| Spell Casting (success gate) | ⚠️ Partially Compliant | Minor — does not explicitly require test pass |
+| Channelling | ✅ Compliant | — |
+| Magic Missile Damage | ✅ Compliant | **Fixed** — listed damage + SL only (Core p.236) |
+| Overcasting | ✅ Compliant | Winds of Magic table |
+| Miscast Triggers | ✅ Compliant | Critical/fumble/channelled-fail (Core p.235) |
+| Fortune/Resolve | ✅ Compliant | — |
+| Critical Wounds | ✅ Compliant | — |
+| Corruption | ✅ Compliant | — |
+| Psychology | ✅ Compliant | — |
+| Initiative | ✅ Compliant | — |
+| Weapons | ✅ Compliant | — |
+| Runes / Grudges (Dwarf) | ✅ Compliant | — |
+| Yenlui / Sword-Dancing (High Elf) | ✅ Compliant | — |
+| Diseases | ✅ Compliant | — |
+| **NEW:** Attack→Damage→Condition pipeline | ✅ Compliant | Pummel/Hack cite Core p.298; crit parsing from data |
+| **NEW:** Proactive reminders | ✅ Compliant | Tests/characteristics match Core pp.189–191 |
+| **NEW:** Advancement planner | ✅ Compliant | Uses real Core p.44–48 costs; read-only |
+| **NEW:** GM read-only share/export | ✅ Compliant | Reuses live calculators; no forked formulas |
 
 ---
 
-## Critical Non-Compliance Issues
+## Fixed Since the Prior Audit (re-verified against current source)
 
-### 1. Bleeding Condition — Damage Per Level is WRONG
-
-**Rulebook (p. 167):** "Lose 1 Wound at the end of every Round, ignoring all modifiers."
-
-Multiple Bleeding conditions stack: "if you have three Bleeding Conditions, you're losing a worrying 3 Wounds per Round."
-
-**App Implementation (`end-of-turn.ts`):**
-```typescript
-const bleeding = conditions.find(c => c.name === 'Bleeding');
-if (bleeding) {
-  newWounds -= bleeding.level;  // ← Treats level as damage
-}
+### Ablaze — ✅ now Compliant (was ❌ critical)
+**Core p.166–167:** 1d10 Wounds, modified by TB and the AP on the least-protected location, min 1; each extra Ablaze adds +1 (three Ablaze = 1d10+2).
+`end-of-turn.ts`:
+```ts
+const rawDamage = d10Roll + (ablaze.level - 1) - tb - lowestAP;
+const finalDamage = Math.max(1, rawDamage);
 ```
+Matches RAW, supports an injected d10 for deterministic / one-tap rolling. `conditions.ts` description updated to the correct formula.
 
-**Issue:** The app correctly does `level × 1 Wound` per round. However, the Bleeding description in `conditions.ts` says "Lose 1 Wound per level at end of round" which matches the stacking interpretation. This is **actually correct** since each Bleeding Condition level represents multiple stacked Bleeding conditions.
+### Stunned — ✅ now Compliant (was ❌ critical)
+**Core p.169:** Challenging (+0) Endurance Test at end of each Round, each SL removing an extra. Stunned stacks.
+`end-of-turn.ts` no longer auto-removes Stunned — it emits a reminder via `conditionReminderText('Stunned')`. `conditions.ts`: `stackable: true, maxLevel: 10`.
 
-**However**, the rulebook says damage from Bleeding "ignores all modifiers" — meaning TB and AP should NOT reduce it. The app's `processEndOfTurn` function applies raw wound loss without TB/AP reduction, which is **correct**.
+### Combat damage SL — ✅ now Compliant (was ❌ critical)
+**Core p.159:** `Damage = Weapon Damage + SL`; `Wounds Suffered = Damage − (TB + AP)`; min 1.
+`combat.ts calculateDamage(weaponDamage, sl, targetAP, targetTB, options)` adds `sl`, floors at 1, and correctly implements Undamaging (double AP, no min-1; p.299) and Robust (−1/level; p.143). `AttackFlow.tsx` passes the real roll SL.
 
-**REVISED VERDICT: ✅ Compliant** — the Bleeding implementation is correct.
+### Ranged damage ½SB — ✅ now Compliant (was ⚠️)
+`calculateDamage` no longer halves SB and no longer takes `isRanged`. Ranged damage comes from `weapons.ts calcWeaponDamage` using the weapon's own formula (Core p.293). ½SB is an explicit house rule (`rangedDamageSBMode`), default `'none'` (RAW).
 
-### 2. Ablaze Condition — Damage Calculation is WRONG
+### Opposed-test tie-break — ✅ now Compliant (was ⚠️)
+**Core p.153:** highest SL wins; on equal SL the higher tested Skill/Characteristic wins.
+`dice-roller.ts calculateOpposedResult` breaks SL ties on `playerTarget`/`opponentTarget` (not the raw roll). Comment: "Roll values are NOT used as a tie-breaker."
 
-**Rulebook (p. 167):** "At the end of every Round, you suffer **1d10 Wounds, modified by Toughness Bonus and the Armour Points on the least protected Hit Location**, with a minimum of 1 Wound suffered. Each extra Ablaze Condition you have adds +1 to the Damage suffered."
+### Magic missile damage — ✅ now Compliant (was ⚠️)
+**Core p.236:** the SL is added to the spell's listed Damage.
+`computeMagicMissileDamage = parseDamageFromEffect(effect, wpBonus, tbBonus) + castingSL`. The erroneous extra `+ wpBonus` is gone; `parseDamageFromEffect` already resolves `Dmg WPB`/`Dmg TB` from the listed value.
 
-So for 3 Ablaze conditions: (1d10 + 2) - TB - lowest_AP, minimum 1.
+### Miscast on critical cast — ✅ Compliant (confirmed)
+**Core p.235:** critical cast works but generates a Minor Miscast unless Instinctive Diction. `resolveCastingResult` implements this and also the Winds of Magic mandatory Minor Miscast on a failed channelled cast.
 
-**App Implementation (`end-of-turn.ts`):**
-```typescript
-const ablaze = conditions.find(c => c.name === 'Ablaze');
-if (ablaze) {
-  newWounds -= ablaze.level;  // ← Simply subtracts level as damage
-}
-```
-
-**Issue:** The app treats Ablaze the same as Bleeding (flat damage = level). Per the rulebook, Ablaze damage is:
-- **1d10 + (level - 1)** base damage (first condition = 1d10, each extra adds +1)
-- **Reduced by TB and lowest AP**
-- **Minimum 1 wound**
-
-The app is missing:
-1. The 1d10 roll
-2. TB/AP reduction
-3. The minimum 1 damage floor
-4. The +1 per extra condition (not per level)
-
-**Severity: HIGH** — Ablaze damage is significantly miscalculated.
-
-**Also note:** The `conditions.ts` description says "Lose 1 Wound per level at end of round" which contradicts the rulebook. Should be updated.
+### Extended XP table — ✅ core exact, extension documented
+**Core p.44:** 0–50 only. `advancement.ts` reproduces 0–50 exactly for both characteristics and skills; talent `100×(taken+1)` (p.45); out-of-career doubling (p.46); thresholds 5/10/15/20 + app L5=25 (p.48); leave-career 100/200 (p.48). The 51–70+ rows are an app extrapolation, clearly labelled. (Errata PDF unreadable — a possible errata table was not cross-checked.)
 
 ---
 
-### 3. Stunned Condition Removal — AUTO-REMOVAL IS WRONG
+## NEW FEATURE — Attack → Damage → Condition Pipeline (`attack-consequences.ts`)
 
-**Rulebook (p. 168):** "At the end of each Round, you may attempt a **Challenging (+0) Endurance** Test. If successful, remove a Stunned Condition, with each SL removing an extra Stunned Condition."
+| Mechanic | Rulebook | Implementation | Status |
+|----------|----------|----------------|--------|
+| Pummel → Stunned | Core p.298: Head hit → Opposed Str/End test; win → Stunned | Suggested only on Head hit, `testGated: true`, not auto-applied | ✅ Compliant |
+| Hack → armour damage | Core p.298: Damage a struck armour/shield by 1 | Emitted as advisory, never a condition | ✅ Compliant |
+| Crit-wound conditions | Authored effect prose in `critical-wound-tables.ts` | Verb-independent parse of "[N] <Condition> Condition(s)", clamped to maxLevel, matched against `CONDITIONS` | ✅ Compliant |
+| Defend hand-off | Core p.159 two-step | Keeps weapon-damage and SL separate to avoid double-counting SL | ✅ Compliant |
 
-Stunned is NOT auto-removed. It requires an Endurance Test each round.
+Notes: Pummel/Hack detection handles `"X or Y"` choice-quality groups (e.g. Warhammer, Pollaxe). The crit-condition regex is generated from the `CONDITIONS` data, so it cannot drift. No new mechanics are invented — every suggestion traces to Core p.298 or authored crit-table prose.
 
-**App Implementation (`end-of-turn.ts`):**
-```typescript
-const stunned = conditions.find(c => c.name === 'Stunned');
-if (stunned) {
-  removedConditions.push('Stunned');
-  effects.push({ type: 'remove_condition', condition: 'Stunned', description: 'Stunned removed automatically' });
-}
-```
+## NEW FEATURE — Proactive Reminders (`reminders.ts`)
 
-**Issue:** The app auto-removes Stunned at end of turn. Per RAW, Stunned requires an Endurance Test to remove and can stack. The app also incorrectly marks Stunned as non-stackable (`stackable: false`) in `conditions.ts`.
+| Reminder | Test (characteristic) | Difficulty | Citation | Status |
+|----------|-----------------------|------------|----------|--------|
+| Stunned (remove) | Endurance (T) | Challenging (+0) | Core p.169 | ✅ |
+| Poisoned (remove) | Endurance (T) | Challenging (+0), poison sets it | Core p.168–169 | ✅ |
+| Broken (rally) | Cool (WP) | circumstance-set, seeded +0; cannot rally while Engaged | Core p.167–168 | ✅ |
+| Ablaze (extinguish) | Athletics (Ag) | circumstance-set, seeded +0 | Core p.166–167 | ✅ |
+| Blinded / Deafened | — (informational) | 1 level every other round | Core p.167–168 | ✅ |
+| Fear | Cool (WP), Extended | GM-set, seeded +0 | Core p.190 | ✅ |
+| Terror | Cool (WP) | GM-set, seeded +0 | Core p.190 | ✅ |
+| Frenzy | **Willpower (bare characteristic)** | GM-set, seeded +0 | Core p.190 | ✅ |
+| Animosity / Hatred / Prejudice / Phobia | Cool (WP) | GM-set, seeded +0 | Core p.189–191 | ✅ |
+| Trauma | — (informational) | GM discretion | Core p.191 | ✅ |
 
-**Rulebook confirms Stunned stacks:** "if you have three Bleeding Conditions... if you have 3 Fatigued Conditions" and critical wound tables frequently inflict "3 Stunned Conditions" or "1d10 Stunned Conditions."
+**Frenzy** correctly resolves against **bare Willpower**, not the Cool skill (git `1684e51`) — matches Core p.190 "Willpower Test." Condition descriptions are the single source of truth consumed by `end-of-turn.ts`; psychology descriptions are the verbatim `PSYCHOLOGY_REMINDERS` strings. Where the rulebook leaves difficulty to the GM/circumstances, seeding Challenging (+0) as an adjustable default is a flagged convenience, not an invented fixed TN. **Verdict: ✅ Compliant.**
 
-**Severity: HIGH** — Stunned auto-removal makes combat significantly easier than intended.
+## NEW FEATURE — Advancement Planner (`advancement-planner.ts`)
 
----
+Read-only projection; mutates nothing and spends no XP. Costs come from the real `getAdvancementCost` (Core pp.44–45 tiered table + out-of-career doubling), thresholds from `CAREER_COMPLETION_THRESHOLDS` (Core p.48: 5/10/15/20, app L5=25), level-change fee from `ADVANCE_LEVEL_FEE` (100 ready / 200 not-ready, Core p.48), talent step `getAdvancementCost('talent', 0, true)` = 100 (Core p.45). Skill minimisation targets concrete character rows 1:1 (maps onto `advanceSkill`); wildcard `(Any)` skills are surfaced as advisories rather than auto-costed; `met` flags mirror `isCareerLevelComplete`. **No invented mechanics. Verdict: ✅ Compliant.**
 
-## Major Non-Compliance Issues
+## NEW FEATURE — GM Read-Only Share/Export (`sheet-totals.ts` + `SharedCharacterViewer.tsx`)
 
-### 4. Opposed Test Tie-Breaking — WRONG IMPLEMENTATION
+`deriveSheetTotals` reuses the live calculators (does not fork formulas):
 
-**Rulebook (p. 153):** "The party with the highest SL wins the Test. If both participants score the same SL, the party with the **higher tested Skill or Characteristic** wins."
+| Derived total | Source function | Rulebook |
+|---------------|-----------------|----------|
+| Wounds | `computeWoundMaximum` (SB + 2×TB + WPB ×multiplier + Hardy×TB) | Core p.36–37 |
+| Armour points (worn only) | `calculateArmourPointsUnified(..., filterByWorn:true)` | Core p.293 / Archives III |
+| Max encumbrance | `calculateMaxEncumbrance` (SB+TB + Strong Back×1 + Sturdy×2) | Core p.293 / p.146 |
+| Coin weight | `calculateCoinWeight` (`floor((gc+ss+d)/200)`) | Core p.293 |
+| Weapon damage | `calcWeaponDamage` (same `rangedDamageSBMode` as live sheet) | Core p.293 |
 
-**App Implementation (`dice-roller.ts`):**
-```typescript
-if (netSL === 0) {
-  // Tie-breaker: higher roll wins when net SL = 0
-  if (clampedPlayerRoll > clampedOpponentRoll) {
-    winner = 'player';
-  } else if (clampedOpponentRoll > clampedPlayerRoll) {
-    winner = 'opponent';
-  } else {
-    winner = 'tie';
-  }
-}
-```
-
-**Issue:** The app uses the higher **roll value** as the tiebreaker. The rulebook says the higher **tested Skill or Characteristic** (i.e., the higher target number) wins. This is fundamentally different — the rulebook rewards the more skilled character, while the app rewards the character who rolled higher.
-
-**Severity: MEDIUM** — affects opposed test outcomes in edge cases.
-
-### 5. Combat Damage Formula — MISSING SL COMPONENT
-
-**Rulebook (p. 159):** "Damage = Weapon Damage + SL"
-
-Where Weapon Damage for melee = SB + weapon bonus.
-Then: "Wounds Suffered = Damage – opponent's (Toughness Bonus + Armour Points)"
-
-**App Implementation (`combat.ts`):**
-```typescript
-export function calculateDamage(
-  weaponBonus: number, SB: number, targetAP: number, targetTB: number, isRanged: boolean
-): number {
-  const effectiveSB = isRanged ? Math.floor(SB / 2) : SB;
-  return Math.max(0, effectiveSB + weaponBonus - (targetAP + targetTB));
-}
-```
-
-**Issue:** The function does **not include the attack SL** in the damage calculation. Per RAW, damage = SB + weapon bonus + SL - (AP + TB). The SL from the opposed test is a critical component.
-
-Additionally, for ranged weapons, the rulebook does NOT halve SB. Ranged weapon damage is a flat number (e.g., "+4") not modified by SB at all unless the weapon formula explicitly includes it (e.g., Throwing weapons use "SB×2" for range calculation, and some use SB in damage).
-
-**Severity: HIGH** — missing SL makes all damage calculations lower than RAW.
-
-### 6. Ranged Weapon Damage Formula — INCORRECT
-
-**Rulebook (p. 293, Weapon tables):** Ranged weapon damage is listed as a flat value (e.g., Longbow = SB+4, Handgun = 9, Crossbow = 9). There is no universal "halve SB for ranged" rule.
-
-**App Implementation (`combat.ts`):**
-```typescript
-const effectiveSB = isRanged ? Math.floor(SB / 2) : SB;
-```
-
-**Issue:** The app assumes all ranged weapons use half SB. In RAW:
-- Bows use SB+X (full SB)
-- Blackpowder/Crossbows use flat damage (no SB)
-- Throwing weapons use SB+X or SB×2
-
-The `weapons.ts` file handles this correctly for display purposes (`calcWeaponDamage` parses the formula), but `combat.ts` applies a blanket half-SB rule that doesn't match the rulebook.
-
-**Severity: MEDIUM** — the `weapons.ts` module is correct, but `combat.ts` disagrees with it.
-
-### 7. Magic Missile Damage — INCORRECT FORMULA
-
-**Rulebook (p. 236):** "The SL of the Language (Magick) Test is added to the spell's listed Damage."
-
-So: Magic Missile Damage = Spell's listed damage value + Casting SL
-
-The damage value is then applied like normal damage (reduced by TB and AP of the hit location).
-
-**App Implementation (`spell-casting.ts`):**
-```typescript
-export function computeMagicMissileDamage(spell: SpellItem, wpBonus: number, castingSL: number): number {
-  const baseDamage = parseDamageFromEffect(spell.effect, wpBonus);
-  return baseDamage + wpBonus + castingSL;
-}
-```
-
-**Issue:** The app adds **wpBonus** to the magic missile damage. The rulebook does NOT add WP Bonus to magic missile damage. Spell damage is: `listed_damage + SL`. Some spells list their damage as "Dmg +4" which is the flat bonus value, not WP-relative.
-
-However, looking more carefully at specific spells like "Bolt" (Arcane): "Damage +5" — this means the damage value is 5 + SL. The app adds WPB which is incorrect.
-
-**Exception:** Some specific spells have damage of "WPB" explicitly (like Dart from Lore of Death: "Damage equal to your Willpower Bonus"). For these, WPB is correct, but it's already encoded in the listed damage, not added on top.
-
-**Severity: MEDIUM** — magic missiles deal more damage than they should.
-
-### 8. Miscast Trigger on Critical Cast — DEBATABLE
-
-**Rulebook (p. 235):** "If you roll a Critical when casting, the spell works, but something else has also occurred! When you score a Critical Casting, your spell still works as normal, but also generates a Minor Miscast, unless you have the Instinctive Diction Talent."
-
-**App Implementation (`spell-casting.ts`):**
-```typescript
-const triggerMinorMiscast =
-  (isCriticalCast && !hasInstinctiveDiction(character)) || isFumbledCast;
-```
-
-**Issue:** This is actually correct per the rulebook — critical cast triggers minor miscast unless Instinctive Diction is present, and fumble triggers miscast too.
-
-**REVISED VERDICT: ✅ Compliant**
-
-### 9. Casting Success Condition — INCORRECT
-
-**Rulebook (p. 234):** "If you succeed [the Language (Magick) Test], match your SL to the Casting Number. If your SL is **equal to or higher** than the CN, it is cast."
-
-Note: You must **first pass the test** (roll ≤ target), THEN check SL ≥ CN.
-
-**App Implementation (`spell-casting.ts`):**
-```typescript
-const castSuccess = totalPower || slAchieved >= cn;
-```
-
-**Issue:** The app only checks `slAchieved >= cn` but does not separately verify `rollResult.passed`. If a caster fails the test (rolls over target), even if the SL arithmetic happens to equal the CN due to rounding quirks, the spell should fail. In practice, a failed test always produces negative SL, so this edge case may never actually occur in the app. However, the logic doesn't explicitly enforce "test must pass first."
-
-**Severity: LOW** — unlikely to produce incorrect results in practice, but architecturally incorrect.
+The viewer shows these verbatim with a breakdown Tooltip on every calculated total (satisfies the calculated-total-tooltips steering rule), performs no storage writes except the confirm-gated import, and shows Movement as the stored value. **Verdict: ✅ Compliant** — totals match the rulebook formulas and the live calculators by construction.
 
 ---
 
-## XP Advancement Cost Table
+## Outstanding Non-Compliance
 
-### 10. Cost Table Caps at 50 Advances — Missing Higher Tiers
-
-**Rulebook (p. 44):** The printed table only goes up to "46-50" for both characteristics and skills.
-
-**App Implementation (`advancement.ts`):**
-```typescript
-const CHAR_COST_TABLE: [number, number][] = [
-  [5, 25], [10, 30], [15, 40], [20, 50], [25, 70], [30, 90], [35, 120],
-  [40, 150], [45, 190], [50, 230], [55, 280], [60, 330], [65, 390], [70, 450],
-];
-const CHAR_MAX_COST = 520; // 70+
+### 1. Poisoned end-of-turn damage — per-level, should be flat 1 (NEW BUG) ❌
+`end-of-turn.ts`:
+```ts
+const poisoned = conditions.find(c => c.name === 'Poisoned');
+if (poisoned) { newWounds -= poisoned.level; }   // ← per-level
 ```
+**Core p.168–169 (Poisoned):** "At the end of each Round, **lose 1 Wound, ignoring all modifiers**." The text states a flat 1 Wound. Unlike Bleeding — whose stacking is stated explicitly ("three Bleeding Conditions … 3 Wounds per Round") — Poisoned does not declare the wound loss scales per Condition.
+**Recommended fix:** subtract a flat `1` (keep inside the `currentWounds > 0` guard).
+**Ambiguity:** whether multiple Poisoned Conditions stack the 1-Wound loss is debatable under the general penalty-stacking rule (Core p.166). RAW-literal (flat 1) is the safer reading; confirm with the user. The Errata (unreadable binary PDF) may clarify.
+Also: the Poisoned **−10 to all Tests** penalty is not modelled in condition processing (pre-existing informational gap).
 
-**Issue:** The app extends the table beyond what the rulebook provides (51-55: 280, 56-60: 330, 61-65: 390, 66-70: 450, 70+: 520). The rulebook says "There is no upper limit to the number of Characteristic Advances that can be purchased, although higher levels do become prohibitively expensive" but does NOT provide costs beyond 50.
+### 2. `conditions.ts` description/stackable text ⚠️ (pre-existing, data layer)
+- **Broken:** `stackable: false` and "gain the Stunned condition" are wrong. RAW (Core p.167–168): Broken **stacks** (Terror inflicts Broken equal to Rating; "each SL removing an extra Broken"), and grants no Stunned. → set `stackable: true`, fix text to flee / −10 / Cool-to-rally (cannot rally while Engaged).
+- **Deafened:** "hearing tests auto-fail / may be Surprised" is wrong. RAW (Core p.168): −10 to hearing Tests, +10 to be hit from flank/rear, one removed every other Round.
+- **Fatigued:** "Movement −1 per level" is invented. RAW (Core p.168): −10 to **all** Tests per level.
+- **Entangled:** −20 should be −10 to movement Tests (Core p.167).
+- **Ablaze `removedBy`** says "Agility test" but the description (correctly) says Athletics; RAW is Athletics.
+These violate the "never invent mechanics" steering rule and should be corrected to the rulebook wording.
 
-The extended costs appear to follow a reasonable mathematical progression. This could be from an errata, community consensus, or house rule. The base table (0-50) matches the rulebook perfectly.
+### 3. Casting success does not explicitly require the test to pass ⚠️ (minor, pre-existing)
+`resolveCastingResult`: `castSuccess = totalPower || slAchieved >= cn`. Core p.234 is "pass the Language (Magick) Test, **then** match SL to CN." For a CN 0 petty spell, a failed roll with SL 0 would read as success. Rare in practice (auto-fail forces SL ≤ −1). Recommend also gating on `rollResult.passed`.
 
-**Severity: LOW** — this is a reasonable extrapolation, and the core 0-50 range is correct. The "Errata.pdf" may contain the extended table.
-
----
-
-## Compliant Areas (No Issues Found)
-
-### Dice Rolling (dice-roller.ts)
-- ✅ SL = tensDigit(target) - tensDigit(roll) — **matches rulebook exactly**
-- ✅ Auto-success on 01-05: always pass, minimum +1 SL — **correct**
-- ✅ Auto-failure on 96-00: always fail, maximum -1 SL — **correct**
-- ✅ Doubles detection for criticals/fumbles — **correct**
-- ✅ Critical = passed + double; Fumble = failed + double — **correct**
-- ✅ Difficulty modifiers: Very Easy +60 through Very Hard -30 — **correct**
-- ✅ Outcome descriptions match the Outcomes Table — **correct**
-
-### Wound Formula (calculators.ts)
-- ✅ Humans/Dwarves: SB + 2×TB + WPB — **matches rulebook p. 33**
-- ✅ Halflings/Elves: 2×TB + WPB (no SB) — **matches Small trait and Elf species**
-- ✅ Hardy talent: adds TB per level — **correct**
-- ✅ Bonus calculation: floor(value / 10) — **correct**
-
-### Armour Points (calculators.ts)
-- ✅ Flexible armour can layer under non-flexible — **matches rulebook p. 297**
-- ✅ Per location: highest non-flexible + highest flexible — **correct stacking rule**
-- ✅ Rune bonuses applied correctly — **matches Dwarf Guide**
-- ✅ Only worn items counted — **correct**
-
-### Off-Hand Penalty (combat.ts)
-- ✅ -20 penalty without Dual Wielder — **matches rulebook p. 163**
-- ✅ No penalty with Dual Wielder — **correct**
-
-### Fortune/Resolve System (fortune-resolve.ts)
-- ✅ Spend Fortune: decrement by 1 — **correct**
-- ✅ Spend Resolve: decrement by 1 — **correct**
-- ✅ Burn Fate: permanently reduce Fate, clamp Fortune to new Fate — **correct**
-- ✅ Burn Resilience: permanently reduce Resilience, clamp Resolve — **correct**
-- ✅ Session reset: Fortune = Fate, Resolve = Resilience — **correct**
-- ✅ Validation: pools cannot exceed base values — **correct**
-
-### Channelling (spell-casting.ts)
-- ✅ Extended test: accumulate SL towards spell CN — **matches rulebook p. 237**
-- ✅ Ready when accumulated SL ≥ CN — **correct**
-- ✅ On success with SL > 0: add SL to progress — **correct**
-- ✅ Channelling target = WP + Channelling advances — **correct**
-
-### Overcasting (spell-casting.ts)
-- ✅ Overcast slots = floor((SL - CN) / 2) — **matches "for every +2 SL" rule**
-- ✅ Options: Range, AoE, Duration, Targets — **correct categories**
-- ✅ Self-only spells cannot extend Range/Targets — **correct**
-- ✅ Touch spells cannot extend Range — **correct**
-- ✅ Instant spells cannot extend Duration — **correct**
-
-### Corruption (corruption.ts)
-- ✅ Threshold = TB + WPB + Pure Soul level — **correct**
-- ✅ Mutation type distribution per species — **matches rulebook p. 184**
-- ✅ Physical mutation limit = TB — **correct**
-- ✅ Mental mutation limit = WPB — **correct**
-- ✅ Corruption loss on gaining mutation = WPB — **correct**
-
-### Psychology (psychology.ts)
-- ✅ All psychology types present: Animosity, Hatred, Fear, Terror, Frenzy, Prejudice — **correct**
-- ✅ Reminders match rulebook effects — **correct**
-- ✅ Fear/Terror require rating; Animosity/Hatred/Prejudice require target — **correct**
-
-### Weapon Damage Display (weapons.ts)
-- ✅ Correctly parses SB+N, ½SB+N, and flat damage formulas — **correct**
-- ✅ Strike Mighty Blow for melee, Accurate Shot/Sure Shot for ranged — **correct talent bonuses**
-- ✅ Dirty Fighting for Brawling — **correct**
-- ✅ Engineering weapons classified by maxR presence — **correct**
-
-### Grudge System (grudges.ts — Dwarf Guide)
-- ✅ Standard grudges: 25 XP — **matches Dwarf Guide**
-- ✅ Blood grudges: 50 XP — **matches Dwarf Guide**
-- ✅ Party grudges capped at 3 — **matches Dwarf Guide**
-- ✅ Dwarf-only visibility check — **correct**
-- ✅ Validation of required fields — **correct**
-
-### Yenlui System (yenlui.ts — High Elf Guide)
-- ✅ Three states: Light, Balanced, Dark — **matches High Elf Guide**
-- ✅ Dark state imposes Very Hard (-30) to sword-dancing — **correct**
-- ✅ Sanctuary of the Mind level 3+ negates Dark penalty — **correct**
-- ✅ Blood of Aenarion weekly Cool Test warning — **correct**
-- ✅ Cadai Meditation daily opportunity note — **correct**
-- ✅ Elf-only visibility check — **correct**
-
-### Sword-Dancing (swordDancing.ts — High Elf Guide)
-- ✅ XP cost scales by known techniques count — **correct**
-- ✅ Requires Sword-dancing talent — **correct**
-- ✅ XP check before learning — **correct**
-
-### Rune System (runes.ts — Dwarf Guide)
-- ✅ Rune validation per item type — **correct**
-- ✅ Damage and AP bonuses from runes — **correct**
-- ✅ Category-based availability — **correct**
-- ✅ Characteristic bonuses from runes — **correct**
-- ✅ Learning requirements check — **correct**
-
-### Diseases (diseases.ts / data)
-- ✅ Disease registry lookup — **correct**
-- ✅ Symptom resolution (incl. severity tags) — **correct**
-- ✅ Active disease management (add/remove/notes) — **correct**
-- ✅ Disease/symptom data transcribed from Core p.185–188 — **corrected**
-  - Registry now lists the nine core diseases (previously two invented entries,
-    "Neiglish Rot" and "The Shakes", replaced with the real Festering Wound and
-    Minor Infection).
-  - Symptom catalogue now holds the twelve core symptoms (invented "Delirium"
-    replaced with the missing Buboes); effects match the rulebook.
-  - Symptom references carry severity tags (e.g. Flux (Severe), Blight (Moderate)).
-
-### Initiative (initiative.ts)
-- ✅ Sort by initiative descending — **correct**
-- ✅ Stable sort for equal initiatives — **correct per rulebook (GM decides ties)**
-- ✅ Circular turn advancement — **correct**
+### 4. Damaging + min1Wound branch drops the Damaging bonus ⚠️ (minor, pre-existing)
+`AttackFlow.tsx` uses `effectiveSL` (Damaging = max(units, SL)) for display but calls `calculateDamage(..., sl, ...)` with raw `sl` in the min-1 branch. Narrow impact (Damaging + min1Wound + damage exceeds reduction). Recommend passing `effectiveSL`.
 
 ---
 
-## Errata Check (WFRP_Errata_28_Feb.pdf)
+## Compliant Areas (spot-checked, unchanged)
 
-The Errata PDF is binary and could not be read directly. However, cross-referencing the core rulebook weapon tables (p. 293) confirms:
-
-- **Bows**: `+SB+2` (Short Bow), `+SB+3` (Bow), `+SB+4` (Longbow/Elfbow) — **full SB, RAW**
-- **Slings**: `+6` / `+7` (flat damage, no SB) — **correct**
-- **Throwing**: `+SB+2` (Knife), `+SB+3` (Axe) — **full SB, RAW**
-
-The app's `src/data/weapons.ts` matches these exactly. ✅
-
-**Note:** The `WFRP-Character-Sheet (1).html` file in this repo contains a hardcoded **house rule** (½SB for ranged weapons), NOT an errata correction. That HTML file should NOT be used as a reference or source of truth. The app correctly implements the ½SB variant as an optional house rule toggle (`rangedDamageSBMode`) in the Settings page, defaulting to 'none' (RAW).
-
-No weapon data changes are required.
+- **Dice rolling (`dice-roller.ts`):** SL = tens(target) − tens(roll); auto-success 01–05 (min +1 SL); auto-failure 96–00 (max −1 SL); doubles → crit/fumble; difficulty table Very Easy +60 … Very Hard −30. Core p.151–153.
+- **Wounds (`calculators.ts`):** SB + 2×TB + WPB; Halflings/Elves per species; Ogre ×2; Hardy ×TB. Core p.36–37.
+- **Armour (`calculators.ts` / `armourLayering.ts`):** worn-only filter; Archives III layering; rune AP. Core p.293 / Archives III.
+- **Off-hand (`combat.ts`):** −20, reduced by Ambidextrous (−10 / 0); Dual Wielder does not reduce it. Core p.132/134.
+- **Fortune/Resolve, Channelling, Overcasting (Winds of Magic), Corruption, Psychology, Initiative, Weapons (incl. Strike Mighty Blow p.145, Accurate Shot p.145/132), Runes, Grudges, Yenlui, Sword-Dancing, Diseases:** all re-confirmed compliant.
+- **Critical-wound modifier (`combat.ts`):** −20 to the crit roll when excess damage < TB (Core p.172).
 
 ---
 
-## Recommendations for Fixes (Priority Order)
+## End-of-Turn Processing Audit (current)
 
-### Priority 1 — Critical Rule Violations
-
-1. **Fix Ablaze damage calculation** — Needs 1d10 roll, TB/AP reduction, minimum 1 wound, +1 per extra condition. This requires UI interaction (dice roll or pre-rolled value injection).
-
-2. **Fix Stunned condition** — Remove auto-removal. Make Stunned stackable (`stackable: true`). Add Endurance Test prompt at end of round instead of auto-removing.
-
-3. **Fix combat damage formula** — Add SL parameter to `calculateDamage()`. The full formula should be: `Damage = WeaponDamage + SL - (AP + TB)`.
-
-### Priority 2 — Major Rule Violations
-
-4. **Fix Opposed Test tie-breaking** — Change from "higher roll wins" to "higher target number wins" when SL is tied.
-
-5. **Fix ranged damage in combat.ts** — Remove blanket `Math.floor(SB / 2)` for ranged. Damage should come from the weapon formula directly (already correctly computed in `weapons.ts`).
-
-6. **Fix magic missile damage** — Remove the extra WPB addition. Formula should be: `spell_listed_damage + casting_SL`.
-
-### Priority 3 — Minor Issues
-
-7. **Update conditions.ts descriptions** — Ablaze description should mention 1d10 + TB/AP interaction. Stunned should note Endurance Test requirement and stackability.
-
-8. **Add explicit test-must-pass check** to casting resolution (low priority since negative SL prevents false positives in practice).
-
-9. **Document extended XP table source** — Note whether advances 51-70+ costs come from errata or are house rules.
+| Rule | Rulebook | App (`processEndOfTurn`) | Status |
+|------|----------|--------------------------|--------|
+| Bleeding: 1 wound per Condition, ignoring modifiers | Core p.167 (stacking explicit) | `newWounds -= bleeding.level` | ✅ |
+| Ablaze: 1d10 + (extras) − TB − lowestAP, min 1 | Core p.166–167 | `d10 + (level−1) − tb − lowestAP`, min 1 | ✅ |
+| Stunned: Endurance Test to remove | Core p.169 | Emits reminder (no auto-remove) | ✅ |
+| Surprised: removed end of Round / after first attack | Core p.169 | Auto-removed | ✅ |
+| Poisoned: lose 1 Wound, ignoring modifiers | Core p.168–169 | `newWounds -= poisoned.level` | ❌ should be flat 1 |
+| Broken / Blinded / Deafened: per-round handling | Core p.167–168 | Emit reminders | ✅ (reminders) |
+| Skip damage when already at 0 wounds | — | Guarded by `currentWounds > 0` | ✅ |
 
 ---
 
-## Conditions Data Accuracy Audit
+## Conditions Data Accuracy (current)
 
-| Condition | Stackable (App) | Stackable (Rules) | Notes |
-|-----------|----------------|-------------------|-------|
-| Ablaze | ✅ true | ✅ true | Damage formula wrong (see above) |
-| Bleeding | ✅ true | ✅ true | ✅ Correct |
-| Blinded | ❌ false | ⚠️ true | Rulebook mentions stacking penalties |
-| Broken | ✅ false | ✅ false | ✅ Correct |
-| Deafened | ❌ false | ⚠️ true | Rulebook: multiple Deafened possible |
-| Entangled | ✅ false | ✅ false | ✅ Correct |
-| Fatigued | ✅ true | ✅ true | ✅ Correct |
-| Poisoned | ❌ false | ⚠️ true | Rulebook: can have multiple Poisoned |
-| Prone | ✅ false | ✅ false | ✅ Correct |
-| Stunned | ❌ false | ❌ **true** | **WRONG** — Should be stackable |
-| Surprised | ✅ false | ✅ false | ✅ Correct |
-| Unconscious | ✅ false | ✅ false | ✅ Correct |
-
----
-
-## End-of-Turn Processing Audit
-
-| Rule | Rulebook | App | Status |
-|------|----------|-----|--------|
-| Bleeding: 1 wound per condition per round | Each Bleeding = 1 wound, ignoring modifiers | `newWounds -= bleeding.level` | ✅ Correct |
-| Ablaze: 1d10 + (extras) - TB - lowest AP, min 1 | Complex formula with dice | `newWounds -= ablaze.level` | ❌ Wrong |
-| Stunned: Endurance Test to remove | Requires test | Auto-removes | ❌ Wrong |
-| Surprised: Removed after your turn | After your first turn | Auto-removes at end of round | ⚠️ Close enough (simplified) |
-| Poisoned: 1 wound per round + Endurance Test | Lose 1W, test to remove | Not processed | ⚠️ Missing |
-| Blinded: Removed every other round | One removed per 2 rounds | Not processed | ⚠️ Missing |
-| Deafened: Removed every other round | One removed per 2 rounds | Not processed | ⚠️ Missing |
-| Broken: Cool Test end of round | Test to remove | Not processed | ⚠️ Missing |
+| Condition | Stackable (App) | Stackable (RAW) | Notes |
+|-----------|-----------------|-----------------|-------|
+| Ablaze | ✅ true | ✅ true | Damage formula now correct; `removedBy` text says Agility, should be Athletics |
+| Bleeding | ✅ true | ✅ true | ✅ |
+| Blinded | ✅ true | ✅ true | ✅ |
+| Broken | ❌ false | ✅ **true** | Should stack; text invents a Stunned side-effect |
+| Deafened | ✅ true | ✅ true | Description wrong (auto-fail/Surprised) |
+| Entangled | ❌ false | ❌ false | Penalty should be −10 not −20 |
+| Fatigued | ✅ true | ✅ true | Description says Movement −1/level; RAW is −10 to all Tests |
+| Poisoned | ✅ true | ✅ true | End-of-turn damage per-level (should be flat 1); −10 penalty not modelled |
+| Prone | ❌ false | ❌ false | ✅ |
+| Stunned | ✅ true | ✅ true | ✅ (fixed) |
+| Surprised | ❌ false | ❌ false | ✅ |
+| Unconscious | ❌ false | ❌ false | ✅ |
 
 ---
 
-*Report generated from cross-referencing all logic files against WarhammerFantasyRoleplay4e.md, Up_In_Arms.md, dwarfguide.md, and highelfguide.md.*
+## Errata Check
+
+`docs/Errata.pdf` is a binary PDF and **could not be read** in this environment, so errata overrides were not cross-checked (including any extended XP table). All markdown supplements were available. Weapon damage values in `src/data/weapons.ts` match the Core p.293 tables (bows `+SB+N` full SB; slings/blackpowder flat; throwing `+SB+N`). The ½SB-for-ranged behaviour is an **opt-in house rule** (`rangedDamageSBMode`), default `'none'` (RAW) — not an errata correction.
+
+---
+
+## Recommendations (priority order)
+
+1. **Fix Poisoned end-of-turn damage** to flat −1 (confirm stacking interpretation with the user first).
+2. **Correct `conditions.ts` text/stackable** for Broken, Deafened, Fatigued, Entangled, and the Ablaze `removedBy` to match RAW.
+3. Minor: gate `castSuccess` on `rollResult.passed`; pass `effectiveSL` in the min-1 damage branch.
+4. Keep documenting the 51–70+ XP rows and L5=25 threshold as app conventions.
+5. The four new features are rules-compliant and can ship as-is.
+
+---
+
+*Report refreshed from a full re-read of the current `src/logic/` and `src/data/` source against `docs/WarhammerFantasyRoleplay4e.md` and the available markdown supplements. Supersedes the prior audit. Errata PDF not machine-readable.*

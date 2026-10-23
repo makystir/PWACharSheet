@@ -77,7 +77,9 @@ describe('Conditions Data', () => {
     expect(stackable).toContain('Blinded');
     expect(stackable).toContain('Deafened');
     expect(stackable).toContain('Poisoned');
-    expect(stackable).toHaveLength(7);
+    // Broken stacks per Core p.167-168 (e.g. Terror inflicts Broken equal to its Rating).
+    expect(stackable).toContain('Broken');
+    expect(stackable).toHaveLength(8);
   });
 
   it('non-stackable conditions have maxLevel 1', () => {

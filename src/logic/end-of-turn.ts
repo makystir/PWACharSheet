@@ -103,13 +103,18 @@ export function processEndOfTurn(params: EndOfTurnParams): EndOfTurnResult {
 
     const poisoned = conditions.find(c => c.name === 'Poisoned');
     if (poisoned) {
+      // Core p.169: Poisoned — "At the end of each Round, lose 1 Wound, ignoring
+      // all modifiers." A flat 1 Wound regardless of the number of Poisoned
+      // Conditions. Unlike Bleeding (whose per-Condition stacking the rulebook
+      // states explicitly), Poisoned does not declare the loss scales per level.
+      const poisonedDamage = 1;
       effects.push({
         type: 'damage',
         condition: 'Poisoned',
-        amount: poisoned.level,
-        description: `Poisoned ${poisoned.level}: lost ${poisoned.level} wound${poisoned.level > 1 ? 's' : ''}`
+        amount: poisonedDamage,
+        description: `Poisoned ${poisoned.level}: lost ${poisonedDamage} wound (flat, ignoring modifiers)`
       });
-      newWounds -= poisoned.level;
+      newWounds -= poisonedDamage;
     }
 
     // Floor wounds at 0

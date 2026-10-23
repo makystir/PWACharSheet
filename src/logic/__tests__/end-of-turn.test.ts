@@ -77,6 +77,33 @@ describe('processEndOfTurn', () => {
     });
   });
 
+  describe('Poisoned damage', () => {
+    // Core p.169: "At the end of each Round, lose 1 Wound, ignoring all
+    // modifiers." A flat 1 Wound regardless of the number of Poisoned Conditions.
+    it('reduces wounds by a flat 1 regardless of level', () => {
+      const result = callEOT(10, [{ name: 'Poisoned', level: 4 }], 1);
+      expect(result.newWounds).toBe(9);
+    });
+
+    it('records a flat-1 damage effect for Poisoned at level 1', () => {
+      const result = callEOT(10, [{ name: 'Poisoned', level: 1 }], 1);
+      const poisonEffect = result.effects.find(e => e.condition === 'Poisoned' && e.type === 'damage');
+      expect(poisonEffect).toBeDefined();
+      expect(poisonEffect!.amount).toBe(1);
+    });
+
+    it('still loses only 1 wound at high Poisoned levels (does not scale)', () => {
+      const result = callEOT(10, [{ name: 'Poisoned', level: 10 }], 1);
+      expect(result.newWounds).toBe(9);
+    });
+
+    it('also emits a reminder to attempt an Endurance Test', () => {
+      const result = callEOT(10, [{ name: 'Poisoned', level: 2 }], 1);
+      const reminder = result.effects.find(e => e.condition === 'Poisoned' && e.type === 'reminder');
+      expect(reminder).toBeDefined();
+    });
+  });
+
   describe('combined Bleeding and Ablaze', () => {
     it('reduces wounds by Bleeding level + Ablaze formula', () => {
       // Bleeding 3 = 3 flat, Ablaze 2 with d10=5: max(1, 5+1-0-0)=6, total=9
