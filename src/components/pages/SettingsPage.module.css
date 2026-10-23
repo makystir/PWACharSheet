@@ -366,6 +366,91 @@
   margin: 0;
 }
 
+/* GM share card — privacy notes, warnings, and the generated link box. */
+.shareNotes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sharePrivacyLink {
+  display: flex;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.sharePrivacyLocal {
+  display: flex;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--success, #5a9a5a);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+/* Primary (emphasised) share action. */
+.sharePrimaryBtn {
+  composes: smallBtn;
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  font-weight: 700;
+}
+
+/* Soft length caution — inline, non-blocking. */
+.shareSoftWarning {
+  display: flex;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-top: 8px;
+}
+
+/* Hard length warning — structurally distinct, higher emphasis. */
+.shareHardWarning {
+  display: flex;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  background: rgba(200, 60, 60, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+/* The generated share link, shown read-only for copy/verify. */
+.shareLinkBox {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.shareLinkText {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
 /* Data-safety backup reminder (#10) — advisory nudge, not an error. */
 .backupReminder {
   font-size: 13px;

@@ -13,7 +13,11 @@ import { assembleBackup, downloadBackup } from '../../storage/backup-service';
 import { getLastBackupAt, getBackupReminder } from '../../storage/backup-reminder';
 import { validateBackupFile, detectDuplicates, restoreCharacters } from '../../storage/restore-service';
 import type { BackupCharacterEntry } from '../../storage/backup-types';
-import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders, Zap, X, Dice6 } from 'lucide-react';
+import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders, Zap, X, Dice6, Share2, Link as LinkIcon, FileDown, Clipboard, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { encodeSharePayload } from '../../logic/share-codec';
+import { trimForLink, SHARE_SOFT_LIMIT, SHARE_HARD_LIMIT } from '../../logic/share-portrait';
+import { formatViewHref } from '../../logic/view-route';
+import { buildCombatStatBlock } from '../../logic/combat-stat-block';
 import type { ThemeMode } from '../../hooks/useTheme';
 import styles from './SettingsPage.module.css';
 import { loadQuickActions, saveQuickActions } from '../../storage/quick-actions';
@@ -53,6 +57,16 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
   const [lastBackupAt, setLastBackupAt] = useState<number | null>(() => getLastBackupAt());
   const backupReminder = getBackupReminder(lastBackupAt);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+
+  // GM share card state (read-only share/export). Transient status for the
+  // snapshot/stat-block/link copy actions and the generated share link.
+  const [shareStatus, setShareStatus] = useState('');
+  const [shareError, setShareError] = useState('');
+  const [shareLink, setShareLink] = useState('');
+  // CompressionStream is a Node>=20 / modern-browser global, not universal.
+  // The share-link codec gzips via it; when absent the link action is disabled
+  // and we steer the user to the offline snapshot (which never needs gzip).
+  const compressionAvailable = typeof CompressionStream !== 'undefined';
 
   // Bulk backup state
   const [backupInProgress, setBackupInProgress] = useState(false);
@@ -192,6 +206,82 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
     } catch {
       // export failure: fall back to exporting without portrait
       exportToFile(character);
+    }
+  };
+
+  // --- GM share helpers ---------------------------------------------------
+  // Reuse the same safeName + YYYYMMDD-HHmm timestamp construction as the
+  // Export card (do NOT call exportToFile — it omits the portrait).
+  const buildSnapshotFilename = () => {
+    const safeName = (character.name || 'character').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const date = new Date();
+    const timestamp = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}`;
+    return `${safeName}_share_${timestamp}.json`;
+  };
+
+  // Download the full snapshot (portrait included) as a local file. Nothing
+  // leaves the device — the file/clipboard path transmits no data anywhere.
+  const handleShareDownloadSnapshot = async () => {
+    setShareError('');
+    setShareStatus('');
+    try {
+      const json = await exportToJSONWithPortrait(character, characterId);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = buildSnapshotFilename();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setShareStatus('Snapshot downloaded.');
+    } catch {
+      setShareError('Could not create the snapshot file.');
+    }
+  };
+
+  // Copy the same full snapshot payload to the clipboard (still local-only).
+  const handleShareCopySnapshot = async () => {
+    setShareError('');
+    setShareStatus('');
+    try {
+      const json = await exportToJSONWithPortrait(character, characterId);
+      await navigator.clipboard.writeText(json);
+      setShareStatus('Snapshot copied to clipboard.');
+    } catch {
+      setShareError('Could not copy the snapshot.');
+    }
+  };
+
+  // Copy the plain-text combat stat block (numbers come from the shared
+  // calculators via buildCombatStatBlock -> deriveSheetTotals; AC7).
+  const handleShareCopyStatBlock = async () => {
+    setShareError('');
+    setShareStatus('');
+    try {
+      await navigator.clipboard.writeText(buildCombatStatBlock(character));
+      setShareStatus('Combat stat block copied to clipboard.');
+    } catch {
+      setShareError('Could not copy the combat stat block.');
+    }
+  };
+
+  // Build a #view/ share link whose hash encodes the compressed character.
+  // The link variant strips the portrait + event log (trimForLink) to keep the
+  // URL small; the data is embedded in the link itself (no backend).
+  const handleShareCopyLink = async () => {
+    setShareError('');
+    setShareStatus('');
+    try {
+      const json = await exportToJSONWithPortrait(trimForLink(character), characterId);
+      const encoded = await encodeSharePayload(json);
+      const href = formatViewHref(location.origin, location.pathname, encoded);
+      setShareLink(href);
+      await navigator.clipboard.writeText(href);
+      setShareStatus('Share link copied to clipboard.');
+    } catch {
+      setShareError('Could not create the share link.');
     }
   };
 
@@ -793,6 +883,138 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
           {restoreSuccess && <div className={styles.successMsg}>{restoreSuccess}</div>}
         </div>
       </Card>
+
+      {/* Share with GM — read-only share/export */}
+      {(() => {
+        // Length warnings are measured on the FULL href (>= operator). The link
+        // is only present after the user generates it; before then neither
+        // warning shows and the link stays the primary action.
+        const hrefLen = shareLink.length;
+        const softWarn = hrefLen >= SHARE_SOFT_LIMIT;
+        const hardWarn = hrefLen >= SHARE_HARD_LIMIT;
+
+        const downloadBtn = (
+          <button
+            type="button"
+            onClick={handleShareDownloadSnapshot}
+            className={hardWarn ? styles.sharePrimaryBtn : styles.smallBtn}
+          >
+            <FileDown size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+            Download snapshot
+          </button>
+        );
+        const copySnapshotBtn = (
+          <button type="button" onClick={handleShareCopySnapshot} className={styles.smallBtn}>
+            <Clipboard size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+            Copy snapshot
+          </button>
+        );
+        const copyStatBlockBtn = (
+          <button type="button" onClick={handleShareCopyStatBlock} className={styles.smallBtn}>
+            <Clipboard size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+            Copy Combat Stat Block
+          </button>
+        );
+        const copyLinkBtn = (
+          <button
+            type="button"
+            onClick={handleShareCopyLink}
+            className={!hardWarn && compressionAvailable ? styles.sharePrimaryBtn : styles.smallBtn}
+            disabled={!compressionAvailable}
+            title={compressionAvailable ? undefined : 'Share links are unavailable in this browser.'}
+          >
+            <LinkIcon size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+            Copy Share Link
+          </button>
+        );
+
+        return (
+          <Card>
+            <SectionHeader icon={Share2} title="Share with GM" />
+
+            {/* Privacy note: link embeds data vs. local-only snapshot. */}
+            <div className={styles.shareNotes}>
+              <div className={styles.sharePrivacyLink}>
+                <LinkIcon size={14} style={{ marginRight: '6px', flexShrink: 0, verticalAlign: 'middle' }} />
+                <span>
+                  The share link <strong>embeds the character data in the link itself</strong>. Anyone
+                  with the link can read the full sheet. Nothing is uploaded to a server.
+                </span>
+              </div>
+              <div className={styles.sharePrivacyLocal}>
+                <ShieldCheck size={14} style={{ marginRight: '6px', flexShrink: 0, verticalAlign: 'middle' }} />
+                <span>
+                  The snapshot (download or copy) stays <strong>local to this device</strong> —
+                  it transmits nothing until you choose to send the file or text yourself.
+                </span>
+              </div>
+            </div>
+
+            {/* Actions. Normally Copy Share Link is the primary link action and
+                appears first; once the full href reaches SHARE_HARD_LIMIT it is
+                demoted below Download snapshot (which becomes primary). The
+                snapshot/stat-block controls are local-only and unaffected. */}
+            {hardWarn ? (
+              <>
+                <div className={styles.btnRow}>
+                  {downloadBtn}
+                  {copySnapshotBtn}
+                  {copyStatBlockBtn}
+                </div>
+                <div className={styles.btnRow}>{copyLinkBtn}</div>
+              </>
+            ) : (
+              <>
+                <div className={styles.btnRow}>{copyLinkBtn}</div>
+                <div className={styles.btnRow}>
+                  {downloadBtn}
+                  {copySnapshotBtn}
+                  {copyStatBlockBtn}
+                </div>
+              </>
+            )}
+
+            {!compressionAvailable && (
+              <div className={styles.ruleDesc}>
+                Share links aren't available in this browser. Use <strong>Download snapshot</strong> or{' '}
+                <strong>Copy snapshot</strong> instead.
+              </div>
+            )}
+
+            {/* Soft caution: link is getting long but remains usable/primary. */}
+            {softWarn && !hardWarn && (
+              <div className={styles.shareSoftWarning} role="status">
+                <AlertTriangle size={14} style={{ marginRight: '6px', flexShrink: 0, verticalAlign: 'middle' }} />
+                <span>
+                  This share link is getting long. A large sheet (many items or a long log) makes
+                  links harder to share. The portrait is not included in links.
+                </span>
+              </div>
+            )}
+
+            {/* Hard warning: structurally distinct; link demoted below Download. */}
+            {hardWarn && (
+              <div className={styles.shareHardWarning} data-testid="share-hard-warning" role="alert">
+                <AlertTriangle size={14} style={{ marginRight: '6px', flexShrink: 0, verticalAlign: 'middle' }} />
+                <span>
+                  This share link is too long to share reliably, usually because of a large sheet
+                  (many items or a long log). The portrait is not included in links — use{' '}
+                  <strong>Download snapshot</strong> instead.
+                </span>
+              </div>
+            )}
+
+            {shareLink && (
+              <div className={styles.shareLinkBox}>
+                <code className={styles.shareLinkText}>{shareLink}</code>
+              </div>
+            )}
+
+            {shareStatus && <div className={styles.successMsg}>{shareStatus}</div>}
+            {shareError && <div className={styles.errorMsg}>{shareError}</div>}
+          </Card>
+        );
+      })()}
 
       {/* Utilities */}
       <Card>
