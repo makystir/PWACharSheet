@@ -6,10 +6,9 @@ import {
   getBonus,
   calculateTotalWounds,
   calculateArmourPointsUnified,
-  calculateMaxEncumbrance,
-  calculateCoinWeight,
   syncWoundFields,
 } from '../logic/calculators';
+import { deriveSheetTotals } from '../logic/sheet-totals';
 import { evaluateFatiguedThreshold } from '../logic/conditions';
 import { syncTalentBonuses } from '../logic/talents';
 import { SPECIES_DATA } from '../data/species';
@@ -414,17 +413,6 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     // needed here.
   }, [conditionsJson, character.chars, commit]);
 
-  // Derive Strong Back and Sturdy levels from talents
-  const strongBackLevel = useMemo(() => {
-    const sb = character.talents.find(t => t.n === 'Strong Back');
-    return sb ? sb.lvl : 0;
-  }, [character.talents]);
-
-  const sturdyLevel = useMemo(() => {
-    const st = character.talents.find(t => t.n === 'Sturdy');
-    return st ? st.lvl : 0;
-  }, [character.talents]);
-
   // Auto-sync character.ap whenever armour list changes (worn-only AP per WFRP4e Core p.293).
   // Intentional setState-in-effect: keeps derived armour points in the single
   // character store consistent when the armour list changes.
@@ -470,36 +458,22 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
     });
   }, [character.armour, commit]);
 
+  // Source the returned totals from the shared pure derivation so the hook, the
+  // GM viewer, and the combat stat block compute identical values (AC2
+  // "reuse, don't fork"; src/logic/sheet-totals.ts). Observable behaviour is
+  // unchanged: deriveSheetTotals lifts these same derivations verbatim.
+  const totals = useMemo(() => deriveSheetTotals(character), [character]);
+
+  // computeWoundMaximum does not floor at 0; preserve the hook's historical
+  // Math.max(0, …) via calculateTotalWounds for an identical returned value.
   const totalWounds = useMemo(
-    () => calculateTotalWounds(character.chars, character.woundsUseSB, hardyLevel, woundMultiplier),
-    [character.chars, character.woundsUseSB, hardyLevel, woundMultiplier]
+    () => calculateTotalWounds(character.chars, totals.effectiveWoundsUseSB, hardyLevel, woundMultiplier),
+    [character.chars, totals.effectiveWoundsUseSB, hardyLevel, woundMultiplier]
   );
 
-  const armourPoints = useMemo(
-    () => {
-      const unified = calculateArmourPointsUnified(character.armour, { filterByWorn: true });
-      return {
-        head: unified.head,
-        lArm: unified.leftArm,
-        rArm: unified.rightArm,
-        body: unified.body,
-        lLeg: unified.leftLeg,
-        rLeg: unified.rightLeg,
-        shield: unified.shield,
-      };
-    },
-    [character.armour]
-  );
-
-  const maxEncumbrance = useMemo(
-    () => calculateMaxEncumbrance(character.chars, strongBackLevel, sturdyLevel),
-    [character.chars, strongBackLevel, sturdyLevel]
-  );
-
-  const coinWeight = useMemo(
-    () => calculateCoinWeight(character.wGC, character.wSS, character.wD),
-    [character.wGC, character.wSS, character.wD]
-  );
+  const armourPoints = totals.armourPoints;
+  const maxEncumbrance = totals.maxEncumbrance;
+  const coinWeight = totals.coinWeight;
 
   return {
     character,

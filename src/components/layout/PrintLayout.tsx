@@ -6,6 +6,7 @@ import type { Character, ArmourPoints, CharacteristicKey } from '../../types/cha
 import { CHARACTERISTIC_KEYS } from '../../types/character';
 import { getBonus, calculateMaxEncumbrance } from '../../logic/calculators';
 import { calculateArmourEncumbrance, calculateCarriedTrappingEnc } from '../../logic/encumbrance';
+import { shouldRenderSection } from '../../logic/section-visibility';
 import styles from './PrintLayout.module.css';
 
 interface PrintLayoutProps {
@@ -15,32 +16,6 @@ interface PrintLayoutProps {
 }
 
 const CHAR_KEYS = CHARACTERISTIC_KEYS;
-
-type SectionKey =
-  | 'spells' | 'companions' | 'mutations' | 'criticalWounds'
-  | 'hirelings' | 'enterprises' | 'grudgeBook' | 'psychologyTraits'
-  | 'rituals' | 'yenlui' | 'estate' | 'conditions' | 'ammunition';
-
-function shouldRenderSection(character: Character, key: SectionKey): boolean {
-  switch (key) {
-    case 'spells': return character.spells.length > 0;
-    case 'companions': return character.companions.length > 0;
-    case 'mutations': return character.mutations.length > 0;
-    case 'criticalWounds': return character.criticalWounds.length > 0;
-    case 'hirelings': return character.hirelings.length > 0;
-    case 'enterprises':
-      return character.houseRules.useEnterprises && (character.enterprises?.length ?? 0) > 0;
-    case 'grudgeBook':
-      return character.houseRules.useGrudgeBook && (character.grudges?.length ?? 0) > 0;
-    case 'psychologyTraits':
-      return character.houseRules.usePsychologyTracker && (character.psychologyTraits?.length ?? 0) > 0;
-    case 'rituals': return (character.rituals?.length ?? 0) > 0;
-    case 'yenlui': return character.houseRules.useYenlui;
-    case 'estate': return character.estate.name.length > 0;
-    case 'conditions': return character.conditions.filter(c => c.level > 0).length > 0;
-    case 'ammunition': return character.ammo.length > 0;
-  }
-}
 
 function renderPageFooter(characterName: string, pageNum: number) {
   return (
