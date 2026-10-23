@@ -532,3 +532,44 @@ describe('TakeDamagePanel — min1Wound prop', () => {
     });
   });
 });
+
+// ─── Crit-pipeline: Attack → Defend net-wounds hand-off seed ─────────────────
+
+describe('TakeDamagePanel — seed hand-off (crit-pipeline)', () => {
+  it('pre-fills Damage / SL / Location from a seed', () => {
+    render(<TakeDamagePanel {...makeProps({ seed: { damage: 8, sl: 3, location: 'Head' } })} />);
+    expect((screen.getByLabelText('Incoming damage') as HTMLInputElement).value).toBe('8');
+    expect((screen.getByLabelText('Success Levels') as HTMLInputElement).value).toBe('3');
+    // Head radio chip is selected
+    expect(screen.getByRole('radio', { name: 'Head' })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('seeded values remain editable afterwards', () => {
+    render(<TakeDamagePanel {...makeProps({ seed: { damage: 8, sl: 3, location: 'Head' } })} />);
+    fireEvent.change(screen.getByLabelText('Incoming damage'), { target: { value: '12' } });
+    expect((screen.getByLabelText('Incoming damage') as HTMLInputElement).value).toBe('12');
+  });
+
+  it('a new seed identity re-seeds the inputs', () => {
+    const { rerender } = render(
+      <TakeDamagePanel {...makeProps({ seed: { damage: 8, sl: 3, location: 'Head' } })} />,
+    );
+    // Player edits
+    fireEvent.change(screen.getByLabelText('Incoming damage'), { target: { value: '12' } });
+    // A genuinely new seed arrives
+    rerender(
+      <TakeDamagePanel {...makeProps({ seed: { damage: 5, sl: 1, location: 'Body' } })} />,
+    );
+    expect((screen.getByLabelText('Incoming damage') as HTMLInputElement).value).toBe('5');
+    expect((screen.getByLabelText('Success Levels') as HTMLInputElement).value).toBe('1');
+    expect(screen.getByRole('radio', { name: 'Body' })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('un-seeded net-wounds math is unchanged (no seed defaults to 0 inputs)', () => {
+    render(<TakeDamagePanel {...makeProps()} />);
+    expect((screen.getByLabelText('Incoming damage') as HTMLInputElement).value).toBe('0');
+    fireEvent.change(screen.getByLabelText('Incoming damage'), { target: { value: '10' } });
+    // TB=4, Body AP=3 → 10-7 = 3
+    expect(screen.getByTestId('net-wounds')).toHaveTextContent('3');
+  });
+});

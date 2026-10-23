@@ -233,3 +233,106 @@ describe('findSkillForWeapon — Explosives group', () => {
     expect(result!.n).toBe('Ranged (Explosives)');
   });
 });
+
+// ─── Crit-pipeline wiring (design §7.2) ──────────────────────────────────────
+
+import { within } from '@testing-library/react';
+import { useState } from 'react';
+
+const activeCombat = { inCombat: true, initiative: 0, currentRound: 1, engaged: false, surprised: false };
+
+/**
+ * Stateful host that threads updateCharacter through useState so recorded
+ * critical wounds / applied conditions actually re-render the page (the simple
+ * renderCombatPage helper captures state but never re-renders). Mirrors the
+ * AttackFlow test's StatefulAttackFlowHost.
+ */
+function StatefulCombatHost({ initial }: { initial: Character }) {
+  const [character, setCharacter] = useState<Character>(initial);
+  return (
+    <CombatPage
+      character={character}
+      characterId="test-char-id"
+      update={(field, value) => {
+        setCharacter((prev) => {
+          // Minimal dotted-path setter sufficient for these tests.
+          const next = structuredClone(prev) as unknown as Record<string, unknown>;
+          const parts = (field as string).split('.');
+          let obj = next;
+          for (let i = 0; i < parts.length - 1; i++) obj = obj[parts[i]] as Record<string, unknown>;
+          obj[parts[parts.length - 1]] = value as unknown;
+          return next as unknown as Character;
+        });
+      }}
+      updateCharacter={(mutator) => setCharacter((prev) => mutator(structuredClone(prev)))}
+      totalWounds={12}
+      armourPoints={defaultAP}
+      maxEncumbrance={5}
+      coinWeight={0}
+    />
+  );
+}
+
+function renderStatefulCombat(overrides: Partial<Character> = {}) {
+  const initial = makeCharacter(overrides);
+  render(<StatefulCombatHost initial={initial} />);
+}
+
+describe('CombatPage — crit-pipeline: suggested-condition apply', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('applies a crit-wound condition chip: adds the condition, zeroes Advantage, appends a combat event', () => {
+    renderStatefulCombat({ combatState: activeCombat, advantage: 4 });
+
+    // Switch to Status and roll a critical wound whose effect inflicts a condition.
+    fireEvent.click(screen.getByRole('tab', { name: 'Status' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Roll Critical' }));
+    // Head roll 21-30 "Stunned" → "Suffer 1 Stunned Condition". Default location is Head.
+    fireEvent.change(screen.getByPlaceholderText('1–100'), { target: { value: '25' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Look Up' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    // Suggestion chip appears; tap it.
+    const strip = screen.getByTestId('crit-condition-suggestions');
+    const chip = within(strip).getByRole('button', { name: /Add 1 Stunned condition/ });
+    fireEvent.click(chip);
+
+    // Switch to Status dashboard view to read the applied condition (already Status).
+    // The condition badge should now reflect Stunned, and Advantage reset to 0.
+    expect(screen.getByRole('button', { name: 'Info for Stunned' })).toBeInTheDocument();
+    // History timeline carries the appended combat.condition event summary.
+    expect(screen.getByText(/Applied 1× Stunned from attack/)).toBeInTheDocument();
+  });
+});
+
+describe('CombatPage — crit-pipeline: net-wounds hand-off', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('onSendToTakeDamage switches to Defend and seeds only Damage/SL/Location (sheet-owner TB)', () => {
+    renderStatefulCombat({
+      combatState: activeCombat,
+      weapons: [{ name: 'Sword', group: 'Basic', enc: '1', damage: '+SB+4', qualities: '—' }],
+      chars: {
+        ...BLANK_CHARACTER.chars,
+        WS: { i: 50, a: 0, b: 0 },
+        S: { i: 40, a: 0, b: 0 },
+        T: { i: 40, a: 0, b: 0 }, // TB 4 (sheet owner)
+      },
+    });
+
+    // Drive AttackFlow to Step 4. Default mode is Attack.
+    vi.spyOn(Math, 'random').mockReturnValue((25 - 1) / 100); // roll 25 → hit, Body
+    fireEvent.click(screen.getByLabelText('Select Sword'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+
+    fireEvent.click(screen.getByLabelText('Send to Take Damage'));
+
+    // Defend mode is now active; the Take Damage panel shows the seeded inputs.
+    expect(screen.getByRole('tab', { name: 'Defend' })).toHaveAttribute('aria-selected', 'true');
+    expect((screen.getByLabelText('Incoming damage') as HTMLInputElement).value).toBe('8'); // SB(4)+4
+    expect((screen.getByLabelText('Success Levels') as HTMLInputElement).value).toBe('3'); // SL
+    // The TB shown is the sheet owner's (4), never an opponent value.
+    expect(screen.getByTestId('toughness-bonus')).toHaveTextContent('4');
+  });
+});

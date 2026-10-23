@@ -110,6 +110,51 @@
   display: none;
 }
 
+/*
+ * ── Suggested-condition chips (crit-pipeline) ──
+ * One-tap, explicit chips surfaced in the Status Critical Wounds section after
+ * a critical wound is rolled. Mirrors the segment chip idiom (≥44px touch
+ * targets, keyboard-activatable).
+ */
+.suggestionStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm, 8px);
+  margin: var(--space-sm, 8px) 0;
+}
+
+.suggestionHint {
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.suggestionChip {
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--accent-gold);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+}
+
+.suggestionChip:hover {
+  background: var(--bg-tertiary);
+}
+
+.suggestionChipNote {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
 /* ── Mobile overrides ── */
 @media (max-width: 767px) {
   .combatBtn {

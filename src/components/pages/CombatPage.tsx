@@ -36,6 +36,11 @@ import { clearCombatTarget } from '../../logic/combat-target';
 import { appendEvent, clearEventLog } from '../../logic/event-log';
 import { TimelineView } from '../shared/TimelineView';
 import { recordCriticalWound, healCriticalWound } from '../../logic/critical-wounds';
+import {
+  deriveCriticalWoundSuggestions,
+  type SuggestedCondition,
+  type DefendHandoff,
+} from '../../logic/attack-consequences';
 import { getBonus } from '../../logic/calculators';
 import { findSkillForWeapon, RANGED_GROUPS } from '../../logic/weapons';
 import { computeSkillTarget, type RollResult, type DifficultyLevel } from '../../logic/dice-roller';
@@ -78,11 +83,65 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
   // the Status-mode CriticalWoundsPanel auto-opens the existing RollCriticalFlow.
   const [rollCriticalHandoff, setRollCriticalHandoff] = useState(false);
   const [expiredConditionQueue, setExpiredConditionQueue] = useState<string[]>([]);
+  // Crit-pipeline: condition suggestions derived from the just-recorded critical
+  // wound's effect prose (crit-pipeline-design §5.5), surfaced as one-tap chips
+  // in the Status Critical Wounds section. Cleared when leaving Status.
+  const [critConditionSuggestions, setCritConditionSuggestions] = useState<SuggestedCondition[]>([]);
+  // Crit-pipeline: Attack → Defend net-wounds hand-off seed (crit-pipeline-design
+  // §5.5). A fresh object each time so the panel's seed effect re-fires; cleared
+  // back to null immediately after consumption so later manual edits are never
+  // re-overwritten (FR-3.5).
+  const [takeDamageSeed, setTakeDamageSeed] = useState<{ damage: number; sl: number; location: HitLocation } | null>(null);
 
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isDesktop = useMediaQuery('(min-width: 1025px)');
   const inCombat = character.combatState.inCombat;
   const TB = getBonus(character.chars.T.i + character.chars.T.a + character.chars.T.b);
+
+  /**
+   * Crit-pipeline: apply a suggested condition `count` times through the SAME
+   * mutation CombatPage already uses for ConditionPicker.onApply — applyCondition
+   * (which clamps at maxLevel, so looping is safe for non-stackable conditions)
+   * plus the "lose all Advantage on gaining a Condition" reset. This is a new
+   * count-aware handler, not the single-name ConditionPicker.onApply prop.
+   * Core Rulebook p.164: suffering any Condition immediately loses all Advantage.
+   */
+  const onApplySuggestedCondition = useCallback((name: string, count: number) => {
+    updateCharacter((c) => {
+      let conditions = c.conditions;
+      for (let i = 0; i < count; i++) {
+        conditions = applyCondition(conditions, name);
+      }
+      const withEvent = appendEvent(
+        { ...c, conditions, advantage: inCombat ? 0 : c.advantage },
+        {
+          category: 'combat',
+          type: 'combat.condition',
+          summary: `Applied ${count}× ${name} from attack`,
+          payload: { condition: name, count, source: 'attack-consequence' },
+        },
+      );
+      return withEvent;
+    });
+  }, [updateCharacter, inCombat]);
+
+  /**
+   * Crit-pipeline: Attack → Defend net-wounds hand-off (crit-pipeline-design
+   * §5.3). Seeds only the three pre-mitigation Defend inputs (Damage, SL,
+   * Location) — never opponent TB/AP — then switches to Defend mode where the
+   * existing "Apply Wounds" path (min-1-wound + Critical Deflection house rules)
+   * takes over against the sheet owner.
+   */
+  const onSendToTakeDamage = useCallback((handoff: DefendHandoff) => {
+    // A fresh object identity each time so the panel's seed effect re-fires even
+    // when the same Damage/SL/Location recur. The panel consumes it exactly once
+    // (its effect is keyed on seed identity), so later manual edits in the panel
+    // are never re-overwritten (crit-pipeline-design §5.5, FR-3.5); no explicit
+    // clear is needed because an unchanged seed object cannot re-trigger the
+    // child effect on subsequent CombatPage re-renders.
+    setTakeDamageSeed({ damage: handoff.damage, sl: handoff.sl, location: handoff.location });
+    setCombatMode('defend');
+  }, []);
 
   /* ── Condition duration decrement on round advance ── */
   const handleRoundAdvanceWithDecrement = useCallback((delta: number) => {
@@ -170,7 +229,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
             role="tab"
             aria-selected={combatMode === 'attack'}
             className={combatMode === 'attack' ? styles.segmentActive : styles.segment}
-            onClick={() => { setRollCriticalHandoff(false); setCombatMode('attack'); }}
+            onClick={() => { setRollCriticalHandoff(false); setCritConditionSuggestions([]); setCombatMode('attack'); }}
           >
             Attack
           </button>
@@ -179,7 +238,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
             role="tab"
             aria-selected={combatMode === 'defend'}
             className={combatMode === 'defend' ? styles.segmentActive : styles.segment}
-            onClick={() => { setRollCriticalHandoff(false); setCombatMode('defend'); }}
+            onClick={() => { setRollCriticalHandoff(false); setCritConditionSuggestions([]); setCombatMode('defend'); }}
           >
             Defend
           </button>
@@ -188,7 +247,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
             role="tab"
             aria-selected={combatMode === 'status'}
             className={combatMode === 'status' ? styles.segmentActive : styles.segment}
-            onClick={() => { setRollCriticalHandoff(false); setCombatMode('status'); }}
+            onClick={() => { setRollCriticalHandoff(false); setCritConditionSuggestions([]); setCombatMode('status'); }}
           >
             Status
           </button>
@@ -299,7 +358,18 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
       {inCombat && (
         <div className={combatMode === 'attack' ? styles.modePanel : styles.modePanelHidden} aria-hidden={combatMode !== 'attack'}>
           <CollapsibleSection title="Attack Flow" storageKey={`collapsible-attack-flow-${characterId}`} defaultExpanded={true}>
-            <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} updateCharacter={updateCharacter} onAddWeapon={() => setShowWeaponPicker(true)} />
+            <AttackFlow weapons={character.weapons} character={character} armourPoints={armourPoints} onRoll={(r) => addRoll?.(r)} updateCharacter={updateCharacter} onAddWeapon={() => setShowWeaponPicker(true)}
+              onRollCritical={(location) => {
+                // Crit-pipeline: reuse the existing Defend→Status critical bridge
+                // verbatim (crit-pipeline-design §5.1). The Status-mode
+                // CriticalWoundsPanel auto-opens RollCriticalFlow with the struck
+                // location preselected; no inline flow, no new record path.
+                setDownLocation(location);
+                setRollCriticalHandoff(true);
+                setCombatMode('status');
+              }}
+              onSendToTakeDamage={onSendToTakeDamage}
+              onApplySuggestedCondition={onApplySuggestedCondition} />
           </CollapsibleSection>
           <CollapsibleSection title="Quick Roll" storageKey={`collapsible-quick-roll-${characterId}`} defaultExpanded={false}>
             <QuickRollBar character={character} onRoll={(r) => addRoll?.(r)} />
@@ -317,6 +387,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
         <div className={combatMode === 'defend' ? styles.modePanel : styles.modePanelHidden} aria-hidden={combatMode !== 'defend'}>
           <CollapsibleSection title="Take Damage" storageKey={`collapsible-take-damage-${characterId}`} defaultExpanded={true}>
             <TakeDamagePanel toughnessBonus={TB} armourPoints={armourPoints} armourList={character.armour} weapons={character.weapons} wCur={character.wCur} totalWounds={totalWounds}
+              seed={takeDamageSeed ?? undefined}
               useCriticalDeflection={character.houseRules?.useCriticalDeflection ?? false}
               onArmourUpdate={(updatedItem, index) => {
                 updateCharacter((c) => {
@@ -473,7 +544,35 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
               defaultCollapsed={isMobile}
               preselectedLocation={downLocation}
               autoOpenRollFlow={rollCriticalHandoff}
-              onAddWound={(wound) => { updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, wound) })); setDownLocation(undefined); setRollCriticalHandoff(false); }} />
+              onAddWound={(wound) => {
+                updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, wound) }));
+                setDownLocation(undefined);
+                setRollCriticalHandoff(false);
+                // Crit-pipeline: surface the conditions the rolled entry inflicts as
+                // one-tap chips (crit-pipeline-design §5.5). Parsed from the recorded
+                // wound's stored `effects` (plural) string — the same authored prose
+                // as a table entry's `effect` (singular). Explicit, not auto-applied.
+                setCritConditionSuggestions(deriveCriticalWoundSuggestions(wound.effects));
+              }} />
+            {critConditionSuggestions.length > 0 && (
+              <div className={styles.suggestionStrip} data-testid="crit-condition-suggestions">
+                <span className={styles.suggestionHint}>
+                  Suggested Conditions from this Critical Wound (tap to add):
+                </span>
+                {critConditionSuggestions.map((s, idx) => (
+                  <button
+                    key={`${s.name}-${idx}`}
+                    type="button"
+                    className={styles.suggestionChip}
+                    onClick={() => onApplySuggestedCondition(s.name, s.count)}
+                    aria-label={`Add ${s.count} ${s.name} condition${s.count !== 1 ? 's' : ''} from critical wound`}
+                  >
+                    <span>{s.name} ×{s.count}</span>
+                    {s.note && <span className={styles.suggestionChipNote}>{s.note}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </CollapsibleSection>
           {rollHistory && rollHistory.length > 0 && clearHistory && (
             <CollapsibleSection title="Roll History" storageKey={`combat-history-${characterId}`} defaultExpanded={!isMobile}>

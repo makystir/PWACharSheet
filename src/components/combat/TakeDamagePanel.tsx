@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { ArmourItem, ArmourPoints, WeaponItem } from '../../types/character';
 import type { HitLocation } from './hitLocationTable';
 import { Card } from '../shared/Card';
@@ -44,6 +44,14 @@ export interface TakeDamagePanelProps {
    * the host can preselect it in that flow.
    */
   onRollCritical?: (location: HitLocation) => void;
+  /**
+   * Optional pre-fill hand-off from the Attack side (crit-pipeline-design §5.5).
+   * When a new seed object arrives, the panel writes Damage / SL / Location once.
+   * Consumed by an effect keyed on seed identity (not a render-phase write) so it
+   * never clobbers the player's manual edits on subsequent re-renders; values
+   * remain fully editable afterwards. No net-wounds math changes.
+   */
+  seed?: { damage: number; sl: number; location: HitLocation };
 }
 
 // ─── Location mapping ────────────────────────────────────────────────────────
@@ -78,6 +86,7 @@ export function TakeDamagePanel({
   min1Wound = true,
   onDown,
   onRollCritical,
+  seed,
 }: TakeDamagePanelProps) {
   // totalWounds kept in props interface for potential future use (e.g. percentage display)
   void _totalWounds;
@@ -86,6 +95,26 @@ export function TakeDamagePanel({
   const [selectedLocation, setSelectedLocation] = useState<HitLocation>('Body');
   const [collapsed, setCollapsed] = useState(false);
   const [showDownAlert, setShowDownAlert] = useState(false);
+
+  // Crit-pipeline hand-off (crit-pipeline-design §5.5): when the Attack side
+  // sends a fresh seed, pre-fill Damage / SL / Location once. Keyed on the seed
+  // object identity so it fires only for a genuinely new seed and never
+  // re-overwrites the player's subsequent manual edits. The host (CombatPage)
+  // clears its seed state right after, so a given seed is consumed exactly once.
+  // Intentional setState-in-effect, mirroring the justified Tooltip.tsx
+  // precedent: this synchronises local input state to an external, changing prop
+  // identity (the hand-off seed) and must fire only when a genuinely new seed
+  // object arrives. A render-phase write would re-fire on every render and
+  // clobber the player's manual edits; a key-based remount would reset the
+  // panel's other toggles because the panel stays mounted across mode switches.
+  useEffect(() => {
+    if (seed) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIncomingDamage(seed.damage);
+      setSl(seed.sl);
+      setSelectedLocation(seed.location);
+    }
+  }, [seed]);
 
   // Net-wounds breakdown tooltip anchor (calculated-total-tooltips steering rule)
   const [netWoundsTooltipAnchor, setNetWoundsTooltipAnchor] = useState<HTMLElement | null>(null);

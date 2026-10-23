@@ -625,6 +625,130 @@ describe('AttackFlow — attack result logging (Req 2.3)', () => {
   });
 });
 
+// ─── Crit-pipeline: Step-4 Consequences strip ───────────────────────────────
+
+describe('AttackFlow — Consequences strip (crit-pipeline)', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('shows "Roll Critical Wound" on a critical hit and calls onRollCritical with the struck location', () => {
+    const onRollCritical = vi.fn();
+    mockRoll(11); // roll 11 vs 50 → pass + doubles → critical; reversed 11 → Left Arm
+    renderAttackFlow({ onRollCritical });
+    fireEvent.click(screen.getByLabelText('Select Hand Weapon'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+
+    const critBtn = screen.getByLabelText('Roll Critical Wound');
+    expect(critBtn).toBeInTheDocument();
+    fireEvent.click(critBtn);
+    expect(onRollCritical).toHaveBeenCalledTimes(1);
+    expect(onRollCritical).toHaveBeenCalledWith('Left Arm');
+    // The crit flow is NOT mounted inline (Location/d100 Roll inputs absent).
+    expect(screen.queryByText('d100 Roll')).not.toBeInTheDocument();
+  });
+
+  it('does not show "Roll Critical Wound" on a non-critical hit', () => {
+    mockRoll(25); // non-double hit
+    renderAttackFlow({ onRollCritical: vi.fn() });
+    fireEvent.click(screen.getByLabelText('Select Hand Weapon'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+    expect(screen.queryByLabelText('Roll Critical Wound')).not.toBeInTheDocument();
+  });
+
+  it('shows a Pummel Stunned chip on a Head hit and applies it via onApplySuggestedCondition', () => {
+    const onApplySuggestedCondition = vi.fn();
+    // roll 10 → reversed 01 → Head; 10 is not a double so not critical
+    mockRoll(10);
+    renderAttackFlow({
+      weapons: [meleeWeapon({ name: 'Mace', qualities: 'Pummel, Unbalanced' })],
+      onApplySuggestedCondition,
+    });
+    fireEvent.click(screen.getByLabelText('Select Mace'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+
+    const chip = screen.getByLabelText(/Add 1 Stunned condition.*successful test/);
+    fireEvent.click(chip);
+    expect(onApplySuggestedCondition).toHaveBeenCalledWith('Stunned', 1);
+  });
+
+  it('shows no Stunned chip for a plain weapon', () => {
+    mockRoll(10); // Head
+    renderAttackFlow({
+      weapons: [meleeWeapon({ name: 'Sword', qualities: '—' })],
+      onApplySuggestedCondition: vi.fn(),
+    });
+    fireEvent.click(screen.getByLabelText('Select Sword'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+    expect(screen.queryByLabelText(/Add .* Stunned/)).not.toBeInTheDocument();
+  });
+
+  it('shows a Hack advisory for a Hack weapon', () => {
+    mockRoll(25);
+    renderAttackFlow({
+      weapons: [meleeWeapon({ name: 'Dwarf Axe', qualities: 'Hack' })],
+    });
+    fireEvent.click(screen.getByLabelText('Select Dwarf Axe'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+    expect(screen.getByTestId('attack-advisory')).toHaveTextContent(/Damaged by 1/);
+  });
+
+  it('"Send to Take Damage" calls onSendToTakeDamage with the Damage/SL/Location split', () => {
+    const onSendToTakeDamage = vi.fn();
+    mockRoll(25); // SL = 5 - 2 = 3; weapon damage SB(4)+4 = 8; reversed 52 → Body
+    renderAttackFlow({ onSendToTakeDamage });
+    fireEvent.click(screen.getByLabelText('Select Hand Weapon'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+
+    fireEvent.click(screen.getByLabelText('Send to Take Damage'));
+    expect(onSendToTakeDamage).toHaveBeenCalledWith({ damage: 8, sl: 3, location: 'Body' });
+  });
+
+  it('renders the exact weapon-damage breakdown tooltip body', () => {
+    mockRoll(25); // weapon damage SB(4)+4 = 8
+    renderAttackFlow({ onSendToTakeDamage: vi.fn() });
+    fireEvent.click(screen.getByLabelText('Select Hand Weapon'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+
+    fireEvent.click(screen.getByLabelText(/Weapon damage 8\. Show breakdown\./));
+    expect(screen.getByTestId('send-damage-breakdown')).toHaveTextContent('SB(4) +4 = 8');
+  });
+
+  it('renders the null-damage tooltip body for a weapon with no damage value', () => {
+    mockRoll(25);
+    renderAttackFlow({
+      weapons: [meleeWeapon({ name: 'Net', damage: '—' })],
+      onSendToTakeDamage: vi.fn(),
+    });
+    fireEvent.click(screen.getByLabelText('Select Net'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+
+    fireEvent.click(screen.getByLabelText(/Weapon damage 0\. Show breakdown\./));
+    expect(screen.getByTestId('send-damage-breakdown')).toHaveTextContent('No weapon damage value = 0');
+  });
+
+  it('still fires the combat.attack event exactly once at the Step 3→4 transition', () => {
+    const { getCharacter } = renderAttackFlow({
+      onRollCritical: vi.fn(),
+      onSendToTakeDamage: vi.fn(),
+      onApplySuggestedCondition: vi.fn(),
+    });
+    mockRoll(25);
+    fireEvent.click(screen.getByLabelText('Select Hand Weapon'));
+    fireEvent.click(screen.getByLabelText('Roll to hit'));
+    fireEvent.click(screen.getByText(/Calculate Damage/));
+
+    const attackEvents = (getCharacter().eventLog ?? []).filter((e) => e.type === 'combat.attack');
+    expect(attackEvents).toHaveLength(1);
+  });
+});
+
 describe('AttackFlow — endCombat clears the Combat_Target (Req 1.5)', () => {
   afterEach(() => vi.restoreAllMocks());
 

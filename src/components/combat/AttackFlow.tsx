@@ -7,7 +7,12 @@ import { getBonus } from '../../logic/calculators';
 import { computeOffHandTarget, calculateDamage, calculateDamagingSL } from '../../logic/combat';
 import { getCombatTarget, setCombatTargetTB, setCombatTargetAP } from '../../logic/combat-target';
 import { appendEvent } from '../../logic/event-log';
-import { getHitLocation } from './hitLocationTable';
+import { getHitLocation, type HitLocation } from './hitLocationTable';
+import {
+  deriveWeaponQualitySuggestions,
+  buildDefendHandoff,
+  type DefendHandoff,
+} from '../../logic/attack-consequences';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { EmptyState } from '../shared/EmptyState';
@@ -33,6 +38,15 @@ export interface AttackFlowProps {
    * Req 12.1). Optional so existing tests/usages that don't pass it still work.
    */
   onAddWeapon?: () => void;
+  /**
+   * Crit-pipeline hand-off callbacks (crit-pipeline-design §5.5). All optional so
+   * existing tests/usages that don't pass them keep working (the `onAddWeapon`
+   * precedent). AttackFlow only computes and suggests; CombatPage owns the
+   * cross-panel navigation and mutation.
+   */
+  onRollCritical?: (location: HitLocation) => void;
+  onSendToTakeDamage?: (handoff: DefendHandoff) => void;
+  onApplySuggestedCondition?: (name: string, count: number) => void;
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -45,7 +59,7 @@ const ALL_DIFFICULTIES: DifficultyLevel[] = [
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function AttackFlow({ weapons, character, armourPoints, onRoll, updateCharacter, onAddWeapon }: AttackFlowProps) {
+export function AttackFlow({ weapons, character, armourPoints, onRoll, updateCharacter, onAddWeapon, onRollCritical, onSendToTakeDamage, onApplySuggestedCondition }: AttackFlowProps) {
   const [selectedWeaponIndex, setSelectedWeaponIndex] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState<AttackFlowStep>(1);
   const [lastRollResult, setLastRollResult] = useState<RollResult | null>(null);
@@ -64,6 +78,11 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll, updateCha
   const [targetEngagedInMelee, setTargetEngagedInMelee] = useState(false);
   // Anchor for the net-wounds breakdown tooltip (calculated-total-tooltips steering rule).
   const [netWoundsTooltipAnchor, setNetWoundsTooltipAnchor] = useState<HTMLElement | null>(null);
+  // Anchor for the "Send to Take Damage" weapon-damage breakdown tooltip
+  // (calculated-total-tooltips steering rule; crit-pipeline-design §5.6a).
+  const [sendDamageTooltipAnchor, setSendDamageTooltipAnchor] = useState<HTMLElement | null>(null);
+  // Crit-pipeline: purely cosmetic set marking weapon-quality chips already tapped.
+  const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(new Set());
 
   const SB = getBonus(character.chars.S.i + character.chars.S.a + character.chars.S.b);
 
@@ -157,6 +176,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll, updateCha
     setIsSecondAttack(false);
     setFirstAttackCompleted(false);
     setTargetEngagedInMelee(false);
+    setAppliedSuggestions(new Set());
   }
 
   function handleSecondAttack() {
@@ -166,6 +186,7 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll, updateCha
     setIsSecondAttack(true);
     setFirstAttackCompleted(true);
     setOffHand(true);
+    setAppliedSuggestions(new Set());
   }
 
   function toggleStepCollapse(step: number) {
@@ -555,6 +576,16 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll, updateCha
           </Tooltip>
         )}
 
+        {/*
+          ── Consequences strip (crit-pipeline-design §5.4) ──
+          Only rendered when both selectedWeapon and hitLocationResult are
+          non-null (the same guards Step 4 already uses elsewhere). Every
+          consequence is an explicit, player-confirmed one-tap action; nothing is
+          auto-applied. Cross-panel actions (crit roll, net-wounds hand-off) are
+          raised as callbacks to CombatPage, which owns the Status/Defend panels.
+        */}
+        {selectedWeapon && hitLocationResult && renderConsequences(selectedWeapon, hitLocationResult.location)}
+
         <div className={styles.newAttackMargin}>
           {!isSecondAttack && !firstAttackCompleted && (
             <button type="button" className={styles.secondAttackBtn} onClick={handleSecondAttack}>
@@ -569,6 +600,111 @@ export function AttackFlow({ weapons, character, armourPoints, onRoll, updateCha
     );
 
     return <div className={`${styles.stepContainer} ${styles.damageTint}`}>{content}</div>;
+  }
+
+  function renderConsequences(weapon: WeaponItem, location: HitLocation) {
+    const { conditions, advisories } = deriveWeaponQualitySuggestions(weapon, location);
+    const isCritical = lastRollResult?.isCritical ?? false;
+    // Weapon-damage component handed to the Defend panel (NOT including SL, to
+    // avoid double-counting; crit-pipeline-design §5.3). ?? 0 for null-damage weapons.
+    const sendDamage = weaponDamage.num ?? 0;
+    // Tooltip body (crit-pipeline-design §5.6a): the space-joined breakdown parts
+    // and resulting total, or an explicit statement for the intrinsic-0 case.
+    const sendDamageTooltipBody =
+      weaponDamage.num === null
+        ? 'No weapon damage value = 0'
+        : `${weaponDamage.breakdown} = ${weaponDamage.num}`;
+
+    return (
+      <div className={styles.consequencesRegion} data-testid="attack-consequences">
+        <span className={styles.consequencesLabel}>Consequences</span>
+
+        {/* Critical hit → Critical Wound bridge. Core p.159: a Critical Hit
+            causes an immediate Critical Wound. Routed to the Status-mode
+            CriticalWoundsPanel via CombatPage; no inline RollCriticalFlow. */}
+        {isCritical && onRollCritical && (
+          <button
+            type="button"
+            className={styles.rollCriticalBtn}
+            onClick={() => onRollCritical(location)}
+            aria-label="Roll Critical Wound"
+          >
+            🎲 Roll Critical Wound
+          </button>
+        )}
+
+        {/* Weapon-quality suggestion chips (explicit, one-tap). */}
+        {conditions.length > 0 && (
+          <div className={styles.consequenceChips}>
+            {conditions.map((s, idx) => {
+              const key = `${s.name}-${idx}`;
+              const applied = appliedSuggestions.has(key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className={applied ? styles.suggestionChipApplied : styles.suggestionChip}
+                  onClick={() => {
+                    onApplySuggestedCondition?.(s.name, s.count);
+                    setAppliedSuggestions((prev) => new Set(prev).add(key));
+                  }}
+                  aria-label={`Add ${s.count} ${s.name} condition${s.count !== 1 ? 's' : ''}${s.testGated ? ', on a successful test' : ''}`}
+                >
+                  <span>{s.name} ×{s.count}{s.testGated ? ' (on a successful test)' : ''}</span>
+                  {s.note && <span className={styles.suggestionChipNote}>{s.note}</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Advisories (non-condition notes, e.g. Hack armour damage). */}
+        {advisories.map((a, idx) => (
+          <div key={idx} className={styles.advisoryNote} data-testid="attack-advisory">
+            ⚠ {a.text}
+          </div>
+        ))}
+
+        {/* Net-wounds hand-off to the Defend side (crit-pipeline-design §5.3). The
+            weapon-damage value shown carries a breakdown tooltip per the
+            calculated-total-tooltips steering rule. The tooltip trigger is kept a
+            sibling of the button (not nested) to avoid interactive-in-interactive
+            markup. */}
+        {onSendToTakeDamage && (
+          <div className={styles.consequenceChips}>
+            <button
+              type="button"
+              className={styles.sendToDamageBtn}
+              onClick={() => onSendToTakeDamage(buildDefendHandoff(sendDamage, effectiveSL, location))}
+              aria-label="Send to Take Damage"
+            >
+              ➡ Send to Take Damage
+            </button>
+            <TooltipTriggerCell
+              tooltipId="tooltip-attack-send-damage"
+              displayValue={`Dmg ${sendDamage}`}
+              isTooltipOpen={sendDamageTooltipAnchor !== null}
+              onOpen={(anchorEl) => setSendDamageTooltipAnchor(anchorEl)}
+              onClose={() => setSendDamageTooltipAnchor(null)}
+              className={styles.sendDamageValue}
+              ariaLabel={`Weapon damage ${sendDamage}. Show breakdown.`}
+            />
+          </div>
+        )}
+        {sendDamageTooltipAnchor && (
+          <Tooltip
+            anchorEl={sendDamageTooltipAnchor}
+            title="Weapon Damage"
+            onClose={() => setSendDamageTooltipAnchor(null)}
+            id="tooltip-attack-send-damage"
+          >
+            <div className={styles.breakdownText} data-testid="send-damage-breakdown">
+              {sendDamageTooltipBody}
+            </div>
+          </Tooltip>
+        )}
+      </div>
+    );
   }
 
   function renderCollapsibleStep(step: number, title: string, content: React.ReactNode) {
