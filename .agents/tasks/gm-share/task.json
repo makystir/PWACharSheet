@@ -1,0 +1,7 @@
+{
+  "task_id": "task-gm-share",
+  "task_description": "Add a GM read-only share/export feature to the WFRP4e PWA: a read-only character viewer on a dedicated #view/ hash route fed by two mechanisms that both reuse the existing single-character serialization — (a) an offline snapshot (downloadable file + clipboard) plus a plain-text Copy Combat Stat Block, and (b) a URL-hash share link with native-gzip client-side compression and a portrait-excluded policy. The viewer reuses the existing calculators (via a new shared deriveSheetTotals helper) and the existing *BreakdownContent + TooltipTriggerCell tooltip pattern so every total and breakdown matches the live sheet; decoded input is treated as untrusted (validated/normalized, oversized/malformed/newer-version rejected gracefully). Settings gains the share controls with a privacy note contrasting the link (embeds data) vs the local-only file/clipboard. Import-into-my-characters is a separate explicit action. Additive; existing tests stay green.",
+  "status": "completed",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}
