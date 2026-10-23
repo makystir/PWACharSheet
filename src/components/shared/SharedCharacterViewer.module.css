@@ -1,0 +1,191 @@
+/* SharedCharacterViewer — read-only GM view of a shared character */
+
+.viewer {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.banner {
+  background: var(--surface-elevated, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.backButton {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.backButton:hover {
+  background: var(--surface-elevated, var(--surface));
+}
+
+.statusBox {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--text-secondary);
+}
+
+.errorBox {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.errorTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.errorMessage {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.openPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.openPanel textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  font-family: monospace;
+  font-size: 0.85em;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.openActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.primaryButton {
+  background: var(--accent, #7a5);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.cardTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.identityHeader {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.portrait {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.identityMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.characterName {
+  font-size: 1.4em;
+  font-weight: 700;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.table th,
+.table td {
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+  text-align: left;
+}
+
+.table th {
+  background: var(--surface-elevated, var(--surface));
+}
+
+.statGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 64px;
+}
+
+.statLabel {
+  font-size: 0.8em;
+  color: var(--text-secondary);
+}
+
+.triggerCell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2ch;
+  font-weight: 600;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: help;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 32px;
+}

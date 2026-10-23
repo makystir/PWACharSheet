@@ -1,0 +1,22 @@
+/* MoveBreakdownContent styles — tooltip body for movement (Move / Walk / Run) */
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.label {
+  color: var(--text-secondary);
+}
+
+.value {
+  font-weight: 500;
+}
+
+.note {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.9em;
+}

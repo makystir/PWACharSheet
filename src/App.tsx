@@ -45,6 +45,8 @@ import { saveCharacter } from './storage/character-manager';
 import { getPortraitStore } from './storage/portrait-store';
 import { runPortraitMigration } from './storage/portrait-migration';
 import { WelcomeScreen } from './components/shared/WelcomeScreen';
+import { SharedCharacterViewer } from './components/shared/SharedCharacterViewer';
+import { useViewRoute } from './hooks/useViewRoute';
 import { generateRandomCharacter } from './logic/random-character-generator';
 import type { PageSection } from './components/layout/Navigation';
 import errorStyles from './ErrorBoundary.module.css';
@@ -122,6 +124,16 @@ function AppContent() {
   const { page, subTab, navigate } = useHashRoute();
   const { message: storageErrorMessage } = useStorageErrorToast();
   const [showWhatsNew, setShowWhatsNew] = useState(() => shouldShowWhatsNew(APP_VERSION));
+
+  // Read-only GM view route takes precedence over the welcome/shell branch:
+  // when the hash is `#view/…`, render ONLY the viewer (no Navigation,
+  // WelcomeScreen, AppWithCharacter, PrintLayout, or quick actions). Must be
+  // read before the "no characters -> welcome" short-circuit so a view link
+  // works even with an empty character list (AC4).
+  const viewPayload = useViewRoute();
+  if (viewPayload !== null) {
+    return <SharedCharacterViewer encoded={viewPayload} />;
+  }
 
   // If no characters exist, show welcome screen
   if (manager.characters.length === 0 || !manager.activeCharacter) {
@@ -573,19 +585,53 @@ function AppWithCharacter({
   );
 }
 
+/**
+ * Tracks whether the app has ever started in view mode without running startup
+ * migrations. When the user later navigates "Back to my characters", this flag
+ * forces the init effect to run the normal migration branch exactly once before
+ * the shell renders, so the shell never mounts on an un-migrated store.
+ */
+let leftViewMode = false;
+
 export default function App() {
+  // View mode is detected from the current hash BEFORE any migration runs so a
+  // read-only `#view/…` visit touches no storage (AC1/AC4): no runMigration,
+  // no IndexedDB open/init, no portrait migration. Subscribing to the view
+  // route (rather than a one-shot read) lets the "Back to my characters"
+  // transition re-render App so the init effect can run the real migration.
+  const isViewMode = useViewRoute() !== null;
   const [migrated, setMigrated] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     async function initApp() {
+      if (isViewMode) {
+        // Record that we started in view mode and skip ALL startup migrations
+        // (runMigration + portrait store init + portrait migration). The shell
+        // is never rendered in view mode, so no un-migrated store is observed.
+        leftViewMode = true;
+        if (!cancelled) setMigrated(true);
+        return;
+      }
+      // Normal startup, OR the "Back to my characters" transition out of view
+      // mode. If we previously started in view mode (leftViewMode), `migrated`
+      // was set true without migrating, so force it back to the loading state
+      // and run the real migration branch once before the shell renders.
+      if (leftViewMode) {
+        leftViewMode = false;
+        setMigrated(false);
+      }
       runMigration();
       const store = getPortraitStore();
       await store.init();
       await runPortraitMigration(store);
-      setMigrated(true);
+      if (!cancelled) setMigrated(true);
     }
     initApp();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [isViewMode]);
 
   if (!migrated) {
     return null;
