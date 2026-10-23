@@ -139,6 +139,14 @@ describe('derivePsychologyReminders', () => {
     expect(reminders.find((r) => r.id === 'psych:z')!.test?.rollName).toBe('Willpower (resist Frenzy)');
     expect(reminders.find((r) => r.id === 'psych:a')!.test?.rollName).toBe('Cool (end Animosity)');
   });
+
+  it('resolves Frenzy as a bare Willpower characteristic test (WP total only, no Cool advances) — Core p.190', () => {
+    const reminders = derivePsychologyReminders(traits, true);
+    const frenzy = reminders.find((r) => r.id === 'psych:z')!;
+    // Must be a characteristic test off WP, NOT a Cool skill test (which would
+    // add Cool advances to the WP total). Core p.190: "With a Willpower Test…".
+    expect(frenzy.test?.def).toEqual({ kind: 'characteristic', char: 'WP' });
+  });
 });
 
 describe('deriveAllReminders', () => {

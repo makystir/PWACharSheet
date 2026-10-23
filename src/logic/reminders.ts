@@ -197,10 +197,13 @@ const PSYCHOLOGY_REMINDER_ROWS: Record<PsychologyType, PsychologyReminderRow> = 
     citation: 'Core p.190 (Psychology): resist Terror with a Cool Test; on a fail gain Broken Conditions equal to the Terror Rating (plus SL below 0). Difficulty is GM-set (p.189); seeded Challenging (+0).',
   },
   // Core p.190: "With a Willpower Test, you can work yourself into a state of
-  // frenzy" — and resist it likewise. Difficulty GM-set; seeded Challenging (+0).
+  // frenzy" — and resist it likewise. This is a bare Willpower characteristic
+  // Test (there is no "Willpower" skill in the Core skill list; WP is a
+  // characteristic), so the one-tap roll resolves off the WP total only — no
+  // Cool skill advances are added. Difficulty GM-set; seeded Challenging (+0).
   Frenzy: {
     test: {
-      def: { kind: 'skill', skillName: 'Cool', fallbackChar: 'WP' },
+      def: { kind: 'characteristic', char: 'WP' },
       difficulty: 'Challenging',
       rollName: 'Willpower (resist Frenzy)',
     },

@@ -136,6 +136,26 @@ describe('CombatDashboard reminders wiring', () => {
     expect(screen.getByLabelText('Roll Cool (overcome Fear)')).toBeInTheDocument();
   });
 
+  it('resolves the Frenzy reminder roll against the bare Willpower total (no Cool advances) — Core p.190', () => {
+    const traits: PsychologyTrait[] = [{ id: 'z', type: 'Frenzy', target: '' }];
+    // Sheet has Cool advances of 10 (see makeChar). A bare WP(45) Test must seed
+    // 45 — NOT 55 (WP + Cool advances), which the pre-fix skill def produced.
+    const character = makeChar({
+      psychologyTraits: traits,
+      houseRules: { ...BLANK_CHARACTER.houseRules, usePsychologyTracker: true },
+    });
+    render(<CombatDashboard {...getProps({ character, conditions: [] })} />);
+
+    fireEvent.click(screen.getByLabelText('Roll Willpower (resist Frenzy)'));
+
+    const dialog = screen.getByRole('dialog', { name: 'Roll Dialog' });
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByText('Willpower (resist Frenzy)')).toBeInTheDocument();
+    // Base target = bare WP total 45 (not 55); seeded difficulty Challenging keeps it 45.
+    expect(screen.getAllByText('45').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText('55')).not.toBeInTheDocument();
+  });
+
   it('with character undefined renders condition reminders with NO Roll button and no psychology, and never opens RollDialog', () => {
     render(
       <CombatDashboard
