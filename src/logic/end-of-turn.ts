@@ -4,6 +4,8 @@
  * removal of Stunned/Surprised, and round advancement.
  */
 
+import { conditionReminderText } from './reminders';
+
 export interface EndOfTurnEffect {
   type: 'damage' | 'remove_condition' | 'reminder';
   condition: string;
@@ -120,7 +122,9 @@ export function processEndOfTurn(params: EndOfTurnParams): EndOfTurnResult {
     effects.push({
       type: 'reminder',
       condition: 'Stunned',
-      description: 'Endurance Test (Challenging +0) required to remove'
+      // Reminder string sourced from reminders.ts (single source of truth).
+      // Core p.169 (cited in reminders.ts).
+      description: conditionReminderText('Stunned')!
     });
   }
 
@@ -141,7 +145,8 @@ export function processEndOfTurn(params: EndOfTurnParams): EndOfTurnResult {
     effects.push({
       type: 'reminder',
       condition: 'Poisoned',
-      description: 'Endurance Test to remove (each SL removes extra)'
+      // Core p.169 (cited in reminders.ts).
+      description: conditionReminderText('Poisoned')!
     });
   }
 
@@ -151,7 +156,8 @@ export function processEndOfTurn(params: EndOfTurnParams): EndOfTurnResult {
     effects.push({
       type: 'reminder',
       condition: 'Broken',
-      description: 'Cool Test to remove'
+      // Core p.169 (cited in reminders.ts).
+      description: conditionReminderText('Broken')!
     });
   }
 
@@ -161,7 +167,8 @@ export function processEndOfTurn(params: EndOfTurnParams): EndOfTurnResult {
     effects.push({
       type: 'reminder',
       condition: 'Blinded',
-      description: '1 level removed every other round'
+      // Core p.169 (cited in reminders.ts).
+      description: conditionReminderText('Blinded')!
     });
   }
 
@@ -171,7 +178,8 @@ export function processEndOfTurn(params: EndOfTurnParams): EndOfTurnResult {
     effects.push({
       type: 'reminder',
       condition: 'Deafened',
-      description: '1 level removed every other round'
+      // Core p.169 (cited in reminders.ts).
+      description: conditionReminderText('Deafened')!
     });
   }
 

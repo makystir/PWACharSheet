@@ -313,6 +313,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
           useGroupAdvantage={character.houseRules?.useGroupAdvantage ?? false}
           character={character}
           updateCharacter={updateCharacter}
+          onRoll={(r) => addRoll?.(r)}
           onUpdateWounds={(d) => {
             const newWounds = Math.max(0, Math.min(totalWounds, character.wCur + d));
             if (d < 0 && inCombat && character.advantage > 0) {

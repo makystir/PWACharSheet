@@ -1,11 +1,26 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { CSSProperties } from 'react';
-import type { Character, CombatState, Condition } from '../../types/character';
+import type { Character, CharacteristicKey, CombatState, Condition } from '../../types/character';
 import type { FortuneSpendReason, ResolveSpendReason } from '../../logic/fortune-resolve';
 import { CONDITIONS } from '../../data/conditions';
 import { CONDITION_COLORS, CONDITION_COLOR_FALLBACK, getConditionIntensity } from '../../data/condition-colors';
 import { resolveConditionTooltip } from '../../logic/tooltip-content';
 import { processEndOfTurn, type EndOfTurnEffect, type EndOfTurnResult } from '../../logic/end-of-turn';
+import {
+  deriveAllReminders,
+  deriveConditionReminders,
+  type CombatReminder,
+  type ReminderTest,
+} from '../../logic/reminders';
+import {
+  computeSkillTarget,
+  computeCharacteristicTarget,
+  type DifficultyLevel,
+  type RollResult,
+} from '../../logic/dice-roller';
+import { CombatReminders } from './CombatReminders';
+import { RollDialog } from '../shared/RollDialog';
+import { RollResultDisplay } from '../shared/RollResultDisplay';
 import { Tooltip } from '../shared/Tooltip';
 import { EmptyState } from '../shared/EmptyState';
 import { EndOfTurnReportModal } from './EndOfTurnReportModal';
@@ -88,6 +103,39 @@ export interface CombatDashboardProps {
   onSpendResolve: (reason: ResolveSpendReason) => void;
   onOpenConditionPicker: () => void;
   onEndTurn?: (result: EndOfTurnResult) => void;
+  /**
+   * Optional sink for a one-tap reminder roll's result, so the host (CombatPage)
+   * can forward it to roll history (addRoll). If absent the roll still displays;
+   * it simply is not persisted.
+   */
+  onRoll?: (result: RollResult) => void;
+}
+
+// ─── Reminder roll target resolution (reminders-design §5) ───────────────────
+
+/**
+ * Resolve the base target for a reminder's one-tap roll from the character sheet,
+ * reusing the SAME math as QuickRollBar.buildQuickSkills / CombatPage.openWeaponRoll
+ * (no new formula). For a skill test, prefer the named skill's advances when it is
+ * on the sheet, else fall back to the bare characteristic (an untrained Skill still
+ * tests off its characteristic). Resolving the characteristic from the reminder
+ * table's fallbackChar (a known CharacteristicKey) avoids reading the free-form
+ * Skill.c field.
+ */
+function resolveReminderBaseTarget(character: Character, def: ReminderTest): number {
+  if (def.kind === 'characteristic') {
+    const c = character.chars[def.char];
+    return computeCharacteristicTarget(c.i, c.a, c.b);
+  }
+  const skill = [...character.bSkills, ...character.aSkills].find((s) => s.n === def.skillName);
+  const fallback: CharacteristicKey = def.fallbackChar;
+  if (skill) {
+    const charKey = skill.c as CharacteristicKey;
+    const charVal = character.chars[charKey] ?? character.chars[fallback];
+    return computeSkillTarget(charVal.i, charVal.a, charVal.b, skill.a);
+  }
+  const c = character.chars[fallback];
+  return computeCharacteristicTarget(c.i, c.a, c.b);
 }
 
 // ─── Fortune / Resolve spend reasons ─────────────────────────────────────────
@@ -127,7 +175,7 @@ function CombatDashboardFull(props: CombatDashboardProps) {
     onUpdateWounds, onUpdateAdvantage, onUpdateRound,
     onToggleEngaged, onRemoveCondition,
     onSpendFortune, onSpendResolve, onOpenConditionPicker,
-    onEndTurn,
+    onEndTurn, onRoll,
   } = props;
 
   const [conditionTooltip, setConditionTooltip] = useState<{ name: string; anchorEl: HTMLElement } | null>(null);
@@ -137,6 +185,48 @@ function CombatDashboardFull(props: CombatDashboardProps) {
   const [mobileTooltipCondition, setMobileTooltipCondition] = useState<{ name: string; effectText: string } | null>(null);
   const [endOfTurnReport, setEndOfTurnReport] = useState<{ effects: EndOfTurnEffect[]; result: EndOfTurnResult } | null>(null);
   const [endTurnError, setEndTurnError] = useState<string | null>(null);
+
+  // ── Reminder one-tap roll flow (reminders-design §4) ──
+  const [reminderRoll, setReminderRoll] = useState<{
+    name: string;
+    baseTarget: number;
+    difficulty: DifficultyLevel;
+  } | null>(null);
+  const [reminderRollResult, setReminderRollResult] = useState<RollResult | null>(null);
+
+  // Derive the reminders list. When `character` is undefined we can only derive
+  // condition reminders (psychology needs the sheet), and we strip every `test`
+  // so no Roll button renders — a Roll button can never appear without a sheet
+  // to resolve a target against (design §4 step 0).
+  const reminders = useMemo<CombatReminder[]>(() => {
+    if (!character) {
+      return deriveConditionReminders(conditions).map((r) => ({ ...r, test: undefined }));
+    }
+    return deriveAllReminders({
+      conditions,
+      psychologyTraits: character.psychologyTraits ?? [],
+      psychologyEnabled: character.houseRules?.usePsychologyTracker ?? false,
+    });
+  }, [character, conditions]);
+
+  // Open the shared RollDialog seeded with this reminder's test. Passive: it
+  // never mutates character/condition/advantage state. Early-returns without a
+  // sheet (design §4 step 0, §6 passivity invariant).
+  const handleRollReminder = useCallback((reminder: CombatReminder) => {
+    if (!character || !reminder.test) return;
+    const baseTarget = resolveReminderBaseTarget(character, reminder.test.def);
+    setReminderRoll({
+      name: reminder.test.rollName,
+      baseTarget,
+      difficulty: reminder.test.difficulty,
+    });
+  }, [character]);
+
+  const handleReminderRollResult = useCallback((result: RollResult) => {
+    setReminderRoll(null);
+    setReminderRollResult(result);
+    onRoll?.(result);
+  }, [onRoll]);
 
   // ── State change transition tracking (Req 14) ──
   const prevWoundsRef = useRef(wCur);
@@ -713,6 +803,28 @@ function CombatDashboardFull(props: CombatDashboardProps) {
           </div>
         </div>
       </div>{/* End dashboardGroups */}
+
+      {/* ── Proactive Combat & Psychology Reminders (reminders-design §4) ── */}
+      {inCombat && (
+        <CombatReminders reminders={reminders} onRollReminder={handleRollReminder} />
+      )}
+
+      {/* ── Reminder one-tap roll dialog + result (passive; never auto-applies) ── */}
+      {reminderRoll && (
+        <RollDialog
+          skillOrCharName={reminderRoll.name}
+          baseTarget={reminderRoll.baseTarget}
+          defaultDifficulty={reminderRoll.difficulty}
+          onRoll={handleReminderRollResult}
+          onClose={() => setReminderRoll(null)}
+        />
+      )}
+      {reminderRollResult && (
+        <RollResultDisplay
+          result={reminderRollResult}
+          onClose={() => setReminderRollResult(null)}
+        />
+      )}
 
       {/* ── End Turn Button (Req 6.1) ── */}
       {inCombat && (
