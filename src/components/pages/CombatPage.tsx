@@ -521,22 +521,25 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
         </CollapsibleSection>
       )}
 
-      {/* ── Active Combat: Ammo, Critical Wounds, Roll History (Status mode) ── */}
+      {/* ── Ammo Tracker (always visible so ammo can be set up before combat) ── */}
+      {/* Shown outside combat, and in Status mode during combat. */}
+      {(!inCombat || combatMode === 'status') && (
+        <CollapsibleSection title="Ammo Tracker" storageKey={`combat-ammo-${characterId}`} defaultExpanded={!isMobile}>
+          <AmmoTracker ammo={character.ammo}
+            onUpdate={(i, field, value) => updateCharacter((c) => {
+              const ammo = [...c.ammo];
+              ammo[i] = { ...ammo[i], [field]: value };
+              return { ...c, ammo };
+            })}
+            onAdd={() => updateCharacter((c) => ({ ...c, ammo: [...c.ammo, { name: 'New Ammo', quantity: 12, max: 12, enc: '0', qualities: '' }] }))}
+            onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))}
+            defaultCollapsed={isMobile} />
+        </CollapsibleSection>
+      )}
+
+      {/* ── Active Combat: Critical Wounds, Roll History (Status mode) ── */}
       {inCombat && combatMode === 'status' && (
         <>
-          {character.ammo.length > 0 && (
-            <CollapsibleSection title="Ammo Tracker" storageKey={`combat-ammo-${characterId}`} defaultExpanded={!isMobile}>
-              <AmmoTracker ammo={character.ammo}
-                onUpdate={(i, field, value) => updateCharacter((c) => {
-                  const ammo = [...c.ammo];
-                  ammo[i] = { ...ammo[i], [field]: value };
-                  return { ...c, ammo };
-                })}
-                onAdd={() => updateCharacter((c) => ({ ...c, ammo: [...c.ammo, { name: 'New Ammo', quantity: 12, max: 12, enc: '0', qualities: '' }] }))}
-                onRemove={(i) => updateCharacter((c) => ({ ...c, ammo: c.ammo.filter((_, j) => j !== i) }))}
-                defaultCollapsed={isMobile} />
-            </CollapsibleSection>
-          )}
           <CollapsibleSection title="Critical Wounds" storageKey={`combat-critical-${characterId}`} defaultExpanded={!isMobile}>
             <CriticalWoundsPanel criticalWounds={character.criticalWounds}
               onAdd={() => updateCharacter((c) => ({ ...c, criticalWounds: recordCriticalWound(c.criticalWounds, { location: 'Body', description: 'New wound', effects: '', duration: '', severity: 1, healed: false }) }))}
