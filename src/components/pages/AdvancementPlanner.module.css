@@ -9,6 +9,14 @@
   gap: 6px;
 }
 
+/* Let the SectionHeader fill the row so its right-aligned collapse chevron
+   reaches the far right, with the help popover sitting after it. Keeps the
+   chevron placement consistent with sections that have no help control. */
+.headerRow > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
 .neutral {
   padding: 10px 12px;
   background: rgba(201, 168, 76, 0.1);

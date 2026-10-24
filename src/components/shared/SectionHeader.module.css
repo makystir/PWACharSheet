@@ -28,6 +28,7 @@
   align-items: center;
   gap: 8px;
   flex: 1;
+  min-width: 0;
   background: none;
   border: none;
   padding: 0;
@@ -40,6 +41,11 @@
   font-size: 12px;
   transition: transform 0.15s ease;
   transform: rotate(-90deg);
+  /* Always sit at the far-right edge of the clickable header area so the
+     collapse affordance is positioned consistently across sections,
+     regardless of the title length or whether an action/help control
+     follows (fixes inconsistent chevron placement). */
+  margin-left: auto;
 }
 
 .chevronExpanded {

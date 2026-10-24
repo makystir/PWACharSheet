@@ -23,6 +23,9 @@ export function SectionHeader({ icon: Icon, title, action, collapsible, collapse
           aria-expanded={!collapsed}
         >
           <h3 className={styles.title}>{title}</h3>
+          {/* Chevron pushed to the far right of the clickable header area
+              (margin-left:auto) so collapse affordances align consistently
+              whether or not the section also has an action/help control. */}
           <span className={collapsed ? styles.chevron : styles.chevronExpanded} aria-hidden="true">▼</span>
         </button>
       ) : (

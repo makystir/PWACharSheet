@@ -12,6 +12,14 @@
   gap: 4px;
 }
 
+/* Let the SectionHeader fill the row so its right-aligned collapse chevron
+   reaches the far right, with the help popover sitting after it (consistent
+   chevron placement across all collapsible sections). */
+.sectionWithHelp > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Grid and table patterns */
 .gridAutoFill {
   composes: gridAutoFill from '../shared/styles/shared.module.css';
