@@ -44,6 +44,22 @@ export interface AdvancementChecklistProps {
   completionThreshold: number;
   /** True when the character is at the maximum level of the current career. */
   isMaxLevel: boolean;
+  /**
+   * Optional localStorage key to persist the collapsed state. When provided,
+   * the section header shows a collapse toggle (chevron) and the body can be
+   * hidden to reduce page clutter. Omitting it keeps the section always open.
+   */
+  storageKey?: string;
+}
+
+/** Read persisted collapsed state (true = collapsed). Graceful on error. */
+function readCollapsed(storageKey: string | undefined): boolean {
+  if (!storageKey) return false;
+  try {
+    return localStorage.getItem(storageKey) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 type OpenTooltip =
@@ -62,8 +78,20 @@ export function AdvancementChecklist({
   talentsMet,
   completionThreshold,
   isMaxLevel,
+  storageKey,
 }: AdvancementChecklistProps) {
   const [openTooltip, setOpenTooltip] = useState<OpenTooltip>(null);
+  const [collapsed, setCollapsed] = useState<boolean>(() => readCollapsed(storageKey));
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      if (storageKey) {
+        try { localStorage.setItem(storageKey, String(next)); } catch { /* ignore */ }
+      }
+      return next;
+    });
+  };
 
   const charsMetCount = charsProgress.filter(c => c.met).length;
   const outstandingChars = charsProgress.filter(c => !c.met);
@@ -77,9 +105,15 @@ export function AdvancementChecklist({
 
   return (
     <Card>
-      <SectionHeader icon={ListChecks} title="What's Left This Level" />
+      <SectionHeader
+        icon={ListChecks}
+        title="What's Left This Level"
+        collapsible={!!storageKey}
+        collapsed={collapsed}
+        onToggleCollapse={toggleCollapsed}
+      />
 
-      {isMaxLevel ? (
+      {!collapsed && (isMaxLevel ? (
         <div className={styles.maxLevel} role="status">
           {career ? `${career} — ${careerLevel} is at its maximum level.` : 'This career is at its maximum level.'}
         </div>
@@ -145,7 +179,7 @@ export function AdvancementChecklist({
             )}
           </li>
         </ul>
-      )}
+      ))}
 
       {openTooltip?.kind === 'chars' && (
         <Tooltip

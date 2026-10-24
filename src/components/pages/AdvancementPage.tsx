@@ -77,6 +77,30 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const [spellLearningType, setSpellLearningType] = useState<'petty' | 'arcane' | 'miracle' | 'chaos'>('petty');
   const [skillSearchText, setSkillSearchText] = useState('');
 
+  // Collapse state for the large advance sections (persisted). Lets players
+  // reduce how busy the page is by hiding the characteristics grid / skills
+  // table when they're not actively spending XP there.
+  const [collapseChars, setCollapseChars] = useState(() => {
+    try { return localStorage.getItem('wfrp-collapse-advance-chars') === 'true'; } catch { return false; }
+  });
+  const [collapseSkills, setCollapseSkills] = useState(() => {
+    try { return localStorage.getItem('wfrp-collapse-advance-skills') === 'true'; } catch { return false; }
+  });
+  const toggleCollapseChars = () => {
+    setCollapseChars((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('wfrp-collapse-advance-chars', String(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  const toggleCollapseSkills = () => {
+    setCollapseSkills((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('wfrp-collapse-advance-skills', String(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
   // XP award workflow + over-spend feedback (shake/toast).
   const {
     xpAwardAmount,
@@ -449,6 +473,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           talentsMet={talentsMet}
           completionThreshold={completionThreshold}
           isMaxLevel={isMaxLevel}
+          storageKey="wfrp-collapse-advancement-checklist"
         />
       )}
 
@@ -459,6 +484,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           plan={plan}
           career={character.career}
           careerLevel={character.careerLevel}
+          storageKey="wfrp-collapse-advancement-planner"
         />
       )}
 
@@ -651,9 +677,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
       {/* Characteristics Advancement */}
       <Card>
         <div className={styles.sectionWithHelp}>
-          <SectionHeader icon={Swords} title="Advance Characteristics" />
+          <SectionHeader icon={Swords} title="Advance Characteristics" collapsible collapsed={collapseChars} onToggleCollapse={toggleCollapseChars} />
           <HelpPopover concept="xp-cost-table">{getHelpContent('xp-cost-table')}</HelpPopover>
         </div>
+        {!collapseChars && (<>
         <div className={styles.charHelpText}>
           <span className={styles.charHelpInCareer}>In-Career</span> costs follow the WFRP 4e tiered table. <span className={styles.charHelpOutCareer}>Out-of-Career</span> costs are double.
         </div>
@@ -692,15 +719,17 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             );
           })}
         </div>
+        </>)}
       </Card>
 
       {/* Skills Advancement */}
       <Card>
-        <SectionHeader icon={BookOpen} title="Advance Skills" action={
+        <SectionHeader icon={BookOpen} title="Advance Skills" collapsible collapsed={collapseSkills} onToggleCollapse={toggleCollapseSkills} action={
           <button type="button" onClick={toggleHideOutOfCareer} className={styles.hideZeroBtn}>
             {hideOutOfCareerSkills ? 'Show All' : 'Career Only'}
           </button>
         } />
+        {!collapseSkills && (<>
         <div className={styles.charHelpText}>
           <span className={styles.charHelpInCareer}>In-Career</span> skills use the tiered cost table. <span className={styles.charHelpOutCareer}>Out-of-Career</span> costs are double.
         </div>
@@ -828,6 +857,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
             </table>
           </CollapsibleSection>
         )}
+        </>)}
       </Card>
 
       {/* Talents Advancement */}

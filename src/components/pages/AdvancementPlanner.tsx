@@ -31,6 +31,22 @@ export interface AdvancementPlannerProps {
   plan: NextLevelPlan;
   career: string;
   careerLevel: string;
+  /**
+   * Optional localStorage key to persist the collapsed state. When provided,
+   * the section header shows a collapse toggle so this (tall) panel can be
+   * hidden to reduce page clutter. Omitting it keeps the panel always open.
+   */
+  storageKey?: string;
+}
+
+/** Read persisted collapsed state (true = collapsed). Graceful on error. */
+function readPlannerCollapsed(storageKey: string | undefined): boolean {
+  if (!storageKey) return false;
+  try {
+    return localStorage.getItem(storageKey) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 type OpenTooltip =
@@ -56,9 +72,20 @@ function additiveFormula(steps: PlannerStep[], total: number): string {
   return `${steps.map(s => s.cost).join(' + ')} = ${total}`;
 }
 
-export function AdvancementPlanner({ plan, career, careerLevel }: AdvancementPlannerProps) {
+export function AdvancementPlanner({ plan, career, careerLevel, storageKey }: AdvancementPlannerProps) {
   const [openTooltip, setOpenTooltip] = useState<OpenTooltip>(null);
   const [budgetInput, setBudgetInput] = useState('');
+  const [collapsed, setCollapsed] = useState<boolean>(() => readPlannerCollapsed(storageKey));
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      if (storageKey) {
+        try { localStorage.setItem(storageKey, String(next)); } catch { /* ignore */ }
+      }
+      return next;
+    });
+  };
 
   const close = () => setOpenTooltip(null);
   const open = (kind: NonNullable<OpenTooltip>['kind']) => (anchorEl: HTMLElement) =>
@@ -137,12 +164,19 @@ export function AdvancementPlanner({ plan, career, careerLevel }: AdvancementPla
   return (
     <Card>
       <div className={styles.headerRow}>
-        <SectionHeader icon={Target} title="Plan: Next Career Level" />
+        <SectionHeader
+          icon={Target}
+          title="Plan: Next Career Level"
+          collapsible={!!storageKey}
+          collapsed={collapsed}
+          onToggleCollapse={toggleCollapsed}
+        />
         {/* Reuse the existing career-advancement help concept (design §7.2 —
             prefer reuse over adding help content). */}
         <HelpPopover concept="career-advancement">{getHelpContent('career-advancement')}</HelpPopover>
       </div>
 
+      {!collapsed && (<>
       <ul className={styles.list}>
         {requirementRow('Characteristics', characteristics, 'chars', 'advancement-planner-chars')}
         {requirementRow('Skills', skills, 'skills', 'advancement-planner-skills')}
@@ -272,6 +306,7 @@ export function AdvancementPlanner({ plan, career, careerLevel }: AdvancementPla
           </div>
         </Tooltip>
       )}
+      </>)}
     </Card>
   );
 }
