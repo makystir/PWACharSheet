@@ -95,6 +95,24 @@ export function Navigation({ activePage, onPageChange, characterName, characters
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onPageChange]);
 
+  // Prevent synthesized clicks from carrying over to the new page after
+  // touch-based navigation. On mobile, a tap on a nav button fires:
+  //   touchstart → touchend → (300ms later) synthesized click
+  // If the new page finishes rendering before the synthesized click fires,
+  // that click lands on whatever element is now under the finger (often a
+  // TooltipTriggerCell), opening a tooltip the user never intended to open.
+  //
+  // Calling preventDefault() on touchend stops the browser from synthesizing
+  // the click. We then call onPageChange directly in onTouchEnd so navigation
+  // still works on touch. The onClick handler remains for mouse/keyboard.
+  const handleNavTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLButtonElement>, page: PageSection) => {
+      e.preventDefault(); // suppress synthesized click
+      onPageChange(page);
+    },
+    [onPageChange],
+  );
+
   // Render mobile scrollable tab bar — all items in a single horizontal row
   const renderMobileNav = () => (
     <div className={styles.mobileScrollRow}>
@@ -109,6 +127,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
             type="button"
             className={isActive ? styles.navItemActive : styles.navItem}
             onClick={() => onPageChange(item.id)}
+            onTouchEnd={(e) => handleNavTouchEnd(e, item.id)}
             aria-current={isActive ? 'page' : undefined}
             data-section={item.id}
           >
@@ -131,6 +150,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
         type="button"
         className={styles.navItem}
         onClick={() => open()}
+        onTouchEnd={(e) => { e.preventDefault(); open(); }}
         aria-label="Search game reference"
         data-section="search"
       >
@@ -143,6 +163,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
         type="button"
         className={styles.navItem}
         onClick={() => openShortcuts()}
+        onTouchEnd={(e) => { e.preventDefault(); openShortcuts(); }}
         aria-label="Keyboard shortcuts"
         data-section="shortcuts"
       >
@@ -165,6 +186,7 @@ export function Navigation({ activePage, onPageChange, characterName, characters
             type="button"
             className={`${isActive ? styles.navItemActive : styles.navItem} ${collapsed ? styles.navItemCollapsed : ''}`}
             onClick={() => onPageChange(item.id)}
+            onTouchEnd={(e) => handleNavTouchEnd(e, item.id)}
             aria-current={isActive ? 'page' : undefined}
             aria-label={collapsed ? item.label : undefined}
             title={collapsed ? item.label : undefined}
