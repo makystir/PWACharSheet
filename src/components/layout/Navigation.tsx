@@ -6,6 +6,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useCommandPaletteContext } from '../command-palette/CommandPaletteContext';
 import { NAV_ITEMS } from './navItems';
 import type { PageSection } from './navItems';
+import { AssistantTrigger } from '../assistant/AssistantTrigger';
 import styles from './Navigation.module.css';
 
 // Re-exported so existing consumers (App, useHashRoute, tests) can continue to
@@ -47,7 +48,7 @@ function getInitialCollapsed(): boolean {
   }
 }
 
-export function Navigation({ activePage, onPageChange, characterName, characters, activeId, onSwitchCharacter, onCreateCharacter, onRenameCharacter, onDuplicateCharacter, onDeleteCharacter, onManageCharacters, showAdvancementBadge, showEndeavoursBadge }: NavigationProps) {
+export function Navigation({ activePage, onPageChange, assistantCount, onOpenAssistant, characterName, characters, activeId, onSwitchCharacter, onCreateCharacter, onRenameCharacter, onDuplicateCharacter, onDeleteCharacter, onManageCharacters, showAdvancementBadge, showEndeavoursBadge }: NavigationProps) {
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState('');
@@ -177,6 +178,18 @@ export function Navigation({ activePage, onPageChange, characterName, characters
         <Keyboard size={18} />
         <span>Shortcuts</span>
       </button>
+
+      {/* Character Assistant trigger — mobile scroll row (after Search/Shortcuts).
+          Uses onTouchEnd+preventDefault (the synthesized-click fix) and never
+          navigates. */}
+      {onOpenAssistant && (
+        <AssistantTrigger
+          count={assistantCount ?? 0}
+          open={onOpenAssistant}
+          variant="mobile"
+          buttonClassName={styles.navItem}
+        />
+      )}
     </div>
   );
 
@@ -323,6 +336,17 @@ export function Navigation({ activePage, onPageChange, characterName, characters
         )}
 
         {isMobile ? renderMobileNav() : renderDesktopNav()}
+
+        {/* Character Assistant trigger, desktop sidebar (expanded labelled /
+            collapsed icon-only). Sits beside Search/Shortcuts; never navigates. */}
+        {!isMobile && onOpenAssistant && (
+          <AssistantTrigger
+            count={assistantCount ?? 0}
+            open={onOpenAssistant}
+            variant={collapsed ? 'collapsed' : 'desktop'}
+            buttonClassName={`${styles.navItem} ${collapsed ? styles.navItemCollapsed : ''}`}
+          />
+        )}
 
         {/* Visible keyboard-shortcuts affordance, desktop sidebar (Req 14.2) */}
         {!isMobile && (

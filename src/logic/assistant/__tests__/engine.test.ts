@@ -257,14 +257,16 @@ describe('encumbrance rule (Core p.293)', () => {
 });
 
 describe('corruption rule (Core p.183 + Pure Soul p.182)', () => {
-  it('fires iff corr > getCorruptionThreshold(chars, pureSoul) — strict >, Pure Soul included', () => {
+  it('fires iff corr >= getCorruptionThreshold(chars, pureSoul) — >= matches the danger band, Pure Soul included', () => {
     const chars = charsFrom({ T: 35, WP: 35 }); // TB 3 + WPB 3 = 6
     const base = makeCharacter({ chars });
     const threshold = getCorruptionThreshold(chars, getPureSoulLevel(base.talents));
     expect(threshold).toBe(6);
 
-    // At threshold: not due (strict >).
-    expect(corruptionSuggestions(makeCharacter({ chars, corr: threshold }))).toEqual([]);
+    // Below threshold: not due.
+    expect(corruptionSuggestions(makeCharacter({ chars, corr: threshold - 1 }))).toEqual([]);
+    // At threshold: due (>= matches getCorruptionStatus's danger band).
+    expect(corruptionSuggestions(makeCharacter({ chars, corr: threshold }))).toHaveLength(1);
     // Over threshold: due.
     const due = corruptionSuggestions(makeCharacter({ chars, corr: threshold + 1 }));
     expect(due).toHaveLength(1);
@@ -277,7 +279,7 @@ describe('corruption rule (Core p.183 + Pure Soul p.182)', () => {
       corr: 7,
       talents: [{ n: 'Pure Soul', lvl: 2, desc: '' }],
     });
-    // Threshold 6 + 2 = 8, so corr 7 is NOT over threshold.
+    // Threshold 6 + 2 = 8, so corr 7 is below threshold — not due.
     expect(getCorruptionThreshold(chars, getPureSoulLevel(pureSoulChar.talents))).toBe(8);
     expect(corruptionSuggestions(pureSoulChar)).toEqual([]);
   });

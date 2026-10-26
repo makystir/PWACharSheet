@@ -1,0 +1,30 @@
+/* AssistantTrigger — count badge positioned over the Sparkles icon. The button
+   itself reuses Navigation's nav-item classes (passed via buttonClassName), so
+   only the icon wrapper + count badge are styled here. */
+
+.iconWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Count badge — a small gold pill at the top-right of the icon, showing the
+   number of visible suggestions. Distinct from Navigation's plain badgeDot
+   because it carries a number. */
+.countBadge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background-color: var(--accent-gold);
+  color: var(--bg-secondary);
+  font-size: 10px;
+  line-height: 15px;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none;
+}

@@ -1,0 +1,136 @@
+/* SuggestionItem — one suggestion row inside the assistant panel. */
+
+.item {
+  list-style: none;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* A thin left accent keyed to urgency. */
+.item[data-urgency='critical'] {
+  border-left: 3px solid var(--danger);
+}
+
+.item[data-urgency='recommended'] {
+  border-left: 3px solid var(--accent-gold);
+}
+
+.item[data-urgency='info'] {
+  border-left: 3px solid var(--border);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  color: var(--parchment);
+}
+
+.rationale {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.totalLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.totalValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: help;
+  border-bottom: 1px dotted var(--text-muted);
+}
+
+.breakdownList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.primaryAction {
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--accent-gold);
+  color: var(--bg-secondary);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryAction {
+  min-height: 44px;
+  padding: 0 14px;
+  background: none;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.secondaryAction:hover,
+.primaryAction:hover {
+  filter: brightness(1.08);
+}
+
+.citation {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.dismissControls {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.dismissButton,
+.snoozeButton {
+  min-height: 36px;
+  padding: 0 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dismissButton:hover,
+.snoozeButton:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}

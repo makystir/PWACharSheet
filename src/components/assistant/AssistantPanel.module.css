@@ -1,0 +1,125 @@
+/* AssistantPanel — one component, two presentations switched via data-variant.
+   drawer: right-side slide-over on desktop. sheet: bottom sheet on mobile. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+}
+
+.backdrop[data-variant='drawer'] {
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+.backdrop[data-variant='sheet'] {
+  justify-content: stretch;
+  align-items: flex-end;
+}
+
+.panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel[data-variant='drawer'] {
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+}
+
+.panel[data-variant='sheet'] {
+  width: 100%;
+  max-height: 85vh;
+  max-height: 85dvh;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: var(--accent-gold);
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+}
+
+.closeButton:hover {
+  color: var(--text-primary);
+}
+
+.body {
+  flex: 1 1 0%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emptyState {
+  padding: 24px 8px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupHeading {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
