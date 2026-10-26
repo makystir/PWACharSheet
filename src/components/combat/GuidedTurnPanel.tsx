@@ -145,21 +145,26 @@ export function GuidedTurnPanel({
     [handleClose, dispatchTurn, isFirst, isLast],
   );
 
-  const chooseHandlers: Record<Exclude<TurnOption, null>, () => void> = {
-    attack: onGuideChooseAttack,
-    cast: onGuideChooseCast,
-    defend: onGuideChooseDefend,
-    skill: onGuideChooseSkill,
-  };
-
   const handleChoose = useCallback(
     (option: Exclude<TurnOption, null>) => {
       // Explicit player event: record the choice (advances to 'resolve') AND
       // route to the existing control. The guide never infers actionUsed.
       dispatchTurn({ kind: 'chooseOption', option });
-      chooseHandlers[option]();
+      switch (option) {
+        case 'attack':
+          onGuideChooseAttack();
+          break;
+        case 'cast':
+          onGuideChooseCast();
+          break;
+        case 'defend':
+          onGuideChooseDefend();
+          break;
+        case 'skill':
+          onGuideChooseSkill();
+          break;
+      }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatchTurn, onGuideChooseAttack, onGuideChooseCast, onGuideChooseDefend, onGuideChooseSkill],
   );
 
