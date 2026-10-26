@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, Component, lazy } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, Component, lazy } from 'react';
 import type { ReactNode } from 'react';
 import type { Character, CharacteristicKey, FieldPath, FieldValue } from './types/character';
 import { Navigation } from './components/layout/Navigation';
@@ -31,7 +31,7 @@ import { shouldShowWhatsNew } from './components/shared/whatsNewStorage';
 import { computeSkillTarget, computeCharacteristicTarget } from './logic/dice-roller';
 import { CHAR_FULL_NAMES } from './components/pages/characterConstants';
 import { CHARACTERISTIC_KEYS } from './types/character';
-import type { RollResult } from './logic/dice-roller';
+import type { RollResult, DifficultyLevel } from './logic/dice-roller';
 import { useCharacterManager } from './hooks/useCharacterManager';
 import { useCharacter } from './hooks/useCharacter';
 import type { RollHistoryEntry } from './hooks/useRollHistory';
@@ -54,10 +54,20 @@ import { SWUpdateProvider } from './hooks/useSWUpdate';
 import { UpdateBanner } from './components/shared/UpdateBanner';
 import { InstallHintBanner } from './components/shared/InstallPromptControl';
 import { CommandPaletteProvider, useCommandPaletteContext } from './components/command-palette/CommandPaletteContext';
+import { useAssistantContext } from './components/assistant/assistantContextValue';
 import { useCommandPalette } from './components/command-palette/useCommandPalette';
 import { CommandPalette } from './components/command-palette/CommandPalette';
 import { ShortcutsHelp } from './components/shared/ShortcutsHelp';
 import { hasActiveEndeavours } from './logic/endeavours';
+import { AssistantProvider } from './components/assistant/AssistantContext';
+import { AssistantPanel } from './components/assistant/AssistantPanel';
+import { useAssistantActions } from './components/assistant/useAssistantActions';
+import type { ReminderRollState } from './components/assistant/useAssistantActions';
+import { dismissStore } from './components/assistant/dismissStore';
+import { deterministicSuggestionSource } from './logic/assistant/engine';
+import { visibleSuggestions } from './logic/assistant/visible';
+import type { DismissState } from './logic/assistant/visible';
+import type { Suggestion, SuggestionContext } from './logic/assistant/types';
 
 const APP_VERSION = '2.0.0';
 
@@ -387,6 +397,93 @@ function AppWithCharacter({
   const [rollDialogState, setRollDialogState] = useState<{ name: string; baseTarget: number } | null>(null);
   const [rollResultState, setRollResultState] = useState<RollResult | null>(null);
 
+  // ── Character Assistant wiring (character-assistant design §app-shell) ──
+  // Reactive mirror of the local-only dismiss/snooze record. Seeded from the
+  // store once; every dismiss/snooze updates both the store (persistence) and
+  // this state (so the memoized visible list recomputes).
+  const [dismissState, setDismissState] = useState<DismissState>(() => dismissStore.read());
+  // `now` for the snooze filter is held in state (lazy init) rather than read
+  // via Date.now() during render, which would be an impure render-time call.
+  // It is refreshed in the dismiss-sync effect and on dismiss/snooze so expired
+  // snoozes drop out the next time suggestions recompute.
+  const [assistantNow, setAssistantNow] = useState<number>(() => Date.now());
+
+  // SuggestionContext: single source of truth for "in combat" is
+  // character.combatState.inCombat (OQ-4), read here so the engine stays React-free.
+  const assistantContext = useMemo<SuggestionContext>(
+    () => ({ inCombat: character.combatState.inCombat }),
+    [character.combatState.inCombat],
+  );
+
+  // Raw engine output. The deterministic default source is always synchronous;
+  // the Array.isArray guard narrows the Suggestion[] | Promise<Suggestion[]>
+  // union so a future async source is a non-breaking extension (FR-7.3).
+  const rawSuggestions = useMemo<Suggestion[]>(() => {
+    const r = deterministicSuggestionSource.getSuggestions(character, assistantContext);
+    return Array.isArray(r) ? r : [];
+  }, [character, assistantContext]);
+
+  // Visible list = raw minus dismissed/unexpired-snoozed (pure filter). Filtering
+  // before the count is taken keeps the badge and the panel in agreement (FR-4.3).
+  const suggestions = useMemo(
+    () => visibleSuggestions(rawSuggestions, dismissState, assistantNow),
+    [rawSuggestions, dismissState, assistantNow],
+  );
+
+  // Dismiss GC/prune: dropping dismissed ids the engine no longer emits is a
+  // WRITE to the external localStorage-backed dismissStore, so it runs in an
+  // effect (never in render), keyed on the raw engine output. Syncing that
+  // external state back into React state is the sanctioned external-system
+  // sync the set-state-in-effect disable exists for (mirrors Tooltip.tsx /
+  // CharacterPage.tsx). The clock snapshot is refreshed here too so expired
+  // snoozes drop out on the next recompute.
+  useEffect(() => {
+    const activeIds = new Set(rawSuggestions.map((s) => s.id));
+    const next = dismissStore.pruneDismissed(activeIds);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDismissState((prev) =>
+      prev.dismissed.length === next.dismissed.length &&
+      Object.keys(prev.snoozedUntil).length === Object.keys(next.snoozedUntil).length
+        ? prev
+        : next,
+    );
+    setAssistantNow(Date.now());
+  }, [rawSuggestions]);
+
+  const handleDismissSuggestion = useCallback((id: string) => {
+    setDismissState(dismissStore.dismiss(id));
+  }, []);
+
+  const handleSnoozeSuggestion = useCallback((id: string) => {
+    const now = Date.now();
+    setAssistantNow(now);
+    setDismissState(dismissStore.snooze(id, now));
+  }, []);
+
+  // NEW reminder-roll state carrying difficulty (kept distinct from the
+  // quick-roll { name, baseTarget } state, which stays untouched — NFR-2/NFR-5).
+  const [reminderRollState, setReminderRollState] = useState<ReminderRollState | null>(null);
+  const [reminderRollResult, setReminderRollResult] = useState<RollResult | null>(null);
+
+  const openReminderRoll = useCallback(
+    (state: { name: string; baseTarget: number; difficulty: DifficultyLevel }) => {
+      setReminderRollState(state);
+    },
+    [],
+  );
+
+  const dispatchAction = useAssistantActions({ character, navigate, openReminderRoll });
+  const { open: openAssistant } = useAssistantContext();
+
+  const handleReminderRollResult = useCallback(
+    (result: RollResult) => {
+      setReminderRollState(null);
+      setReminderRollResult(result);
+      addRoll(result);
+    },
+    [addRoll],
+  );
+
   const handleQuickActionTrigger = (action: QuickAction) => {
     // First try to resolve the favourite as a skill.
     const allSkills = [...character.bSkills, ...character.aSkills];
@@ -518,6 +615,8 @@ function AppWithCharacter({
           onManageCharacters={() => setShowCharSheet(true)}
           showAdvancementBadge={character.xpCur > 0}
           showEndeavoursBadge={hasActiveEndeavours(character)}
+          assistantCount={suggestions.length}
+          onOpenAssistant={openAssistant}
         />
         <PageContainer
           characterName={character.name}
@@ -561,6 +660,30 @@ function AppWithCharacter({
           onClose={() => setRollDialogState(null)}
         />
       )}
+      {/* Assistant reminder-roll dialog — honours the descriptor's difficulty
+          (defaultDifficulty), seeded via dispatchAction's roll branch. Kept
+          separate from the quick-roll dialog above. */}
+      {reminderRollState && (
+        <RollDialog
+          skillOrCharName={reminderRollState.name}
+          baseTarget={reminderRollState.baseTarget}
+          defaultDifficulty={reminderRollState.difficulty}
+          onRoll={handleReminderRollResult}
+          onClose={() => setReminderRollState(null)}
+        />
+      )}
+      {reminderRollResult && (
+        <RollResultDisplay
+          result={reminderRollResult}
+          onClose={() => setReminderRollResult(null)}
+        />
+      )}
+      <AssistantPanel
+        suggestions={suggestions}
+        onAction={dispatchAction}
+        onDismiss={handleDismissSuggestion}
+        onSnooze={handleSnoozeSuggestion}
+      />
       {rollResultState && (
         <RollResultDisplay
           result={rollResultState}
@@ -642,7 +765,9 @@ export default function App() {
     <SWUpdateProvider>
       <ErrorBoundary>
         <CommandPaletteProvider>
-          <AppContent />
+          <AssistantProvider>
+            <AppContent />
+          </AssistantProvider>
         </CommandPaletteProvider>
       </ErrorBoundary>
       <UpdateBanner />

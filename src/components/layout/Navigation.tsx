@@ -16,6 +16,13 @@ export type { PageSection };
 interface NavigationProps {
   activePage: PageSection;
   onPageChange: (page: PageSection) => void;
+  /**
+   * Number of visible Assistant suggestions. Threaded in by FEAT-002 so the
+   * AssistantTrigger (rendered here in FEAT-003) can show its count badge.
+   */
+  assistantCount?: number;
+  /** Opens the Character Assistant panel. Consumed by the trigger in FEAT-003. */
+  onOpenAssistant?: () => void;
   characterName?: string;
   characters?: CharacterSummary[];
   activeId?: string;
