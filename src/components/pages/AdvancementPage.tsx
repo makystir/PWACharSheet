@@ -8,7 +8,6 @@ import { SpellPicker } from '../shared/SpellPicker';
 import { Toast } from '../shared/Toast';
 import { Tooltip } from '../shared/Tooltip';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
-import { AdvancementChecklist } from './AdvancementChecklist';
 import { AdvancementPlanner } from './AdvancementPlanner';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
@@ -457,27 +456,7 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
         </Card>
       )}
 
-      {/* Advancement completion checklist — presentation layer over the existing
-          completion computations below (charsMet/skillsMet/talentsMet etc.).
-          Single source of truth: values are passed in, never re-derived (Req 7.1–7.5). */}
-      {scheme && careerLevelNum > 0 && (
-        <AdvancementChecklist
-          career={character.career}
-          careerLevel={character.careerLevel}
-          charsProgress={charsProgress}
-          charsMet={charsMet}
-          skillsWithAdvances={skillsWithAdvances}
-          skillsRequired={Math.min(8, careerSkills.length)}
-          skillsMet={skillsMet}
-          talentsOwned={talentsOwned}
-          talentsMet={talentsMet}
-          completionThreshold={completionThreshold}
-          isMaxLevel={isMaxLevel}
-          storageKey="wfrp-collapse-advancement-checklist"
-        />
-      )}
-
-      {/* Read-only cost-to-complete planner — augments the checklist above with
+      {/* Read-only cost-to-complete planner — augments the Career Progress card with
           the cheapest set of advances and their XP cost (never mutates). */}
       {scheme && careerLevelNum > 0 && !isMaxLevel && (
         <AdvancementPlanner
