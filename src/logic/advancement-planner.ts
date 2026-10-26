@@ -125,31 +125,43 @@ interface SkillCandidate {
 }
 
 /**
- * Plan the cheapest path to complete the character's current career level and
- * reach the next one. Pure — returns new plain objects, mutates nothing.
+ * Price raising `character` to satisfy career `careerName`'s level `levelNum`
+ * requirements (in-career for that level), returning the three per-requirement
+ * `RequirementPlan`s (Core pp.44-48). Pure — returns new plain objects, mutates
+ * nothing.
+ *
+ * Resolves the `CareerLevel` via `getCareerScheme` and the completion threshold
+ * via `CAREER_COMPLETION_THRESHOLDS` INTERNALLY: the caller passes only the
+ * career name and level number, so the level and its threshold can never drift
+ * apart (design §Code-reuse boundary, Finding 3). Fails closed — returns
+ * empty/met `RequirementPlan`s — when the scheme or level is missing, mirroring
+ * `planNextCareerLevel`'s inapplicable path.
+ *
+ * Used for the CURRENT career level (by `planNextCareerLevel`) and for a TARGET
+ * career level (by the progression advisor). Invents no cost.
  */
-export function planNextCareerLevel(character: Character): NextLevelPlan {
-  const xpCur = character.xpCur;
+export function planLevelRequirements(
+  character: Character,
+  careerName: string,
+  levelNum: number,
+): { characteristics: RequirementPlan; skills: RequirementPlan; talent: RequirementPlan } {
+  const scheme = getCareerScheme(careerName);
+  const emptyAll = () => ({
+    characteristics: emptyRequirement('characteristics'),
+    skills: emptyRequirement('skills'),
+    talent: emptyRequirement('talent'),
+  });
+  if (!scheme) return emptyAll();
 
-  const scheme = getCareerScheme(character.career);
-  if (!scheme) return inapplicablePlan(xpCur);
-
-  // Resolve the current level exactly as AdvancementPage does: level1..level5
-  // filtered for presence, then locate by title.
   const allLevels = [
     scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5,
   ].filter(Boolean) as CareerLevel[];
-  const careerLevel = allLevels.find(l => l.title === character.careerLevel);
-  const careerLevelNum = allLevels.findIndex(l => l.title === character.careerLevel) + 1;
-
-  // No matching level, or at/above max level → nothing to plan (FR-7, §9).
-  if (!careerLevel || careerLevelNum <= 0 || careerLevelNum >= allLevels.length) {
-    return inapplicablePlan(xpCur);
-  }
+  const careerLevel = allLevels[levelNum - 1];
+  if (!careerLevel || levelNum < 1) return emptyAll();
 
   // Core p.48 completion threshold for this level; `?? 5` fallback mirrors the
   // page for an unexpected level number (design §7.1, OQ-5).
-  const threshold = CAREER_COMPLETION_THRESHOLDS[careerLevelNum] ?? 5;
+  const threshold = CAREER_COMPLETION_THRESHOLDS[levelNum] ?? 5;
 
   const careerChars = careerLevel.characteristics;
   const careerSkills = careerLevel.skills;
@@ -284,7 +296,7 @@ export function planNextCareerLevel(character: Character): NextLevelPlan {
   };
 
   // ── Talent (Core p.47: talents only available at the level that lists them) ─
-  const currentLevelTalents = getCurrentLevelTalents(character.career, careerLevelNum);
+  const currentLevelTalents = getCurrentLevelTalents(careerName, levelNum);
   const talentsOwned = currentLevelTalents.filter(tn =>
     character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' (')),
   );
@@ -315,7 +327,51 @@ export function planNextCareerLevel(character: Character): NextLevelPlan {
     advisories: [],
   };
 
-  const requirementsTotal = charsSubtotal + skillsSubtotal + talentSubtotal;
+  return { characteristics, skills, talent };
+}
+
+/**
+ * Plan the cheapest path to complete the character's current career level and
+ * reach the next one. Pure — returns new plain objects, mutates nothing.
+ *
+ * Resolves the character's current career level, then delegates the
+ * per-requirement cost/row-selection logic to `planLevelRequirements` so there
+ * is a single implementation of it (design §Code-reuse boundary). Assembles the
+ * advance-level fee (Core p.48), grand total, affordability, and ordered path.
+ */
+export function planNextCareerLevel(character: Character): NextLevelPlan {
+  const xpCur = character.xpCur;
+
+  const scheme = getCareerScheme(character.career);
+  if (!scheme) return inapplicablePlan(xpCur);
+
+  // Resolve the current level exactly as AdvancementPage does: level1..level5
+  // filtered for presence, then locate by title.
+  const allLevels = [
+    scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5,
+  ].filter(Boolean) as CareerLevel[];
+  const careerLevel = allLevels.find(l => l.title === character.careerLevel);
+  const careerLevelNum = allLevels.findIndex(l => l.title === character.careerLevel) + 1;
+
+  // No matching level, or at/above max level → nothing to plan (FR-7, §9).
+  if (!careerLevel || careerLevelNum <= 0 || careerLevelNum >= allLevels.length) {
+    return inapplicablePlan(xpCur);
+  }
+
+  // Core p.48 completion threshold for this level; `?? 5` fallback mirrors the
+  // page for an unexpected level number (design §7.1, OQ-5).
+  const threshold = CAREER_COMPLETION_THRESHOLDS[careerLevelNum] ?? 5;
+
+  const { characteristics, skills, talent } = planLevelRequirements(
+    character,
+    character.career,
+    careerLevelNum,
+  );
+
+  const charSteps = characteristics.steps;
+  const skillSteps = skills.steps;
+  const talentSteps = talent.steps;
+  const requirementsTotal = characteristics.subtotal + skills.subtotal + talent.subtotal;
 
   // Advance-level fee driven by the three met flags, NOT requirementsTotal === 0
   // (design §6, Finding 4). Core p.48: 100 when ready, 200 when not.

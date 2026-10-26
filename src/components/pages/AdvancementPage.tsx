@@ -9,9 +9,10 @@ import { Toast } from '../shared/Toast';
 import { Tooltip } from '../shared/Tooltip';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { AdvancementPlanner } from './AdvancementPlanner';
+import { ProgressionAdvisor } from './ProgressionAdvisor';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, applyBulkAdvancement, calculateTierBoundaryCost, CAREER_COMPLETION_THRESHOLDS, ADVANCE_LEVEL_FEE, isReadyToAdvance } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, applyBulkAdvancement, calculateTierBoundaryCost, CAREER_COMPLETION_THRESHOLDS, ADVANCE_LEVEL_FEE, isReadyToAdvance, getCareerSwitchCost } from '../../logic/advancement';
 import { planNextCareerLevel } from '../../logic/advancement-planner';
 import { filterSkillEntries } from '../../logic/skill-filter';
 import { getBonus } from '../../logic/calculators';
@@ -252,8 +253,9 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
     const newScheme = getCareerScheme(newCareer);
     if (!newScheme?.level1 || newCareer === character.career) { setShowSwitchCareerPicker(false); return; }
     const level1 = newScheme.level1;
-    const sameClass = newScheme.class === character.class;
-    const switchCost = (readyToProgress ? ADVANCE_LEVEL_FEE.ready : ADVANCE_LEVEL_FEE.notReady) + (sameClass ? 0 : 100);
+    // Core p.48 switch fee via the shared helper — single source of truth with
+    // the progression advisor (behaviour-preserving: identical value).
+    const switchCost = getCareerSwitchCost(readyToProgress, character.class, newScheme.class);
     if (character.xpCur < switchCost) { setShowSwitchCareerPicker(false); return; }
     updateCharacter((c) => ensureCareerSkillsExist(archiveOldEntries({
       ...c,
@@ -467,6 +469,16 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
           career={character.career}
           careerLevel={character.careerLevel}
           storageKey="wfrp-collapse-advancement-planner"
+        />
+      )}
+
+      {/* Read-only, goal-driven progression advisor — sibling of the planner.
+          Gated only on a chosen career (NOT !isMaxLevel) so a max-level
+          character can still target a switch (design §Changed files). */}
+      {scheme && careerLevelNum > 0 && (
+        <ProgressionAdvisor
+          character={character}
+          storageKey="wfrp-collapse-progression-advisor"
         />
       )}
 

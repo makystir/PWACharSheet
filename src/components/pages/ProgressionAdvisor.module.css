@@ -1,0 +1,325 @@
+/* Read-only progression advisor panel. Mirrors AdvancementPlanner.module.css:
+   same spacing, gold=in-career / grey=out-of-career conventions, far-right
+   collapse chevron via SectionHeader. Follows the ui-layout steering rule:
+   readable spacing, ≥44px touch targets on interactive cells. */
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Let the SectionHeader fill the row so its right-aligned collapse chevron
+   reaches the far right, with the help popover sitting after it. */
+.headerRow > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Goal selection controls */
+.goalControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.goalField {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 140px;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.goalBtn {
+  min-height: 40px;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.goalBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.goalInput {
+  max-width: 160px;
+  padding: 8px 10px;
+  min-height: 40px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.goalInput:focus,
+.goalBtn:focus {
+  border-color: var(--accent-gold);
+  outline: none;
+}
+
+.neutral {
+  padding: 10px 12px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid var(--accent-gold);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  text-align: center;
+}
+
+/* Career options list (shown only in the none state) */
+.optionsSection {
+  margin-top: 12px;
+}
+
+.optionsHeading {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.optionsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.optionBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.optionBtn:hover,
+.optionBtn:focus {
+  border-color: var(--accent-gold);
+  outline: none;
+}
+
+.optionName {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.optionRationale {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Phases */
+.phase {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.phaseHeading {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pathList {
+  margin: 0 0 6px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pathStepInCareer {
+  color: var(--success);
+}
+
+.pathStepOutCareer {
+  color: var(--accent-gold);
+}
+
+.pathStepLabel {
+  color: var(--text-primary);
+}
+
+.feeRow,
+.subtotalRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.label {
+  font-weight: 700;
+  min-width: 96px;
+}
+
+.total {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.advisory {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.grandRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.grandTotal {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 15px;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  border-radius: 4px;
+}
+
+.affordYes,
+.affordNo {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.affordYes {
+  background: rgba(90, 154, 90, 0.12);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.affordNo {
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.timeline {
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.budgetResult {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.budgetLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.budgetNext {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.doItNote {
+  margin-top: 12px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Breakdown tooltip content */
+.tooltipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tooltipFormula {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltipNote {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.tooltipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}

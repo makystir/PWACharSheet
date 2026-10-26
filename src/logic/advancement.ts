@@ -583,6 +583,28 @@ export const CAREER_COMPLETION_THRESHOLDS: Record<number, number> = { 1: 5, 2: 1
 export const ADVANCE_LEVEL_FEE = { ready: 100, notReady: 200 } as const; // Core p.48
 
 /**
+ * Core p.48 ("Changing to a New Career"): entering the first level of a Career
+ * from a DIFFERENT Class costs an extra 100 XP on top of the advance-level fee.
+ */
+export const CAREER_CHANGE_DIFFERENT_CLASS_SURCHARGE = 100; // Core p.48
+
+/**
+ * Total XP to change to the first level of a Career whose Class is `targetClass`
+ * (Core p.48). Equals the advance-level fee (100 XP when the current level is
+ * complete / ready, 200 XP if not — `ADVANCE_LEVEL_FEE`) plus the different-class
+ * surcharge (100 XP) when `targetClass !== currentClass`.
+ *
+ * Single source of truth for `AdvancementPage.handleSwitchCareer` AND the
+ * progression advisor so the real switch flow and the advisor can never drift
+ * (rules-compliance steering; design §Code-reuse boundary).
+ */
+export function getCareerSwitchCost(ready: boolean, currentClass: string, targetClass: string): number {
+  const base = ready ? ADVANCE_LEVEL_FEE.ready : ADVANCE_LEVEL_FEE.notReady;
+  const sameClass = targetClass === currentClass;
+  return base + (sameClass ? 0 : CAREER_CHANGE_DIFFERENT_CLASS_SURCHARGE);
+}
+
+/**
  * Check if a career skill name matches a character's skill.
  * Handles grouped skills: career "Melee (Any)" matches character "Melee (Basic)",
  * career "Channelling (Any Colour)" matches character "Channelling (Aqshy)",
