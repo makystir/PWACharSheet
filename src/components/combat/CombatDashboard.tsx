@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { CSSProperties } from 'react';
-import type { Character, CharacteristicKey, CombatState, Condition } from '../../types/character';
+import type { Character, CombatState, Condition } from '../../types/character';
 import type { FortuneSpendReason, ResolveSpendReason } from '../../logic/fortune-resolve';
 import { CONDITIONS } from '../../data/conditions';
 import { CONDITION_COLORS, CONDITION_COLOR_FALLBACK, getConditionIntensity } from '../../data/condition-colors';
@@ -10,14 +10,12 @@ import {
   deriveAllReminders,
   deriveConditionReminders,
   type CombatReminder,
-  type ReminderTest,
 } from '../../logic/reminders';
 import {
-  computeSkillTarget,
-  computeCharacteristicTarget,
   type DifficultyLevel,
   type RollResult,
 } from '../../logic/dice-roller';
+import { resolveReminderBaseTarget } from '../../logic/reminders-target';
 import { CombatReminders } from './CombatReminders';
 import { RollDialog } from '../shared/RollDialog';
 import { RollResultDisplay } from '../shared/RollResultDisplay';
@@ -109,33 +107,6 @@ export interface CombatDashboardProps {
    * it simply is not persisted.
    */
   onRoll?: (result: RollResult) => void;
-}
-
-// ─── Reminder roll target resolution (reminders-design §5) ───────────────────
-
-/**
- * Resolve the base target for a reminder's one-tap roll from the character sheet,
- * reusing the SAME math as QuickRollBar.buildQuickSkills / CombatPage.openWeaponRoll
- * (no new formula). For a skill test, prefer the named skill's advances when it is
- * on the sheet, else fall back to the bare characteristic (an untrained Skill still
- * tests off its characteristic). Resolving the characteristic from the reminder
- * table's fallbackChar (a known CharacteristicKey) avoids reading the free-form
- * Skill.c field.
- */
-function resolveReminderBaseTarget(character: Character, def: ReminderTest): number {
-  if (def.kind === 'characteristic') {
-    const c = character.chars[def.char];
-    return computeCharacteristicTarget(c.i, c.a, c.b);
-  }
-  const skill = [...character.bSkills, ...character.aSkills].find((s) => s.n === def.skillName);
-  const fallback: CharacteristicKey = def.fallbackChar;
-  if (skill) {
-    const charKey = skill.c as CharacteristicKey;
-    const charVal = character.chars[charKey] ?? character.chars[fallback];
-    return computeSkillTarget(charVal.i, charVal.a, charVal.b, skill.a);
-  }
-  const c = character.chars[fallback];
-  return computeCharacteristicTarget(c.i, c.a, c.b);
 }
 
 // ─── Fortune / Resolve spend reasons ─────────────────────────────────────────

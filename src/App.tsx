@@ -57,6 +57,7 @@ import { CommandPaletteProvider, useCommandPaletteContext } from './components/c
 import { useCommandPalette } from './components/command-palette/useCommandPalette';
 import { CommandPalette } from './components/command-palette/CommandPalette';
 import { ShortcutsHelp } from './components/shared/ShortcutsHelp';
+import { hasActiveEndeavours } from './logic/endeavours';
 
 const APP_VERSION = '2.0.0';
 
@@ -516,7 +517,7 @@ function AppWithCharacter({
           onDeleteCharacter={(id) => { manager.deleteCharacter(id); manager.refresh(); }}
           onManageCharacters={() => setShowCharSheet(true)}
           showAdvancementBadge={character.xpCur > 0}
-          showEndeavoursBadge={character.endeavours.some(period => period.entries.some(e => e.status === 'pending' || e.status === 'in_progress'))}
+          showEndeavoursBadge={hasActiveEndeavours(character)}
         />
         <PageContainer
           characterName={character.name}

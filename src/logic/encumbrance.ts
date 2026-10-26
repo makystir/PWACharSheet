@@ -1,4 +1,5 @@
-import type { Trapping } from '../types/character';
+import type { Character, Trapping } from '../types/character';
+import { calculateCoinWeight } from './calculators';
 
 export type EncumbranceLevel = 'neutral' | 'warning' | 'danger' | 'critical';
 
@@ -113,6 +114,26 @@ export function calculateCarriedTrappingEnc(
       if (ignoreBackpackEnc && t.inBackpack === true) return sum;
       return sum + calculateTrappingEncumbrance(t.enc, t.quantity, isEffectivelyWorn(t));
     }, 0);
+}
+
+/**
+ * Total carried encumbrance for a character: weapons + worn/carried armour +
+ * carried trappings + coin weight. This is the single source of truth for the
+ * inline `eW + eA + eT + eCoin` sum the Gear tab computed, so the sheet, the
+ * Assistant, and any other consumer agree. Core p.293 "Encumbrance".
+ *
+ * - Weapons contribute parseFloat(w.enc) (non-numeric → 0), matching the sheet.
+ * - Armour uses calculateArmourEncumbrance (worn items −1, min 0).
+ * - Trappings use calculateCarriedTrappingEnc, honouring the
+ *   houseRules.ignoreBackpackEnc rule.
+ * - Coins use calculateCoinWeight (floor((gc+ss+d)/200)).
+ */
+export function calculateCarriedEncumbrance(character: Character): number { // Core p.293
+  const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
+  const eA = character.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
+  const eT = calculateCarriedTrappingEnc(character.trappings, character.houseRules.ignoreBackpackEnc);
+  const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
+  return eW + eA + eT + eCoin;
 }
 
 /**

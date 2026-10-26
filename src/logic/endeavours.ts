@@ -1,5 +1,17 @@
-import type { DowntimePeriod, EndeavourEntry, EntryStatus } from '../types/character';
+import type { Character, DowntimePeriod, EndeavourEntry, EntryStatus } from '../types/character';
 import { generateUUID } from './uuid';
+
+/**
+ * Whether the character has any endeavour entry that is still outstanding
+ * (pending or in progress) across all downtime periods. Pure form of the
+ * inline predicate App.tsx used to drive the Endeavours nav badge, lifted here
+ * so the badge and the Assistant share one source of truth.
+ */
+export function hasActiveEndeavours(character: Character): boolean {
+  return character.endeavours.some(p =>
+    p.entries.some(e => e.status === 'pending' || e.status === 'in_progress')
+  );
+}
 
 /** General Endeavours available to all characters. */
 export const GENERAL_ENDEAVOURS: string[] = [

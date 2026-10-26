@@ -7,7 +7,7 @@ import { AddButton } from '../../shared/AddButton';
 import { EmptyState } from '../../shared/EmptyState';
 import { Package, Coins, Scale, Shield, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
 import { calculateMaxEncumbrance, calculateCoinWeight, calculateArmourPoints } from '../../../logic/calculators';
-import { getEncumbranceLevel, formatEncumbrance, calculateArmourEncumbrance, isWearableTrapping, calculateCarriedTrappingEnc, calculateHorseTrappingEnc } from '../../../logic/encumbrance';
+import { getEncumbranceLevel, formatEncumbrance, calculateArmourEncumbrance, isWearableTrapping, calculateCarriedTrappingEnc, calculateHorseTrappingEnc, calculateCarriedEncumbrance } from '../../../logic/encumbrance';
 import { applyCurrencyDelta } from '../../../logic/currency';
 import { reorderArray } from '../../../logic/reorder';
 import { ProgressBar } from '../../shared/ProgressBar';
@@ -127,11 +127,7 @@ export function GearTab({
     <>
       {/* Encumbrance Indicator */}
       {(() => {
-        const eW = character.weapons.reduce((s, w) => s + (parseFloat(w.enc) || 0), 0);
-        const eA = character.armour.reduce((s, a) => s + calculateArmourEncumbrance(a.enc, a.worn), 0);
-        const eT = calculateCarriedTrappingEnc(character.trappings, character.houseRules.ignoreBackpackEnc);
-        const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
-        const currentEnc = eW + eA + eT + eCoin;
+        const currentEnc = calculateCarriedEncumbrance(character);
         const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
         const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
         const sturdyTalent = character.talents.find(t => t.n === 'Sturdy');
@@ -593,7 +589,9 @@ export function GearTab({
               const eT = calculateCarriedTrappingEnc(character.trappings, character.houseRules.ignoreBackpackEnc);
               const eHorse = calculateHorseTrappingEnc(character.trappings);
               const eCoin = calculateCoinWeight(character.wGC, character.wSS, character.wD);
-              const eTotal = eW + eA + eT + eCoin;
+              // Shared source of truth for the carried total (Core p.293); the
+              // per-line eW/eA/eT/eCoin locals above remain for display.
+              const eTotal = calculateCarriedEncumbrance(character);
               const strongBackTalent = character.talents.find(t => t.n === 'Strong Back');
               const strongBackLevel = strongBackTalent ? strongBackTalent.lvl : 0;
               const sturdyTalent = character.talents.find(t => t.n === 'Sturdy');

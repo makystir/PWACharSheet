@@ -11,7 +11,7 @@ import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { AdvancementPlanner } from './AdvancementPlanner';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../../data/careers';
 import { getCareersByClass, getCareerScheme } from '../../logic/careers';
-import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, applyBulkAdvancement, calculateTierBoundaryCost, CAREER_COMPLETION_THRESHOLDS, ADVANCE_LEVEL_FEE } from '../../logic/advancement';
+import { getAdvancementCost, calculateBulkAdvancement, advanceCharacteristic, advanceSkill, isCareerLevelComplete, careerSkillMatches, undoAdvancement, redoAdvancement, sortSkillsByCareerStatus, archiveOldEntries, restoreArchivedEntry, getFutureCareerLevel, hasRuneMagicTalent, ensureCareerSkillsExist, hasSpellcastingTalent, getSpellcastingTypes, getSpellLearningCost, countMemorizedByType, learnSpell, hasRitualMagicTalent, getCharacterLore, learnRitual, getCurrentLevelTalents, applyBulkAdvancement, calculateTierBoundaryCost, CAREER_COMPLETION_THRESHOLDS, ADVANCE_LEVEL_FEE, isReadyToAdvance } from '../../logic/advancement';
 import { planNextCareerLevel } from '../../logic/advancement-planner';
 import { filterSkillEntries } from '../../logic/skill-filter';
 import { getBonus } from '../../logic/calculators';
@@ -213,7 +213,10 @@ export function AdvancementPage({ character, update, updateCharacter }: Advancem
   const skillsMet = skillsWithAdvances.length >= Math.min(8, careerSkills.length);
   const talentsOwned = getCurrentLevelTalents(character.career, careerLevelNum).filter(tn => character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' (')));
   const talentsMet = talentsOwned.length >= 1;
-  const readyToProgress = charsMet && skillsMet && talentsMet;
+  // Readiness is derived by the shared pure helper (single source of truth with
+  // the Assistant/badge); the per-item checklist locals above remain for the
+  // progress panel's display. Core p.48.
+  const readyToProgress = isReadyToAdvance(character);
   // Core p.48 level-change fee — shared constant (single source of truth).
   const advanceLevelCost = readyToProgress ? ADVANCE_LEVEL_FEE.ready : ADVANCE_LEVEL_FEE.notReady;
   const canAffordAdvance = character.xpCur >= advanceLevelCost;

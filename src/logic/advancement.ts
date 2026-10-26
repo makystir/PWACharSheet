@@ -705,6 +705,47 @@ export function isCareerLevelComplete(
 }
 
 /**
+ * Whether the character has met their current career level's completion
+ * requirements and is therefore ready to advance to the next career level
+ * (Core p.48). This is the pure form of the `charsMet && skillsMet &&
+ * talentsMet` readiness check that AdvancementPage derives inline for its
+ * progress panel — lifted here verbatim so the badge/assistant and the page
+ * share one source of truth and can never drift.
+ *
+ * Requirements (Core p.48): all of the current level's characteristics at the
+ * level threshold (5/10/15/20), at least 8 (or all, if fewer) of the level's
+ * skills at the threshold, and at least one talent from the CURRENT level
+ * (Core p.47). Returns false when the career/level cannot be resolved.
+ */
+export function isReadyToAdvance(character: Character): boolean { // Core p.48
+  const scheme = CAREER_SCHEMES[character.career];
+  if (!scheme) return false;
+
+  const allLevels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4, scheme.level5]
+    .filter(Boolean) as CareerLevel[];
+  const careerLevel = allLevels.find(l => l.title === character.careerLevel);
+  const careerLevelNum = allLevels.findIndex(l => l.title === character.careerLevel) + 1;
+  if (!careerLevel || careerLevelNum <= 0) return false;
+
+  const careerChars = careerLevel.characteristics ?? [];
+  const careerSkills = careerLevel.skills ?? [];
+  const completionThreshold = CAREER_COMPLETION_THRESHOLDS[careerLevelNum] ?? 5;
+
+  const charsMet = careerChars.every(k => character.chars[k].a >= completionThreshold);
+  const allSkills = [...character.bSkills, ...character.aSkills];
+  const skillsWithAdvances = careerSkills.filter(sn =>
+    allSkills.some(s => careerSkillMatches(sn, s.n) && s.a >= completionThreshold)
+  );
+  const skillsMet = skillsWithAdvances.length >= Math.min(8, careerSkills.length);
+  const talentsOwned = getCurrentLevelTalents(character.career, careerLevelNum).filter(tn =>
+    character.talents.some(t => t.n === tn || t.n.startsWith(tn + ' (') || tn.startsWith(t.n + ' ('))
+  );
+  const talentsMet = talentsOwned.length >= 1;
+
+  return charsMet && skillsMet && talentsMet;
+}
+
+/**
  * If the active advancement log exceeds 100 entries, move the oldest
  * entries to the archive, keeping only the 100 most recent in the active log.
  * Merges newly archived entries with existing archive entries, sorted by
