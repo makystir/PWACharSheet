@@ -315,26 +315,30 @@ engine test is modified.
   - `title`: `${n} unhealed Critical Wound${n === 1 ? '' : 's'}` where `n = active.length`
   - `rationale`: `Critical Wounds do not count as healed until all Conditions they inflict are removed and all non-permanent modifiers are resolved — review healing requirements (Core p.180-181).`
   - `category`: `'health'`
-  - `urgency` (**SHIPPED v1 rule — OQ-5 resolved to the RAW-exact trigger; NO invented threshold**):
+  - `urgency` (**SHIPPED v1 rule — OQ-5 resolved to the full RAW Death-check trigger; NO invented threshold**):
     `'recommended'` normally (a plain "you have N unhealed Critical Wounds — review them"). Escalate to
-    **`'critical'`** **only** under the actual RAW Death-check condition (Core p.172 "Death"): the
-    character has the **Unconscious** Condition present AND current Wounds are at or below zero, i.e.
-    `character.conditions.some(c => c.name === 'Unconscious') && character.wCur <= 0`. Both fields are
-    plain reads (`conditions: { name, level }[]` and `wCur: number`, verified in
-    `src/types/character.ts`); no count-based or Toughness-Bonus-based escalation is used. The earlier
-    TB-vs-count heuristic is **removed** — per the rules-compliance steering we must not invent a
-    threshold, and "more Criticals than TB" is not a RAW trigger. (Carrying N Critical Wounds is itself
-    only `recommended`; death in WFRP4e keys on being Unconscious at 0 Wounds, not on the Critical count.)
+    **`'critical'`** **only** under the actual RAW Death-check condition (Core p.172 "Death", matched
+    verbatim by `docs/Up_In_Arms.md` "death"): the character has the **Unconscious** Condition present AND
+    current Wounds are at or below zero AND the number of active Critical Wounds is **greater than** the
+    Toughness Bonus, i.e.
+    `character.conditions.some(c => c.name === 'Unconscious') && character.wCur <= 0 && getActiveCriticalWounds(character.criticalWounds).length > TB`
+    where `TB = getBonus(character.chars.T.i + character.chars.T.a + character.chars.T.b)` (the existing
+    `getBonus` calculator — no new math). Per Core p.172, a character Unconscious at 0 Wounds only succumbs
+    when their Critical Wound count **exceeds** their Toughness Bonus; at or below TB they merely fall
+    unconscious. The `> TB` comparison **is** the RAW Death trigger (stated identically in the Core rulebook
+    and Up In Arms), not an invented threshold — the earlier draft's claim that "more Criticals than TB is
+    not a RAW trigger" was factually wrong and is retracted here.
   - `citation`: `'Core p.180-181: Healing Critical Wounds'` (healing-review rationale) and
-    `'Core p.172: Death'` (the Unconscious-at-0-Wounds escalation).
+    `'Core p.172: Death'` (the Unconscious-at-0-Wounds-with-count-over-TB escalation).
   - `action`: `{ kind: 'navigate', page: 'combat' }` (Critical Wounds panel, Status mode).
   - `totals`: NONE (the "N wounds" count is a plain array length, not a derived/summed stat — see
     "Calculated totals").
 - **Visibility:** **both** — reviewing unhealed criticals matters in and out of combat. The panel itself
   is in-combat-only (see OQ-3), but the suggestion's job is to point there and remind of healing rules.
 - **Rulebook grounding:** Core p.180-181 "Healing Critical Wounds" / "Healing Hands" (p.178-180 injury
-  healing); Core p.172 "Death" for the RAW-exact escalation (Unconscious Condition present AND `wCur <= 0`).
-  No healing-time mechanic is fabricated and no count/TB threshold is invented.
+  healing); Core p.172 "Death" for the RAW-exact escalation (Unconscious Condition present AND `wCur <= 0`
+  AND active Critical Wound count **> Toughness Bonus**). No healing-time mechanic is fabricated and the
+  `> TB` escalation is the verbatim RAW Death trigger, not an invented threshold.
   (Page numbers verified against `docs/WarhammerFantasyRoleplay4e.md`: the "Death" heading falls between
   the `_page_172` markers; the "Healing Critical Wounds" heading is the last Injury subsection, sitting
   between the `_page_178` and `_page_181` markers, and the rulebook **index** lists "Healing Critical
@@ -743,14 +747,16 @@ accept-the-v1-limitation option (a) for OQ-3).
   No selection logic is reinvented. This resolves the earlier "keep vs scope-out"
   ambiguity — the concrete rule and the open question no longer both ship. (Recorded here only so the
   history of the decision is visible; it is not an outstanding question.)
-- **OQ-5 (critical-wound urgency cue) — RESOLVED, shipped v1 (confirmed by the project owner):** the
-  earlier TB-vs-count heuristic is **removed** — per the rules-compliance steering we must not invent a
-  threshold, and "more Criticals than TB" is not a RAW trigger. **Shipped rule:** the suggestion fires at
+- **OQ-5 (critical-wound urgency cue) — RESOLVED, shipped v1:** **Shipped rule:** the suggestion fires at
   `'recommended'` whenever `getActiveCriticalWounds()` is non-empty ("you have N unhealed Critical Wounds —
-  review them"), and escalates to `'critical'` ONLY under the actual RAW Core p.172 "Death" condition — the
-  **Unconscious** Condition is present AND current Wounds `<= 0`
-  (`character.conditions.some(c => c.name === 'Unconscious') && character.wCur <= 0`). Cite Core p.172 for
-  the escalation and p.180-181 for the healing-review rationale. No count/TB-based invented escalation.
+  review them"), and escalates to `'critical'` ONLY under the full RAW Core p.172 "Death" condition — the
+  **Unconscious** Condition is present AND current Wounds `<= 0` AND the active Critical Wound count is
+  **greater than** the Toughness Bonus
+  (`character.conditions.some(c => c.name === 'Unconscious') && character.wCur <= 0 && getActiveCriticalWounds(...).length > getBonus(T total)`).
+  The `> TB` comparison is the RAW Death trigger (stated identically in Core p.172 and Up In Arms "death"),
+  reusing the existing `getBonus` helper — nothing invented. An earlier draft dropped the `> TB` clause on
+  the mistaken belief it was not RAW; that was wrong and is corrected. Cite Core p.172 for the escalation
+  and p.180-181 for the healing-review rationale.
 
 ---
 

@@ -1,0 +1,16 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "rules-compliance",
+      "file": "src/logic/assistant/rules/critical-wounds.ts",
+      "lines": "27-45",
+      "title": "Critical-wounds death escalation omits the RAW '> Toughness Bonus' clause and mis-cites Core p.172 Death",
+      "evidence": "The module escalates urgency to 'critical' on `character.conditions.some(c => c.name === 'Unconscious') && character.wCur <= 0` and labels it citation 'Core p.172: Death', asserting it is the RAW Death-check condition. The design (OQ-5) justifies dropping the Critical-count-vs-Toughness-Bonus comparison by claiming \"'more Criticals than TB' is not a RAW trigger\". docs/WarhammerFantasyRoleplay4e.md 'Death' (in the _page_172 block) states: \"If you take the Unconscious Condition and have 0 Wounds, compare the total number of Critical Wounds you currently suffer with your Toughness Bonus. If you have more Critical Wounds than your Toughness Bonus, you succumb...\". docs/Up_In_Arms.md 'death' states the identical '> Toughness Bonus' trigger. The '> TB' comparison IS the RAW death trigger, not an invented threshold.",
+      "consequence": "A character Unconscious at 0 Wounds with <= TB Critical Wounds (RAW: survives, falls unconscious) is flagged 'critical' with label/citation 'Core p.172: Death'. The encoded escalation diverges from the rule it cites and carries an inaccurate citation — a rules-compliance violation (the escalation is a UI urgency/citation signal, not an auto-applied mechanic).",
+      "correction": "Gate the 'critical' escalation on the full RAW condition: Unconscious present AND wCur <= 0 AND getActiveCriticalWounds(character.criticalWounds).length > TB, where TB = getBonus(character.chars.T.i + character.chars.T.a + character.chars.T.b) (existing calculators.getBonus helper; no new math). Keep 'recommended' otherwise. Alternatively, if the simpler Unconscious-at-0 escalation is kept as a deliberate UX choice, change the citation so it no longer claims the p.172 Death check and correct the design's 'not a RAW trigger' rationale."
+    }
+  ],
+  "reviewDoc": "d:\\Git\\PWACharSheet\\.agents\\tasks\\character-assistant-catalog\\review.md"
+}
