@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useReducer, useEffect } from 'react';
 import type { Character, ArmourPoints, FieldPath, FieldValue } from '../../types/character';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import styles from './CombatPage.module.css';
@@ -18,6 +18,8 @@ import { RuneManager } from '../shared/RuneManager';
 import { RollHistoryPanel } from '../shared/RollHistoryPanel';
 import { CollapsibleSection } from '../shared/CollapsibleSection';
 import { CombatDashboard } from '../combat/CombatDashboard';
+import { GuidedTurnTrigger } from '../combat/GuidedTurnTrigger';
+import { GuidedTurnPanel } from '../combat/GuidedTurnPanel';
 import { HouseRuleIndicator } from '../combat/HouseRuleIndicator';
 import { AttackFlow } from '../combat/AttackFlow';
 import { QuickRollBar } from '../combat/QuickRollBar';
@@ -45,6 +47,9 @@ import { getBonus } from '../../logic/calculators';
 import { findSkillForWeapon, RANGED_GROUPS } from '../../logic/weapons';
 import { computeSkillTarget, type RollResult, type DifficultyLevel } from '../../logic/dice-roller';
 import { decrementConditionDurations } from '../../logic/condition-duration';
+import { deriveAllReminders, type CombatReminder } from '../../logic/reminders';
+import { resolveReminderBaseTarget } from '../../logic/reminders-target';
+import { turnReducer, initialTurnState } from '../../logic/combat-turn/reducer';
 import type { RollHistoryEntry } from '../../hooks/useRollHistory';
 import type { CharacteristicKey } from '../../types/character';
 import type { HitLocation } from '../combat/hitLocationTable';
@@ -92,6 +97,16 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
   // back to null immediately after consumption so later manual edits are never
   // re-overwritten (FR-3.5).
   const [takeDamageSeed, setTakeDamageSeed] = useState<{ damage: number; sl: number; location: HitLocation } | null>(null);
+
+  // ── Guided Combat Turn Walkthrough (opt-in, transient, local-only) ──
+  // The guide is a thin orchestration layer over the pure turnReducer; it never
+  // mutates the character and never auto-advances. OFF by default.
+  const [turn, dispatchTurn] = useReducer(turnReducer, initialTurnState);
+  const [guideOpen, setGuideOpen] = useState(false);
+  // Host-level seeded reminder-roll dialog for the guide. This is the identical
+  // seeding logic CombatDashboard.handleRollReminder uses (resolveReminderBaseTarget
+  // + test.difficulty); performRoll stays the single roll resolver (no new math).
+  const [guideReminderRoll, setGuideReminderRoll] = useState<{ name: string; baseTarget: number; difficulty: DifficultyLevel } | null>(null);
 
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isDesktop = useMediaQuery('(min-width: 1025px)');
@@ -216,6 +231,63 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
     character.talents.some(t => t.n.includes('Magic') || t.n.includes('Pray') || t.n.includes('Invoke')) ||
     character.aSkills.some(s => s.n.startsWith('Channelling') || s.n.startsWith('Language (Magick)'));
 
+  /* ── Guided turn: derived reminders + explicit hand-offs (no mutation) ── */
+  // Exact call CombatDashboard makes — same items, same order; the guide forks
+  // nothing (NFR-2).
+  const guideReminders: CombatReminder[] = deriveAllReminders({
+    conditions: character.conditions,
+    psychologyTraits: character.psychologyTraits ?? [],
+    psychologyEnabled: character.houseRules?.usePsychologyTracker ?? false,
+  });
+
+  // Seed the shared RollDialog exactly as CombatDashboard.handleRollReminder does.
+  // Passive: opens a dialog; applies nothing until the player rolls.
+  const onGuideRollReminder = useCallback((reminder: CombatReminder) => {
+    if (!reminder.test) return;
+    const baseTarget = resolveReminderBaseTarget(character, reminder.test.def);
+    setGuideReminderRoll({ name: reminder.test.rollName, baseTarget, difficulty: reminder.test.difficulty });
+  }, [character]);
+
+  // Step-2 hand-offs: switch to the existing mode where the control lives and
+  // reveal it. No new control; no interception of its internals.
+  const onGuideChooseAttack = useCallback(() => { setCombatMode('attack'); }, []);
+  const onGuideChooseCast = useCallback(() => { setCombatMode('status'); }, []);
+  const onGuideChooseDefend = useCallback(() => { setCombatMode('defend'); }, []);
+  // "Use a Skill" lives in the Attack-mode Quick Roll / weapon roll section.
+  const onGuideChooseSkill = useCallback(() => { setCombatMode('attack'); }, []);
+
+  // Step-4 hand-off: reveal + focus the EXISTING dashboard End Turn button; never
+  // calls handleEndTurn/processEndOfTurn itself. No-op if the button is absent.
+  const onGuideRevealEndTurn = useCallback(() => {
+    const btn = document.querySelector<HTMLButtonElement>('[data-testid="end-turn-btn"]');
+    if (!btn) return;
+    // scrollIntoView is unavailable in some environments (e.g. jsdom); guard it
+    // so focus still lands on the real dashboard button.
+    btn.scrollIntoView?.({ block: 'center' });
+    btn.focus();
+  }, []);
+
+  /* ── Guided turn reset boundaries (design Decision 4) ── */
+  // Reset at turn boundary (active initiative turn changes).
+  useEffect(() => {
+    dispatchTurn({ kind: 'reset' });
+  }, [character.activeInitiativeIndex]);
+  // Reset at round boundary (End Turn apply, or manual round +/-).
+  useEffect(() => {
+    dispatchTurn({ kind: 'reset' });
+  }, [character.combatState.currentRound]);
+  // Reset at END COMBAT (inCombat -> false) and force the panel closed.
+  // Synchronizing guide visibility to the external inCombat transition is the
+  // sanctioned set-state-in-effect case (mirrors src/components/shared/Tooltip.tsx):
+  // the guide must not linger once combat ends (design Decision 4, AC-14).
+  useEffect(() => {
+    if (!inCombat) {
+      dispatchTurn({ kind: 'reset' });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setGuideOpen(false);
+    }
+  }, [inCombat]);
+
   return (
     <div className={styles.sectionGap} data-domain="combat">
       {/* ── Active house-rule indicator (read-only; ux-audit-improvements Req 11) ── */}
@@ -223,6 +295,7 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
 
       {/* ── Segmented Control: Attack / Defend / Status (active combat only) ── */}
       {inCombat && (
+        <div className={styles.segmentedControlStrip}>
         <div className={`${styles.segmentedControl} ${styles.segmentedControlSticky}`} role="tablist" aria-label="Combat mode">
           <button
             type="button"
@@ -251,6 +324,14 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
           >
             Status
           </button>
+        </div>
+          {/*
+            ── Guided Combat Turn opt-in trigger ──
+            A sibling button OUTSIDE the role="tablist" above (not a fourth tab),
+            so the existing tab semantics/DOM are unchanged (AC-3). Visible only
+            while in combat and whenever the guide is closed.
+          */}
+          {!guideOpen && <GuidedTurnTrigger onOpen={() => setGuideOpen(true)} />}
         </div>
       )}
 
@@ -659,6 +740,34 @@ export function CombatPage({ character, characterId, update, updateCharacter, to
       {showWeaponPicker && <Picker items={WEAPONS} getLabel={(w) => w.name} getGroup={(w) => w.group} onSelect={(w) => { updateCharacter((c) => ({ ...c, weapons: [...c.weapons, { ...w }] })); setShowWeaponPicker(false); }} onClose={() => setShowWeaponPicker(false)} title="Select Weapon" />}
       {showArmourPicker && <Picker items={ARMOURS} getLabel={(a) => `${a.name} (AP ${a.ap})`} onSelect={(a) => { updateCharacter((c) => ({ ...c, armour: [...c.armour, { ...a }] })); setShowArmourPicker(false); }} onClose={() => setShowArmourPicker(false)} title="Select Armour" />}
       {rollDialogState && <RollDialog skillOrCharName={rollDialogState.name} baseTarget={rollDialogState.baseTarget} defaultDifficulty={rollDialogState.defaultDifficulty} onRoll={handleRollResult} onClose={() => setRollDialogState(null)} />}
+
+      {/* ── Guided Combat Turn Walkthrough (opt-in; rendered only while in combat and open) ── */}
+      {inCombat && guideOpen && (
+        <GuidedTurnPanel
+          turn={turn}
+          dispatchTurn={dispatchTurn}
+          reminders={guideReminders}
+          onGuideRollReminder={onGuideRollReminder}
+          onGuideChooseAttack={onGuideChooseAttack}
+          onGuideChooseCast={onGuideChooseCast}
+          onGuideChooseDefend={onGuideChooseDefend}
+          onGuideChooseSkill={onGuideChooseSkill}
+          hasSpellcasting={hasSpellcasting}
+          onGuideRevealEndTurn={onGuideRevealEndTurn}
+          onClose={() => setGuideOpen(false)}
+        />
+      )}
+      {/* Guide's seeded reminder-roll dialog — identical seeding to the dashboard;
+          performRoll stays the single resolver. Forwards the result to addRoll. */}
+      {guideReminderRoll && (
+        <RollDialog
+          skillOrCharName={guideReminderRoll.name}
+          baseTarget={guideReminderRoll.baseTarget}
+          defaultDifficulty={guideReminderRoll.difficulty}
+          onRoll={(result) => { setGuideReminderRoll(null); setRollResultState(result); addRoll?.(result); }}
+          onClose={() => setGuideReminderRoll(null)}
+        />
+      )}
       {rollResultState && <RollResultDisplay result={rollResultState} onClose={() => setRollResultState(null)} />}
       <Toast
         message={undoToast.pending?.message ?? null}

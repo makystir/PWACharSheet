@@ -6,6 +6,17 @@
 }
 
 /* ── Segmented Control ── */
+/* Strip wraps the tablist and the (non-tab) "Guide my turn" trigger so the
+   trigger is a sibling OUTSIDE role="tablist" — the tab DOM is unchanged. */
+.segmentedControlStrip {
+  display: flex;
+  align-items: center;
+}
+
+.segmentedControlStrip .segmentedControl {
+  flex: 1;
+}
+
 .segmentedControl {
   display: flex;
   background: var(--bg-secondary);

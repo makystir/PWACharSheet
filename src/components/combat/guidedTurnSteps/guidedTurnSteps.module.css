@@ -1,0 +1,144 @@
+/* Per-step content for the Guided Turn panel. Presentational only. */
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.empty {
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.optionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.castWrap {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.optionChip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.optionChip:hover:not(:disabled) {
+  border-color: var(--accent-gold);
+}
+
+.optionChip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.optionChip:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.optionHint {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+.infoBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+}
+
+.infoBtn:hover {
+  color: var(--text-primary);
+}
+
+.guidanceList {
+  list-style: none;
+  margin: 0;
+  padding: 10px;
+  border: 1px dashed var(--card-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cite {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.markRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.advisory {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--accent-gold);
+  background: var(--bg-tertiary);
+  font-size: 13px;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.primaryBtn:hover {
+  filter: brightness(1.05);
+}
+
+.primaryBtn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}

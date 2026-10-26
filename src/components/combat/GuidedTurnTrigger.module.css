@@ -1,0 +1,30 @@
+/* "Guide my turn" trigger — a sibling button in the segmented-control strip.
+   Visually distinct from the tabs (it is not a tab), using the accent outline
+   idiom so it reads as a secondary affordance, not a mode selector. */
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  margin-left: 8px;
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.trigger:hover {
+  background: var(--bg-tertiary);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
