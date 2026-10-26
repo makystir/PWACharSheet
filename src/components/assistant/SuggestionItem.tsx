@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { Suggestion, SuggestionAction } from '../../logic/assistant/types';
+import type { Suggestion, SuggestionAction, SuggestionCategory } from '../../logic/assistant/types';
 import { Tooltip } from '../shared/Tooltip';
 import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
 import styles from './SuggestionItem.module.css';
@@ -14,12 +14,19 @@ export interface SuggestionItemProps {
   onSnooze: (id: string) => void;
 }
 
-/** Human label for the primary/secondary action button. */
-function actionLabel(action: SuggestionAction, isPrimary: boolean): string {
+/**
+ * Human label for a primary/secondary action button. Several panels live under
+ * the character/notes route, so the label for that navigate is disambiguated by
+ * the owning suggestion's category. An explicit mapping (not a binary
+ * health-vs-else) ensures any future category routing to character/notes
+ * degrades to "Go" rather than falsely claiming "View Corruption".
+ */
+function actionLabel(action: SuggestionAction, category: SuggestionCategory): string {
   if (action.kind === 'roll') return action.test.rollName;
-  // Navigate. The corruption secondary navigates to the Corruption panel.
-  if (!isPrimary && action.page === 'character' && action.subTab === 'notes') {
-    return 'View Corruption';
+  if (action.kind === 'navigate' && action.page === 'character' && action.subTab === 'notes') {
+    if (category === 'health') return 'View Diseases';
+    if (category === 'corruption') return 'View Corruption';
+    return 'Go';
   }
   return 'Go';
 }
@@ -101,7 +108,7 @@ export function SuggestionItem({ suggestion, onAction, onDismiss, onSnooze }: Su
           className={styles.primaryAction}
           onClick={() => onAction(suggestion.action)}
         >
-          {actionLabel(suggestion.action, true)}
+          {actionLabel(suggestion.action, suggestion.category)}
         </button>
         {suggestion.secondaryAction && (
           <button
@@ -109,7 +116,7 @@ export function SuggestionItem({ suggestion, onAction, onDismiss, onSnooze }: Su
             className={styles.secondaryAction}
             onClick={() => onAction(suggestion.secondaryAction!)}
           >
-            {actionLabel(suggestion.secondaryAction, false)}
+            {actionLabel(suggestion.secondaryAction, suggestion.category)}
           </button>
         )}
       </div>

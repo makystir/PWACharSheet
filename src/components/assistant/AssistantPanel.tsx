@@ -29,6 +29,8 @@ const CATEGORY_LABELS: Record<SuggestionCategory, string> = {
   endeavour: 'Endeavours',
   encumbrance: 'Encumbrance',
   corruption: 'Corruption',
+  health: 'Health',
+  resource: 'Fortune & Resolve',
 };
 
 /** Group the already-ordered suggestions by category, preserving their order. */

@@ -18,7 +18,9 @@ export type SuggestionCategory =
   | 'advancement'
   | 'endeavour'
   | 'encumbrance'
-  | 'corruption';
+  | 'corruption'
+  | 'health' // NEW: active diseases + unhealed critical wounds (injury/condition review)
+  | 'resource'; // NEW: unspent Fortune / Resolve (a spendable-pool nudge)
 
 /**
  * Ordering/grouping signal (FR-5.2). Lower sorts first within a context.

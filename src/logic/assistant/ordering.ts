@@ -3,19 +3,24 @@ import type { Suggestion, SuggestionCategory, SuggestionContext, SuggestionUrgen
 /**
  * Deterministic ordering & grouping (FR-3).
  *
- * - In combat: group order combat, encumbrance, corruption, advancement,
- *   endeavour — combat-first (FR-3.2).
- * - Out of combat: group order advancement, endeavour, corruption, encumbrance,
- *   combat — progression-first (FR-3.3).
+ * - In combat: combat-first; `health` (due disease tests / unhealed criticals)
+ *   ranks high as injuries matter mid-fight, `resource` (spend Fortune/Resolve
+ *   now) sits just under combat, progression last (FR-3.2).
+ * - Out of combat: progression-first; `health`/`resource` are downtime review
+ *   items ranked after advancement/endeavour (FR-3.3).
  *
- * Within a group, sort by urgency (critical < recommended < info) then by `id`
- * lexically. Because the sort key is total and the inputs are plain data,
- * identical `(raw, context)` always yield the same ordered list (FR-3.4).
+ * Both arrays list ALL categories so none is unranked (the `groupRank` fallback
+ * is a safety net, not the placement). Within a group, sort by urgency
+ * (critical < recommended < info) then by `id` lexically. Because the sort key
+ * is total and the inputs are plain data, identical `(raw, context)` always
+ * yield the same ordered list (FR-3.4).
  */
 const IN_COMBAT_GROUP_ORDER: SuggestionCategory[] = [
   'combat',
+  'health',
   'encumbrance',
   'corruption',
+  'resource',
   'advancement',
   'endeavour',
 ];
@@ -24,7 +29,9 @@ const OUT_OF_COMBAT_GROUP_ORDER: SuggestionCategory[] = [
   'advancement',
   'endeavour',
   'corruption',
+  'health',
   'encumbrance',
+  'resource',
   'combat',
 ];
 

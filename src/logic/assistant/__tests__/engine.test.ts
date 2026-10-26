@@ -371,6 +371,39 @@ describe('orderSuggestions', () => {
     const ordered = orderSuggestions(raw, CTX_COMBAT).map(s => s.id);
     expect(ordered).toEqual(['m', 'b', 'a', 'z']);
   });
+
+  it('ranks all seven categories in both contexts (incl. health and resource)', () => {
+    const raw: Suggestion[] = [
+      cat('a', 'advancement', 'recommended'),
+      cat('b', 'combat', 'critical'),
+      cat('c', 'corruption', 'critical'),
+      cat('d', 'endeavour', 'info'),
+      cat('e', 'encumbrance', 'critical'),
+      cat('f', 'health', 'recommended'),
+      cat('g', 'resource', 'info'),
+    ];
+    const inCombat = orderSuggestions(raw, CTX_COMBAT).map(s => s.category);
+    expect(inCombat).toEqual([
+      'combat',
+      'health',
+      'encumbrance',
+      'corruption',
+      'resource',
+      'advancement',
+      'endeavour',
+    ]);
+
+    const outCombat = orderSuggestions(raw, CTX_PEACE).map(s => s.category);
+    expect(outCombat).toEqual([
+      'advancement',
+      'endeavour',
+      'corruption',
+      'health',
+      'encumbrance',
+      'resource',
+      'combat',
+    ]);
+  });
 });
 
 // ─── Visible filter ──────────────────────────────────────────────────────────

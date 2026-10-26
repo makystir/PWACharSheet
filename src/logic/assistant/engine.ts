@@ -5,11 +5,16 @@ import { endeavourSuggestions } from './rules/endeavours';
 import { encumbranceSuggestions } from './rules/encumbrance';
 import { corruptionSuggestions } from './rules/corruption';
 import { reminderSuggestions } from './rules/reminders';
+import { fortuneResolveSuggestions } from './rules/fortune-resolve';
+import { diseaseSuggestions } from './rules/diseases';
+import { criticalWoundSuggestions } from './rules/critical-wounds';
+import { learnableSuggestions } from './rules/learnable';
+import { downtimeSuggestions } from './rules/downtime';
 import { orderSuggestions } from './ordering';
 
 /**
  * Pure, deterministic, side-effect-free engine entry point (FR-5.1). Composes
- * the five rule modules then orders the result. It never mutates the character,
+ * the rule modules then orders the result. It never mutates the character,
  * writes storage, navigates, opens a dialog, or touches the network.
  */
 export function getSuggestions(
@@ -23,6 +28,14 @@ export function getSuggestions(
     ...encumbranceSuggestions(character),
     ...corruptionSuggestions(character),
     ...reminderSuggestions(character, context),
+    // Catalog expansion (five new modules). Single-arg modules are never
+    // combat-suppressed (ordering governs placement); the two context-sensitive
+    // modules return [] in combat.
+    ...fortuneResolveSuggestions(character),
+    ...diseaseSuggestions(character),
+    ...criticalWoundSuggestions(character),
+    ...learnableSuggestions(character, context), // suppressed in combat
+    ...downtimeSuggestions(character, context), // out-of-combat only
   ];
   return orderSuggestions(raw, context); // FR-3.4 deterministic
 }
