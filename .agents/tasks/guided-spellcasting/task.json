@@ -1,0 +1,7 @@
+{
+  "task_id": "task-guided-spellcasting",
+  "task_description": "Add an opt-in, OFF-by-default 'Guide my spell' co-pilot that walks a player through a single WFRP 4e spellcasting attempt in six rulebook-cited steps. It orchestrates the EXISTING spell-casting machinery (no forked casting/channelling/overcast/miscast math), nothing auto-applies or auto-advances, all casting/channelling rolls go through the existing RollDialog, every calculated total gets a breakdown tooltip, and the guide-off path is byte-for-byte unchanged. Mirrors the Guided Combat Turn reducer/overlay and the Assistant sync/async advisor seam. Ritual Magic is out of scope for v1. Implement directly on the current branch (no worktree).",
+  "status": "completed",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

@@ -1,0 +1,5 @@
+{
+  "verdict": "APPROVED",
+  "summary": "The opt-in Guided Spellcasting / Miscast flow satisfies every hard constraint: guide OFF by default (one trigger per memorized castable row, overlay mounts only on click), nothing auto-applies/auto-advances, all casting/channelling rolls go through the existing RollDialog with no forked math (all numbers from src/logic/spell-casting.ts), breakdown tooltips on every displayed total, rulebook citations throughout, exactly one aria-modal at a time via RollDialog-yield + CastResultDisplay suppression, and only the single sanctioned set-state-in-effect eslint-disable. All four verify gates re-run clean (tsc --build --force --noEmit exit 0; npm run build succeeds; vitest 5499/5499 across 510 files with existing suites unchanged incl. the mandatory castControls.nodrift test; eslint 0 errors with only the 3 pre-existing react-refresh warnings).",
+  "findings": []
+}

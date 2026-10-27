@@ -1,0 +1,27 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "id": "NIT-1",
+      "severity": "NIT",
+      "location": "RAW-structure 'Action options' bullet — \"attacking (→ Attacking, Core p.157–158)\"",
+      "problem": "The Core TOC pins 'Attacking' to p.158, and the markdown heading sits at the p.157/158 boundary. The 'p.157–158' span is defensible but one page looser than the TOC pin, inconsistent with the design's otherwise-precise TOC-vs-marker discipline (e.g. Advantage cited as p.164).",
+      "fix": "Cite the Attacking hand-off as 'Core p.158' (TOC value) OR add a one-line note under 'Remaining rulebook ambiguities' that Attacking is TOC-pinned to p.158 and the p.157–158 span reflects the section boundary. No mechanic is affected."
+    },
+    {
+      "id": "NIT-2",
+      "severity": "NIT",
+      "location": "Accessibility (stepper semantics) and new-files list (GuidedTurnPanel.tsx)",
+      "problem": "An existing src/components/combat/StepIndicator.tsx (plus a shared variant) already renders aria-current=\"step\" and is test-covered. The design re-specifies stepper semantics from scratch without stating whether it reuses StepIndicator or renders a bespoke list. Not a correctness gap, but noting it would reduce duplication and align the a11y contract.",
+      "fix": "Add a sentence stating whether the guide reuses the existing StepIndicator for the 1-of-4 progress affordance (and if reused, confirm it supports the aria-current=\"step\" + aria-live announcement the design wants); if bespoke, say why."
+    },
+    {
+      "id": "NIT-3",
+      "severity": "NIT",
+      "location": "'Remaining rulebook ambiguities' (Charge note) and the Advantage 'Gaining Advantage' list",
+      "problem": "The design cites Charge as 'Core p.156–157 (Advantage p.164)' matching the Move subsection's cross-reference, but the Gaining-Advantage list cross-refs Charging to 'see page 165'. Both numbers exist in the rulebook; the mismatch is not acknowledged, which could confuse the implementer baking the citation string into steps.test.ts.",
+      "fix": "Add a half-line to the Charge ambiguity note: the Move subsection cross-refs Charge→Advantage at p.164 while the Gaining-Advantage list cross-refs Charging→p.165; the guide follows the Move subsection (p.164) because that is where it names the Move option."
+    }
+  ],
+  "reviewDoc": "d:\\Git\\PWACharSheet\\.agents\\tasks\\guided-combat-turn\\design-review.md"
+}

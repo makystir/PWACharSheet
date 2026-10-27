@@ -1,0 +1,34 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "id": "NIT-1",
+      "severity": "NIT",
+      "location": "design.md → FR-8.4 / Remaining open questions (OQ-2)",
+      "problem": "Corruption trigger comparison > vs >= is left to the reviewer. The design fires on the strict > from Core p.183, while the app's getCorruptionStatus uses >= for 'danger' (verified in corruption.ts). This is a 1-point edge at exactly the threshold.",
+      "fix": "Ship the rulebook-literal strict > (corr > getCorruptionThreshold) and make the rationale text match it; accept that CorruptionCard's banner lights up one point earlier. If UI consistency with the card is preferred instead, switch both the trigger and the rationale to >= — do not mix. Either is fully implementable from the spec."
+    },
+    {
+      "id": "NIT-2",
+      "severity": "NIT",
+      "location": "design.md → Dismiss / snooze (OQ-5)",
+      "problem": "Snooze duration (24h) and the localStorage key/shape (assistant-dismissals, { dismissed: string[]; snoozedUntil: Record<string, number> }) are fully specified yet still labelled 'confirm'.",
+      "fix": "Proceed with the stated key/shape and 24h duration as a product sign-off, not a design gap. Keep the key namespaced (assistant-dismissals) so it cannot collide with Navigation's collapse-state localStorage key."
+    },
+    {
+      "id": "NIT-3",
+      "severity": "NIT",
+      "location": "design.md → FR-8.4 rationale string and totals.lines",
+      "problem": "Rationale prose lists 'WPB + TB' while getCorruptionThreshold sums in TB + WPB + Pure Soul order. Cosmetic, but a calculated-total tooltip should read consistently.",
+      "fix": "Order totals.lines as TB, WPB, Pure Soul (matching the helper) and align the rationale wording so the tooltip reads TB n + WPB n + Pure Soul n = threshold."
+    },
+    {
+      "id": "NIT-4",
+      "severity": "NIT",
+      "location": "design.md → FR-8.5 reminder adapter",
+      "problem": "Informational reminders (no test) route unconditionally to { kind: 'navigate', page: 'combat' }. Valid PageSection, but out of combat (e.g. lingering Blinded/Deafened) this lands the player on a possibly empty Combat page.",
+      "fix": "Acceptable for v1 (target is valid, case is edge-y). Optionally note that informational reminders are rare out of combat and still route correctly to Combat."
+    }
+  ],
+  "reviewDoc": "d:\\Git\\PWACharSheet\\.agents\\tasks\\character-assistant\\design-review.md"
+}

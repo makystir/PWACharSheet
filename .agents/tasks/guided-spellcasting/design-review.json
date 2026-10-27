@@ -1,0 +1,46 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": 1,
+      "severity": "MEDIUM",
+      "title": "\"same existing child components\" claim is inaccurate for re-hosted controls",
+      "where": "§Overlay layering (option B); §New & changed files (CastResultDisplay.tsx + guidedCastSteps/*); §Step-by-step hand-off Steps 3 and 5",
+      "problem": "Only OvercastAllocator is an extracted component. The Critical-Cast choice buttons, fumble/minor-miscast roll buttons, cascading_chaos/multiplying_misfortune/marked_by_magic escalation buttons, and the arcane-mark controls are inline JSX inside CastResultDisplay. On the guide path CastResultDisplay is not mounted, so the guide must re-create that markup (duplicated UI, incl. the local arcaneMarkResult state), which the 'reuses the same components / duplicates nothing' framing misdescribes and risks drift.",
+      "fix": "Either (a) extract the inline button clusters into shared presentational components (CriticalChoiceButtons, MiscastRollButtons, MiscastEscalation, ArcaneMarkControl with its own local state) used by both CastResultDisplay and the guide step bodies, or (b) correct the design wording to state the markup is re-created (not shared), re-create the marked_by_magic local state, and add a test that the re-hosted escalation reaches the same handlers. (a) preferred to prevent drift."
+    },
+    {
+      "id": 2,
+      "severity": "MEDIUM",
+      "title": "RollDialog overlay layering unspecified vs the guide's own aria-modal overlay",
+      "where": "§The seam; §Step-by-step hand-off Steps 2 and 3",
+      "problem": "RollDialog is itself a role=dialog aria-modal=true portal overlay (verified). The design's §Overlay layering resolves the two-dialog problem for CastResultDisplay but is silent about RollDialog, which every Cast/Channel opens on top of the guide's own aria-modal overlay — the exact two-modal/two-focus-trap/two-backdrop anti-pattern the design claims to avoid. AC-16 focus-trap and the 'exactly one aria-modal' invariant are therefore not guaranteed on the most common path.",
+      "fix": "Specify RollDialog layering as was done for CastResultDisplay: either the guide yields (RollDialog is the top modal; guide trap inert while rollDialogState != null) or the guide suppresses its own backdrop/trap while the roll dialog is open. Add an integration-test assertion that exactly one aria-modal dialog focus-traps at a time while the Cast roll is open."
+    },
+    {
+      "id": 3,
+      "severity": "NIT",
+      "title": "Stale 'Winds of Magic p.19/p.20' comments in spell-casting.ts not reconciled",
+      "where": "§Responses pass 3 finding 1 vs existing resolveCastingResult comments",
+      "problem": "docs/windsofmagic.md has no p.19/p.20 markers; Total Power is §Critical Casting (line 511, 'see page 23') and failed-channelled-cast is §Channelling Test (line 593). The design's new citation is correct but adds helpers next to existing functions whose comments still carry the wrong pages; fix-errors + rules-compliance rule 5 call for correcting them in the same edit.",
+      "fix": "Add a note to the spell-casting.ts changed-files row to also correct the existing stale p.19/p.20 comments to WoM §'Critical Casting' / §'Channelling Test' (non-behavioural)."
+    },
+    {
+      "id": 4,
+      "severity": "NIT",
+      "title": "RollDialog seam prop naming shorthand (name vs skillOrCharName)",
+      "where": "§The seam and hand-off paragraphs",
+      "problem": "RollDialog's prop is skillOrCharName, not name. The 'name: Language (Magick)' shorthand describes the panel's internal RollDialogInfo.name, but could be misread as a RollDialog prop.",
+      "fix": "Clarify once that the guide calls handle.openCast(spell) → existing openCastDialog (sets RollDialogInfo.name) and the panel renders <RollDialog skillOrCharName={rollDialogState.name} baseTarget=… />; no 'name' prop exists on RollDialog."
+    },
+    {
+      "id": 5,
+      "severity": "NIT",
+      "title": "overcast-budget tooltip label 'surplus' uses overcastSlots; latent surplusSL/overcastSlots alias trap",
+      "where": "§Calculated-total tooltips (overcast budget row); computeOvercastBudgetBreakdown",
+      "problem": "In resolveCastingResult, surplusSL and overcastSlots are computed identically (max(0, overcastSL-cn)) and always equal. The tooltip/helper deliberately use overcastSlots and label it 'surplus'; correct today, but a future divergence of the two fields would silently break the label.",
+      "fix": "Add one sentence noting surplusSL === overcastSlots by construction today, that the tooltip uses overcastSlots, and that the label must be revisited if they ever diverge. Documentation-only."
+    }
+  ],
+  "reviewDoc": "d:\\Git\\PWACharSheet\\.agents\\tasks\\guided-spellcasting\\design-review.md"
+}

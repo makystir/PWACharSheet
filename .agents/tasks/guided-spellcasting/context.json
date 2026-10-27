@@ -1,0 +1,32 @@
+{
+  "project_type": "WFRP 4e character-sheet PWA — React 19 + TypeScript + Vite, CSS Modules, offline-first/local-only (no backend/network/LLM)",
+  "language": "TypeScript (strict) + React 19 function components",
+  "build_system": "Vite 8 + project-reference tsc. QUIRK: package.json aliases `typescript` -> @typescript/typescript6 (for typescript-eslint's parser) and `@typescript/native` -> real typescript@7.0.2 (provides the `tsc` binary). So `npx tsc` runs TS 7.0.2. Do not change these aliases.",
+  "test_framework": "Vitest 5 + @testing-library/react 16 + @testing-library/jest-dom + fast-check 4 (property tests) + jsdom. Tests live in __tests__/ dirs beside the code, named *.test.ts / *.test.tsx.",
+  "build_command": "npm run build  (tsc --build && vite build)",
+  "test_command": "npx vitest --run  (or `npm test`); scope with a path, e.g. `npx vitest --run src/logic/guided-cast`",
+  "verification_instructions": "ALL FOUR must be clean before a feature is done, run in d:\\Git\\PWACharSheet: (1) `npx tsc --build --force --noEmit` exit 0; (2) `npm run build` succeeds; (3) `npx vitest --run` all pass (existing suites UNCHANGED + new suites green); (4) `npx eslint .` 0 errors and NO new warnings. Baseline at task start: tsc 0, eslint 0 errors / 3 pre-existing react-refresh/only-export-components warnings (CommandPaletteContext.tsx, CombatPage.tsx, SettingsPage.tsx). Do not add new warnings.",
+  "snapshot_or_generated_files": null,
+  "environment_constraints": "Local worktree off a green base branch — no cloud sandbox, no env setup feature needed. No worktree isolation: implement directly on the current branch. Commit locally per feature; never push. The ONLY sanctioned `react-hooks/set-state-in-effect` eslint-disable mirrors src/components/shared/Tooltip.tsx (also used in CombatPage.tsx, CollapsibleSection.tsx, etc.); reuse it ONLY if genuinely needed. Add NO other eslint-disable.",
+  "contribution_requirements": "rules-compliance steering: every rulebook-derived rule carries a code-comment citation (Core p.234-239 / docs/windsofmagic.md; Errata overrides). Do NOT invent mechanics — all numbers come from src/logic/spell-casting.ts. calculated-totals steering: every displayed calculated total gets a breakdown tooltip via the shared Tooltip/TooltipTriggerCell with additive labelled lines (zeros shown). fix-errors steering: fix any error you encounter (incl. pre-existing) as part of the work; re-run the gate.",
+  "key_patterns": "Guided Combat Turn is the exact precedent: pure reducer in src/logic/combat-turn/{types,reducer,steps}.ts with __tests__/{reducer.test.ts,reducer.property.test.ts,steps.test.ts}; portal overlay src/components/combat/GuidedTurnPanel.tsx (createPortal, role=dialog aria-modal, focus trap, Esc/backdrop close, stepper <ol> with aria-current, Arrow-key nav, live region, defaultTurnAdvisor sync-union); opt-in trigger GuidedTurnTrigger.tsx; step components src/components/combat/guidedTurnSteps/*. Advisor sync/async-union contract: src/logic/assistant/types.ts SuggestionSource (T | Promise<T>). Tooltip pattern: src/components/shared/Tooltip.tsx + TooltipTriggerCell.tsx (single-open index state: openTotalIndex + anchorEl; hover 300ms / tap / Enter-Space). SpellCastingPanel is rendered ONLY by CombatPage (`hasSpellcasting && <SpellCastingPanel character update updateCharacter addRoll />`) — but the design owns the guide reducer INSIDE SpellCastingPanel, so CombatPage needs NO edit.",
+  "relevant_files": [
+    "src/logic/spell-casting.ts (all casting math; add 3 pure helpers + fix stale WoM p.19/p.20 citation comments to WoM §Critical Casting (p.23) / WoM §Channelling Test)",
+    "src/components/shared/SpellCastingPanel.tsx (add optional guide seam: handle, onCastResolved x3 sites, onOvercastResolved, guideActive suppression, RollDialog yield, own useReducer + trigger + overlay)",
+    "src/components/shared/CastResultDisplay.tsx (extract inline control clusters; widen overcast guard; add optional onOvercastResolved)",
+    "src/components/shared/OvercastAllocator.tsx (consume as-is; emits Record<string,number> keyed by opt.category)",
+    "src/components/shared/RollDialog.tsx (consume as-is; role=dialog aria-modal; diceEntryMode='manual' test affordance; supports defaultDifficulty)",
+    "src/logic/dice-roller.ts (performRoll, resolveRoll, tensDigit, isDouble; isCritical = passed && double)",
+    "src/data/miscast-tables.ts (MINOR/MAJOR tables; consume via lookupMiscast)",
+    "src/data/arcane-marks.ts (getArcaneMarksTable — used by the marked_by_magic escalation)",
+    "src/components/shared/Tooltip.tsx + TooltipTriggerCell.tsx (the ONLY sanctioned set-state-in-effect eslint-disable is in Tooltip.tsx)",
+    "src/logic/combat-turn/reducer.ts + types.ts + steps.ts (reducer/advisor precedent to mirror exactly)",
+    "src/logic/combat-turn/__tests__/{reducer.test.ts,reducer.property.test.ts,steps.test.ts} (test precedent)",
+    "src/components/combat/GuidedTurnPanel.tsx + GuidedTurnTrigger.tsx + guidedTurnSteps/* (overlay/trigger/step precedent)",
+    "src/components/combat/__tests__/{GuidedTurnPanel.test.tsx,GuidedTurnTrigger.test.tsx} (a11y assertion precedent)",
+    "src/components/pages/CombatPage.tsx (renders SpellCastingPanel; dispatchTurn reset + set-state-in-effect precedent — NO edit needed for this feature)",
+    "src/logic/assistant/types.ts (sync/async-union advisor contract to mirror)",
+    "src/types/character.ts (Character, SpellItem, MagicSaturation — import MagicSaturation from here, resolve with ?? 'normal')"
+  ],
+  "directory_structure": "src/logic/ = pure React-free logic (combat-turn/, assistant/, spell-casting.ts, dice-roller.ts) with __tests__/ beside each. src/components/shared/ = shared UI (SpellCastingPanel, CastResultDisplay, OvercastAllocator, RollDialog, Tooltip, TooltipTriggerCell) with __tests__/. src/components/combat/ = combat UI incl. the Guided Turn precedent + guidedTurnSteps/. src/data/ = static tables. docs/ = authoritative rulebooks. NEW dirs for this task: src/logic/guided-cast/ (types/reducer/steps + __tests__), src/components/shared/guidedCastSteps/ (six step components), src/components/shared/castControls/ (extracted shared cast-control clusters)."
+}
