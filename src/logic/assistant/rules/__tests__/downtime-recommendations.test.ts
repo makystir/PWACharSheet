@@ -52,7 +52,8 @@ function catalogFor(character: Character): Set<string> {
     ...GENERAL_ENDEAVOURS,
     ...ENDEAVOUR_TEMPLATES.map(t => t.type),
   ]);
-  const classList = CLASS_ENDEAVOURS[character.class?.trim() ?? ''];
+  const key = character.class?.trim() ?? '';
+  const classList = Object.hasOwn(CLASS_ENDEAVOURS, key) ? CLASS_ENDEAVOURS[key] : undefined;
   if (classList) for (const n of classList) names.add(n);
   return names;
 }

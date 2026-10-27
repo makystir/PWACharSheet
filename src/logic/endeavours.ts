@@ -348,7 +348,12 @@ export function buildPickerItems(className: string, isElfChar: boolean): PickerI
   // Class Endeavours - depends on className
   const trimmedClass = className?.trim() ?? '';
   if (trimmedClass.length > 0) {
-    const classEndeavours = CLASS_ENDEAVOURS[trimmedClass];
+    // Own-property guard so a class string that collides with an Object
+    // prototype member (e.g. "__proto__") is treated as "unmatched" rather than
+    // resolving to an inherited, non-array value.
+    const classEndeavours = Object.hasOwn(CLASS_ENDEAVOURS, trimmedClass)
+      ? CLASS_ENDEAVOURS[trimmedClass]
+      : undefined;
     if (classEndeavours) {
       for (const e of classEndeavours) {
         items.push({ group: `${trimmedClass} Class`, label: e });

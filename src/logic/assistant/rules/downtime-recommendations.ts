@@ -198,7 +198,14 @@ export function downtimeRecommendationSuggestions(
   // everything else is guidance-only. If class is empty/unmatched, emit nothing
   // (mirrors buildPickerItems — no invented class).
   const className = character.class?.trim() ?? '';
-  const classEndeavours = className.length > 0 ? CLASS_ENDEAVOURS[className] : undefined;
+  // Own-property guard: a junk class string that collides with an Object
+  // prototype member (e.g. "__proto__", "constructor") must NOT resolve to an
+  // inherited, non-array value and crash the `for…of`. Only real, declared
+  // class keys count (Core p.200-201: Class Endeavours are a fixed catalog).
+  const classEndeavours =
+    className.length > 0 && Object.hasOwn(CLASS_ENDEAVOURS, className)
+      ? CLASS_ENDEAVOURS[className]
+      : undefined;
   if (classEndeavours) {
     const CLASS_CAP = 2;
     let emittedClass = 0;
