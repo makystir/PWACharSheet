@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useImperativeHandle, useState, type Ref } from 'react';
 import type { Character, SpellItem, MagicSaturation, FieldPath, FieldValue } from '../../types/character';
 import type { RollResult } from '../../logic/dice-roller';
 import {
@@ -156,11 +156,30 @@ const SATURATION_MODIFIERS: Record<MagicSaturation, string> = {
   corrupted: 'Special — consult GM',
 };
 
+/**
+ * Imperative seam for the (opt-in) guided-cast overlay. Each method delegates to
+ * the panel's existing private handlers so the guide drives the SAME casting /
+ * channelling / critical / miscast logic as the normal flow (no forked math).
+ * There is intentionally NO read-back method: results reach the guide only via
+ * the onCastResolved / onOvercastResolved push callbacks below.
+ */
+export interface SpellCastingGuideHandle {
+  openCast(spell: SpellItem): void;
+  openChannel(spell: SpellItem): void;
+  chooseCritical(choice: 'critical_wound' | 'total_power' | 'unstoppable_force'): void;
+  rollMiscast(table: 'minor' | 'major'): void;
+  dismissResult(): void;
+}
+
 interface SpellCastingPanelProps {
   character: Character;
   update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
   addRoll?: (result: RollResult) => void;
+  /** Opt-in guided-cast seam. All default-path behaviour is unchanged when these are absent. */
+  guideHandleRef?: Ref<SpellCastingGuideHandle>;
+  onCastResolved?: (result: CastingResult) => void;
+  onOvercastResolved?: (allocations: Record<string, number>) => void;
 }
 
 interface RollDialogInfo {
@@ -179,7 +198,7 @@ function hasColourMagicSpell(character: Character): boolean {
   return character.spells.some((s) => colourSpellNames.has(s.name));
 }
 
-export function SpellCastingPanel({ character, update: _update, updateCharacter, addRoll }: SpellCastingPanelProps) {
+export function SpellCastingPanel({ character, update: _update, updateCharacter, addRoll, guideHandleRef, onCastResolved, onOvercastResolved }: SpellCastingPanelProps) {
   const [rollDialogState, setRollDialogState] = useState<RollDialogInfo | null>(null);
   const [castingResult, setCastingResult] = useState<CastingResult | null>(null);
   const [showManageSpells, setShowManageSpells] = useState(false);
@@ -188,18 +207,6 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
   const [saturationExpanded, setSaturationExpanded] = useState(false);
 
   const canCastSpells = hasSpellcastingTalent(character);
-
-  // Gating: no talent and no spells — show message and return early
-  if (!canCastSpells && character.spells.length === 0) {
-    return (
-      <Card>
-        <SectionHeader icon={Sparkles} title="Spells & Prayers" />
-        <div className={styles.noTalentMessage}>
-          No spellcasting talent — acquire Arcane Magic, Petty Magic, Bless, or Invoke to use spells.
-        </div>
-      </Card>
-    );
-  }
 
   const memorizedSpells = character.spells.filter((s) => s.memorized);
 
@@ -277,6 +284,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
 
       const castResult = resolveCastingResult(result, spell, character, options);
       setCastingResult(castResult);
+      onCastResolved?.(castResult);
       addRoll?.(result);
 
       // Reset channelling on cast (success or failure) if was channelling
@@ -300,6 +308,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
         { totalPower: true },
       );
       setCastingResult(reResolved);
+      onCastResolved?.(reResolved);
     } else if (choice === 'unstoppable_force') {
       const reResolved = resolveCastingResult(
         castingResult.rollResult,
@@ -308,8 +317,9 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
         { unstoppableForce: true },
       );
       setCastingResult(reResolved);
+      onCastResolved?.(reResolved);
     }
-    // critical_wound: just display, no re-resolve needed
+    // critical_wound: just display, no re-resolve needed — do NOT fire onCastResolved
   };
 
   const handleMiscastRoll = (table: 'minor' | 'major') => {
@@ -318,8 +328,14 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
     setMiscastResult({ roll, entry });
   };
 
-  const handleOvercastAllocated = () => {
-    // Allocations are informational — just close
+  const handleOvercastAllocated = (allocations: Record<string, number>) => {
+    if (onOvercastResolved) {
+      // Guided-cast seam: forward allocations and keep the result alive
+      // (the guide owns dismissal); do NOT close the result here.
+      onOvercastResolved(allocations);
+      return;
+    }
+    // Default path: allocations are informational — just close.
     setCastingResult(null);
     setMiscastResult(null);
   };
@@ -329,6 +345,19 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
     setMiscastResult(null);
   };
 
+  // Opt-in guided-cast seam: expose an imperative handle delegating to the
+  // panel's existing handlers so the guide drives the SAME logic (no fork).
+  // Declared after the handlers it references (avoids access-before-declare).
+  // No deps array: the factory re-runs each render so the handle always
+  // delegates to the latest handler closures (avoids stale casting state).
+  useImperativeHandle(guideHandleRef, (): SpellCastingGuideHandle => ({
+    openCast: (spell) => openCastDialog(spell),
+    openChannel: (spell) => openChannelDialog(spell),
+    chooseCritical: (choice) => handleCriticalChoice(choice),
+    rollMiscast: (table) => handleMiscastRoll(table),
+    dismissResult: () => handleCloseCastResult(),
+  }));
+
   const toggleMemorized = (spellIndex: number) => {
     updateCharacter((c) => ({
       ...c,
@@ -337,6 +366,19 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
       ),
     }));
   };
+
+  // Gating: no talent and no spells — show message and return early.
+  // (After all hooks, so hook order stays stable across renders.)
+  if (!canCastSpells && character.spells.length === 0) {
+    return (
+      <Card>
+        <SectionHeader icon={Sparkles} title="Spells & Prayers" />
+        <div className={styles.noTalentMessage}>
+          No spellcasting talent — acquire Arcane Magic, Petty Magic, Bless, or Invoke to use spells.
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -534,6 +576,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
           onCriticalChoice={handleCriticalChoice}
           onMiscastRoll={handleMiscastRoll}
           onOvercastAllocated={handleOvercastAllocated}
+          onOvercastResolved={onOvercastResolved}
           onArcaneMarkAcquired={(mark: string) => {
             updateCharacter((c) => ({
               ...c,

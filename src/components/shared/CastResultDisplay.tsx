@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { Character } from '../../types/character';
 import {
   type CastingResult,
@@ -7,9 +6,10 @@ import {
   formatCastDamageBreakdown,
   parseDamageFromEffect,
 } from '../../logic/spell-casting';
-import { getCharacterLore } from '../../logic/advancement';
-import { getArcaneMarksTable, type ArcaneMarkEntry } from '../../data/arcane-marks';
 import { OvercastAllocator } from './OvercastAllocator';
+import { CriticalChoiceButtons } from './castControls/CriticalChoiceButtons';
+import { MiscastRollButtons } from './castControls/MiscastRollButtons';
+import { MiscastEscalation } from './castControls/MiscastEscalation';
 import styles from './CastResultDisplay.module.css';
 
 interface CastResultDisplayProps {
@@ -17,6 +17,9 @@ interface CastResultDisplayProps {
   character: Character;
   miscastResult?: MiscastResult | null;
   onOvercastAllocated?: (allocations: Record<string, number>) => void;
+  /** Capture callback for the guided-cast seam: when present, overcast allocations
+   *  are forwarded here instead of (or alongside) the close-on-confirm path. */
+  onOvercastResolved?: (allocations: Record<string, number>) => void;
   onCriticalChoice?: (choice: 'critical_wound' | 'total_power' | 'unstoppable_force') => void;
   onMiscastRoll?: (table: 'minor' | 'major') => void;
   onArcaneMarkAcquired?: (mark: string) => void;
@@ -32,13 +35,12 @@ export function CastResultDisplay({
   character,
   miscastResult,
   onOvercastAllocated,
+  onOvercastResolved,
   onCriticalChoice,
   onMiscastRoll,
   onArcaneMarkAcquired,
   onClose,
 }: CastResultDisplayProps) {
-  const [arcaneMarkResult, setArcaneMarkResult] = useState<ArcaneMarkEntry | null>(null);
-
   const {
     rollResult,
     spell,
@@ -91,68 +93,17 @@ export function CastResultDisplay({
             <div className={styles.separator} />
             <div className={styles.section}>
               <div className={styles.criticalLabel}>Critical Cast</div>
-              <div className={styles.choiceBtnRow}>
-                <button
-                  type="button"
-                  className={styles.choiceBtn}
-                  onClick={() => onCriticalChoice?.('critical_wound')}
-                >
-                  Critical Wound
-                </button>
-                <button
-                  type="button"
-                  className={styles.choiceBtn}
-                  onClick={() => onCriticalChoice?.('total_power')}
-                >
-                  Total Power
-                </button>
-                <button
-                  type="button"
-                  className={styles.choiceBtn}
-                  onClick={() => onCriticalChoice?.('unstoppable_force')}
-                >
-                  Unstoppable Force
-                </button>
-              </div>
+              <CriticalChoiceButtons onCriticalChoice={onCriticalChoice} />
             </div>
           </>
         )}
 
-        {/* 5. Fumble section */}
-        {isFumbledCast && (
-          <>
-            <div className={styles.separator} />
-            <div className={styles.section}>
-              <div className={styles.fumbleLabel}>Fumble</div>
-              <button
-                type="button"
-                className={styles.miscastBtn}
-                onClick={() => onMiscastRoll?.('minor')}
-              >
-                Roll Minor Miscast
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* 6. Minor Miscast prompt (from critical, not fumble) */}
-        {triggerMinorMiscast && !isFumbledCast && (
-          <>
-            <div className={styles.separator} />
-            <div className={styles.section}>
-              <div className={styles.minorMiscastLabel}>
-                Minor Miscast triggered
-              </div>
-              <button
-                type="button"
-                className={styles.miscastBtn}
-                onClick={() => onMiscastRoll?.('minor')}
-              >
-                Roll Minor Miscast
-              </button>
-            </div>
-          </>
-        )}
+        {/* 5 & 6. Fumble + Minor-Miscast-from-critical sections */}
+        <MiscastRollButtons
+          isFumbledCast={isFumbledCast}
+          triggerMinorMiscast={triggerMinorMiscast}
+          onMiscastRoll={onMiscastRoll}
+        />
 
         {/* 7. Undispellable indicator */}
         {isUndispellable && (
@@ -165,7 +116,7 @@ export function CastResultDisplay({
         )}
 
         {/* 8. Overcast section */}
-        {overcastSlots > 0 && castSuccess && onOvercastAllocated && (
+        {overcastSlots > 0 && castSuccess && (onOvercastAllocated || onOvercastResolved) && (
           <>
             <div className={styles.separator} />
             <div className={styles.overcastWrapper}>
@@ -179,7 +130,7 @@ export function CastResultDisplay({
                   const tbBonus = Math.floor((tChar.i + tChar.a + tChar.b) / 10);
                   return parseDamageFromEffect(spell.effect, wpBonus, tbBonus) + slAchieved;
                 })() : undefined}
-                onAllocate={onOvercastAllocated}
+                onAllocate={onOvercastResolved ?? onOvercastAllocated!}
               />
             </div>
           </>
@@ -211,76 +162,12 @@ export function CastResultDisplay({
 
         {/* 10. Miscast result */}
         {miscastResult && (
-          <>
-            <div className={styles.separator} />
-            <div className={styles.miscastResult}>
-              <div className={styles.miscastName}>{miscastResult.entry.name}</div>
-              <div className={styles.miscastEffect}>{miscastResult.entry.effect}</div>
-              {miscastResult.entry.special === 'cascading_chaos' && (
-                <button
-                  type="button"
-                  className={styles.miscastBtnMargin}
-                  onClick={() => onMiscastRoll?.('major')}
-                >
-                  Roll Major Miscast
-                </button>
-              )}
-              {miscastResult.entry.special === 'multiplying_misfortune' && (
-                <button
-                  type="button"
-                  className={styles.miscastBtnMargin}
-                  onClick={() => onMiscastRoll?.('minor')}
-                >
-                  Roll 2 Minor Miscasts
-                </button>
-              )}
-              {miscastResult.entry.special === 'marked_by_magic' && (() => {
-                const lore = getCharacterLore(character);
-                const table = lore ? getArcaneMarksTable(lore) : null;
-                return table ? (
-                  <>
-                    {!arcaneMarkResult ? (
-                      <button
-                        type="button"
-                        className={styles.miscastBtnMargin}
-                        onClick={() => {
-                          const roll = Math.floor(Math.random() * 10) + 1;
-                          const entry = table.find((e) => e.roll === roll) ?? null;
-                          if (entry) {
-                            setArcaneMarkResult(entry);
-                          }
-                        }}
-                      >
-                        Roll Arcane Mark ({lore})
-                      </button>
-                    ) : (
-                      <div className={styles.miscastEffect}>
-                        <strong>Arcane Mark (d10: {arcaneMarkResult.roll}):</strong>{' '}
-                        {arcaneMarkResult.description}
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <button
-                            type="button"
-                            className={styles.miscastBtnMargin}
-                            onClick={() => onArcaneMarkAcquired?.(arcaneMarkResult.description)}
-                          >
-                            Store Mark on Character
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    className={styles.miscastBtnMargin}
-                    onClick={() => onMiscastRoll?.('major')}
-                  >
-                    No Arcane Marks table — Roll Major Miscast
-                  </button>
-                );
-              })()}
-            </div>
-          </>
+          <MiscastEscalation
+            miscastResult={miscastResult}
+            character={character}
+            onMiscastRoll={onMiscastRoll}
+            onArcaneMarkAcquired={onArcaneMarkAcquired}
+          />
         )}
 
         {/* 11. Dismiss button */}
