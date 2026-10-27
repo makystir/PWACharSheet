@@ -1,4 +1,4 @@
-import { useImperativeHandle, useState, type Ref } from 'react';
+import { useEffect, useImperativeHandle, useReducer, useState, type Ref } from 'react';
 import type { Character, SpellItem, MagicSaturation, FieldPath, FieldValue } from '../../types/character';
 import type { RollResult } from '../../logic/dice-roller';
 import {
@@ -13,10 +13,13 @@ import {
   type MiscastResult,
 } from '../../logic/spell-casting';
 import { hasSpellcastingTalent } from '../../logic/advancement';
+import { guidedCastReducer, initialGuidedCastState } from '../../logic/guided-cast/reducer';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
 import { RollDialog } from '../shared/RollDialog';
 import { CastResultDisplay } from './CastResultDisplay';
+import { GuidedCastTrigger } from './GuidedCastTrigger';
+import { GuidedCastPanel } from './GuidedCastPanel';
 import { EmptyState } from '../shared/EmptyState';
 import { CantPanel } from '../shared/CantPanel';
 import { HelpPopover } from '../shared/HelpPopover';
@@ -50,6 +53,7 @@ interface CompactSpellRowProps {
   onCast: () => void;
   onChannel: () => void;
   onCancelChannel: () => void;
+  onGuide: () => void;
   channelProgress: { accumulatedSL: number } | undefined;
   cn: number;
   isReady: boolean;
@@ -64,6 +68,7 @@ function CompactSpellRow({
   onCast,
   onChannel,
   onCancelChannel,
+  onGuide,
   channelProgress,
   cn,
   isReady,
@@ -132,6 +137,8 @@ function CompactSpellRow({
                   ✕ Cancel
                 </button>
               )}
+              {/* Opt-in guided-cast trigger — the ONLY new default-render element. */}
+              <GuidedCastTrigger onOpen={onGuide} />
             </div>
           )}
         </div>
@@ -205,6 +212,12 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
   const [miscastResult, setMiscastResult] = useState<MiscastResult | null>(null);
   const [expandedSpell, setExpandedSpell] = useState<string | null>(null);
   const [saturationExpanded, setSaturationExpanded] = useState(false);
+
+  // Opt-in guided-cast flow. The panel OWNS the reducer; the overlay only
+  // renders while a spell is bound (guideSpellName != null). When off (the
+  // default), this adds exactly one trigger per memorized row and nothing else.
+  const [guideState, dispatchGuide] = useReducer(guidedCastReducer, initialGuidedCastState);
+  const [guideSpellName, setGuideSpellName] = useState<string | null>(null);
 
   const canCastSpells = hasSpellcastingTalent(character);
 
@@ -285,6 +298,9 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
       const castResult = resolveCastingResult(result, spell, character, options);
       setCastingResult(castResult);
       onCastResolved?.(castResult);
+      // Push the resolved result into the guide reducer (single authoritative
+      // push path — the guide never reads back a stale handle value).
+      if (guideSpellName) dispatchGuide({ kind: 'castResolved', result: castResult });
       addRoll?.(result);
 
       // Reset channelling on cast (success or failure) if was channelling
@@ -309,6 +325,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
       );
       setCastingResult(reResolved);
       onCastResolved?.(reResolved);
+      if (guideSpellName) dispatchGuide({ kind: 'castResolved', result: reResolved });
     } else if (choice === 'unstoppable_force') {
       const reResolved = resolveCastingResult(
         castingResult.rollResult,
@@ -318,6 +335,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
       );
       setCastingResult(reResolved);
       onCastResolved?.(reResolved);
+      if (guideSpellName) dispatchGuide({ kind: 'castResolved', result: reResolved });
     }
     // critical_wound: just display, no re-resolve needed — do NOT fire onCastResolved
   };
@@ -326,6 +344,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
     const roll = Math.floor(Math.random() * 100) + 1;
     const entry = lookupMiscast(roll, table);
     setMiscastResult({ roll, entry });
+    if (guideSpellName) dispatchGuide({ kind: 'miscastCompleted' });
   };
 
   const handleOvercastAllocated = (allocations: Record<string, number>) => {
@@ -344,6 +363,67 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
     setCastingResult(null);
     setMiscastResult(null);
   };
+
+  // ── Guided-cast wiring (opt-in). The panel owns the reducer and drives its
+  // OWN private handlers from the overlay callbacks — no forked logic. ──
+  const guideSpell = guideSpellName != null
+    ? memorizedSpells.find((s) => s.name === guideSpellName) ?? null
+    : null;
+  const guideActive = guideSpell != null;
+
+  const openGuide = (spell: SpellItem) => {
+    setGuideSpellName(spell.name);
+    dispatchGuide({ kind: 'start', spellName: spell.name });
+  };
+
+  const closeGuide = () => {
+    setGuideSpellName(null);
+    dispatchGuide({ kind: 'reset' });
+    // Clear any cast state the guide was hosting so nothing persists after close.
+    setCastingResult(null);
+    setMiscastResult(null);
+  };
+
+  // Step 2 Cast: record the route, advance to 'resolve', and open the EXISTING
+  // cast RollDialog (the guide renders no dice).
+  const handleGuideOpenCast = () => {
+    if (!guideSpell) return;
+    dispatchGuide({ kind: 'chooseRoute', route: 'cast' });
+    dispatchGuide({ kind: 'goto', step: 'resolve' });
+    openCastDialog(guideSpell);
+  };
+
+  // Step 2 Channel: record the route and open the EXISTING channel RollDialog.
+  const handleGuideOpenChannel = () => {
+    if (!guideSpell) return;
+    dispatchGuide({ kind: 'chooseRoute', route: 'channel' });
+    openChannelDialog(guideSpell);
+  };
+
+  // Step 4 allocator confirm: capture allocations into the reducer and keep the
+  // result alive (the guide owns dismissal).
+  const handleGuideOvercastResolved = (allocations: Record<string, number>) => {
+    dispatchGuide({ kind: 'overcastResolved', allocations });
+  };
+
+  const handleArcaneMarkAcquired = (mark: string) => {
+    updateCharacter((c) => ({
+      ...c,
+      arcaneMarks: [...(c.arcaneMarks ?? []), mark],
+    }));
+  };
+
+  // Reset the guide if the bound spell is un-memorized / removed while open.
+  // Mirrors the sanctioned set-state-in-effect pattern (Tooltip.tsx / CombatPage.tsx):
+  // this reacts to an external data change (the character's spell list), not to
+  // our own render output.
+  useEffect(() => {
+    if (guideSpellName != null && !memorizedSpells.some((s) => s.name === guideSpellName)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setGuideSpellName(null);
+      dispatchGuide({ kind: 'reset' });
+    }
+  }, [guideSpellName, memorizedSpells]);
 
   // Opt-in guided-cast seam: expose an imperative handle delegating to the
   // panel's existing handlers so the guide drives the SAME logic (no fork).
@@ -506,6 +586,7 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
                   onCast={() => openCastDialog(spell)}
                   onChannel={() => openChannelDialog(spell)}
                   onCancelChannel={() => cancelChannelling(spell.name)}
+                  onGuide={() => openGuide(spell)}
                   channelProgress={cp}
                   cn={cn}
                   isReady={isReady}
@@ -567,8 +648,10 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
         />
       )}
 
-      {/* Cast Result Display (only when talent is present) */}
-      {canCastSpells && castingResult && (
+      {/* Cast Result Display (only when talent is present). Suppressed while the
+          guide is open so exactly one aria-modal dialog is ever active — the
+          guide hosts the allocator/miscast controls in-body (design MEDIUM-2). */}
+      {canCastSpells && !guideActive && castingResult && (
         <CastResultDisplay
           castingResult={castingResult}
           character={character}
@@ -577,13 +660,30 @@ export function SpellCastingPanel({ character, update: _update, updateCharacter,
           onMiscastRoll={handleMiscastRoll}
           onOvercastAllocated={handleOvercastAllocated}
           onOvercastResolved={onOvercastResolved}
-          onArcaneMarkAcquired={(mark: string) => {
-            updateCharacter((c) => ({
-              ...c,
-              arcaneMarks: [...(c.arcaneMarks ?? []), mark],
-            }));
-          }}
+          onArcaneMarkAcquired={handleArcaneMarkAcquired}
           onClose={handleCloseCastResult}
+        />
+      )}
+
+      {/* Guided Cast overlay (opt-in). YIELDS while the RollDialog is open so the
+          RollDialog is the single top aria-modal and the guide's trap/backdrop
+          go inert, resuming when the dialog closes (design MEDIUM-2). */}
+      {canCastSpells && guideActive && guideSpell && rollDialogState == null && (
+        <GuidedCastPanel
+          state={guideState}
+          dispatch={dispatchGuide}
+          character={character}
+          spell={guideSpell}
+          armourPenalty={getArmourCastingPenalty(character)}
+          saturation={character.sessionState.magicSaturation ?? 'normal'}
+          miscastResult={miscastResult}
+          onOpenCast={handleGuideOpenCast}
+          onOpenChannel={handleGuideOpenChannel}
+          onChooseCritical={handleCriticalChoice}
+          onRollMiscast={handleMiscastRoll}
+          onOvercastResolved={handleGuideOvercastResolved}
+          onArcaneMarkAcquired={handleArcaneMarkAcquired}
+          onClose={closeGuide}
         />
       )}
     </>

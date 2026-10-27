@@ -1,0 +1,170 @@
+/* Per-step content for the Guided Cast panel. Presentational only. */
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.fieldList {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.fieldList dt {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fieldList dd {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--card-border);
+}
+
+.totalLabel {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.totalValue {
+  font-family: var(--font-heading);
+  font-weight: bold;
+  color: var(--accent-gold);
+  padding: 2px 8px;
+  border: 1px dashed var(--card-border);
+  border-radius: var(--radius-sm);
+}
+
+.breakdownList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+
+.note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.warnNote {
+  margin: 0;
+  font-size: 12px;
+  color: var(--warning, #c08a2a);
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  filter: brightness(1.05);
+}
+
+.actionBtn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  border-color: var(--accent-gold);
+}
+
+.secondaryBtn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.outcomeLine {
+  margin: 0;
+  font-size: 14px;
+}
+
+.passColor {
+  color: var(--success, #4a9c4a);
+}
+
+.failColor {
+  color: var(--danger, #c0392b);
+}
+
+.goldText {
+  color: var(--accent-gold);
+  font-weight: bold;
+}
+
+.sectionLabel {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.thresholds {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.effectList {
+  list-style: disc;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
