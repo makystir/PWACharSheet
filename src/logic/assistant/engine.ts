@@ -10,6 +10,7 @@ import { diseaseSuggestions } from './rules/diseases';
 import { criticalWoundSuggestions } from './rules/critical-wounds';
 import { learnableSuggestions } from './rules/learnable';
 import { downtimeSuggestions } from './rules/downtime';
+import { downtimeRecommendationSuggestions } from './rules/downtime-recommendations';
 import { orderSuggestions } from './ordering';
 
 /**
@@ -36,6 +37,7 @@ export function getSuggestions(
     ...criticalWoundSuggestions(character),
     ...learnableSuggestions(character, context), // suppressed in combat
     ...downtimeSuggestions(character, context), // out-of-combat only
+    ...downtimeRecommendationSuggestions(character, context), // out-of-combat only; situation-aware
   ];
   return orderSuggestions(raw, context); // FR-3.4 deterministic
 }
