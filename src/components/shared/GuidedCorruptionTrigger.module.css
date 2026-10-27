@@ -1,0 +1,29 @@
+/* "Guide me through corruption" trigger — a secondary affordance near the
+   Corruption Tracker. Mirrors GuidedCastTrigger / GuidedDiseaseTrigger's
+   accent-outline idiom so it reads as an opt-in helper, not a primary control. */
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.trigger:hover {
+  background: var(--bg-tertiary);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useReducer, useState } from 'react';
 import type { Character, MutationEntry, FieldPath, FieldValue } from '../../types/character';
 import { Card } from './Card';
 import { SectionHeader } from './SectionHeader';
@@ -19,12 +19,20 @@ import {
 } from '../../logic/corruption';
 import type { MutationType } from '../../logic/corruption';
 import type { MutationTableEntry } from '../../data/mutation-tables';
+import type { DifficultyLevel, RollResult } from '../../logic/dice-roller';
+import { resolveSeededTarget } from '../../logic/reminders-target';
+import { guidedCorruptionReducer, initialCorruptionFlowState } from '../../logic/guided-corruption/reducer';
+import { GuidedCorruptionTrigger } from './GuidedCorruptionTrigger';
+import { GuidedCorruptionPanel, type SeedRollRequest } from './GuidedCorruptionPanel';
+import { RollDialog } from './RollDialog';
 import styles from './CorruptionCard.module.css';
 
 interface CorruptionCardProps {
   character: Character;
   update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
+  /** Optional callback so the guided resistance Test can be recorded in the shared roll history. */
+  onRoll?: (result: RollResult) => void;
 }
 
 const STATUS_CLASS: Record<string, string> = {
@@ -40,12 +48,46 @@ const SIN_CLASS: Record<string, string> = {
   danger: styles.sinDanger,
 };
 
-export function CorruptionCard({ character, update, updateCharacter }: CorruptionCardProps) {
+export function CorruptionCard({ character, update, updateCharacter, onRoll }: CorruptionCardProps) {
   const [rollResult, setRollResult] = useState<{
     roll: number;
     type: MutationType;
     entry: MutationTableEntry;
   } | null>(null);
+
+  // Opt-in guided-corruption flow. The card OWNS the reducer; the overlay only
+  // renders while the guide is open AND no seeded RollDialog is open (yield for
+  // the one-aria-modal invariant). When off (the default), this adds exactly one
+  // trigger near the Corruption Tracker and nothing else. Mirrors
+  // SpellCastingPanel / DiseasePanel guided-flow host wiring. The in-card
+  // Mutation Roller + Add to Character below stay UNCHANGED — the guide hands off
+  // to them for the mutation d100s rather than seeding a RollDialog.
+  const [guideState, dispatchGuide] = useReducer(guidedCorruptionReducer, initialCorruptionFlowState);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [rollDialogState, setRollDialogState] = useState<{
+    name: string;
+    baseTarget: number;
+    difficulty: DifficultyLevel;
+  } | null>(null);
+
+  const openGuide = () => {
+    setGuideOpen(true);
+    dispatchGuide({ kind: 'start' });
+  };
+
+  const closeGuide = () => {
+    setGuideOpen(false);
+    dispatchGuide({ kind: 'reset' });
+    setRollDialogState(null);
+  };
+
+  // Open the shared seeded RollDialog for the resistance Endurance Test. The base
+  // target + its tooltip lines come from resolveSeededTarget (one source of
+  // truth); the guide computes nothing itself.
+  const handleSeedRoll = (req: SeedRollRequest) => {
+    const { total } = resolveSeededTarget(character, req.def);
+    setRollDialogState({ name: req.name, baseTarget: total, difficulty: req.difficulty });
+  };
 
   const pureSoulLevel = getPureSoulLevel(character.talents);
   const threshold = getCorruptionThreshold(character.chars, pureSoulLevel);
@@ -112,6 +154,9 @@ export function CorruptionCard({ character, update, updateCharacter }: Corruptio
       {/* 1. CORRUPTION TRACKER */}
       <div className={styles.section}>
         <div className={styles.label}>Corruption Tracker</div>
+        {/* Opt-in guided-corruption trigger — the ONLY new default-render element
+            the guide adds to the card. */}
+        <GuidedCorruptionTrigger onOpen={openGuide} />
         <div className={styles.counterRow}>
           <button
             type="button"
@@ -285,6 +330,35 @@ export function CorruptionCard({ character, update, updateCharacter }: Corruptio
           <MutationRow key={m.id} mutation={m} onRemove={() => removeMutation(m.id)} updateCharacter={updateCharacter} />
         ))}
       </div>
+
+      {/* Guided-corruption overlay (opt-in). YIELDS while the seeded RollDialog
+          is open so the RollDialog is the single top aria-modal (one-aria-modal
+          invariant); the guide resumes when the dialog closes. */}
+      {guideOpen && rollDialogState == null && (
+        <GuidedCorruptionPanel
+          state={guideState}
+          dispatch={dispatchGuide}
+          character={character}
+          onSeedRoll={handleSeedRoll}
+          onClose={closeGuide}
+        />
+      )}
+
+      {/* Shared seeded RollDialog for the resistance Endurance Test. onRoll
+          records to the shared history then closes; it mutates nothing on the
+          character. */}
+      {rollDialogState && (
+        <RollDialog
+          skillOrCharName={rollDialogState.name}
+          baseTarget={rollDialogState.baseTarget}
+          defaultDifficulty={rollDialogState.difficulty}
+          onRoll={(r) => {
+            onRoll?.(r);
+            setRollDialogState(null);
+          }}
+          onClose={() => setRollDialogState(null)}
+        />
+      )}
     </Card>
   );
 }

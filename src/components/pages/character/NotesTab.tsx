@@ -55,7 +55,7 @@ export function NotesTab({ character, update, updateCharacter, addRoll }: NotesT
       </Card>
 
       {/* Corruption & Mutation */}
-      <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} />
+      <CorruptionCard character={character} update={update} updateCharacter={updateCharacter} onRoll={addRoll} />
 
       {/* Diseases */}
       <DiseasePanel character={character} updateCharacter={updateCharacter} onRoll={addRoll} />
