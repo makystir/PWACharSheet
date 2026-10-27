@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "Cross-cutting NotesTab wiring + full-task verification. Thread onRoll={addRoll} into CorruptionCard from NotesTab so the corruption resistance roll reaches shared roll history (parity with DiseasePanel, Finding 1), then run the four verification gates clean across the whole repo and fix anything they surface. Depends on FEAT-002 (the onRoll prop must exist on CorruptionCard) and FEAT-001; it is the integration/convergence feature.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "Edit src/components/pages/character/NotesTab.tsx: pass onRoll={addRoll} to the existing <CorruptionCard ... /> render (DiseasePanel already receives onRoll={addRoll}; leave it unchanged). No other change to NotesTab.",
     "Confirm NotesTab tests still pass: vitest --run src/components/pages/character/__tests__/NotesTab.test.tsx.",
@@ -22,5 +22,5 @@
     "npx eslint ."
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "NotesTab already threads onRoll={addRoll} into <CorruptionCard /> (NotesTab.tsx:60), and CorruptionCard already declares the optional `onRoll?: (result: RollResult) => void` prop and invokes it from the seeded RollDialog's onRoll — this wiring landed as part of the FEAT-002 commit (cc91e48 'feat: guided corruption/mutation progression flow'), so FEAT-003 required no additional source edits. DiseasePanel still receives onRoll={addRoll} unchanged. All four convergence gates are clean on the whole repo: (1) npx tsc --build --force --noEmit -> exit 0; (2) npm run build -> built in ~0.7s; (3) vitest --run -> 522 files / 5589 tests all passing (incl. NotesTab.test.tsx 6/6 and the FEAT-002 onRoll-spy test); (4) npx eslint . -> 0 errors, 3 warnings. The 3 eslint warnings are PRE-EXISTING react-refresh/only-export-components warnings in files untouched by this task (CommandPaletteContext.tsx:43, CombatPage.tsx:59, SettingsPage.tsx:30) — not new, not in any file this task owns. No pre-existing test was modified (NFR-2 satisfied). No temporary files were created. Guided disease/corruption task is fully converged."
 }
