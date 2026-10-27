@@ -31,7 +31,7 @@ export function GuidedCorruptionTrigger({ onOpen }: GuidedCorruptionTriggerProps
       data-testid="guided-corruption-trigger"
     >
       <Compass size={16} aria-hidden="true" />
-      {!isMobile && <span>Guide me through this</span>}
+      {!isMobile && <span>Guide me through corruption</span>}
     </button>
   );
 }
