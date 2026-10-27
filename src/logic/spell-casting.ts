@@ -187,11 +187,17 @@ const HIT_LOCATIONS: { min: number; max: number; name: string }[] = [
 // ─── Task 3.1: Casting Target Computation ─────────────────────────────────────
 
 /**
- * Compute the base target number for a Language (Magick) casting test.
- * Returns Int total (i + a + b) + Language (Magick) skill advances.
- * If the character lacks the skill, advances default to 0.
+ * Compute the component breakdown of the base target number for a Language
+ * (Magick) casting test, so callers (e.g. breakdown tooltips) can render the
+ * parts from the SAME single source as the total.
+ * Returns the Int total (i + a + b), the Language (Magick) skill advances
+ * (0 if the character lacks the skill), and their sum.
+ *
+ * // Core p.234: Casting Test — Int total + Language (Magick) advances
  */
-export function computeCastingTarget(character: Character): number {
+export function computeCastingTargetBreakdown(
+  character: Character,
+): { intTotal: number; advances: number; total: number } {
   const intChar = character.chars.Int;
   const intTotal = intChar.i + intChar.a + intChar.b;
 
@@ -200,7 +206,28 @@ export function computeCastingTarget(character: Character): number {
   const langMagick = allSkills.find((s) => s.n === 'Language (Magick)');
   const advances = langMagick ? langMagick.a : 0;
 
-  return intTotal + advances;
+  return { intTotal, advances, total: intTotal + advances };
+}
+
+/**
+ * Compute the base target number for a Language (Magick) casting test.
+ * Returns Int total (i + a + b) + Language (Magick) skill advances.
+ * If the character lacks the skill, advances default to 0.
+ *
+ * // Core p.234: Casting Test — Int total + Language (Magick) advances
+ */
+export function computeCastingTarget(character: Character): number {
+  return computeCastingTargetBreakdown(character).total;
+}
+
+/**
+ * True if a spell is a Petty spell (CN of '0' or '-'). Single source for the
+ * Petty rule used across the casting logic and UI.
+ *
+ * // Core p.234: Petty Magic spells have a Casting Number of 0
+ */
+export function isPettySpell(spell: SpellItem): boolean {
+  return spell.cn === '0' || spell.cn === '-';
 }
 
 /**
@@ -380,6 +407,26 @@ export function computeOvercastSlots(sl: number, cn: number): number {
 }
 
 /**
+ * Expose the component breakdown of a resolved cast's overcast budget, so a
+ * breakdown tooltip can render the parts from the SAME values the result
+ * already carries — including the Total-Power tens contribution as data
+ * (no re-derivation of tensDigit(roll)).
+ *
+ * totalPowerTens = max(0, overcastSlots + cn - slAchieved): the extra SL folded
+ * into the overcast budget beyond the raw achieved SL, which is exactly the
+ * tens digit added under Total Power (0 in the normal case).
+ *
+ * // Winds of Magic §"Critical Casting" (Total Power) — add the tens digit of the casting roll to SL for Overcasting (see WoM p.23 Overcast Table)
+ */
+export function computeOvercastBudgetBreakdown(
+  result: CastingResult,
+): { slAchieved: number; totalPowerTens: number; cn: number; overcastSlots: number } {
+  const { slAchieved, cn, overcastSlots } = result;
+  const totalPowerTens = Math.max(0, overcastSlots + cn - slAchieved);
+  return { slAchieved, totalPowerTens, cn, overcastSlots };
+}
+
+/**
  * Compute available overcast options for a spell.
  * Disables Range/Targets when range="You" AND target="You".
  * Disables Range when range="Touch".
@@ -454,8 +501,8 @@ export function resolveCastingResult(
   const castSuccess = totalPower || slAchieved >= cn;
 
   // Surplus SL for overcasting.
-  // Total Power (Winds of Magic p.19): "The caster may add the tens digit of their casting roll
-  // to their SL for the purpose of Overcasting."
+  // Winds of Magic §"Critical Casting" (Total Power): "The caster may add the tens digit of their
+  // casting roll to their SL for the purpose of Overcasting." (see WoM p.23 Overcast Table)
   const overcastSL = totalPower
     ? slAchieved + tensDigit(rollResult.roll)
     : slAchieved;
@@ -468,7 +515,7 @@ export function resolveCastingResult(
   // Miscast triggers
   // - Critical Cast (doubles + success): Minor Miscast unless Instinctive Diction
   // - Fumbled Cast (doubles + failure): Minor Miscast
-  // - Channelled cast failure (Winds of Magic p.20): mandatory Minor Miscast
+  // - Winds of Magic §"Channelling Test" — failed channelled cast forces a Minor Miscast
   //   "If the Casting Test fails, the stored energy is lost and the spellcaster must roll on the Minor Miscast Table."
   const isChannelledCast = options?.channelledCN !== undefined;
   const channelledCastFailed = isChannelledCast && !castSuccess;
