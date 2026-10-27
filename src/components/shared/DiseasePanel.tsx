@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useReducer, useState } from 'react';
 import type { Character } from '../../types/character';
 import type { DiseaseEntry } from '../../data/diseases';
 import { DISEASE_REGISTRY } from '../../data/diseases';
@@ -19,13 +19,18 @@ import {
 } from '../../logic/diseases';
 import type { RolledTiming } from '../../logic/diseases';
 import { performRoll } from '../../logic/dice-roller';
-import type { RollResult } from '../../logic/dice-roller';
+import type { DifficultyLevel, RollResult } from '../../logic/dice-roller';
 import { getHitLocation } from '../combat/hitLocationTable';
+import { guidedDiseaseReducer, initialDiseaseFlowState } from '../../logic/guided-disease/reducer';
+import { resolveSeededTarget } from '../../logic/reminders-target';
 import { Card } from './Card';
 import { SectionHeader } from './SectionHeader';
 import { AddButton } from './AddButton';
 import { EmptyState } from './EmptyState';
 import { Picker } from './Picker';
+import { RollDialog } from './RollDialog';
+import { GuidedDiseaseTrigger } from './GuidedDiseaseTrigger';
+import { GuidedDiseasePanel, type SeedRollRequest } from './GuidedDiseasePanel';
 import { HeartPulse, ChevronDown, ChevronRight, Dices } from 'lucide-react';
 import styles from './DiseasePanel.module.css';
 
@@ -54,6 +59,41 @@ export function DiseasePanel({ character, updateCharacter, onRoll }: DiseasePane
   // Transient symptom roll results keyed by `${diseaseId}:${symptomDisplayName}`.
   const [symptomRolls, setSymptomRolls] = useState<Record<string, SymptomRollResult>>({});
 
+  // Opt-in guided-disease flow. The panel OWNS the reducer; the overlay only
+  // renders while a disease is bound (guideDiseaseId != null). When off (the
+  // default), this adds exactly one trigger per rendered active-disease row and
+  // nothing else. Mirrors SpellCastingPanel's guided-cast host wiring.
+  const [guideState, dispatchGuide] = useReducer(guidedDiseaseReducer, initialDiseaseFlowState);
+  const [guideDiseaseId, setGuideDiseaseId] = useState<number | null>(null);
+  const [rollDialogState, setRollDialogState] = useState<{
+    name: string;
+    baseTarget: number;
+    difficulty: DifficultyLevel;
+  } | null>(null);
+
+  const guideDisease = guideDiseaseId != null
+    ? diseases.find((d) => d.id === guideDiseaseId) ?? null
+    : null;
+
+  const openGuide = (id: number) => {
+    setGuideDiseaseId(id);
+    dispatchGuide({ kind: 'start', diseaseId: id });
+  };
+
+  const closeGuide = () => {
+    setGuideDiseaseId(null);
+    dispatchGuide({ kind: 'reset' });
+    setRollDialogState(null);
+  };
+
+  // Open the shared seeded RollDialog for a symptom/Lingering Test. The base
+  // target + its tooltip lines come from resolveSeededTarget (one source of
+  // truth); the guide computes nothing itself.
+  const handleSeedRoll = (req: SeedRollRequest) => {
+    const { total } = resolveSeededTarget(character, req.def);
+    setRollDialogState({ name: req.name, baseTarget: total, difficulty: req.difficulty });
+  };
+
   const handleSelectDisease = (entry: DiseaseEntry) => {
     updateCharacter((char) => ({
       ...char,
@@ -69,6 +109,11 @@ export function DiseasePanel({ character, updateCharacter, onRoll }: DiseasePane
     }));
     if (expandedId === id) {
       setExpandedId(null);
+    }
+    // If the removed disease is the one the guide is bound to, tear the guide
+    // down so it never points at a vanished disease.
+    if (guideDiseaseId === id) {
+      closeGuide();
     }
   };
 
@@ -200,6 +245,10 @@ export function DiseasePanel({ character, updateCharacter, onRoll }: DiseasePane
 
                 {isExpanded && diseaseEntry && (
                   <div className={styles.diseaseDetails}>
+                    {/* Opt-in guided-disease trigger — the ONLY new default-render
+                        element the guide adds, one per rendered active-disease row. */}
+                    <GuidedDiseaseTrigger diseaseId={disease.id} onOpen={openGuide} />
+
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Contraction:</span>
                       <span className={styles.detailValue}>{diseaseEntry.contraction}</span>
@@ -371,6 +420,35 @@ export function DiseasePanel({ character, updateCharacter, onRoll }: DiseasePane
           onSelect={handleSelectDisease}
           onClose={() => setShowPicker(false)}
           title="Add Disease"
+        />
+      )}
+
+      {/* Guided-disease overlay (opt-in). YIELDS while the seeded RollDialog is
+          open so the RollDialog is the single top aria-modal (one-aria-modal
+          invariant); the guide resumes when the dialog closes. */}
+      {guideDisease && rollDialogState == null && (
+        <GuidedDiseasePanel
+          state={guideState}
+          dispatch={dispatchGuide}
+          character={character}
+          disease={guideDisease}
+          onSeedRoll={handleSeedRoll}
+          onClose={closeGuide}
+        />
+      )}
+
+      {/* Shared seeded RollDialog for symptom/Lingering Tests. onRoll records to
+          the shared history then closes; it mutates nothing on the character. */}
+      {rollDialogState && (
+        <RollDialog
+          skillOrCharName={rollDialogState.name}
+          baseTarget={rollDialogState.baseTarget}
+          defaultDifficulty={rollDialogState.difficulty}
+          onRoll={(r) => {
+            onRoll?.(r);
+            setRollDialogState(null);
+          }}
+          onClose={() => setRollDialogState(null)}
         />
       )}
     </Card>

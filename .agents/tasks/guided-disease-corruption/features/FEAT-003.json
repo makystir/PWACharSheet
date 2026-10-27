@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Cross-cutting NotesTab wiring + full-task verification. Thread onRoll={addRoll} into CorruptionCard from NotesTab so the corruption resistance roll reaches shared roll history (parity with DiseasePanel, Finding 1), then run the four verification gates clean across the whole repo and fix anything they surface. Depends on FEAT-002 (the onRoll prop must exist on CorruptionCard) and FEAT-001; it is the integration/convergence feature.",
+  "status": "pending",
+  "steps": [
+    "Edit src/components/pages/character/NotesTab.tsx: pass onRoll={addRoll} to the existing <CorruptionCard ... /> render (DiseasePanel already receives onRoll={addRoll}; leave it unchanged). No other change to NotesTab.",
+    "Confirm NotesTab tests still pass: vitest --run src/components/pages/character/__tests__/NotesTab.test.tsx.",
+    "Run the full type/build/test/lint gates (AC-21) and fix every error or new warning on sight (fix-errors steering). Any mechanic-touching fix must stay rulebook-compliant (verify against docs/WarhammerFantasyRoleplay4e.md and cite in a // Core p.XXX comment) and must NOT alter existing pure logic (getCorruptionStatus, getSymptomTest, mutation tables, resolveSeededTarget, diseases.ts, corruption.ts). Clean up any temporary files created during verification."
+  ],
+  "acceptance_criteria": [
+    "NotesTab passes onRoll={addRoll} to CorruptionCard and NotesTab tests pass unchanged.",
+    "The corruption resistance roll seeded by the guide reaches shared roll history through the threaded onRoll callback (covered by the FEAT-002 onRoll-spy test now that NotesTab wires it).",
+    "All four gates are clean: npx tsc --build --force --noEmit; npm run build; vitest --run; npx eslint . (0 errors, no new warnings).",
+    "No pre-existing test was modified to pass; the change is additive (NFR-2)."
+  ],
+  "verification": [
+    "vitest --run src/components/pages/character/__tests__/NotesTab.test.tsx",
+    "npx tsc --build --force --noEmit",
+    "npm run build",
+    "vitest --run",
+    "npx eslint ."
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

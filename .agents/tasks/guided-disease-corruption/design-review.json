@@ -1,0 +1,30 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "id": "NIT-1",
+      "severity": "NIT",
+      "area": "rules-compliance/citation-consistency",
+      "where": "design.md Citation verification (Pure Soul p.142) vs existing src/logic/assistant/rules/corruption.ts (cites p.182)",
+      "problem": "Design cites Pure Soul at p.142 (verified correct at source line 6811 and index line 16823), but the neighbouring assistant corruption rule cites p.182. Pre-existing codebase inconsistency, not introduced here, but the guide sits next to that rule.",
+      "fix": "In the guide's steps.ts use the verified '// Core p.142: Pure Soul' citation; do not change the assistant rule (out of scope/NON-REGRESSION), optionally note the two page numbers so a later reviewer does not flag drift."
+    },
+    {
+      "id": "NIT-2",
+      "severity": "NIT",
+      "area": "rules-compliance/guidance-copy",
+      "where": "Decision 1a Step 3 Lingering outcome copy",
+      "problem": "Lingering SL-band outcomes (Marginal Failure 0 -> +1d10 days; Failure -2 -> Festering Wound; Astounding Failure -6 -> Blood Rot) are verified verbatim at Core p.188 and correctly kept guidance-only, but must be static cited prose and never a code-derived SL band.",
+      "fix": "Render the three outcomes as static copy with '// Core p.188: Lingering outcomes (SL bands verbatim)' and assert their presence in the Step-3 component test so wording cannot drift."
+    },
+    {
+      "id": "NIT-3",
+      "severity": "NIT",
+      "area": "calculated-totals/tooltip-sourcing",
+      "where": "Decision 6 tooltip rows for physical/mental mutation limit and Gangrene TB threshold (e.g. 'TB 4 (floor(total T 42 / 10))')",
+      "problem": "The explanatory tooltip label embeds 'floor(total/10)', risking an implementer computing the label's bonus inline and letting it drift from getBonus/the helper total.",
+      "fix": "Feed both the number and the label from one getBonus(...)/helper call (e.g. tb = getToughnessBonus(character)); render the label from that same value, and assert in a component test that the displayed bonus equals getPhysicalMutationLimit(character.chars)."
+    }
+  ],
+  "reviewDoc": "d:\\Git\\PWACharSheet\\.agents\\tasks\\guided-disease-corruption\\design-review.md"
+}
