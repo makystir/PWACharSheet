@@ -31,6 +31,23 @@ export const ANIMAL_TEMPLATES: AnimalTemplate[] = [
   {name:"Cat (Large/Wildcat)",species:"Cat",M:5,WS:30,BS:0,S:15,T:15,I:40,Ag:45,Dex:0,Int:15,WP:20,Fel:0,W:4,
     traits:"Bestial, Night Vision, Size (Small), Stride, Weapon+4, Tracker",
     trained:[], notes:"Stealthy predator. Can be trained: Broken, Fetch, Guard"},
+  // DEFT STEPS — Hounds (hunting animals). Book prints BS and Dex as "-" → 0 (matches existing templates)
+  {name:"Hochland Lockhund",species:"Dog",M:4,WS:30,BS:0,S:20,T:30,I:35,Ag:25,Dex:0,Int:15,WP:10,Fel:15,W:5,
+    traits:"Bestial, Night Vision, Skittish, Size (Small), Stride, Tracker, Weapon+5",
+    trained:[], notes:"Tenacious badger hound; catches small animals. Optional: Trained (Broken, Dig, Entertain, Fetch, Guard, Heel, Hunt, Magic, Point, Round, Track, War). Hunting Traits: Dig, Heel, Hunt, Point, Round, Track"},
+  {name:"Nordlander Bamse",species:"Dog",M:5,WS:25,BS:0,S:20,T:20,I:30,Ag:20,Dex:0,Int:12,WP:10,Fel:20,W:6,
+    traits:"Bestial, Night Vision, Skittish, Size (Small), Stride, Tracker, Weapon+5",
+    trained:[], notes:"Affable medium hound; hunts for hours, stalks fast prey like deer and fox. Optional: Trained (Broken, Dig, Entertain, Fetch, Guard, Heel, Hunt, Magic, Point, Round, Track, War). Hunting Traits: Dig, Heel, Hunt, Point, Round, Track"},
+  {name:"Grootscher Marsh Hound",species:"Dog",M:4,WS:30,BS:0,S:30,T:30,I:35,Ag:15,Dex:0,Int:15,WP:10,Fel:15,W:10,
+    traits:"Bestial, Night Vision, Skittish, Size (Average), Stride, Tracker, Weapon+6",
+    trained:[], notes:"Large furry marsh hound (Westerlander); resilient to cold, strong swimmer, stalks waterfowl and dives for fish. Optional: Trained (Broken, Dig, Entertain, Fetch, Guard, Heel, Hunt, Magic, Point, Round, Track, War). Hunting Traits: Dig, Heel, Hunt, Point, Round, Track"},
+  // DEFT STEPS — Hawks (hunting animals)
+  {name:"Dove Hawk",species:"Hawk",M:2,WS:35,BS:0,S:15,T:25,I:25,Ag:35,Dex:0,Int:10,WP:20,Fel:5,W:6,
+    traits:"Bestial, Fly 100, Night Vision, Size (Small), Skittish, Weapon+4",
+    trained:[], notes:"Most common Imperial hunting hawk ('Shallyan Monkbird'); handles an adult rabbit. Optional: Trained (Broken, Circle, Hunt, Return). Hunting Traits: Hunt, Circle, Return"},
+  {name:"Arabyan Redhawk",species:"Hawk",M:2,WS:40,BS:0,S:22,T:35,I:30,Ag:30,Dex:0,Int:12,WP:30,Fel:5,W:8,
+    traits:"Bestial, Fly 80, Night Vision, Size (Small), Skittish, Weapon+5",
+    trained:[], notes:"Prized Arabyan hunting hawk; proud, fierce, and extraordinarily loyal once trained. Optional: Trained (Broken, Circle, Hunt, Return). Hunting Traits: Hunt, Circle, Return"},
 ];
 
 export const TRAINED_SKILLS: string[] = [

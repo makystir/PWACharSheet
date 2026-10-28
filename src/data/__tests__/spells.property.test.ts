@@ -30,6 +30,19 @@ const MIRACLES_MYRMIDIA = [
 const MIRACLES_RANALD = [
   'An Invitation', "Cat's Eyes", "Ranald's Grace",
   'Rich Man Poor Man Beggar Man Thief', 'Stay Lucky', "You Ain't Seen Me Right?",
+  // Deft Steps — Ranald aspect miracles (all under "Miracles of Ranald")
+  // Night Prowler
+  'Distant Sounds', 'Long Reach', 'Lose the Loot', 'Silence Reigns',
+  "Poor Man's Face", 'Talk Your Way Out', 'The Heat Is Off',
+  // Gamester
+  'Bountiful Fortune', 'Crisis of Confidence', 'Force the Hand of Chance',
+  'Perfect Empathy', 'The Gamemaster', 'Up the Stakes',
+  // Deceiver
+  'A Suitable Sucker', 'Bamboozle', 'One Almighty Lie', "Ranald's Mischief",
+  'Unremembered Face',
+  // Protector
+  'Back at You', 'Class War', 'Free Your Mind', 'Moment of Clarity',
+  'Rally Round', 'Under My Protection',
 ] as const;
 
 const MIRACLES_RHYA = [
@@ -50,6 +63,9 @@ const MIRACLES_SIGMAR = [
 const MIRACLES_TAAL = [
   'Animal Instincts', 'King of the Wild', 'Leaping Stag',
   'Lord of the Hunt', 'Tanglefoot', 'Tooth and Claw',
+  // Deft Steps — Miracles of Taal
+  "Auroch's Heart", 'Earthshudder', "Nature's Repast", 'Pax of Taal',
+  'Rending Paw', "River's Blessing", 'Wild Wind', 'Wilderness Way',
 ] as const;
 
 const MIRACLES_ULRIC = [

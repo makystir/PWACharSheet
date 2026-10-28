@@ -40,4 +40,14 @@ export const TRAPPING_LIST: TrappingData[] = [
   {name:"Power Stone (Crystal Mist, Ulgu)",enc:"0"},
   {name:"Power Stone (Vitaellum, Ghyran)",enc:"0"},
   {name:"Scroll",enc:"0"},
+  // DEFT STEPS — Tools of the Trade (price/effect recorded in comments; TrappingData has no price/effect field)
+  {name:"Bag of Tarrabeth Seed",enc:"0"}, // 6d Scarce (book cell reads "TOOLS 6d" — likely a conversion artefact; see verification.md FLAGGED GAP). Leave in a dog's path; dogs within 5 yds make Average (+20) Cool or spend 1d10 rounds investigating
+  {name:"Bag of Soot",enc:"0"}, // 2d Common; stain skin/clothing/gear - creatures suffer -1 SL to sight-based Perception Tests to spot or identify the Character in the dark
+  {name:"Caltrops (12)",enc:"0"}, // 2/- Rare; Action to scatter a dozen over a 2-yd area; entering requires Hard (-20) Athletics (Average (+20) if aware and walking) or take a Damage 1d10 leg hit and Stunned
+  {name:"Crampons (2)",enc:"1"}, // 1 GC Exotic; +2 SL Climb (rock/wood), +1 SL Climb (rope), -1 SL Athletics / -2 SL Stealth / -2 SL other movement Tests outside climbing
+  {name:"Glass Cutter",enc:"0"}, // 1 GC Exotic; bore a hole or cut a panel from glass with an Average (+20) Art (Engraving) Test (see SL table)
+  {name:"Periscope",enc:"1"}, // 2 GC Exotic; make sight-based Perception Tests while keeping the body hidden or in cover
+  {name:"Smoke Bomb",enc:"0"}, // 1 GC Exotic; thrown as an incendiary; fills a 10-yd area with smoke for 2d10 Rounds (doubled if enclosed); blocks sight and risks Suffocation
+  {name:"Steel Mummit",enc:"0"}, // 2 GC Exotic; open a lock-and-key (not padlock) or bolted door with a Hard (-20) Sleight of Hand Test (see SL table)
+  {name:"Telescopic Stick",enc:"1"}, // 3 GC Exotic (summary table lists "Telescopic Pole"); extends to 12 ft; Dexterity Tests to manipulate objects up to 4 yds away at -2 SL
 ];

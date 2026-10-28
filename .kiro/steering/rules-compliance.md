@@ -18,6 +18,7 @@ Reference these documents (in priority order) when implementing or modifying any
 8. #[[file:docs/dwarfguide.md]] — Dwarf species guide
 9. #[[file:docs/highelfguide.md]] — High Elf species guide
 10. #[[file:docs/PLAYER-GUIDE.md]] — Player reference guide
+11. #[[file:docs/deftsteps.md]] — Deft Steps, Light Fingers (crime/wilderness/religion supplement)
 
 ## Rules
 

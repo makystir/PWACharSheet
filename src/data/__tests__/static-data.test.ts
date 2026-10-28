@@ -4,7 +4,7 @@ import { CONDITIONS } from '../conditions';
 import { CAREER_SCHEMES, CAREER_CLASS_LIST } from '../careers';
 import { WEAPONS } from '../weapons';
 import { ARMOURS } from '../armour';
-import { SPELL_LIST } from '../spells';
+import { SPELL_LIST, LORE_CATEGORIES } from '../spells';
 import { TRAPPING_LIST } from '../trappings';
 import { TALENT_DB, TALENT_BONUS_MAP } from '../talents';
 import { TALENT_ALIASES } from '../talent-aliases';
@@ -1706,6 +1706,159 @@ describe('Up in Arms — Content Presence', () => {
       const skill = ADV_SKILL_DB.find(s => s.n === n);
       expect(skill, `Missing advanced skill: ${n}`).toBeDefined();
       expect(skill!.c, `Wrong characteristic for ${n}`).toBe(c);
+    }
+  });
+});
+
+
+// ─── Deft Steps, Light Fingers — Miracles ──────────────────────
+
+describe('Deft Steps — Miracles', () => {
+  // 24 Ranald aspect miracles (Night Prowler 7, Gamester 6, Deceiver 5, Protector 6),
+  // all modelled under the single "Miracles of Ranald" lore (design §2).
+  const ranaldMiracles = [
+    // Night Prowler (7)
+    'Distant Sounds', 'Long Reach', 'Lose the Loot', 'Silence Reigns',
+    "Poor Man's Face", 'Talk Your Way Out', 'The Heat Is Off',
+    // Gamester (6)
+    'Bountiful Fortune', 'Crisis of Confidence', 'Force the Hand of Chance',
+    'Perfect Empathy', 'The Gamemaster', 'Up the Stakes',
+    // Deceiver (5)
+    'A Suitable Sucker', 'Bamboozle', 'One Almighty Lie', "Ranald's Mischief",
+    'Unremembered Face',
+    // Protector (6)
+    'Back at You', 'Class War', 'Free Your Mind', 'Moment of Clarity',
+    'Rally Round', 'Under My Protection',
+  ];
+
+  // 8 Taal miracles
+  const taalMiracles = [
+    "Auroch's Heart", 'Earthshudder', "Nature's Repast", 'Pax of Taal',
+    'Rending Paw', "River's Blessing", 'Wild Wind', 'Wilderness Way',
+  ];
+
+  const newMiracles: Array<{ name: string; lore: string }> = [
+    ...ranaldMiracles.map(name => ({ name, lore: 'Miracles of Ranald' })),
+    ...taalMiracles.map(name => ({ name, lore: 'Miracles of Taal' })),
+  ];
+
+  it('all 32 Deft Steps miracles (24 Ranald + 8 Taal) exist with correct lore', () => {
+    expect(newMiracles).toHaveLength(32);
+    for (const { name, lore } of newMiracles) {
+      const spell = SPELL_LIST.find(s => s.name === name);
+      expect(spell, `Missing miracle: ${name}`).toBeDefined();
+      expect(spell!.lore, `Wrong lore for ${name}`).toBe(lore);
+      expect(LORE_CATEGORIES, `${name} lore not registered`).toContain(spell!.lore);
+    }
+  });
+
+  it('every Deft Steps miracle has non-empty required fields and a present cn', () => {
+    for (const { name } of newMiracles) {
+      const s = SPELL_LIST.find(s => s.name === name)!;
+      expect(s.name.length, `${name} empty name`).toBeGreaterThan(0);
+      expect(s.cn, `${name} missing cn`).toBeTruthy();   // miracles use "-"
+      expect(s.range.length, `${name} empty range`).toBeGreaterThan(0);
+      expect(s.target.length, `${name} empty target`).toBeGreaterThan(0);
+      expect(s.duration.length, `${name} empty duration`).toBeGreaterThan(0);
+      expect(s.effect.length, `${name} empty effect`).toBeGreaterThan(0);
+    }
+  });
+
+  it('no Deft Steps miracle name duplicates (including vs pre-existing Ranald/Taal entries)', () => {
+    // No duplicates within the new set
+    const newNames = newMiracles.map(m => m.name);
+    expect(new Set(newNames).size).toBe(newNames.length);
+    // Each new name appears exactly once in SPELL_LIST (no collision with existing entries)
+    for (const name of newNames) {
+      const count = SPELL_LIST.filter(s => s.name === name).length;
+      expect(count, `${name} appears ${count} times in SPELL_LIST`).toBe(1);
+    }
+  });
+});
+
+
+// ─── Deft Steps, Light Fingers — Trappings (Tools of the Trade) ─
+
+describe('Deft Steps — Trappings', () => {
+  const deftTrappings: Array<{ name: string; enc: string }> = [
+    { name: 'Bag of Tarrabeth Seed', enc: '0' },
+    { name: 'Bag of Soot', enc: '0' },
+    { name: 'Caltrops (12)', enc: '0' },
+    { name: 'Crampons (2)', enc: '1' },
+    { name: 'Glass Cutter', enc: '0' },
+    { name: 'Periscope', enc: '1' },
+    { name: 'Smoke Bomb', enc: '0' },
+    { name: 'Steel Mummit', enc: '0' },
+    { name: 'Telescopic Stick', enc: '1' },
+  ];
+
+  it('all 9 Deft Steps tools exist in TRAPPING_LIST with correct enc', () => {
+    for (const { name, enc } of deftTrappings) {
+      const t = TRAPPING_LIST.find(t => t.name === name);
+      expect(t, `Missing trapping: ${name}`).toBeDefined();
+      expect(t!.name.length, `${name} empty name`).toBeGreaterThan(0);
+      expect(t!.enc, `Wrong enc for ${name}`).toBe(enc);
+    }
+  });
+});
+
+
+// ─── Deft Steps, Light Fingers — Hunting Animals ───────────────
+
+describe('Deft Steps — Hunting Animals', () => {
+  const deftAnimals = [
+    'Hochland Lockhund', 'Nordlander Bamse', 'Grootscher Marsh Hound',
+    'Dove Hawk', 'Arabyan Redhawk',
+  ];
+
+  it('all 5 Deft Steps animal templates exist with valid stats', () => {
+    for (const name of deftAnimals) {
+      const a = ANIMAL_TEMPLATES.find(t => t.name === name);
+      expect(a, `Missing animal template: ${name}`).toBeDefined();
+      expect(a!.name.length, `${name} empty name`).toBeGreaterThan(0);
+      expect(a!.species.length, `${name} empty species`).toBeGreaterThan(0);
+      expect(a!.traits.length, `${name} empty traits`).toBeGreaterThan(0);
+      expect(Array.isArray(a!.trained), `${name} trained is not an array`).toBe(true);
+      for (const key of ['M', 'WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel', 'W'] as const) {
+        const v = a![key];
+        expect(Number.isInteger(v), `${name} ${key} is not an integer`).toBe(true);
+        expect(v, `${name} ${key} is negative`).toBeGreaterThanOrEqual(0);
+      }
+      expect(a!.W, `${name} W must be >= 1`).toBeGreaterThanOrEqual(1);
+    }
+  });
+});
+
+
+// ─── Deft Steps — Global No-Duplicate Guards ───────────────────
+
+describe('Deft Steps — No Duplicate Names', () => {
+  it('SPELL_LIST has no duplicate names', () => {
+    const names = SPELL_LIST.map(s => s.name);
+    const dupes = names.filter((n, i) => names.indexOf(n) !== i);
+    expect(dupes, `Duplicate spell names: ${[...new Set(dupes)].join(', ')}`).toHaveLength(0);
+  });
+
+  it('TRAPPING_LIST has no duplicate names', () => {
+    const names = TRAPPING_LIST.map(t => t.name);
+    const dupes = names.filter((n, i) => names.indexOf(n) !== i);
+    expect(dupes, `Duplicate trapping names: ${[...new Set(dupes)].join(', ')}`).toHaveLength(0);
+  });
+
+  it('ANIMAL_TEMPLATES has no duplicate names', () => {
+    const names = ANIMAL_TEMPLATES.map(a => a.name);
+    const dupes = names.filter((n, i) => names.indexOf(n) !== i);
+    expect(dupes, `Duplicate animal names: ${[...new Set(dupes)].join(', ')}`).toHaveLength(0);
+  });
+
+  it('pre-existing Deft Steps candidate talents are present in TALENT_DB (regression)', () => {
+    // Phase 1 adds no talents; all candidates already exist (design §3).
+    const candidateTalents = [
+      'Cardsharp', 'Diceman', 'Kingpin', 'Embezzle', 'Numismatics', 'Dealmaker',
+      'Super Numerate', 'Schemer', 'Secret Identity', 'Master of Disguise', 'Blather',
+    ];
+    for (const name of candidateTalents) {
+      expect(TALENT_DB.find(t => t.name === name), `Missing talent: ${name}`).toBeDefined();
     }
   });
 });
