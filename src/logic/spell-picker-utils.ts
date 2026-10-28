@@ -41,6 +41,14 @@ const INVOKE_MAP: Record<string, string> = {
   'Taal': 'Miracles of Taal',
   'Ulric': 'Miracles of Ulric',
   'Verena': 'Miracles of Verena',
+  // Deft Steps aspect Invoke talents resolve to the single Ranald lore.
+  // The four Ranald aspect priest careers grant Invoke (The <Aspect>) at tier 2
+  // (Deft Steps, docs/deftsteps.md L476/L558/L776-777/L875); all four aspects'
+  // miracles are modelled under one "Miracles of Ranald" lore (Phase 1 design §2).
+  'The Night Prowler': 'Miracles of Ranald',
+  'The Gamester': 'Miracles of Ranald',
+  'The Deceiver': 'Miracles of Ranald',
+  'The Protector': 'Miracles of Ranald',
 };
 
 /**

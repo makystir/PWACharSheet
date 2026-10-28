@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { deriveCharacterLore, filterByLore, searchSpells } from '../spell-picker-utils';
+import { deriveCharacterLore, filterByLore, searchSpells, getEligibleSpells } from '../spell-picker-utils';
+import { SPELL_LIST } from '../../data/spells';
 import type { SpellData } from '../../types/character';
 
 // Test spell fixtures
@@ -45,6 +46,25 @@ describe('deriveCharacterLore', () => {
   it('returns null for unrelated talents', () => {
     const talents = [{ n: 'Warrior Born' }, { n: 'Hardy' }];
     expect(deriveCharacterLore(talents)).toBeNull();
+  });
+
+  // Deft Steps aspect Invoke talents resolve to the single "Miracles of Ranald" lore (engine fix, design §2).
+  it.each([
+    'The Night Prowler',
+    'The Gamester',
+    'The Deceiver',
+    'The Protector',
+  ])('derives "Miracles of Ranald" from "Invoke (%s)"', (aspect) => {
+    expect(deriveCharacterLore([{ n: `Invoke (${aspect})` }])).toBe('Miracles of Ranald');
+  });
+});
+
+describe('getEligibleSpells — Ranald aspect-Invoke gating (Deft Steps engine fix)', () => {
+  it('gates an aspect priest to only Miracles of Ranald', () => {
+    const talents = [{ n: 'Invoke (The Night Prowler)' }];
+    const eligible = getEligibleSpells(SPELL_LIST, 'miracle', talents, 'Human');
+    expect(eligible.length).toBeGreaterThan(0);
+    expect(eligible.every(s => s.lore === 'Miracles of Ranald')).toBe(true);
   });
 });
 

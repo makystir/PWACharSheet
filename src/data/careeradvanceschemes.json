@@ -229,6 +229,55 @@
           "Fel": "T4"
         }
       },
+      "Forger": {
+        "species": [
+          "Dwarf",
+          "Halfling",
+          "High Elf",
+          "Human",
+          "Wood Elf"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T1",
+          "Agi": null,
+          "Dex": "T1",
+          "Int": "T2",
+          "WP": "T3",
+          "Fel": "T4"
+        }
+      },
+      "Thief (Burglar)": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": "T3",
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T2",
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      },
+      "Thief (Embezzler)": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": "T3",
+          "T": null,
+          "I": "T1",
+          "Agi": null,
+          "Dex": "T2",
+          "Int": "T1",
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      },
       "Witch": {
         "advance_scheme": {
           "WS": "T1",
@@ -245,6 +294,91 @@
       }
     },
     "Academics": {
+      "Priest of Ranald (Shadow Prowler)": {
+        "species": [
+          "Human"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T1",
+          "Int": "T4",
+          "WP": "T3",
+          "Fel": "T2"
+        }
+      },
+      "Priest of Ranald (Gambler-Priest)": {
+        "species": [
+          "Human"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T4",
+          "Dex": "T1",
+          "Int": "T3",
+          "WP": "T2",
+          "Fel": "T1"
+        }
+      },
+      "Priest of Ranald (Trickster-Priest)": {
+        "species": [
+          "Human"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T3",
+          "Dex": "T2",
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T1"
+        }
+      },
+      "Priest of Ranald (Liberator-Priest)": {
+        "species": [
+          "Human"
+        ],
+        "advance_scheme": {
+          "WS": "T4",
+          "BS": null,
+          "S": null,
+          "T": null,
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T2",
+          "WP": "T1",
+          "Fel": "T1"
+        }
+      },
+      "Ranger-Priest of Taal": {
+        "species": [
+          "Human"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": null,
+          "T": "T1",
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T4",
+          "WP": "T1",
+          "Fel": "T2"
+        }
+      },
       "Apothecary": {
         "species": [
           "Dwarf",
@@ -693,6 +827,45 @@
       }
     },
     "Rangers": {
+      "Muleskinner": {
+        "species": [
+          "Dwarf",
+          "Halfling",
+          "Human"
+        ],
+        "advance_scheme": {
+          "WS": null,
+          "BS": "T1",
+          "S": null,
+          "T": "T4",
+          "I": "T3",
+          "Agi": "T1",
+          "Dex": null,
+          "Int": "T2",
+          "WP": "T1",
+          "Fel": null
+        }
+      },
+      "Poacher": {
+        "species": [
+          "Dwarf",
+          "Halfling",
+          "Human",
+          "Wood Elf"
+        ],
+        "advance_scheme": {
+          "WS": "T3",
+          "BS": "T1",
+          "S": null,
+          "T": null,
+          "I": "T4",
+          "Agi": "T1",
+          "Dex": "T1",
+          "Int": "T2",
+          "WP": null,
+          "Fel": null
+        }
+      },
       "Bounty Hunter": {
         "advance_scheme": {
           "WS": "T1",

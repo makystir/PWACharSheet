@@ -10,6 +10,8 @@ import { TALENT_DB, TALENT_BONUS_MAP } from '../talents';
 import { TALENT_ALIASES } from '../talent-aliases';
 import { ANIMAL_TEMPLATES, TRAINED_SKILLS } from '../animals';
 import { ADV_SKILL_DB } from '../advanced-skills';
+import careerAdvanceSchemes from '../careeradvanceschemes.json';
+import { BLANK_CHARACTER } from '../../types/character';
 
 // ─── Species Data ───────────────────────────────────────────────
 
@@ -1859,6 +1861,199 @@ describe('Deft Steps — No Duplicate Names', () => {
     ];
     for (const name of candidateTalents) {
       expect(TALENT_DB.find(t => t.name === name), `Missing talent: ${name}`).toBeDefined();
+    }
+  });
+});
+
+
+// ─── Deft Steps, Light Fingers — Careers (FR-1 new careers + FR-2 Thief variants) ─
+
+describe('Deft Steps — Careers', () => {
+  // The authoritative advance schemes (user-supplied, verbatim; JSON "Agi" key, null unlisted).
+  // Matches design §7 exactly; these are the objects the JSON must deep-equal.
+  const EXPECTED_SCHEMES: Record<string, Record<string, string | null>> = {
+    'Priest of Ranald (Shadow Prowler)': { WS: null, BS: null, S: null, T: null, I: 'T1', Agi: 'T1', Dex: 'T1', Int: 'T4', WP: 'T3', Fel: 'T2' },
+    'Priest of Ranald (Gambler-Priest)': { WS: null, BS: null, S: null, T: null, I: 'T1', Agi: 'T4', Dex: 'T1', Int: 'T3', WP: 'T2', Fel: 'T1' },
+    'Priest of Ranald (Trickster-Priest)': { WS: null, BS: null, S: null, T: null, I: 'T1', Agi: 'T3', Dex: 'T2', Int: 'T4', WP: 'T1', Fel: 'T1' },
+    'Priest of Ranald (Liberator-Priest)': { WS: 'T4', BS: null, S: null, T: null, I: 'T3', Agi: 'T1', Dex: null, Int: 'T2', WP: 'T1', Fel: 'T1' },
+    'Ranger-Priest of Taal': { WS: null, BS: null, S: null, T: 'T1', I: 'T3', Agi: 'T1', Dex: null, Int: 'T4', WP: 'T1', Fel: 'T2' },
+    'Forger': { WS: null, BS: null, S: null, T: 'T1', I: 'T1', Agi: null, Dex: 'T1', Int: 'T2', WP: 'T3', Fel: 'T4' },
+    'Muleskinner': { WS: null, BS: 'T1', S: null, T: 'T4', I: 'T3', Agi: 'T1', Dex: null, Int: 'T2', WP: 'T1', Fel: null },
+    'Poacher': { WS: 'T3', BS: 'T1', S: null, T: null, I: 'T4', Agi: 'T1', Dex: 'T1', Int: 'T2', WP: null, Fel: null },
+    'Thief (Burglar)': { WS: null, BS: null, S: 'T3', T: null, I: 'T1', Agi: 'T1', Dex: 'T2', Int: null, WP: 'T1', Fel: 'T4' },
+    'Thief (Embezzler)': { WS: null, BS: null, S: 'T3', T: null, I: 'T1', Agi: null, Dex: 'T2', Int: 'T1', WP: 'T1', Fel: 'T4' },
+  };
+
+  // Expected class per new career (design §3, §4.1, §5).
+  const EXPECTED_CLASS: Record<string, string> = {
+    'Priest of Ranald (Shadow Prowler)': 'Academics',
+    'Priest of Ranald (Gambler-Priest)': 'Academics',
+    'Priest of Ranald (Trickster-Priest)': 'Academics',
+    'Priest of Ranald (Liberator-Priest)': 'Academics',
+    'Ranger-Priest of Taal': 'Academics',
+    'Forger': 'Rogues',
+    'Muleskinner': 'Rangers',
+    'Poacher': 'Rangers',
+    'Thief (Burglar)': 'Rogues',
+    'Thief (Embezzler)': 'Rogues',
+  };
+
+  const newCareers = Object.keys(EXPECTED_SCHEMES);
+  const TIER_KEYS = ['WS', 'BS', 'S', 'T', 'I', 'Agi', 'Dex', 'Int', 'WP', 'Fel'] as const;
+  const JSON_TO_APP: Record<string, string> = { Agi: 'Ag' };
+
+  // Flatten careers[class][career].advance_scheme for lookup.
+  function findScheme(name: string): Record<string, string | null> | undefined {
+    const root = (careerAdvanceSchemes as { careers: Record<string, Record<string, { advance_scheme?: Record<string, string | null> }>> }).careers;
+    for (const classEntries of Object.values(root)) {
+      if (classEntries[name]?.advance_scheme) return classEntries[name].advance_scheme;
+    }
+    return undefined;
+  }
+
+  // (a) Existence + class.
+  it('every new career exists in CAREER_SCHEMES with the expected class', () => {
+    for (const name of newCareers) {
+      expect(CAREER_SCHEMES[name], `Missing career: ${name}`).toBeDefined();
+      expect(CAREER_SCHEMES[name].class, `Wrong class for ${name}`).toBe(EXPECTED_CLASS[name]);
+    }
+  });
+
+  // (b) advance_scheme deep-equals the user-supplied mapping EXACTLY.
+  it('every new career advance_scheme in the JSON deep-equals the user-supplied mapping exactly', () => {
+    for (const name of newCareers) {
+      const scheme = findScheme(name);
+      expect(scheme, `Missing JSON advance_scheme for ${name}`).toBeDefined();
+      expect(scheme, `Advance scheme mismatch for ${name}`).toEqual(EXPECTED_SCHEMES[name]);
+    }
+  });
+
+  // (c) Every talent/skill/trapping referenced by each new career already exists in the data.
+  it('every talent referenced by a new career resolves in TALENT_DB', () => {
+    const talentNames = new Set(TALENT_DB.map(t => t.name));
+    const baseTalentNames = new Set(
+      TALENT_DB.map(t => {
+        const i = t.name.indexOf(' (');
+        return i > 0 ? t.name.substring(0, i) : t.name;
+      })
+    );
+    for (const name of newCareers) {
+      const scheme = CAREER_SCHEMES[name];
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].filter(Boolean);
+      for (const level of levels) {
+        for (const talent of level!.talents) {
+          if (talentNames.has(talent)) continue;
+          if (TALENT_ALIASES[talent] && talentNames.has(TALENT_ALIASES[talent])) continue;
+          const i = talent.indexOf(' (');
+          const base = i > 0 ? talent.substring(0, i) : talent;
+          expect(
+            baseTalentNames.has(base),
+            `Career "${name}" level "${level!.title}" references unknown talent "${talent}"`
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('every skill referenced by a new career resolves (by base name) to a known skill in the data', () => {
+    // Valid skill base names come from the data itself: the basic skills on BLANK_CHARACTER
+    // plus every advanced skill in ADV_SKILL_DB. Parameterised skills (e.g. "Stealth (Urban)",
+    // "Lore (Ranald)") are matched on their base name, mirroring how the app treats specialisations.
+    const baseName = (s: string): string => {
+      const i = s.indexOf(' (');
+      return i > 0 ? s.substring(0, i) : s;
+    };
+    const knownBases = new Set<string>([
+      ...BLANK_CHARACTER.bSkills.map(s => baseName(s.n)),
+      ...ADV_SKILL_DB.map(s => baseName(s.n)),
+    ]);
+    for (const name of newCareers) {
+      const scheme = CAREER_SCHEMES[name];
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].filter(Boolean);
+      for (const level of levels) {
+        for (const skill of level!.skills) {
+          expect(
+            knownBases.has(baseName(skill)),
+            `Career "${name}" level "${level!.title}" references unknown skill "${skill}" (base "${baseName(skill)}")`
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('every trapping referenced by a new career is a non-empty string', () => {
+    for (const name of newCareers) {
+      const scheme = CAREER_SCHEMES[name];
+      const levels = [scheme.level1, scheme.level2, scheme.level3, scheme.level4].filter(Boolean);
+      for (const level of levels) {
+        for (const trapping of level!.trappings ?? []) {
+          expect(trapping.length, `Career "${name}" level "${level!.title}" has an empty trapping`).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  // (d) Variant-swap correctness (design §5.1/§5.2).
+  it('Thief (Burglar) L3 talents include Secret Identity and exclude Trapper', () => {
+    const l3 = CAREER_SCHEMES['Thief (Burglar)'].level3!;
+    expect(l3.talents).toContain('Secret Identity');
+    expect(l3.talents).not.toContain('Trapper');
+    // Propagates to L4 (cumulative).
+    const l4 = CAREER_SCHEMES['Thief (Burglar)'].level4!;
+    expect(l4.talents).toContain('Secret Identity');
+    expect(l4.talents).not.toContain('Trapper');
+  });
+
+  it('Thief (Embezzler) L1 swaps characteristic Ag->Int and the documented talents', () => {
+    const e = CAREER_SCHEMES['Thief (Embezzler)'];
+    expect(e.level1!.characteristics).toContain('Int');
+    expect(e.level1!.characteristics).not.toContain('Ag');
+    expect(e.level1!.talents).toEqual(expect.arrayContaining(['Briber', 'Embezzle', 'Read/Write']));
+    for (const removed of ['Alley Cat', 'Criminal', 'Strike to Stun']) {
+      expect(e.level1!.talents, `Embezzler L1 should not retain ${removed}`).not.toContain(removed);
+    }
+  });
+
+  it('Thief (Embezzler) per-tier talent swaps hold cumulatively through L4', () => {
+    const e = CAREER_SCHEMES['Thief (Embezzler)'];
+    // L2: Break and Enter->Numismatics, Etiquette (Criminals)->Etiquette (Guilder), Shadow->Blather.
+    expect(e.level2!.talents).toEqual(expect.arrayContaining(['Numismatics', 'Etiquette (Guilder)', 'Blather']));
+    for (const removed of ['Break and Enter', 'Shadow', 'Etiquette (Criminals)']) {
+      expect(e.level2!.talents, `Embezzler L2 should not retain ${removed}`).not.toContain(removed);
+    }
+    // L3: Night Vision->Dealmaker, Step Aside->Savvy, Trapper->Super Numerate.
+    expect(e.level3!.talents).toEqual(expect.arrayContaining(['Dealmaker', 'Savvy', 'Super Numerate']));
+    for (const removed of ['Night Vision', 'Step Aside', 'Trapper']) {
+      expect(e.level3!.talents, `Embezzler L3 should not retain ${removed}`).not.toContain(removed);
+    }
+    // L4: Catfall->Schemer, Scale Sheer Surface->Cat-tongued, Strong Legs->Luck.
+    expect(e.level4!.talents).toEqual(expect.arrayContaining(['Schemer', 'Cat-tongued', 'Luck']));
+    for (const removed of ['Catfall', 'Scale Sheer Surface', 'Strong Legs']) {
+      expect(e.level4!.talents, `Embezzler L4 should not retain ${removed}`).not.toContain(removed);
+    }
+  });
+
+  // (e) scheme<->characteristics consistency (cumulative derivation, design §1.3).
+  it('each new career level lists exactly the characteristics whose scheme tier <= level', () => {
+    for (const name of newCareers) {
+      const scheme = EXPECTED_SCHEMES[name];
+      const appLevels = [
+        CAREER_SCHEMES[name].level1,
+        CAREER_SCHEMES[name].level2,
+        CAREER_SCHEMES[name].level3,
+        CAREER_SCHEMES[name].level4,
+      ];
+      for (let i = 0; i < appLevels.length; i++) {
+        const levelNum = i + 1;
+        const expected: string[] = [];
+        for (const k of TIER_KEYS) {
+          const t = scheme[k];
+          if (!t) continue;
+          if (parseInt(t.replace('T', ''), 10) <= levelNum) expected.push(JSON_TO_APP[k] ?? k);
+        }
+        const got = appLevels[i]!.characteristics as string[];
+        expect([...got].sort(), `${name} L${levelNum} characteristics mismatch`).toEqual([...expected].sort());
+      }
     }
   });
 });
