@@ -303,11 +303,17 @@ export function useCharacter(characterId: string, initialCharacter: Character): 
         flushSave();
       }
     };
+    // pagehide mirrors beforeunload so the live flush precedes the auto-backup
+    // controller's snapshot on a pagehide-only exit (auto-backup design §2/§9,
+    // NIT-2). Additive — no existing behavior changes.
+    const handlePageHide = () => flushSave();
     window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
     };
   }, [flushSave]);
 

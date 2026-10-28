@@ -19,6 +19,33 @@ function charKey(id: string): string {
   return `${CHAR_KEY_PREFIX}${id}`;
 }
 
+/**
+ * Character-change listener set (auto-backup design §2). Mirrors the sanctioned
+ * in-module listener pattern in `local-storage.ts` (`onStorageError`). Used by
+ * the snapshot controller to throttle rolling auto-backups after a consistent
+ * `saveCharacter` write. A listener fault is contained per-listener so it can
+ * NEVER break the live save path.
+ */
+const changeListeners = new Set<() => void>();
+
+/** Subscribe to consistent character-data changes. Returns an unsubscribe fn. */
+export function onCharacterDataChange(fn: () => void): () => void {
+  changeListeners.add(fn);
+  return () => {
+    changeListeners.delete(fn);
+  };
+}
+
+function notifyCharacterChange(): void {
+  changeListeners.forEach((fn) => {
+    try {
+      fn();
+    } catch {
+      // A listener fault must never break a save.
+    }
+  });
+}
+
 export function getCharacterIndex(): CharacterIndex {
   const raw = getItem(INDEX_KEY);
   if (!raw) {
@@ -110,7 +137,16 @@ export function saveCharacter(id: string, character: Character): StorageWriteRes
     entry.species = character.species;
     entry.career = character.career;
     entry.careerLevel = character.careerLevel;
-    return saveCharacterIndex(index);
+    // Notify the auto-backup change signal ONLY on a fully consistent write:
+    // the entry-found branch (which stamps lastModified) AND only when the
+    // index save itself succeeded. A failed char-key write (above) and the
+    // entry-not-found branch (below) represent inconsistent/failed state that
+    // must not trigger a snapshot (auto-backup design §2, Finding 3). The
+    // return value/timing are unchanged for callers — indexResult is just the
+    // already-returned saveCharacterIndex result, named.
+    const indexResult = saveCharacterIndex(index);
+    if (indexResult.ok) notifyCharacterChange();
+    return indexResult;
   }
   return result;
 }

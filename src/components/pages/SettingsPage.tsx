@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Character, ArmourPoints, RangedDamageSBMode, InitiativeFormula, FieldPath, FieldValue } from '../../types/character';
 import { BLANK_CHARACTER } from '../../types/character';
 import { Card } from '../shared/Card';
@@ -13,6 +13,11 @@ import { assembleBackup, downloadBackup } from '../../storage/backup-service';
 import { getLastBackupAt, getBackupReminder } from '../../storage/backup-reminder';
 import { validateBackupFile, detectDuplicates, restoreCharacters } from '../../storage/restore-service';
 import type { BackupCharacterEntry } from '../../storage/backup-types';
+import { getSnapshotStore } from '../../storage/snapshot-store';
+import type { SnapshotMeta } from '../../storage/snapshot-store';
+import { isAutoBackupEnabled, setAutoBackupEnabled } from '../../storage/snapshot-settings';
+import { restoreFromSnapshot, startSnapshotController } from '../../storage/snapshot-service';
+import type { SnapshotController } from '../../storage/snapshot-service';
 import { Settings, Download, Upload, Trash2, Printer, Palette, Sliders, Zap, X, Dice6, Share2, Link as LinkIcon, FileDown, Clipboard, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { encodeSharePayload } from '../../logic/share-codec';
 import { trimForLink, SHARE_SOFT_LIMIT, SHARE_HARD_LIMIT } from '../../logic/share-portrait';
@@ -86,6 +91,38 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
     characters: BackupCharacterEntry[];
   } | null>(null);
   const restoreInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-backup (rolling snapshot) state (auto-backup design §5).
+  const [autoBackupEnabled, setAutoBackupEnabledState] = useState<boolean>(() => isAutoBackupEnabled());
+  const [snapshots, setSnapshots] = useState<SnapshotMeta[]>([]);
+  const [snapshotsDegraded, setSnapshotsDegraded] = useState(false);
+  const [autoBackupError, setAutoBackupError] = useState('');
+  const snapshotControllerRef = useRef<SnapshotController | null>(null);
+
+  // Load the snapshot list on mount so the Settings list + status line render.
+  // Set-state happens inside the async callback (not synchronously in the effect
+  // body), so no set-state-in-effect disable is needed.
+  const refreshSnapshots = () => {
+    const store = getSnapshotStore();
+    void (async () => {
+      if (store.isDegraded()) {
+        setSnapshotsDegraded(true);
+        setSnapshots([]);
+        return;
+      }
+      const result = await store.listSnapshots();
+      if (result.ok) {
+        setSnapshots(result.value);
+        setSnapshotsDegraded(false);
+      } else {
+        setSnapshotsDegraded(store.isDegraded());
+      }
+    })();
+  };
+
+  useEffect(() => {
+    refreshSnapshots();
+  }, []);
 
   // Get all available skills from the character
   const allSkills = [...character.bSkills, ...character.aSkills]
@@ -377,12 +414,74 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
     } finally {
       setRestoreInProgress(false);
       setRestoreProgress('');
+      // The restore fired the per-character change signal; refresh the list so
+      // any newly-written snapshot shows up.
+      refreshSnapshots();
     }
   };
 
   const handleRestoreCancel = () => {
     setRestoreConfirmData(null);
   };
+
+  // --- Auto-backup (rolling snapshot) handlers ---
+
+  const handleRestoreFromSnapshot = async (seq: number) => {
+    setAutoBackupError('');
+    setRestoreError('');
+    setRestoreSuccess('');
+    const outcome = await restoreFromSnapshot(getSnapshotStore(), seq);
+    if (!outcome.ok) {
+      setAutoBackupError(outcome.error);
+      return;
+    }
+    // Route through the SAME validated confirm path as file restore.
+    setRestoreConfirmData({
+      characterCount: outcome.plan.characterCount,
+      characterNames: outcome.plan.characterNames,
+      duplicateNames: outcome.plan.duplicateNames,
+      characters: outcome.plan.characters,
+    });
+  };
+
+  const handleToggleAutoBackup = (enabled: boolean) => {
+    setAutoBackupEnabled(enabled);
+    setAutoBackupEnabledState(enabled);
+    if (enabled) {
+      const store = getSnapshotStore();
+      void (async () => {
+        if (store.isDegraded()) {
+          // Attempt init in case it was never started this session.
+          await store.init();
+        }
+        if (!snapshotControllerRef.current) {
+          snapshotControllerRef.current = startSnapshotController(store);
+        }
+        refreshSnapshots();
+      })();
+    } else if (snapshotControllerRef.current) {
+      snapshotControllerRef.current.stop();
+      snapshotControllerRef.current = null;
+    }
+  };
+
+  const handleClearSnapshots = async () => {
+    setAutoBackupError('');
+    const result = await getSnapshotStore().clearSnapshots();
+    if (!result.ok) {
+      setAutoBackupError(result.error);
+      return;
+    }
+    refreshSnapshots();
+  };
+
+  const formatSnapshotTime = (exportedAt: string): string => {
+    const d = new Date(exportedAt);
+    if (Number.isNaN(d.getTime())) return exportedAt || 'unknown time';
+    return d.toLocaleString();
+  };
+
+  const newestSnapshot = snapshots.length > 0 ? snapshots[0] : null;
 
   return (
     <div className={styles.sectionGap}>
@@ -881,6 +980,63 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
           )}
           {restoreError && <div className={styles.errorMsg}>{restoreError}</div>}
           {restoreSuccess && <div className={styles.successMsg}>{restoreSuccess}</div>}
+        </div>
+
+        {/* Auto-backup (rolling snapshot) — auto-backup design §5 */}
+        <div className={styles.importSection}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={autoBackupEnabled}
+              onChange={(e) => handleToggleAutoBackup(e.target.checked)}
+            />
+            <span>Automatic rolling backup</span>
+          </label>
+          <div className={styles.ruleDesc}>
+            Keeps the last few snapshots of all your characters in this browser so a
+            recent copy can be restored. Snapshots never leave your device.
+          </div>
+
+          {/* Status line — plain status text, NOT a calculated total, so no
+              Tooltip breakdown is attached (calculated-totals steering scope). */}
+          <div className={styles.ruleDesc} role="status">
+            {snapshotsDegraded
+              ? 'Auto-backup unavailable in this browser (private mode or storage blocked).'
+              : newestSnapshot
+                ? `Last auto-backup: ${formatSnapshotTime(newestSnapshot.exportedAt)}`
+                : 'No auto-backup yet.'}
+          </div>
+
+          {!snapshotsDegraded && snapshots.length > 0 && (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {snapshots.map((snap) => (
+                <li key={snap.seq} className={styles.importRow}>
+                  <button
+                    type="button"
+                    className={styles.smallBtn}
+                    onClick={() => void handleRestoreFromSnapshot(snap.seq)}
+                  >
+                    <Upload size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                    Restore {formatSnapshotTime(snap.exportedAt)} — {snap.characterCount} character{snap.characterCount !== 1 ? 's' : ''}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {!snapshotsDegraded && snapshots.length > 0 && (
+            <div className={styles.importRow}>
+              <button
+                type="button"
+                className={styles.smallBtn}
+                onClick={() => void handleClearSnapshots()}
+              >
+                <Trash2 size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                Clear auto-backups
+              </button>
+            </div>
+          )}
+          {autoBackupError && <div className={styles.errorMsg}>{autoBackupError}</div>}
         </div>
       </Card>
 

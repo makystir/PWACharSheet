@@ -44,7 +44,11 @@ export type SuggestionAction =
   // the UI resolves `test.def` -> baseTarget via resolveReminderBaseTarget and
   // passes `test.difficulty` through to RollDialog's defaultDifficulty.
   // `test` REUSES the reminder test shape so no new roll logic is introduced.
-  | { kind: 'roll'; test: { def: ReminderTest; difficulty: DifficultyLevel; rollName: string } };
+  | { kind: 'roll'; test: { def: ReminderTest; difficulty: DifficultyLevel; rollName: string } }
+  // Triggers the EXISTING bulk file export (assembleBackup -> downloadBackup),
+  // a user-gesture-initiated download. The engine only DESCRIBES it; the UI
+  // dispatcher performs it (auto-backup design §6).
+  | { kind: 'backup-file' };
 
 /** A single recommendation. Plain data, JSON-serializable (FR-5.2 / FR-5.3). */
 export interface Suggestion {
@@ -98,6 +102,19 @@ export interface SuggestionContext {
    * from context (not from the character) so the caller owns the one read.
    */
   inCombat: boolean;
+  /**
+   * Last FILE backup timestamp (ms epoch) or null. Read ONCE by the shell (not
+   * the engine) and threaded in so the engine stays pure — the file-backup
+   * nudge module reads this instead of calling `getLastBackupAt()` at eval time
+   * (auto-backup design §6, Finding 4). Optional ⇒ non-breaking (FR-3.1).
+   */
+  lastBackupAt?: number | null;
+  /**
+   * Clock snapshot the shell already holds (`assistantNow`), threaded in so the
+   * nudge module performs no `Date.now()` at engine-eval time. Optional ⇒
+   * non-breaking.
+   */
+  now?: number;
 }
 
 /**

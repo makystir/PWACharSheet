@@ -4,6 +4,7 @@ import type { PageSection } from '../layout/navItems';
 import type { DifficultyLevel } from '../../logic/dice-roller';
 import type { SuggestionAction } from '../../logic/assistant/types';
 import { resolveReminderBaseTarget } from '../../logic/reminders-target';
+import { assembleBackup, downloadBackup } from '../../storage/backup-service';
 
 /** The shell state a seeded reminder roll opens the `RollDialog` with. */
 export interface ReminderRollState {
@@ -19,6 +20,12 @@ export interface UseAssistantActionsArgs {
   navigate: (page: PageSection, subTab?: string | null) => void;
   /** Opens the shell's reminder-roll `RollDialog` (mirrors handleRollReminder). */
   openReminderRoll: (state: ReminderRollState) => void;
+  /**
+   * Optional: invoked AFTER a successful `backup-file` export so the shell can
+   * refresh `lastBackupAt`/`now` and clear the stale nudge (auto-backup design
+   * §6, Finding 5). Optional so the existing call site/tests compile unchanged.
+   */
+  onFileBackedUp?: () => void;
 }
 
 /**
@@ -32,6 +39,7 @@ export function useAssistantActions({
   character,
   navigate,
   openReminderRoll,
+  onFileBackedUp,
 }: UseAssistantActionsArgs): (action: SuggestionAction) => void {
   return useCallback(
     (action: SuggestionAction) => {
@@ -52,6 +60,20 @@ export function useAssistantActions({
           });
           break;
         }
+        case 'backup-file': {
+          // One-tap: run the EXISTING bulk file export (user-gesture download).
+          // downloadBackup already records the backup timestamp; on success we
+          // notify the shell so the stale nudge clears. Fire-and-forget: the
+          // dispatcher stays sync for existing callers.
+          void (async () => {
+            const r = await assembleBackup();
+            if (r.ok) {
+              const dl = downloadBackup(r.payload);
+              if (dl.ok) onFileBackedUp?.();
+            }
+          })();
+          break;
+        }
         default: {
           // Compile-time exhaustiveness guard: any future action.kind the UI
           // does not understand (e.g. from a later async source) is a no-op
@@ -61,6 +83,6 @@ export function useAssistantActions({
         }
       }
     },
-    [character, navigate, openReminderRoll],
+    [character, navigate, openReminderRoll, onFileBackedUp],
   );
 }

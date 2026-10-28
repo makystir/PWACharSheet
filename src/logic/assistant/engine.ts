@@ -11,6 +11,7 @@ import { criticalWoundSuggestions } from './rules/critical-wounds';
 import { learnableSuggestions } from './rules/learnable';
 import { downtimeSuggestions } from './rules/downtime';
 import { downtimeRecommendationSuggestions } from './rules/downtime-recommendations';
+import { fileBackupSuggestions } from './rules/file-backup';
 import { orderSuggestions } from './ordering';
 
 /**
@@ -38,6 +39,9 @@ export function getSuggestions(
     ...learnableSuggestions(character, context), // suppressed in combat
     ...downtimeSuggestions(character, context), // out-of-combat only
     ...downtimeRecommendationSuggestions(character, context), // out-of-combat only; situation-aware
+    // File-backup nudge: now/lastBackupAt come from the shell-built context so
+    // the engine performs no storage read / Date.now() at eval time (Finding 4).
+    ...fileBackupSuggestions(character, context, context.now, context.lastBackupAt ?? null),
   ];
   return orderSuggestions(raw, context); // FR-3.4 deterministic
 }

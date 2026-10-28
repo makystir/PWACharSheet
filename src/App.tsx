@@ -44,6 +44,11 @@ import { runMigration } from './storage/migration';
 import { saveCharacter } from './storage/character-manager';
 import { getPortraitStore } from './storage/portrait-store';
 import { runPortraitMigration } from './storage/portrait-migration';
+import { getSnapshotStore } from './storage/snapshot-store';
+import { isAutoBackupEnabled } from './storage/snapshot-settings';
+import { startSnapshotController } from './storage/snapshot-service';
+import { getLastBackupAt } from './storage/backup-reminder';
+import { RestoreLaunchHost } from './components/shared/RestoreLaunchHost';
 import { WelcomeScreen } from './components/shared/WelcomeScreen';
 import { SharedCharacterViewer } from './components/shared/SharedCharacterViewer';
 import { useViewRoute } from './hooks/useViewRoute';
@@ -172,6 +177,8 @@ function AppContent() {
             manager.refresh();
           }}
         />
+        {/* Restore-on-launch: empty roster covers the `live-empty` discrepancy. */}
+        <RestoreLaunchHost onRestored={() => manager.refresh()} />
         <Toast message={storageErrorMessage} duration={5000} />
         <CommandPalette />
         <ShortcutsHelpMount />
@@ -408,11 +415,25 @@ function AppWithCharacter({
   // snoozes drop out the next time suggestions recompute.
   const [assistantNow, setAssistantNow] = useState<number>(() => Date.now());
 
+  // Last FILE backup timestamp, seeded once from storage and bumped after a
+  // one-tap file backup so the file-backup nudge clears (auto-backup §6). Read
+  // by the shell (not the engine) so the engine stays pure (Finding 4/5).
+  const [lastBackupAt, setLastBackupAt] = useState<number | null>(() => getLastBackupAt());
+  // Clock snapshot used ONLY by the file-backup nudge staleness check. It is a
+  // SEPARATE state from `assistantNow` (which the dismiss-prune effect bumps on
+  // every recompute): making `assistantContext` depend on `assistantNow` would
+  // create a render loop (prune effect -> assistantNow -> context -> rawSuggestions
+  // -> prune effect ...). This clock changes only on mount and after a backup,
+  // so it cannot feed that loop.
+  const [nudgeNow, setNudgeNow] = useState<number>(() => Date.now());
+
   // SuggestionContext: single source of truth for "in combat" is
   // character.combatState.inCombat (OQ-4), read here so the engine stays React-free.
+  // lastBackupAt/now are threaded in so the file-backup nudge module performs no
+  // storage read / Date.now() at engine-eval time.
   const assistantContext = useMemo<SuggestionContext>(
-    () => ({ inCombat: character.combatState.inCombat }),
-    [character.combatState.inCombat],
+    () => ({ inCombat: character.combatState.inCombat, lastBackupAt, now: nudgeNow }),
+    [character.combatState.inCombat, lastBackupAt, nudgeNow],
   );
 
   // Raw engine output. The deterministic default source is always synchronous;
@@ -472,7 +493,17 @@ function AppWithCharacter({
     [],
   );
 
-  const dispatchAction = useAssistantActions({ character, navigate, openReminderRoll });
+  const dispatchAction = useAssistantActions({
+    character,
+    navigate,
+    openReminderRoll,
+    // After a successful one-tap file backup, refresh lastBackupAt/now so the
+    // memoized suggestions recompute and the stale nudge clears (§6, Finding 5).
+    onFileBackedUp: () => {
+      setLastBackupAt(getLastBackupAt());
+      setNudgeNow(Date.now());
+    },
+  });
   const { open: openAssistant } = useAssistantContext();
 
   const handleReminderRollResult = useCallback(
@@ -678,6 +709,9 @@ function AppWithCharacter({
           onClose={() => setReminderRollResult(null)}
         />
       )}
+      {/* Restore-on-launch: has-characters branch covers the `live-missing-ids`
+          discrepancy. Declining leaves live data and snapshots untouched. */}
+      <RestoreLaunchHost onRestored={() => manager.refresh()} />
       <AssistantPanel
         suggestions={suggestions}
         onAction={dispatchAction}
@@ -749,6 +783,17 @@ export default function App() {
       const store = getPortraitStore();
       await store.init();
       await runPortraitMigration(store);
+      // Auto-backup: isolated and non-fatal. Startup must still render even if
+      // snapshot init/controller throws or degrades (auto-backup design §4).
+      if (isAutoBackupEnabled()) {
+        try {
+          const snap = getSnapshotStore();
+          await snap.init();
+          startSnapshotController(snap);
+        } catch {
+          // console.warn at most inside the store/service — never blocks the app.
+        }
+      }
       if (!cancelled) setMigrated(true);
     }
     initApp();
