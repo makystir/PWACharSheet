@@ -1,7 +1,0 @@
-{
-  "task_id": "task-guided-disease-corruption",
-  "task_description": "Add two opt-in, off-by-default guided flows to the Notes tab — Guided Disease Progression (per active disease) and Guided Corruption / Mutation — each a pure React-free reducer under src/logic/ plus a portal overlay plus an opt-in trigger, mirroring src/logic/guided-cast/ + GuidedCastPanel. The guides suggest; the player decides and acts. They never roll, never mutate the character, never auto-advance, never auto-complete. Strictly additive: no existing pure logic (getCorruptionStatus, getSymptomTest, mutation tables, resolveSeededTarget, diseases.ts, corruption.ts) is modified, so all pre-existing tests stay green unchanged. Seeded Endurance/Cool symptom tests and the corruption-resistance Endurance test route through the shared RollDialog via resolveSeededTarget; mutation d100s and the Gangrene Hit-Location d100 route through the existing CorruptionCard/DiseasePanel controls. Every calculated total gets a breakdown tooltip. WFRP4e citations verified against docs/WarhammerFantasyRoleplay4e.md.",
-  "status": "completed",
-  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
-  "blocked_reason": null
-}

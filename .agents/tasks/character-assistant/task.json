@@ -1,7 +1,0 @@
-{
-  "task_id": "task-character-assistant",
-  "task_description": "Implement the Character Assistant feature per the approved design: a pure deterministic suggestion engine behind a SuggestionSource interface, a provider/hook + app-shell wiring mirroring the command palette, a persistent badge-bearing trigger in Navigation (desktop + mobile), a drawer/bottom-sheet panel with grouping/urgency ordering and dismiss/snooze, Tooltip breakdowns for calculated totals, and a test suite (fast-check property tests for the engine; component tests for panel + trigger asserting no auto-apply / no character mutation). Additive; existing tests stay green; no worktree; all four gates (tsc, build, vitest, eslint) clean.",
-  "status": "completed",
-  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
-  "blocked_reason": null
-}
