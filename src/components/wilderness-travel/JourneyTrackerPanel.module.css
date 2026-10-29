@@ -430,3 +430,97 @@
   border-radius: var(--radius-sm);
   cursor: help;
 }
+
+/* ─── Slice C: event tables reference + event-roll helper ─────────────────── */
+
+.eventTable {
+  margin-bottom: 14px;
+}
+
+.eventTableName {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin: 0 0 2px;
+}
+
+.eventTableMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+
+.eventRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eventRow {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 4px 0;
+  border-top: 1px solid var(--border);
+}
+
+.eventRoll {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--accent-gold);
+  text-align: center;
+}
+
+.eventResult {
+  color: var(--text-secondary);
+}
+
+.eventRedirect {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.rollerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.rollerResult {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rollerDice {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.rollerOutcome {
+  color: var(--text-secondary);
+}
+
+.rollerNoEvent {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.rollerCaption {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 6px;
+}

@@ -18,6 +18,7 @@ import {
 } from '../../logic/wilderness-travel/journey-state';
 import type { JourneyEvent } from '../../logic/wilderness-travel/types';
 import { StageCard } from './StageCard';
+import { EventReferencePanel } from './EventReferencePanel';
 import styles from './JourneyTrackerPanel.module.css';
 
 /**
@@ -414,6 +415,9 @@ export function JourneyTrackerPanel({ character, updateCharacter }: JourneyTrack
           ))}
         </div>
       </Card>
+
+      {/* Slice C: browsable reference view of the four event tables. */}
+      <EventReferencePanel />
 
       {/* Breakdown tooltips (single-open at a time) */}
       {openTooltip?.kind === 'total' && (

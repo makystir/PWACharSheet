@@ -25,6 +25,7 @@ import {
 import { resolveSeededTarget } from '../../logic/reminders-target';
 import { Tooltip } from '../shared/Tooltip';
 import type { SeededRollRequest } from './JourneyTrackerPanel';
+import { StageEventRoller } from './StageEventRoller';
 import styles from './JourneyTrackerPanel.module.css';
 
 interface StageCardProps {
@@ -387,6 +388,9 @@ export function StageCard({ character, stage, roster, dispatch, hasTents, onSeed
           </div>
         );
       })}
+
+      {/* Slice C: optional per-Stage event-roll helper (reference only, no auto-apply). */}
+      <StageEventRoller terrain={terrain} />
 
       <div className={styles.memberNotesRow} style={{ marginTop: 8 }}>
         <label className={styles.fieldLabel} htmlFor={`stage-notes-${stage.id}`}>
