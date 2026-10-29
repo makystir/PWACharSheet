@@ -867,7 +867,7 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
                   <div className={styles.ruleDesc} style={!character.houseRules.useWildernessTravel ? { color: 'var(--text-muted)' } : undefined}>
                     Stage-by-stage journey tracker for travel through the wilds (Deft Steps)
                   </div>
-                  {character.houseRules.useWildernessTravel && <div className={styles.ruleLocation}>Find it on: Retinue page → Travel tab</div>}
+                  {character.houseRules.useWildernessTravel && <div className={styles.ruleLocation}>Find it on: Endeavours page → Travel tab</div>}
                 </div>
                 <button
                   type="button"

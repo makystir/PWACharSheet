@@ -55,7 +55,7 @@ describe('SettingsPage — Wilderness Travel toggle (FR-1)', () => {
     character.houseRules.useWildernessTravel = true;
     render(<SettingsPage {...makeProps({ character })} />);
     expect(findToggleButton('Wilderness Travel')).toHaveTextContent('ON');
-    expect(screen.getByText('Find it on: Retinue page → Travel tab')).toBeInTheDocument();
+    expect(screen.getByText('Find it on: Endeavours page → Travel tab')).toBeInTheDocument();
   });
 
   it('clicking the toggle calls update to flip useWildernessTravel', () => {

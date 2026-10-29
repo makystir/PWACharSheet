@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Character, EntryStatus, DowntimePeriod, EndeavourEntry, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -10,6 +10,10 @@ import { CalendarCheck, Trash2, AlertTriangle, Info, Check, ChevronUp, ChevronDo
 import { EmptyState } from '../shared/EmptyState';
 import { HelpPopover } from '../shared/HelpPopover';
 import { getHelpContent } from '../../logic/help-content';
+import { SubTabBar } from '../shared/SubTabBar';
+import { useTabOrder } from '../../hooks/useTabOrder';
+import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
+import { JourneyTrackerPanel } from '../wilderness-travel/JourneyTrackerPanel';
 import styles from './EndeavoursPage.module.css';
 import { Toast } from '../shared/Toast';
 import { useUndoToast } from '../../hooks/useUndoToast';
@@ -41,7 +45,11 @@ interface EndeavoursPageProps {
   character: Character;
   update: <P extends FieldPath<Character>>(field: P, value: FieldValue<Character, P>) => void;
   updateCharacter: (mutator: (char: Character) => Character) => void;
+  subTab?: string | null;
+  onSubTabChange?: (tab: string) => void;
 }
+
+type EndeavoursSubTab = 'endeavours' | 'travel';
 
 /** Get the CSS class for an entry row based on its status */
 function getEntryRowClass(status: EntryStatus): string {
@@ -73,7 +81,83 @@ function getStatusTitle(status: EntryStatus): string {
 
 const TOOLTIP_STORAGE_KEY = 'wfrp-hint-dismissed-status-tooltip';
 
-export function EndeavoursPage({ character, updateCharacter }: EndeavoursPageProps) {
+export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabChange }: EndeavoursPageProps) {
+  // Optional Wilderness Travel mechanic (Deft Steps). When off, the Travel
+  // sub-tab is not registered and its panel never mounts, and no SubTabBar is
+  // rendered at all → zero DOM footprint, mirroring EstatePage's
+  // useEnterprises-gated Enterprises tab.
+  const useWildernessTravel = character.houseRules.useWildernessTravel === true;
+
+  // Memoised so it has a stable identity per useWildernessTravel value and can
+  // be referenced from effect dependency arrays without changing every render.
+  const VALID_SUBTABS: EndeavoursSubTab[] = useMemo(
+    () => (useWildernessTravel ? ['endeavours', 'travel'] : ['endeavours']),
+    [useWildernessTravel],
+  );
+
+  // Tab reordering — conditionally include the Travel tab.
+  const defaultTabsList = useMemo(() => {
+    const tabs = [{ id: 'endeavours', label: 'Endeavours' }];
+    if (useWildernessTravel) {
+      tabs.push({ id: 'travel', label: 'Travel' });
+    }
+    return tabs;
+  }, [useWildernessTravel]);
+
+  const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
+    pageKey: 'endeavours',
+    defaultTabs: defaultTabsList,
+  });
+
+  // Active sub-tab: use URL hash > last stored > first ordered tab
+  const resolveInitialTab = (): EndeavoursSubTab => {
+    if (subTab && VALID_SUBTABS.includes(subTab as EndeavoursSubTab)) return subTab as EndeavoursSubTab;
+    const stored = loadLastSubTab('endeavours');
+    if (stored && VALID_SUBTABS.includes(stored as EndeavoursSubTab)) return stored as EndeavoursSubTab;
+    const firstOrdered = orderedTabs[0]?.id;
+    if (firstOrdered && VALID_SUBTABS.includes(firstOrdered as EndeavoursSubTab)) return firstOrdered as EndeavoursSubTab;
+    return 'endeavours';
+  };
+  const [activeSubTab, setActiveSubTabInternal] = useState<EndeavoursSubTab>(resolveInitialTab);
+
+  // Fall back if the current active tab is no longer valid (e.g. the Wilderness
+  // Travel house rule was toggled off while the Travel tab was active).
+  // Intentional setState-in-effect: reacts to an external house-rule toggle
+  // (useWildernessTravel) that can invalidate the current tab, correcting it.
+  useEffect(() => {
+    if (!VALID_SUBTABS.includes(activeSubTab)) {
+      const fallback = (orderedTabs[0]?.id as EndeavoursSubTab) || 'endeavours';
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveSubTabInternal(fallback);
+      saveLastSubTab('endeavours', fallback);
+      onSubTabChange?.(fallback);
+    }
+    // Intentionally narrow: this is specifically the reaction to the wilderness
+    // travel house-rule toggling. Re-running on activeSubTab/orderedTabs/
+    // onSubTabChange changes would fight normal tab navigation, so only
+    // useWildernessTravel belongs here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useWildernessTravel]);
+
+  // Sync from external subTab prop (e.g. URL hash changes).
+  // Intentional setState-in-effect: mirrors an external routing input into
+  // local state (see CharacterPage for the same pattern).
+  useEffect(() => {
+    if (subTab) {
+      if (VALID_SUBTABS.includes(subTab as EndeavoursSubTab)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setActiveSubTabInternal(subTab as EndeavoursSubTab);
+      }
+    }
+  }, [subTab, VALID_SUBTABS]);
+
+  // Wrapper that notifies parent and persists selection
+  const setActiveSubTab = (tab: EndeavoursSubTab) => {
+    setActiveSubTabInternal(tab);
+    saveLastSubTab('endeavours', tab);
+    onSubTabChange?.(tab);
+  };
+
   const [deletingPeriodId, setDeletingPeriodId] = useState<string | null>(null);
   const [addingToPeriodId, setAddingToPeriodId] = useState<string | null>(null);
   const [customForPeriodId, setCustomForPeriodId] = useState<string | null>(null);
@@ -234,8 +318,34 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
     setToastMessage('Endeavour added');
   };
 
+  // When the Wilderness Travel house rule is off there is only one tab, so the
+  // sub-tab bar is hidden and the downtime tracker renders exactly as before.
+  const showEndeavoursContent = !useWildernessTravel || activeSubTab === 'endeavours';
+
   return (
     <div className={styles.sectionGap}>
+      {/* Sub-tab navigation — only rendered when the Wilderness Travel house
+          rule is on (otherwise there is a single tab and nothing to switch
+          between, so zero chrome is added). */}
+      {useWildernessTravel && (
+        <SubTabBar
+          tabs={orderedTabs}
+          activeTab={activeSubTab}
+          onTabChange={(tab) => setActiveSubTab(tab as EndeavoursSubTab)}
+          editMode={{
+            isActive: isEditMode,
+            onToggle: toggleEditMode,
+            onMoveLeft: moveLeft,
+            onMoveRight: moveRight,
+            onReset: resetOrder,
+            isDefaultOrder,
+            saveError,
+          }}
+        />
+      )}
+
+      {showEndeavoursContent && (
+      <>
       {/* First-use banner explaining Status → slots relationship */}
       {!firstUseDismissed && (
         <div className={styles.firstUseBanner}>
@@ -578,6 +688,14 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
           </Card>
         );
       })}
+      </>
+      )}
+
+      {/* Wilderness Travel — double-guarded (active tab AND toggle on) so a
+          stale hash never mounts the panel when the house rule is off. */}
+      {activeSubTab === 'travel' && useWildernessTravel && (
+        <JourneyTrackerPanel character={character} updateCharacter={updateCharacter} />
+      )}
 
       {/* Custom free-text input dialog */}
       {customForPeriodId !== null && (
@@ -617,6 +735,9 @@ export function EndeavoursPage({ character, updateCharacter }: EndeavoursPagePro
         duration={undoPending ? 5000 : 3000}
         action={undoPending ? { label: 'Undo', onAction: undo } : undefined}
       />
+
+      {/* Tab order save error toast */}
+      <Toast message={saveError ? 'Tab order could not be saved' : null} duration={5000} />
     </div>
   );
 }

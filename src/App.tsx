@@ -619,7 +619,7 @@ function AppWithCharacter({
       case 'estate':
         return <PageLoader><EstatePage {...pageProps} subTab={subTab} onSubTabChange={(tab) => navigate('estate', tab)} /></PageLoader>;
       case 'endeavours':
-        return <PageLoader><EndeavoursPage {...pageProps} /></PageLoader>;
+        return <PageLoader><EndeavoursPage {...pageProps} subTab={subTab} onSubTabChange={(tab) => navigate('endeavours', tab)} /></PageLoader>;
       case 'advancement':
         return <PageLoader skeleton={<AdvancementSkeleton />}><AdvancementPage {...pageProps} /></PageLoader>;
       case 'settings':
