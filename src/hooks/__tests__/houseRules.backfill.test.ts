@@ -41,6 +41,7 @@ const RAW_DEFAULTS = {
   useCriticalDeflection: false,
   useEnterprises: false,
   useCants: false,
+  useWildernessTravel: false,
   ignoreBackpackEnc: false,
   initiativeFormula: 'initiativePlusD10' as const,
 };
@@ -93,6 +94,7 @@ describe('Backfill — character loaded without houseRules', () => {
       useCriticalDeflection: false,
       useEnterprises: false,
       useCants: false,
+      useWildernessTravel: false,
       ignoreBackpackEnc: false,
       initiativeFormula: 'initiativePlusD10',
     });
@@ -145,6 +147,7 @@ describe('Import — character imported with custom houseRules', () => {
       useCriticalDeflection: false,
       useEnterprises: false,
       useCants: false,
+      useWildernessTravel: false,
       ignoreBackpackEnc: false,
       initiativeFormula: 'initiativePlusD10',
     };
@@ -218,6 +221,7 @@ describe('Import — character imported with custom houseRules', () => {
       useCriticalDeflection: false,
       useEnterprises: false,
       useCants: false,
+      useWildernessTravel: false,
       ignoreBackpackEnc: false,
       initiativeFormula: 'initiativePlusD10',
     };

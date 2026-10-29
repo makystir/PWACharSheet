@@ -1,0 +1,320 @@
+/* Wilderness Travel — Journey Tracker CSS Module */
+
+.sectionGap {
+  composes: sectionGap from '../shared/styles/shared.module.css';
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 11px;
+  color: var(--accent-gold);
+  font-weight: 600;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 60px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  font-size: 13px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.guidance {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 6px 0;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-left: 2px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+}
+
+/* Stage-count summary */
+.countRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.countItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.countLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.countValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2px 8px;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  cursor: help;
+}
+
+.tooltipBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.tooltipLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tooltipTotal {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+  padding-top: 2px;
+  font-weight: 700;
+}
+
+.tooltipNote {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Roster editor */
+.rosterList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.rosterRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inlineInput {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.addRosterRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* Buttons */
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: var(--accent-gold-dark);
+  color: var(--bg-primary);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dangerBtn {
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.dangerBtn:hover {
+  background: rgba(200, 80, 80, 0.15);
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.removeBtn:hover {
+  background: rgba(200, 80, 80, 0.15);
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.adjustControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.reasonInput {
+  flex: 1;
+  min-width: 160px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.adjustmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.adjustmentRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.adjustmentDelta {
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--accent-gold);
+  min-width: 28px;
+}
+
+/* ─── Stage card ─────────────────────────────────────────────────────────── */
+
+.stageList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stageCard {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.stageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stageTitle {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.memberRow {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.memberName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-top: 4px;
+}
+
+.selectField {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 4px 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.memberNotesRow {
+  grid-column: 1 / -1;
+}
+
+.reminder {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--warning, #c8a832);
+  padding: 4px 8px;
+  background: rgba(200, 168, 76, 0.1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-gold-dark);
+}
+
+.emptyRoster {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 6px 0;
+}

@@ -626,6 +626,88 @@ export interface LearnedCant {
 
 export type YenluiState = 'light' | 'balanced' | 'dark';
 
+// ─── Wilderness Travel / Pathfinding (Deft Steps, Light Fingers) ──────────────
+// Journey-structure data model for the optional Stage-by-Stage journey tracker.
+// Transcribed structure only; see src/logic/wilderness-travel/ for the cited
+// rules. All fields are player-driven — nothing auto-applies (Slice A).
+
+/** A single party member participating in the journey (Slice A roster entry). */
+export interface JourneyRosterMember {
+  /** Stable id, generated via generateUUID() (src/logic/uuid.ts). */
+  id: string;
+  /** Free-text display name, e.g. "Gerd" or "Lumpin's scout". 1–100 chars. */
+  name: string;
+}
+
+/** One member's recorded endeavour choices for a single Stage (Slice A). */
+export interface StageEndeavourRecord {
+  /** References JourneyRosterMember.id. */
+  memberId: string;
+  /**
+   * Chosen Travel Endeavour, from TRAVEL_ENDEAVOUR_OPTIONS, '' = none, or 'Other'.
+   * Slice A records the *choice* only; the test/effect catalog is Slice B.
+   */
+  travelEndeavour: string;
+  /** Chosen Camp Endeavour, from CAMP_ENDEAVOUR_OPTIONS, '' = none, or 'Other'. */
+  campEndeavour: string;
+  /** Free-text result/notes for this member this Stage (SL, outcome, GM ruling). 0–500 chars. */
+  notes: string;
+}
+
+/** One Stage of the journey. */
+export interface JourneyStage {
+  /** Stable id. */
+  id: string;
+  /** 1-based ordinal for display; derived on render, stored for stable keys. */
+  label: string;
+  /** Per-member endeavour records for this Stage. */
+  records: StageEndeavourRecord[];
+  /** Free-text per-Stage notes (weather/terrain jotting until Slice B). 0–1000 chars. */
+  notes: string;
+}
+
+/** A single adjustment to the running Stage count (Navigate outcome). */
+export interface StageCountAdjustment {
+  /** Stable id. */
+  id: string;
+  /** +1 (led astray / lost) or -1 (shortcut). Slice A only ever uses ±1. */
+  delta: number;
+  /** Player-entered reason, e.g. "Navigate +3 shortcut". 0–200 chars. */
+  reason: string;
+}
+
+/**
+ * Optional Wilderness Travel journey (Deft Steps "Pathfinding").
+ * Present only once the player creates a journey under the useWildernessTravel
+ * house rule; absent (undefined) otherwise → zero data footprint when off.
+ * Intentionally NOT in BLANK_CHARACTER so a blank character carries no journey
+ * until the feature is used.
+ */
+export interface WildernessJourney {
+  /** Journey name. 0–100 chars. */
+  name: string;
+  /** Optional origin. 0–100 chars. */
+  origin?: string;
+  /** Optional destination. 0–100 chars. */
+  destination?: string;
+  /**
+   * Player-entered planned Stage count (the GM's starting estimate).
+   * Non-negative integer. The *displayed* total = plannedStages + Σ adjustments
+   * (clamped ≥ 0).
+   */
+  plannedStages: number;
+  /** Ordered Navigate-outcome adjustments to the count. */
+  stageAdjustments: StageCountAdjustment[];
+  /** Ordered list of recorded Stages. */
+  stages: JourneyStage[];
+  /** Party roster (self-contained, free-text — no hireling/companion FKs). */
+  roster: JourneyRosterMember[];
+  /** Free-text Planning Endeavour note. 0–1000 chars. */
+  planningEndeavour: string;
+  /** Optional banked Planning SL the player recorded. Non-negative int. */
+  planningSL?: number;
+}
+
 export interface HouseRules {
   rangedDamageSBMode: RangedDamageSBMode;
   impaleCritsOnTens: boolean;
@@ -638,6 +720,14 @@ export interface HouseRules {
   useCriticalDeflection: boolean;
   useEnterprises: boolean;
   useCants: boolean;
+  /**
+   * Optional mechanic (Deft Steps, Light Fingers — "Pathfinding" chapter,
+   * docs/deftsteps.md): enables the Wilderness Travel journey tracker. Default
+   * false; when false the Travel sub-tab and the wildernessJourney field have
+   * zero UI footprint (mirrors useEnterprises / usePsychologyTracker). Backfilled
+   * to false for older saves via deepMerge against BLANK_CHARACTER.
+   */
+  useWildernessTravel: boolean;
   /**
    * House rule: items marked as inside a backpack contribute 0 to the
    * character's carried encumbrance (carrying capacity is unchanged).
@@ -873,6 +963,12 @@ export interface Character {
   consumables?: Consumable[];
   psychologyTraits?: PsychologyTrait[];
   enterprises?: Enterprise[];
+  /**
+   * Optional Wilderness Travel journey (Deft Steps, gated by
+   * houseRules.useWildernessTravel). Absent until the player creates a journey
+   * → zero always-present footprint when off.
+   */
+  wildernessJourney?: WildernessJourney;
   brokenTally?: number;
   rituals?: RitualItem[];
   arcaneMarks?: string[];
@@ -1049,6 +1145,7 @@ export const BLANK_CHARACTER: Character = {
     useCriticalDeflection: false,
     useEnterprises: false,
     useCants: false,
+    useWildernessTravel: false,
     ignoreBackpackEnc: false,
     // Default initiative rule: roll 1d10 + Initiative (Core p.156).
     initiativeFormula: 'initiativePlusD10',

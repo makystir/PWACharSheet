@@ -859,6 +859,26 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
               </div>
             </div>
 
+            {/* Wilderness Travel */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Wilderness Travel</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.useWildernessTravel ? { color: 'var(--text-muted)' } : undefined}>
+                    Stage-by-stage journey tracker for travel through the wilds (Deft Steps)
+                  </div>
+                  {character.houseRules.useWildernessTravel && <div className={styles.ruleLocation}>Find it on: Retinue page → Travel tab</div>}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.useWildernessTravel', !character.houseRules.useWildernessTravel)}
+                  className={character.houseRules.useWildernessTravel ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.useWildernessTravel ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
+
             {/* Alternative Channelling Cants */}
             <div className={styles.ruleItem}>
               <div className={styles.toggleRow}>

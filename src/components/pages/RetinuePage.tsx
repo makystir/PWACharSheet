@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Character, Hireling, Companion, FieldPath, FieldValue } from '../../types/character';
 import { Card } from '../shared/Card';
 import { SectionHeader } from '../shared/SectionHeader';
@@ -16,6 +16,7 @@ import { SubTabBar } from '../shared/SubTabBar';
 import { useTabOrder } from '../../hooks/useTabOrder';
 import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { EmptyState } from '../shared/EmptyState';
+import { JourneyTrackerPanel } from '../wilderness-travel/JourneyTrackerPanel';
 import styles from './RetinuePage.module.css';
 
 interface RetinuePageProps {
@@ -26,21 +27,38 @@ interface RetinuePageProps {
   onSubTabChange?: (tab: string) => void;
 }
 
-type RetinueSubTab = 'hirelings' | 'companions';
-
-// Module-level constant so it has a stable identity across renders (keeps it
-// out of effect dependency arrays).
-const VALID_SUBTABS: RetinueSubTab[] = ['hirelings', 'companions'];
+type RetinueSubTab = 'hirelings' | 'companions' | 'travel';
 
 export function RetinuePage({ character, updateCharacter, subTab, onSubTabChange }: RetinuePageProps) {
+  // Optional Wilderness Travel mechanic (Deft Steps). When off, the Travel
+  // sub-tab is not registered and its panel never mounts → zero DOM footprint,
+  // mirroring EstatePage's useEnterprises-gated Enterprises tab.
+  const useWildernessTravel = character.houseRules.useWildernessTravel === true;
 
-  // Tab reordering
-  const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
-    pageKey: 'retinue',
-    defaultTabs: [
+  // Memoised so it has a stable identity per useWildernessTravel value and can
+  // be referenced from effect dependency arrays without changing every render.
+  const VALID_SUBTABS: RetinueSubTab[] = useMemo(
+    () => (useWildernessTravel
+      ? ['hirelings', 'companions', 'travel']
+      : ['hirelings', 'companions']),
+    [useWildernessTravel],
+  );
+
+  // Tab reordering — conditionally include the Travel tab.
+  const defaultTabsList = useMemo(() => {
+    const tabs = [
       { id: 'hirelings', label: 'Hirelings' },
       { id: 'companions', label: 'Animal Companions' },
-    ],
+    ];
+    if (useWildernessTravel) {
+      tabs.push({ id: 'travel', label: 'Travel' });
+    }
+    return tabs;
+  }, [useWildernessTravel]);
+
+  const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
+    pageKey: 'retinue',
+    defaultTabs: defaultTabsList,
   });
 
   // Active sub-tab: use URL hash > last stored > first ordered tab
@@ -64,7 +82,26 @@ export function RetinuePage({ character, updateCharacter, subTab, onSubTabChange
         setActiveSubTabInternal(subTab as RetinueSubTab);
       }
     }
-  }, [subTab]);
+  }, [subTab, VALID_SUBTABS]);
+
+  // Fall back if the current active tab is no longer valid (e.g. the Wilderness
+  // Travel house rule was toggled off while the Travel tab was active).
+  // Intentional setState-in-effect: reacts to an external house-rule toggle
+  // (useWildernessTravel) that can invalidate the current tab, correcting it.
+  useEffect(() => {
+    if (!VALID_SUBTABS.includes(activeSubTab)) {
+      const fallback = (orderedTabs[0]?.id as RetinueSubTab) || 'hirelings';
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveSubTabInternal(fallback);
+      saveLastSubTab('retinue', fallback);
+      onSubTabChange?.(fallback);
+    }
+    // Intentionally narrow: this is specifically the reaction to the wilderness
+    // travel house-rule toggling. Re-running on activeSubTab/orderedTabs/
+    // onSubTabChange changes would fight normal tab navigation, so only
+    // useWildernessTravel belongs here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useWildernessTravel]);
 
   // Wrapper that notifies parent and persists selection
   const setActiveSubTab = (tab: RetinueSubTab) => {
@@ -311,6 +348,12 @@ export function RetinuePage({ character, updateCharacter, subTab, onSubTabChange
             <Picker items={ANIMAL_TEMPLATES} getLabel={(a) => a.name} getGroup={(a) => a.species} onSelect={(a) => { updateCharacter((c) => ({ ...c, companions: [...c.companions, { name: '', species: a.species, M: a.M, WS: a.WS, BS: a.BS, S: a.S, T: a.T, I: a.I, Ag: a.Ag, Dex: a.Dex, Int: a.Int, WP: a.WP, Fel: a.Fel, W: a.W, wCur: a.W, traits: a.traits, trained: [...a.trained], notes: a.notes }] })); setShowAnimalPicker(false); }} onClose={() => setShowAnimalPicker(false)} title="Select Animal Template" />
           )}
         </>
+      )}
+
+      {/* Wilderness Travel — double-guarded (active tab AND toggle on) so a
+          stale hash never mounts the panel when the house rule is off. */}
+      {activeSubTab === 'travel' && useWildernessTravel && (
+        <JourneyTrackerPanel character={character} updateCharacter={updateCharacter} />
       )}
 
       <Toast
