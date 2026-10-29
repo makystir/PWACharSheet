@@ -11,6 +11,7 @@ import {
   updateDowntimePeriod,
   isElf,
   CLASS_ENDEAVOURS,
+  GENERAL_ENDEAVOURS,
   getCostSummary,
   buildPickerItems,
   createEndeavourEntry,
@@ -533,8 +534,38 @@ describe('buildPickerItems', () => {
   it('always includes General group items (excluding those in Templates)', () => {
     const items = buildPickerItems('Warriors', false);
     const generalItems = items.filter(i => i.group === 'General');
-    expect(generalItems.length).toBe(7); // GENERAL_ENDEAVOURS minus Training, Income, Crafting
+    // GENERAL_ENDEAVOURS minus the 3 that also live under Templates
+    // (Training, Income, Crafting).
+    expect(generalItems.length).toBe(GENERAL_ENDEAVOURS.length - 3);
     expect(generalItems[0].label).toBe('Banking');
+  });
+
+  it('surfaces the Deft Steps downtime endeavours under the General group', () => {
+    const items = buildPickerItems('Rogues', false);
+    const generalLabels = items.filter(i => i.group === 'General').map(i => i.label);
+    for (const name of [
+      'Black Market', 'Gambling Den', 'Plant Identities', 'Whisper Campaign',
+      'Establishing a Contact', 'Build Gang', 'Organising Crime',
+      'Maintain Influence', 'Gaol Break',
+    ]) {
+      expect(generalLabels).toContain(name);
+    }
+    // Same for a character with no class — these are general, not class-gated.
+    const generalNoClass = buildPickerItems('', false)
+      .filter(i => i.group === 'General')
+      .map(i => i.label);
+    expect(generalNoClass).toContain('Gaol Break');
+  });
+
+  it('does NOT add the narrative event or the gang sub-actions to any group', () => {
+    const items = buildPickerItems('Rogues', false);
+    const labels = items.map(i => i.label);
+    for (const excluded of [
+      'Money in the Bank', 'Call on Muscle', 'Get Resources',
+      'Exert Influence', 'Resolve Legal Issues',
+    ]) {
+      expect(labels).not.toContain(excluded);
+    }
   });
 
   it('includes Class group items when className matches CLASS_ENDEAVOURS', () => {

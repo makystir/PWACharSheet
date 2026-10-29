@@ -13,11 +13,43 @@ export function hasActiveEndeavours(character: Character): boolean {
   );
 }
 
-/** General Endeavours available to all characters. */
+/**
+ * General Endeavours available to all characters.
+ *
+ * The second block is the downtime endeavours from the supplement *Deft Steps,
+ * Light Fingers* (docs/deftsteps.md). The book opens the Criminal Endeavours
+ * with "Any Character may attempt any of these Endeavours." (deftsteps.md
+ * ~line 1708) and introduces the gang-boss endeavours without gating them to a
+ * class, so they live with the other general downtime endeavours rather than in
+ * CLASS_ENDEAVOURS (design Decision 2). Names are transcribed verbatim from the
+ * cited section headings; see downtime-recommendations.ts for the seed-eligible
+ * vs guidance-only classification. Journey/Travel/Camp endeavours and the
+ * narrative "Money in the Bank" event are deliberately NOT added here (deferred
+ * to the future Wilderness-Travel / downtime-events features — design Deferral
+ * note).
+ */
 export const GENERAL_ENDEAVOURS: string[] = [
   'Income', 'Banking', 'Training', 'Crafting', 'Commission',
   'Consult an Expert', 'Changing Career', 'Animal Training',
   'Unusual Learning', 'Invent',
+  // Deft Steps supplement — Criminal Endeavours (deftsteps.md ~line 1705:
+  // "CRIMINAL ENDEAVOURS"; "Any Character may attempt any of these Endeavours.")
+  'Black Market',       // deftsteps.md ~line 1710: Black Market (Challenging +0 Gossip to buy / Challenging +0 Haggle to sell)
+  'Gambling Den',       // deftsteps.md ~line 1716: Gambling Den (Hard -20 Gamble Test)
+  'Plant Identities',   // deftsteps.md ~line 1727: Plant Identities (Difficult -10 Entertain (Acting) Test)
+  'Whisper Campaign',   // deftsteps.md ~line 1733: Whisper Campaign (Hard -20 Charm Test)
+  // Deft Steps supplement — Establishing a Contact (deftsteps.md ~line 1945:
+  // "NEW ENDEAVOUR: ESTABLISHING A CONTACT"; Difficult -10 Gossip Test + spend
+  // money equal to the Contact's status)
+  'Establishing a Contact',
+  // Deft Steps supplement — Running a Gang (deftsteps.md ~line 2192: "New
+  // Endeavours"; the three the book itself lists as Endeavours at ~line 2198)
+  'Build Gang',         // deftsteps.md ~line 2202: Build Gang (Challenging +0 Leadership Test; cost per Criminal Organisation table)
+  'Organising Crime',   // deftsteps.md ~line 2215: Organising Crime (Challenging +0 Leadership Test)
+  'Maintain Influence', // deftsteps.md ~line 2229: Maintain Influence (Challenging +0 Intimidate Test)
+  // Deft Steps supplement — Gaol Break (deftsteps.md ~line 3747: "New Endeavour:
+  // Gaol Break"; GM-gated Stealth or Sleight of Hand Test, often Extended)
+  'Gaol Break',
 ];
 
 /** Class-specific Endeavours keyed by character class. */

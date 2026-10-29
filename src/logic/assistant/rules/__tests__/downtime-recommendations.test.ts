@@ -423,6 +423,96 @@ describe('downtimeRecommendationSuggestions — guidance-only class endeavours',
   });
 });
 
+// ─── Unit — Deft Steps general downtime endeavours (T5, Rogue heuristic) ─────
+
+describe('downtimeRecommendationSuggestions — Deft Steps general endeavours (T5)', () => {
+  it('surfaces up to 2 Deft Steps general endeavours for a Rogue, in catalog order', () => {
+    // Only T5 fires: healthy, has coin, no XP → T1–T4 suppressed; class Rogues
+    // has one seedable class endeavour (Study a Mark) which still emits under T4.
+    const character = makeCharacter({ class: 'Rogues', chars: tenCharT(30), wCur: 999, wGC: 5, wSS: 5, xpCur: 0 });
+    const out = downtimeRecommendationSuggestions(character, CTX_PEACE);
+    const gen = out.filter(s => s.id.startsWith('endeavour:rec:gen:'));
+    expect(gen.length).toBe(2);
+    // GENERAL_ENDEAVOURS order places Black Market before Gambling Den.
+    expect(gen[0].id).toBe('endeavour:rec:gen:black-market');
+    expect(gen[1].id).toBe('endeavour:rec:gen:gambling-den');
+  });
+
+  it('does NOT surface Deft Steps general endeavours for a non-Rogue class', () => {
+    for (const cls of ['Warriors', 'Academics', '', 'Nonexistent']) {
+      const character = makeCharacter({ class: cls, chars: tenCharT(30), wCur: 999, wGC: 5, wSS: 5, xpCur: 0 });
+      const out = downtimeRecommendationSuggestions(character, CTX_PEACE);
+      expect(out.some(s => s.id.startsWith('endeavour:rec:gen:'))).toBe(false);
+    }
+  });
+
+  it('Black Market (first in order) is guidance-only (navigate, no roll)', () => {
+    const character = makeCharacter({ class: 'Rogues', chars: tenCharT(30), wCur: 999, wGC: 5, wSS: 5, xpCur: 0 });
+    const out = downtimeRecommendationSuggestions(character, CTX_PEACE);
+    const bm = out.find(s => s.id === 'endeavour:rec:gen:black-market');
+    expect(bm).toBeDefined();
+    expect(bm!.action).toEqual({ kind: 'navigate', page: 'endeavours' });
+    expect(bm!.secondaryAction).toBeUndefined();
+    expect(bm!.totals).toBeUndefined();
+    expect((bm!.citation ?? '').length).toBeGreaterThan(0);
+  });
+
+  it('Gambling Den (surfaced seedable) carries a Gamble roll with a correct Base Target + breakdown', () => {
+    const character = makeCharacter({ class: 'Rogues', chars: tenCharT(30), wCur: 999, wGC: 5, wSS: 5, xpCur: 0 });
+    const out = downtimeRecommendationSuggestions(character, CTX_PEACE);
+    const gd = out.find(s => s.id === 'endeavour:rec:gen:gambling-den');
+    expect(gd).toBeDefined();
+    expect(gd!.action.kind).toBe('roll');
+    if (gd!.action.kind !== 'roll') return;
+    expect(gd!.action.test.def).toEqual({ kind: 'skill', skillName: 'Gamble', fallbackChar: 'Int' });
+    expect(gd!.action.test.difficulty).toBe('Hard');
+    expect(gd!.secondaryAction).toEqual({ kind: 'navigate', page: 'endeavours' });
+    const expected = resolveReminderBaseTarget(character, gd!.action.test.def);
+    expect(gd!.totals?.[0].label).toBe('Base Target');
+    expect(gd!.totals?.[0].display).toBe(String(expected));
+    expect(gd!.totals?.[0].lines.length).toBeGreaterThan(0);
+  });
+
+  it('guidance-only Deft Steps endeavours are in the catalog but never seeded', () => {
+    // Black Market (buy/sell branch), Plant Identities (specialisation),
+    // Establishing a Contact (GM-set), Gaol Break (GM-gated/Extended) must exist
+    // in GENERAL_ENDEAVOURS (picker) but carry no roll when surfaced.
+    for (const n of ['Black Market', 'Plant Identities', 'Establishing a Contact', 'Gaol Break']) {
+      expect(GENERAL_ENDEAVOURS).toContain(n);
+    }
+    const character = makeCharacter({ class: 'Rogues', chars: tenCharT(30), wCur: 999, wGC: 5, wSS: 5, xpCur: 0 });
+    const out = downtimeRecommendationSuggestions(character, CTX_PEACE);
+    for (const s of out.filter(x => x.id.startsWith('endeavour:rec:gen:'))) {
+      if (s.id === 'endeavour:rec:gen:black-market') {
+        expect(s.action.kind).toBe('navigate');
+      }
+    }
+  });
+
+  it('T5 is suppressed in combat and when an endeavour is active', () => {
+    const rogue = makeCharacter({ class: 'Rogues', chars: tenCharT(30), wCur: 999, wGC: 5, wSS: 5, xpCur: 0 });
+    expect(downtimeRecommendationSuggestions(rogue, CTX_COMBAT)).toEqual([]);
+    const active = makeCharacter({
+      class: 'Rogues',
+      chars: tenCharT(30),
+      wCur: 999,
+      wGC: 5,
+      wSS: 5,
+      xpCur: 0,
+      endeavours: [
+        {
+          id: 'p1',
+          label: 'Downtime',
+          slots: 1,
+          entries: [{ id: 'e1', type: 'Black Market', notes: '', status: 'pending' }],
+          statusWarning: false,
+        },
+      ],
+    });
+    expect(downtimeRecommendationSuggestions(active, CTX_PEACE).some(s => s.id.startsWith('endeavour:rec:gen:'))).toBe(false);
+  });
+});
+
 // ─── Unit — emission caps and ordering ───────────────────────────────────────
 
 describe('downtimeRecommendationSuggestions — caps', () => {

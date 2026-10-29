@@ -1,6 +1,6 @@
 import type { Character } from '../../../types/character';
 import type { Suggestion, SuggestionContext, SuggestionTotal } from '../types';
-import { hasActiveEndeavours, CLASS_ENDEAVOURS } from '../../endeavours';
+import { hasActiveEndeavours, CLASS_ENDEAVOURS, GENERAL_ENDEAVOURS } from '../../endeavours';
 import { getActiveCriticalWounds } from '../../critical-wounds';
 import { resolveSeededTarget } from '../../reminders-target';
 import { deriveSheetTotals } from '../../sheet-totals';
@@ -25,14 +25,23 @@ import type { DifficultyLevel } from '../../dice-roller';
  * Chapter 6 — Between Adventures → Endeavours). Every rule below carries a
  * `// Core p.NNN` comment with the verified page; no mechanic is invented.
  *
- * Only three endeavours resolve with a self-contained Test on a BARE
+ * Class endeavours that resolve with a self-contained Test on a BARE
  * (non-specialised) basic skill the app can seed unambiguously — Study a Mark
- * (Perception), The Latest News (Gossip), Foment Dissent stage 1 (Gossip). Those
- * carry a seeded `roll` that opens the existing RollDialog. Everything else is
- * guidance-only (navigate, no roll button), because its RAW test is
- * specialisation-dependent, player-chosen, GM-set, or narrative/flat-mechanic —
- * seeding would present a wrong, uneditable base target (RollDialog's base target
- * is read-only). The assistant never auto-rolls, auto-applies, or auto-completes.
+ * (Perception), The Latest News (Gossip), Foment Dissent stage 1 (Gossip) — carry
+ * a seeded `roll` that opens the existing RollDialog. The T5 General tier does the
+ * same for the *Deft Steps, Light Fingers* criminal/gang downtime endeavours:
+ * Gambling Den (Gamble), Whisper Campaign (Charm), Build Gang / Organising Crime
+ * (Leadership), and Maintain Influence (Intimidate) are seeded; Black Market
+ * (buy/sell branch), Plant Identities (Entertain (Acting) specialisation),
+ * Establishing a Contact (GM-set), and Gaol Break (GM-gated, Extended) are
+ * guidance-only. Everything guidance-only is navigate (no roll button), because
+ * its RAW test is specialisation-dependent, player-chosen, GM-set, or
+ * narrative/flat-mechanic — seeding would present a wrong, uneditable base target
+ * (RollDialog's base target is read-only). The Deft Steps general endeavours are
+ * open to all via the picker, but the assistant only *surfaces* them for a
+ * Rogue-class character (a reuse of the already-tracked class, not an access gate
+ * or an invented mechanic). The assistant never auto-rolls, auto-applies, or
+ * auto-completes.
  */
 
 /** Deterministic slug from an endeavour name so ids are stable across saves. */
@@ -89,6 +98,92 @@ const CLASS_ENDEAVOUR_CITATIONS: Record<string, string> = {
   'Combat Training': 'Core p.200: Combat Training (Challenging +0 Melee or Ranged Test — roll your specialisation)',
   'Research Lore': 'Core p.200: Research Lore (Average +20 Lore specialisation, or Difficult −10 Intelligence if untrained + literate)',
   Reputation: 'Core p.200: Reputation (Challenging +0 Career Skill Test)',
+};
+
+/**
+ * The *Deft Steps, Light Fingers* general downtime endeavours whose RAW
+ * resolution is a self-contained Test on a single BARE basic skill row (verified
+ * present in `BLANK_CHARACTER.bSkills`), so `resolveSeededTarget` hits the real
+ * row and reflects advances. Keyed by the endeavour name as it appears in
+ * `GENERAL_ENDEAVOURS`. Any Deft Steps general endeavour NOT in this table is
+ * surfaced guidance-only (navigate, no roll) — see
+ * `DEFT_GENERAL_ENDEAVOUR_CITATIONS` for the reason each is not seeded.
+ *
+ * `fallbackChar` mirrors the governing characteristic of that skill's bare row in
+ * `BLANK_CHARACTER.bSkills` (Gamble→Int, Charm→Fel, Leadership→Fel,
+ * Intimidate→S) so the Base Target is correct when the character lacks a
+ * specialised row. Difficulties are the RAW book values; the Difficulty select in
+ * the dialog lets the player adjust for circumstance. No invented TN.
+ *
+ * Black Market, Plant Identities, Establishing a Contact, and Gaol Break are
+ * deliberately absent (guidance-only): Black Market branches on buy (Gossip) vs
+ * sell (Haggle) so no single bare skill can be seeded; Plant Identities is a
+ * specialisation test (Entertain (Acting)); Establishing a Contact is a GM-set
+ * narrative step; Gaol Break is GM-gated, crime-severity-scaled, and Extended.
+ */
+const SEEDABLE_GENERAL_ENDEAVOURS: Record<
+  string,
+  { def: ReminderTest; difficulty: DifficultyLevel; citation: string; rollName: string }
+> = {
+  // deftsteps.md ~line 1716 (Gambling Den): "They must then make a Hard (-20)
+  // Gamble Test." Gamble is a bare basic skill (c:'Int') in BLANK_CHARACTER.bSkills.
+  'Gambling Den': {
+    def: { kind: 'skill', skillName: 'Gamble', fallbackChar: 'Int' },
+    difficulty: 'Hard',
+    citation: 'Deft Steps § Gambling Den (~line 1716): Gambling Den (Hard −20 Gamble Test)',
+    rollName: 'Gambling Den (Gamble)',
+  },
+  // deftsteps.md ~line 1733 (Whisper Campaign): "they must make a Hard (-20)
+  // Charm Test." Charm is a bare basic skill (c:'Fel') in BLANK_CHARACTER.bSkills.
+  'Whisper Campaign': {
+    def: { kind: 'skill', skillName: 'Charm', fallbackChar: 'Fel' },
+    difficulty: 'Hard',
+    citation: 'Deft Steps § Whisper Campaign (~line 1733): Whisper Campaign (Hard −20 Charm Test)',
+    rollName: 'Whisper Campaign (Charm)',
+  },
+  // deftsteps.md ~line 2202 (Build Gang): "provided you take a Challenging (+0)
+  // Leadership Test." Leadership is a bare basic skill (c:'Fel') in BLANK_CHARACTER.bSkills.
+  'Build Gang': {
+    def: { kind: 'skill', skillName: 'Leadership', fallbackChar: 'Fel' },
+    difficulty: 'Challenging',
+    citation: 'Deft Steps § Build Gang (~line 2202): Build Gang (Challenging +0 Leadership Test)',
+    rollName: 'Build Gang (Leadership)',
+  },
+  // deftsteps.md ~line 2215 (Organising Crime): "you must take a Challenging (+0)
+  // Leadership Test." Leadership is a bare basic skill (c:'Fel') in BLANK_CHARACTER.bSkills.
+  'Organising Crime': {
+    def: { kind: 'skill', skillName: 'Leadership', fallbackChar: 'Fel' },
+    difficulty: 'Challenging',
+    citation: 'Deft Steps § Organising Crime (~line 2215): Organising Crime (Challenging +0 Leadership Test)',
+    rollName: 'Organising Crime (Leadership)',
+  },
+  // deftsteps.md ~line 2229 (Maintain Influence): "you must take a Challenging
+  // (+0) Intimidate Test." Intimidate is a bare basic skill (c:'S') in BLANK_CHARACTER.bSkills.
+  'Maintain Influence': {
+    def: { kind: 'skill', skillName: 'Intimidate', fallbackChar: 'S' },
+    difficulty: 'Challenging',
+    citation: 'Deft Steps § Maintain Influence (~line 2229): Maintain Influence (Challenging +0 Intimidate Test)',
+    rollName: 'Maintain Influence (Intimidate)',
+  },
+};
+
+/**
+ * Guidance-only *Deft Steps* general endeavours: citation + the reason each is
+ * NOT seeded (branchy, specialisation-dependent, GM-set, or Extended). The
+ * failure-debt sentence of Gambling Den is truncated in the source markdown
+ * (deftsteps.md ~line 1720 ends "…owe the house a debt equal to the stake for"
+ * before an image break) — the Test and success path are complete and seeded;
+ * the incomplete failure penalty is NOT invented (design FLAG 1).
+ */
+const DEFT_GENERAL_ENDEAVOUR_CITATIONS: Record<string, string> = {
+  'Black Market':
+    'Deft Steps § Black Market (~line 1710): Challenging +0 Gossip Test to buy, or Challenging +0 Haggle Test to sell — choose buy/sell first (two-skill branch), so resolve on the Endeavours page',
+  'Plant Identities':
+    'Deft Steps § Plant Identities (~line 1727): Difficult −10 Entertain (Acting) Test — a specialisation test; cost is money equal to your Income Endeavour × Standing (GM/formula-set)',
+  'Establishing a Contact':
+    'Deft Steps § Establishing a Contact (~line 1945): Difficult −10 Gossip Test + spend money equal to the Contact\u2019s status (GM-agreed) — a narrative GM step, resolve on the Endeavours page',
+  'Gaol Break':
+    'Deft Steps § Gaol Break (~line 3747): GM-gated Stealth or Sleight of Hand Test, difficulty scaled by the prisoner\u2019s crimes and usually Extended — resolve on the Endeavours page',
 };
 
 /**
@@ -245,6 +340,66 @@ export function downtimeRecommendationSuggestions(
           action: { kind: 'navigate', page: 'endeavours' },
           citation:
             CLASS_ENDEAVOUR_CITATIONS[name] ?? 'Core p.200-201: Class Endeavours (Between Adventures)',
+        });
+      }
+    }
+  }
+
+  // ── T5 — Deft Steps criminal/gang/gaol general endeavours (Rogue heuristic) ─
+  // These supplement (Deft Steps, Light Fingers) general downtime endeavours are
+  // open to any character via the picker (they are in GENERAL_ENDEAVOURS), but
+  // they have no clean single tracked-state trigger like low-coin/unspent-XP. So
+  // the assistant only *surfaces* them, as low-urgency options, for a Rogue-class
+  // character (the already-tracked class read reused from T4) — a surfacing
+  // heuristic, NOT a mechanic or an access gate (design Assistant-surfacing plan).
+  // Seedable entries carry a roll on a single bare basic skill; branchy/GM-set
+  // ones are guidance-only (navigate, no roll).
+  if (className === 'Rogues') {
+    const GEN_CAP = 2; // sibling to the T4 CLASS_CAP (local, not exported); value 2 matches it.
+    // Deft Steps general endeavours in catalog order: everything the Deft Steps
+    // seed/citation tables know about, read straight from GENERAL_ENDEAVOURS so
+    // ordering follows the single source of truth.
+    const deftGeneral = GENERAL_ENDEAVOURS.filter(
+      name =>
+        Object.hasOwn(SEEDABLE_GENERAL_ENDEAVOURS, name) ||
+        Object.hasOwn(DEFT_GENERAL_ENDEAVOUR_CITATIONS, name),
+    );
+    let emittedGen = 0;
+    for (const name of deftGeneral) {
+      if (emittedGen >= GEN_CAP) break;
+      if (emittedNames.has(name)) continue; // semantic dedupe guard
+      emittedGen += 1;
+      emittedNames.add(name);
+
+      const seed = SEEDABLE_GENERAL_ENDEAVOURS[name];
+      if (seed) {
+        const { total, lines } = resolveSeededTarget(character, seed.def);
+        const totals: SuggestionTotal[] = [
+          { label: 'Base Target', display: String(total), lines },
+        ];
+        out.push({
+          id: `endeavour:rec:gen:${slugify(name)}`,
+          title: `${name} endeavour`,
+          rationale: `A criminal/gang downtime endeavour (Deft Steps). ${seed.rollName} — roll the Test, then record the outcome on the Endeavours page.`,
+          category: 'endeavour',
+          urgency: 'info',
+          action: {
+            kind: 'roll',
+            test: { def: seed.def, difficulty: seed.difficulty, rollName: seed.rollName },
+          },
+          secondaryAction: { kind: 'navigate', page: 'endeavours' },
+          citation: seed.citation,
+          totals,
+        });
+      } else {
+        out.push({
+          id: `endeavour:rec:gen:${slugify(name)}`,
+          title: `${name} endeavour`,
+          rationale: `A criminal/gang downtime endeavour (Deft Steps) — resolve it on the Endeavours page (GM-set or branching Test, so no roll is seeded).`,
+          category: 'endeavour',
+          urgency: 'info',
+          action: { kind: 'navigate', page: 'endeavours' },
+          citation: DEFT_GENERAL_ENDEAVOUR_CITATIONS[name],
         });
       }
     }
