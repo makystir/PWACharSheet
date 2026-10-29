@@ -6,6 +6,12 @@ import { SectionHeader } from '../shared/SectionHeader';
 import { EmptyState } from '../shared/EmptyState';
 import { Tooltip } from '../shared/Tooltip';
 import { TooltipTriggerCell } from '../shared/TooltipTriggerCell';
+import { RollDialog } from '../shared/RollDialog';
+import type { DifficultyLevel, RollResult } from '../../logic/dice-roller';
+import type { ReminderTest } from '../../logic/reminders';
+import { resolveSeededTarget } from '../../logic/reminders-target';
+import { appendEvent } from '../../logic/event-log';
+import { buildRollSummary, toRollPayload } from '../../logic/roll-log';
 import {
   deriveStageCount,
   journeyReducer,
@@ -13,6 +19,17 @@ import {
 import type { JourneyEvent } from '../../logic/wilderness-travel/types';
 import { StageCard } from './StageCard';
 import styles from './JourneyTrackerPanel.module.css';
+
+/**
+ * A request to open the seeded RollDialog for a Journey Endeavour. Built by
+ * StageCard from a catalog entry's `seed` descriptor; the panel owns the single
+ * dialog instance (cleaner than one dialog per Stage member row).
+ */
+export interface SeededRollRequest {
+  def: ReminderTest;
+  difficulty: DifficultyLevel;
+  rollName: string;
+}
 
 interface JourneyTrackerPanelProps {
   character: Character;
@@ -34,6 +51,31 @@ export function JourneyTrackerPanel({ character, updateCharacter }: JourneyTrack
   const [newMemberName, setNewMemberName] = useState('');
   const [adjustReason, setAdjustReason] = useState('');
   const [openTooltip, setOpenTooltip] = useState<OpenTooltip>(null);
+  // The panel owns a single seeded RollDialog (reusing the reminder-roll seed
+  // path). Opening it resolves the base target from the sheet; the result is
+  // logged through the same roll-log serializers App.tsx's addRoll uses, so the
+  // roll-history format cannot drift. Nothing auto-fills the journey.
+  const [seededRoll, setSeededRoll] = useState<
+    (SeededRollRequest & { baseTarget: number }) | null
+  >(null);
+
+  const openSeededRoll = (req: SeededRollRequest) => {
+    const { total } = resolveSeededTarget(character, req.def);
+    setSeededRoll({ ...req, baseTarget: total });
+  };
+
+  const handleSeededRollResult = (result: RollResult) => {
+    // Log the roll into the unified event log exactly as App.tsx's addRoll does.
+    updateCharacter((c) =>
+      appendEvent(c, {
+        category: 'roll',
+        type: 'roll.generic',
+        summary: buildRollSummary(result),
+        payload: toRollPayload(result) as unknown as Record<string, unknown>,
+      }),
+    );
+    setSeededRoll(null);
+  };
 
   const closeTooltip = () => setOpenTooltip(null);
   const openTooltipFor = (kind: NonNullable<OpenTooltip>['kind']) => (anchorEl: HTMLElement) =>
@@ -228,10 +270,10 @@ export function JourneyTrackerPanel({ character, updateCharacter }: JourneyTrack
       <Card>
         <SectionHeader icon={MapIcon} title="Planning Endeavour" />
         <p className={styles.guidance}>
-          Deft Steps, &ldquo;Planning Endeavour&rdquo;: before setting off, each member may take a
+          Deft Steps p.115, &ldquo;Planning Endeavour&rdquo;: before setting off, each member may take a
           Challenging (+0) Outdoor Survival or Research Test. Every SL can be traded for a reroll of a
-          Travel Event or a Journey/Camp Endeavour Test during the journey. Record your notes and any
-          banked SL here (reroll tracking is a later slice).
+          Travel Event or a Journey/Camp Endeavour Test during the journey. Each member banks their own
+          Planning SL below &mdash; one SL spent is one reroll.
         </p>
         <div className={styles.metaGrid}>
           <div style={{ gridColumn: '1 / -1' }}>
@@ -245,20 +287,55 @@ export function JourneyTrackerPanel({ character, updateCharacter }: JourneyTrack
               }
             />
           </div>
-          <div>
-            <label className={styles.fieldLabel} htmlFor="journey-planning-sl">Banked Planning SL</label>
-            <input
-              id="journey-planning-sl"
-              type="number"
-              min={0}
-              className={styles.inlineInput}
-              value={journey.planningSL ?? 0}
-              onChange={(e) =>
-                dispatch({ kind: 'setMeta', patch: { planningSL: Number(e.target.value) } })
-              }
-            />
-          </div>
         </div>
+
+        {/* Per-member banked Planning SL (Deft Steps p.115 — each SL = one reroll). */}
+        <label className={styles.fieldLabel}>Per-member banked Planning SL</label>
+        {journey.roster.length === 0 ? (
+          <p className={styles.emptyRoster}>Add party members below to bank each member&rsquo;s Planning SL.</p>
+        ) : (
+          <div className={styles.rosterList}>
+            {journey.roster.map((member) => (
+              <div key={member.id} className={styles.rosterRow}>
+                <span className={styles.planningMemberName}>{member.name || '(unnamed)'}</span>
+                <input
+                  type="number"
+                  min={0}
+                  className={styles.planningSlInput}
+                  aria-label={`Banked Planning SL for ${member.name || 'party member'}`}
+                  value={member.planningSL ?? 0}
+                  onChange={(e) =>
+                    dispatch({
+                      kind: 'setMemberPlanningSL',
+                      memberId: member.id,
+                      planningSL: Number(e.target.value),
+                    })
+                  }
+                />
+                <span className={styles.planningSlHint}>SL = rerolls</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Legacy (Slice A) journey-level banked SL shown read-only if present, so no saved value is lost. */}
+        {journey.planningSL !== undefined && journey.planningSL > 0 && (
+          <p className={styles.guidance}>
+            Legacy banked Planning SL (journey-wide, from an earlier version): <strong>{journey.planningSL}</strong>.
+            New banking is tracked per member above.
+          </p>
+        )}
+
+        {/* Tents toggle (Deft Steps p.114 — Make Camp becomes Average with tents). */}
+        <label className={styles.tentsRow}>
+          <input
+            type="checkbox"
+            checked={journey.hasTents === true}
+            onChange={(e) => dispatch({ kind: 'setJourneyTents', hasTents: e.target.checked })}
+            aria-label="Party has tents"
+          />
+          <span>Party has tents (Make Camp becomes Average instead of Challenging &mdash; Deft Steps p.114)</span>
+        </label>
       </Card>
 
       {/* Party roster */}
@@ -325,7 +402,15 @@ export function JourneyTrackerPanel({ character, updateCharacter }: JourneyTrack
         )}
         <div className={styles.stageList}>
           {journey.stages.map((stage) => (
-            <StageCard key={stage.id} stage={stage} roster={journey.roster} dispatch={dispatch} />
+            <StageCard
+              key={stage.id}
+              character={character}
+              stage={stage}
+              roster={journey.roster}
+              dispatch={dispatch}
+              hasTents={journey.hasTents === true}
+              onSeededRoll={openSeededRoll}
+            />
           ))}
         </div>
       </Card>
@@ -380,6 +465,17 @@ export function JourneyTrackerPanel({ character, updateCharacter }: JourneyTrack
             </div>
           </div>
         </Tooltip>
+      )}
+
+      {/* Single seeded RollDialog for the whole panel (reused reminder-roll path). */}
+      {seededRoll && (
+        <RollDialog
+          skillOrCharName={seededRoll.rollName}
+          baseTarget={seededRoll.baseTarget}
+          defaultDifficulty={seededRoll.difficulty}
+          onRoll={handleSeededRollResult}
+          onClose={() => setSeededRoll(null)}
+        />
       )}
     </div>
   );

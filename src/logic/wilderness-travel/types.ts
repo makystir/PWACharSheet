@@ -11,6 +11,7 @@
  */
 
 import type { WildernessJourney } from '../../types/character';
+import type { StageWeather, TerrainType } from './journey-modifiers';
 
 /**
  * Travel Endeavour options.
@@ -72,6 +73,14 @@ export type JourneyEvent =
   | { kind: 'setMemberNotes'; stageId: string; memberId: string; notes: string }
   | { kind: 'adjustStageCount'; delta: 1 | -1; reason: string } // Navigate outcome
   | { kind: 'removeStageCountAdjustment'; adjustmentId: string }
+  // Slice B: per-member banked Planning SL (Deft Steps p.115). Each SL = one reroll.
+  | { kind: 'setMemberPlanningSL'; memberId: string; planningSL: number }
+  // Slice B: per-Stage terrain selection (Deft Steps p.124 Terrain Table).
+  | { kind: 'setStageTerrain'; stageId: string; terrain: TerrainType | undefined }
+  // Slice B: per-Stage weather selection (Deft Steps p.114 Weather Table).
+  | { kind: 'setStageWeather'; stageId: string; weather: StageWeather }
+  // Slice B: party-level tents flag (Deft Steps p.114 Tents → Make Camp Average).
+  | { kind: 'setJourneyTents'; hasTents: boolean }
   | { kind: 'deleteJourney' };
 
 /** The derived running Stage count plus its breakdown components (for the tooltip). */

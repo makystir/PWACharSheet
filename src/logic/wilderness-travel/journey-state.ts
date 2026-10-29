@@ -16,6 +16,17 @@ import {
   type JourneyEvent,
   type StageCountBreakdown,
 } from './types';
+import {
+  PRECIPITATION_OPTIONS,
+  TEMPERATURE_OPTIONS,
+  TERRAIN_TYPES,
+  VISIBILITY_OPTIONS,
+  type Precipitation,
+  type StageWeather,
+  type Temperature,
+  type TerrainType,
+  type Visibility,
+} from './journey-modifiers';
 
 /**
  * Pure journey-state reducer for the Wilderness Travel tracker (Deft Steps,
@@ -46,6 +57,36 @@ function coerceNonNegInt(n: number): number | undefined {
 /** Clamp a string to a max length (handles non-string defensively). */
 function clamp(s: string, max: number): string {
   return String(s ?? '').slice(0, max);
+}
+
+/** Narrow an external value to a valid TerrainType, or undefined. */
+function coerceTerrain(value: unknown): TerrainType | undefined {
+  return (TERRAIN_TYPES as readonly string[]).includes(value as string)
+    ? (value as TerrainType)
+    : undefined;
+}
+
+/**
+ * Build a validated StageWeather from an external patch. Each column must be
+ * one of its transcribed category literals (Deft Steps p.114) or undefined;
+ * invalid siblings are dropped, valid ones kept. Returns an object with only the
+ * recognised fields present.
+ */
+function coerceWeather(input: StageWeather | undefined): StageWeather {
+  const out: StageWeather = {};
+  const temp = input?.temperature;
+  const precip = input?.precipitation;
+  const vis = input?.visibility;
+  if ((TEMPERATURE_OPTIONS as readonly string[]).includes(temp as string)) {
+    out.temperature = temp as Temperature;
+  }
+  if ((PRECIPITATION_OPTIONS as readonly string[]).includes(precip as string)) {
+    out.precipitation = precip as Precipitation;
+  }
+  if ((VISIBILITY_OPTIONS as readonly string[]).includes(vis as string)) {
+    out.visibility = vis as Visibility;
+  }
+  return out;
 }
 
 /** Re-derive 1..n Stage labels from current order (no gaps). */
@@ -230,6 +271,57 @@ export function journeyReducer(
       const stageAdjustments = journey.stageAdjustments.filter((a) => a.id !== event.adjustmentId);
       if (stageAdjustments.length === journey.stageAdjustments.length) return journey;
       return { ...journey, stageAdjustments };
+    }
+
+    case 'setMemberPlanningSL': {
+      // Deft Steps p.115: per-member banked Planning SL (each SL = one reroll).
+      const coerced = coerceNonNegInt(event.planningSL);
+      if (coerced === undefined) return journey; // NaN/∞ → no-op (keep prior value)
+      let changed = false;
+      const roster = journey.roster.map((m) => {
+        if (m.id !== event.memberId) return m;
+        changed = true;
+        return { ...m, planningSL: coerced };
+      });
+      return changed ? { ...journey, roster } : journey; // unknown member → no-op
+    }
+
+    case 'setStageTerrain': {
+      // Deft Steps p.124: Terrain Table. Invalid terrain → clears the selection.
+      const terrain = event.terrain === undefined ? undefined : coerceTerrain(event.terrain);
+      let found = false;
+      const stages = journey.stages.map((s) => {
+        if (s.id !== event.stageId) return s;
+        found = true;
+        const next = { ...s };
+        if (terrain === undefined) delete next.terrain;
+        else next.terrain = terrain;
+        return next;
+      });
+      return found ? { ...journey, stages } : journey;
+    }
+
+    case 'setStageWeather': {
+      // Deft Steps p.114: Weather Table. Only recognised category literals persist.
+      const weather = coerceWeather(event.weather);
+      let found = false;
+      const stages = journey.stages.map((s) => {
+        if (s.id !== event.stageId) return s;
+        found = true;
+        const next = { ...s };
+        if (weather.temperature === undefined && weather.precipitation === undefined && weather.visibility === undefined) {
+          delete next.weather;
+        } else {
+          next.weather = weather;
+        }
+        return next;
+      });
+      return found ? { ...journey, stages } : journey;
+    }
+
+    case 'setJourneyTents': {
+      // Deft Steps p.114: tents make Make Camp Average instead of Challenging.
+      return { ...journey, hasTents: event.hasTents === true };
     }
 
     default: {

@@ -37,7 +37,7 @@ import { useCharacter } from './hooks/useCharacter';
 import type { RollHistoryEntry } from './hooks/useRollHistory';
 import { appendEvent, clearEventLog } from './logic/event-log';
 import { rollEventsToHistory } from './components/shared/rollHistoryAdapter';
-import type { RollEventPayload } from './types/character';
+import { buildRollSummary, toRollPayload } from './logic/roll-log';
 import { useHashRoute } from './hooks/useHashRoute';
 import { useStorageErrorToast } from './hooks/useStorageErrorToast';
 import { runMigration } from './storage/migration';
@@ -255,27 +255,6 @@ function fieldToLabel(field: FieldPath<Character>): string {
   }
   // Return the last meaningful segment for common fields
   return parts[parts.length - 1];
-}
-
-/**
- * Build a concise, human-readable summary for a roll event.
- * e.g. "Melee: 42/55 (SL +1, pass)"
- */
-function buildRollSummary(result: RollResult): string {
-  return `${result.skillOrCharName}: ${result.roll}/${result.targetNumber} (SL ${result.sl}, ${result.passed ? 'pass' : 'fail'})`;
-}
-
-/** Extract the `RollEventPayload` fields from a completed `RollResult`. (Req 4.2) */
-function toRollPayload(result: RollResult): RollEventPayload {
-  return {
-    name: result.skillOrCharName,
-    roll: result.roll,
-    target: result.targetNumber,
-    sl: result.sl,
-    passed: result.passed,
-    isCritical: result.isCritical,
-    isFumble: result.isFumble,
-  };
 }
 
 function AppWithCharacter({

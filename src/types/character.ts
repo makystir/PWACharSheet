@@ -1,6 +1,7 @@
 import type { AncestorGod } from '../data/deityRunes';
 import type { ActiveDisease } from '../logic/diseases';
 import type { ObsessionData } from '../logic/obsessions';
+import type { StageWeather, TerrainType } from '../logic/wilderness-travel/journey-modifiers';
 
 export type CharacteristicKey = 'WS' | 'BS' | 'S' | 'T' | 'I' | 'Ag' | 'Dex' | 'Int' | 'WP' | 'Fel';
 
@@ -637,6 +638,13 @@ export interface JourneyRosterMember {
   id: string;
   /** Free-text display name, e.g. "Gerd" or "Lumpin's scout". 1–100 chars. */
   name: string;
+  /**
+   * Slice B: per-member banked Planning SL (rerolls). Non-negative int, absent
+   * until set. Deft Steps p.115 (Planning Endeavour): each member may take a
+   * Challenging (+0) Outdoor Survival or Research Test; every SL is tradeable
+   * for one reroll during the journey. Additive/optional — no _v bump.
+   */
+  planningSL?: number;
 }
 
 /** One member's recorded endeavour choices for a single Stage (Slice A). */
@@ -664,6 +672,18 @@ export interface JourneyStage {
   records: StageEndeavourRecord[];
   /** Free-text per-Stage notes (weather/terrain jotting until Slice B). 0–1000 chars. */
   notes: string;
+  /**
+   * Slice B: optional selected terrain for this Stage (Deft Steps p.124 Terrain
+   * Table). Absent until the player selects it. Validated against the
+   * TerrainType enum at the reducer boundary.
+   */
+  terrain?: TerrainType;
+  /**
+   * Slice B: optional selected weather for this Stage (Deft Steps p.114 Weather
+   * Table). Absent until set; only the SL-relevant columns are stored (Wind is
+   * narrative-only, omitted).
+   */
+  weather?: StageWeather;
 }
 
 /** A single adjustment to the running Stage count (Navigate outcome). */
@@ -704,8 +724,19 @@ export interface WildernessJourney {
   roster: JourneyRosterMember[];
   /** Free-text Planning Endeavour note. 0–1000 chars. */
   planningEndeavour: string;
-  /** Optional banked Planning SL the player recorded. Non-negative int. */
+  /**
+   * Legacy (Slice A) journey-level banked Planning SL. Non-negative int. Slice B
+   * restores per-member Planning SL on JourneyRosterMember.planningSL; this
+   * field is retained for backward compatibility with Slice-A data and shown
+   * read-only when present, so no saved value is lost. Additive — no _v bump.
+   */
   planningSL?: number;
+  /**
+   * Slice B: optional party-level "has tents" flag. When true, Make Camp
+   * Endeavours default to Average (+20) instead of Challenging (+0).
+   * Deft Steps p.114 (Tents). Absent/false until set.
+   */
+  hasTents?: boolean;
 }
 
 export interface HouseRules {

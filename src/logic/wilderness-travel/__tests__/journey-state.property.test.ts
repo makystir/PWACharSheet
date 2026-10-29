@@ -43,6 +43,27 @@ const arbEvent: fc.Arbitrary<JourneyEvent> = fc.oneof(
   fc.record({ delta: fc.constantFrom<1 | -1>(1, -1), reason: fc.string() })
     .map<JourneyEvent>((r) => ({ kind: 'adjustStageCount', ...r })),
   arbId.map<JourneyEvent>((adjustmentId) => ({ kind: 'removeStageCountAdjustment', adjustmentId })),
+  // Slice B events (cover the new reducer branches in the purity property).
+  fc.record({
+    memberId: arbId,
+    planningSL: fc.oneof(fc.integer({ min: -5, max: 20 }), fc.constant(NaN)),
+  }).map<JourneyEvent>((r) => ({ kind: 'setMemberPlanningSL', ...r })),
+  fc.record({
+    stageId: arbId,
+    terrain: fc.option(
+      fc.constantFrom('Light Woodland', 'Hills', 'Deep forest', 'Temperate Plains', 'Wetland', 'Mountains', 'Bogus'),
+      { nil: undefined },
+    ),
+  }).map<JourneyEvent>((r) => ({ kind: 'setStageTerrain', stageId: r.stageId, terrain: r.terrain as never })),
+  fc.record({
+    stageId: arbId,
+    weather: fc.record({
+      temperature: fc.option(fc.constantFrom('Sweltering', 'Hot', 'Comfortable', 'Chilly', 'Bitter', 'Bogus'), { nil: undefined }),
+      precipitation: fc.option(fc.constantFrom('None', 'Light', 'Heavy', 'Very Heavy', 'Bogus'), { nil: undefined }),
+      visibility: fc.option(fc.constantFrom('Clear', 'Mist', 'Fog', 'Thick Fog', 'Bogus'), { nil: undefined }),
+    }),
+  }).map<JourneyEvent>((r) => ({ kind: 'setStageWeather', stageId: r.stageId, weather: r.weather as never })),
+  fc.boolean().map<JourneyEvent>((hasTents) => ({ kind: 'setJourneyTents', hasTents })),
   fc.constant<JourneyEvent>({ kind: 'deleteJourney' }),
 );
 
