@@ -39,7 +39,7 @@ function findToggleButton(labelText: string): HTMLButtonElement {
 // ─── Grouped Optional Mechanics rendering (data-driven refactor) ────────────
 
 describe('SettingsPage — Optional Mechanics (grouped, data-driven)', () => {
-  it('renders all eight Optional Mechanics toggles by label', () => {
+  it('renders all Optional Mechanics toggles by label', () => {
     render(<SettingsPage {...makeProps()} />);
     for (const entry of OPTIONAL_MECHANICS) {
       expect(screen.getByText(entry.label)).toBeInTheDocument();

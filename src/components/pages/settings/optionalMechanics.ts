@@ -48,7 +48,7 @@ export interface OptionalMechanic {
 }
 
 /**
- * The eight Optional Mechanics, in render order (category order first, then
+ * The nine Optional Mechanics, in render order (category order first, then
  * entry order within each category). Strings are transcribed verbatim from the
  * previous hand-written SettingsPage JSX.
  */
@@ -103,6 +103,13 @@ export const OPTIONAL_MECHANICS: readonly OptionalMechanic[] = [
     label: 'Hunting',
     description: 'Reference tables for hunting game, animals, and lodges (Deft Steps)',
     location: 'Endeavours page → Hunting tab',
+    category: 'Downtime & Activities',
+  },
+  {
+    key: 'useOrganisedCrime',
+    label: 'Organised Crime',
+    description: 'Track criminal gang membership, dues, and organisation perks (Deft Steps)',
+    location: 'Endeavours page → Crime tab',
     category: 'Downtime & Activities',
   },
   // ── Tracking ───────────────────────────────────────────────────────────

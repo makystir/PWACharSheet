@@ -739,6 +739,37 @@ export interface WildernessJourney {
   hasTents?: boolean;
 }
 
+/**
+ * A single tracked criminal-gang membership (Deft Steps, Light Fingers —
+ * "Organised Crime" chapter). Player-driven reference/tracker only; nothing
+ * auto-applies.
+ */
+export interface GangMembership {
+  /** Stable id, generated via generateUUID() (src/logic/uuid.ts). */
+  id: string;
+  /** Free-text gang name, e.g. "Essen Black Rose Lodge". 0–100 chars. */
+  name: string;
+  /** Gang Organisation Level, 1–4 (Deft Steps p.58 Criminal Organisation table). */
+  organisationLevel: 1 | 2 | 3 | 4;
+  /**
+   * Optional per-membership status override (free text, e.g. "Silver 2").
+   * Absent/empty → dues read the character's main `status` field. Present and
+   * non-empty → dues use this string's tier instead.
+   */
+  statusOverride?: string;
+  /** Free-text player notes for this membership. 0–1000 chars. */
+  notes?: string;
+}
+
+/**
+ * Optional Organised Crime tracker (Deft Steps, gated by
+ * houseRules.useOrganisedCrime). Absent until the player adds a gang → zero
+ * always-present footprint when off. Intentionally NOT in BLANK_CHARACTER.
+ */
+export interface OrganisedCrime {
+  memberships: GangMembership[];
+}
+
 export interface HouseRules {
   rangedDamageSBMode: RangedDamageSBMode;
   impaleCritsOnTens: boolean;
@@ -769,6 +800,16 @@ export interface HouseRules {
    * against BLANK_CHARACTER.
    */
   useHunting: boolean;
+  /**
+   * Optional mechanic (Deft Steps, Light Fingers — "Organised Crime" chapter,
+   * docs/deftsteps.md): enables the Organised Crime gang-membership / dues /
+   * organisation-perks tracker + reference tables. Default false; when false the
+   * Crime sub-tab has zero UI footprint and adds no persisted data (its own
+   * toggle, independent of useWildernessTravel / useHunting). Backfilled to false
+   * for older saves via deepMerge against BLANK_CHARACTER. Player-facing tracker
+   * only — nothing auto-applies.
+   */
+  useOrganisedCrime: boolean;
   /**
    * House rule: items marked as inside a backpack contribute 0 to the
    * character's carried encumbrance (carrying capacity is unchanged).
@@ -1010,6 +1051,12 @@ export interface Character {
    * → zero always-present footprint when off.
    */
   wildernessJourney?: WildernessJourney;
+  /**
+   * Optional Organised Crime tracker (Deft Steps, gated by
+   * houseRules.useOrganisedCrime). Absent until the player adds a gang → zero
+   * always-present footprint when off.
+   */
+  organisedCrime?: OrganisedCrime;
   brokenTally?: number;
   rituals?: RitualItem[];
   arcaneMarks?: string[];
@@ -1188,6 +1235,7 @@ export const BLANK_CHARACTER: Character = {
     useCants: false,
     useWildernessTravel: false,
     useHunting: false,
+    useOrganisedCrime: false,
     ignoreBackpackEnc: false,
     // Default initiative rule: roll 1d10 + Initiative (Core p.156).
     initiativeFormula: 'initiativePlusD10',

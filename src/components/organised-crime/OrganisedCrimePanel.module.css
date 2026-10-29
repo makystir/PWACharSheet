@@ -1,0 +1,320 @@
+/* Organised Crime tracker + reference (Deft Steps, "Organised Crime") — CSS Module */
+
+.sectionGap {
+  composes: sectionGap from '../shared/styles/shared.module.css';
+}
+
+.guidance {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-left: 2px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+}
+
+.advisory {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  font-style: italic;
+  margin: 10px 0 0;
+}
+
+.caption {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 6px 0 0;
+}
+
+.flagNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--warning, #c8a832);
+  line-height: 1.45;
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  background: rgba(200, 168, 76, 0.1);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Membership tracker ──────────────────────────────────────────────────── */
+
+.membershipList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.membershipCard {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.membershipHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.nameInput {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  color: var(--accent-gold);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.selectField,
+.inlineInput {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 48px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  font-size: 13px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.duesValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  min-width: 48px;
+  padding: 4px 10px;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: var(--bg-primary);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  cursor: help;
+}
+
+.duesUnknown {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--warning, #c8a832);
+  line-height: 1.4;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.removeBtn:hover {
+  background: rgba(200, 80, 80, 0.15);
+}
+
+/* ─── Dues breakdown tooltip ──────────────────────────────────────────────── */
+
+.tooltipBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.tooltipLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tooltipTotal {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+  padding-top: 2px;
+  font-weight: 700;
+}
+
+/* ─── Reference tables ────────────────────────────────────────────────────── */
+
+.table {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+}
+
+.row {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+
+.headRow {
+  border-top: none;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+}
+
+.cellPrimary {
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.highlight {
+  background: rgba(200, 168, 76, 0.12);
+  border-radius: var(--radius-sm);
+}
+
+.orgRow {
+  grid-template-columns:
+    40px minmax(70px, 0.8fr) minmax(90px, 1fr) minmax(60px, 0.7fr)
+    minmax(130px, 1.4fr) minmax(90px, 1fr);
+}
+
+.perksRow {
+  grid-template-columns:
+    40px minmax(130px, 1.4fr) minmax(120px, 1.3fr) minmax(130px, 1.4fr)
+    minmax(120px, 1.3fr);
+}
+
+/* ─── Criminal Events list + roller ───────────────────────────────────────── */
+
+.eventRows {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+
+.eventRow {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 6px 4px;
+  border-top: 1px solid var(--border);
+}
+
+.eventRoll {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--accent-gold);
+  text-align: center;
+}
+
+.eventResult {
+  color: var(--text-secondary);
+}
+
+.rollerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.primaryBtn:hover {
+  background: var(--accent-gold-dark);
+  color: var(--bg-primary);
+}
+
+.rollerResult {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rollerDice {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.rollerOutcome {
+  color: var(--text-secondary);
+}
+
+.rollerCaption {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 8px;
+}

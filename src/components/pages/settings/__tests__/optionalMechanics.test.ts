@@ -7,7 +7,7 @@ import { BLANK_CHARACTER } from '../../../../types/character';
 
 /**
  * Data coverage guard for the Optional Mechanics list. This is a pure unit test
- * (no React). It pins the array to exactly the eight expected mechanics so a
+ * (no React). It pins the array to exactly the expected mechanics so a
  * forgotten/typo'd/extra entry trips here, and backstops the compile-time
  * `BooleanHouseRuleKey` constraint with a runtime check that every key is a
  * real boolean HouseRules field.
@@ -21,11 +21,12 @@ const EXPECTED_KEYS = [
   'useEnterprises',
   'useWildernessTravel',
   'useHunting',
+  'useOrganisedCrime',
   'useCants',
 ] as const;
 
 describe('OPTIONAL_MECHANICS data module', () => {
-  it('covers exactly the eight expected keys', () => {
+  it('covers exactly the expected keys', () => {
     const keys = OPTIONAL_MECHANICS.map((m) => m.key);
     expect(new Set(keys)).toEqual(new Set(EXPECTED_KEYS));
     expect(keys).toHaveLength(EXPECTED_KEYS.length);

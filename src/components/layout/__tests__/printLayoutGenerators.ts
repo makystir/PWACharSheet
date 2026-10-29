@@ -300,6 +300,7 @@ export const arbitraryHouseRules: fc.Arbitrary<HouseRules> = fc.record({
   useCants: fc.boolean(),
   useWildernessTravel: fc.boolean(),
   useHunting: fc.boolean(),
+  useOrganisedCrime: fc.boolean(),
   ignoreBackpackEnc: fc.boolean(),
   initiativeFormula: fc.constantFrom('initiativePlusD10', 'initiativeAgilityTest'),
 });

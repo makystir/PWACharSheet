@@ -15,6 +15,7 @@ import { useTabOrder } from '../../hooks/useTabOrder';
 import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { JourneyTrackerPanel } from '../wilderness-travel/JourneyTrackerPanel';
 import { HuntingReferencePanel } from '../hunting/HuntingReferencePanel';
+import { OrganisedCrimePanel } from '../organised-crime/OrganisedCrimePanel';
 import styles from './EndeavoursPage.module.css';
 import { Toast } from '../shared/Toast';
 import { useUndoToast } from '../../hooks/useUndoToast';
@@ -50,7 +51,7 @@ interface EndeavoursPageProps {
   onSubTabChange?: (tab: string) => void;
 }
 
-type EndeavoursSubTab = 'endeavours' | 'travel' | 'hunting';
+type EndeavoursSubTab = 'endeavours' | 'travel' | 'hunting' | 'crime';
 
 /** Get the CSS class for an entry row based on its status */
 function getEntryRowClass(status: EntryStatus): string {
@@ -92,6 +93,11 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
   // Wilderness Travel. When off, the Hunting sub-tab is not registered and its
   // panel never mounts → zero DOM footprint.
   const useHunting = character.houseRules.useHunting === true;
+  // Optional Organised Crime tracker (Deft Steps). Its own toggle, independent of
+  // Wilderness Travel / Hunting. When off, the Crime sub-tab is not registered
+  // and its panel never mounts → zero DOM footprint, and organisedCrime stays
+  // absent from the character.
+  const useOrganisedCrime = character.houseRules.useOrganisedCrime === true;
 
   // Memoised so it has a stable identity per toggle value and can be referenced
   // from effect dependency arrays without changing every render.
@@ -99,10 +105,11 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
     const t: EndeavoursSubTab[] = ['endeavours'];
     if (useWildernessTravel) t.push('travel');
     if (useHunting) t.push('hunting');
+    if (useOrganisedCrime) t.push('crime');
     return t;
-  }, [useWildernessTravel, useHunting]);
+  }, [useWildernessTravel, useHunting, useOrganisedCrime]);
 
-  // Tab reordering — conditionally include the Travel and Hunting tabs.
+  // Tab reordering — conditionally include the Travel, Hunting, and Crime tabs.
   const defaultTabsList = useMemo(() => {
     const tabs = [{ id: 'endeavours', label: 'Endeavours' }];
     if (useWildernessTravel) {
@@ -111,8 +118,11 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
     if (useHunting) {
       tabs.push({ id: 'hunting', label: 'Hunting' });
     }
+    if (useOrganisedCrime) {
+      tabs.push({ id: 'crime', label: 'Crime' });
+    }
     return tabs;
-  }, [useWildernessTravel, useHunting]);
+  }, [useWildernessTravel, useHunting, useOrganisedCrime]);
 
   const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
     pageKey: 'endeavours',
@@ -143,11 +153,12 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
       onSubTabChange?.(fallback);
     }
     // Intentionally narrow: this is specifically the reaction to an optional
-    // house-rule toggling (Wilderness Travel / Hunting) that can invalidate the
-    // current tab. Re-running on activeSubTab/orderedTabs/onSubTabChange changes
-    // would fight normal tab navigation, so only the toggles belong here.
+    // house-rule toggling (Wilderness Travel / Hunting / Organised Crime) that
+    // can invalidate the current tab. Re-running on
+    // activeSubTab/orderedTabs/onSubTabChange changes would fight normal tab
+    // navigation, so only the toggles belong here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useWildernessTravel, useHunting]);
+  }, [useWildernessTravel, useHunting, useOrganisedCrime]);
 
   // Sync from external subTab prop (e.g. URL hash changes).
   // Intentional setState-in-effect: mirrors an external routing input into
@@ -711,6 +722,9 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
       )}
       {activeSubTab === 'travel' && useWildernessTravel && (
         <JourneyTrackerPanel character={character} updateCharacter={updateCharacter} />
+      )}
+      {activeSubTab === 'crime' && useOrganisedCrime && (
+        <OrganisedCrimePanel character={character} updateCharacter={updateCharacter} />
       )}
 
       {/* Custom free-text input dialog */}
