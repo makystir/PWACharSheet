@@ -31,6 +31,11 @@ import type { QuickActionConfig } from '../../storage/quick-actions';
 import { useDiceEntryMode } from '../../hooks/useDiceEntryMode';
 import { CHAR_FULL_NAMES } from './characterConstants';
 import { CHARACTERISTIC_KEYS } from '../../types/character';
+import { OPTIONAL_MECHANICS, OPTIONAL_MECHANIC_CATEGORIES } from './settings/optionalMechanics';
+import { OptionalMechanicToggle } from './settings/OptionalMechanicToggle';
+
+/** Build a stable id fragment for aria-labelledby from a category name. */
+const slugifyCategory = (category: string) => category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 export { loadQuickActions };
 export type { QuickActionConfig };
@@ -758,167 +763,27 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
         </CollapsibleSection>
 
         <CollapsibleSection title="Optional Mechanics" storageKey="collapsible-optional-mechanics" defaultExpanded={true}>
-          <div className={styles.ruleGroup}>
-            {/* Yenlui Balance */}
-            <div className={styles.ruleItem}>
-              <div className={styles.toggleRow}>
-                <div className={styles.toggleInfo}>
-                  <div className={styles.ruleLabel}>Yenlui Balance (High Elf)</div>
-                  <div className={styles.ruleDesc} style={!character.houseRules.useYenlui ? { color: 'var(--text-muted)' } : undefined}>
-                    Track Elven spiritual balance (High Elf Player's Guide)
-                  </div>
-                  {character.houseRules.useYenlui && <div className={styles.ruleLocation}>Find it on: Character page → Identity tab</div>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('houseRules.useYenlui', !character.houseRules.useYenlui)}
-                  className={character.houseRules.useYenlui ? styles.toggleBtnOn : styles.toggleBtnOff}
-                >
-                  {character.houseRules.useYenlui ? 'ON' : 'OFF'}
-                </button>
+          {OPTIONAL_MECHANIC_CATEGORIES.map((category) => {
+            const entries = OPTIONAL_MECHANICS.filter((m) => m.category === category);
+            if (entries.length === 0) return null; // defensive; coverage test guarantees ≥1
+            const headingId = `om-cat-${slugifyCategory(category)}`;
+            return (
+              <div key={category} className={styles.ruleGroup} role="group" aria-labelledby={headingId}>
+                <h4 id={headingId} className={styles.categoryHeading}>{category}</h4>
+                {entries.map((entry) => {
+                  const value = character.houseRules[entry.key];
+                  return (
+                    <OptionalMechanicToggle
+                      key={entry.key}
+                      entry={entry}
+                      value={value}
+                      onToggle={() => update(`houseRules.${entry.key}`, !value)}
+                    />
+                  );
+                })}
               </div>
-            </div>
-
-            {/* Grudge Book */}
-            <div className={styles.ruleItem}>
-              <div className={styles.toggleRow}>
-                <div className={styles.toggleInfo}>
-                  <div className={styles.ruleLabel}>Grudge Book (Dwarf)</div>
-                  <div className={styles.ruleDesc} style={!character.houseRules.useGrudgeBook ? { color: 'var(--text-muted)' } : undefined}>
-                    Track Dwarf grudges for XP (Dwarf Player's Guide)
-                  </div>
-                  {character.houseRules.useGrudgeBook && <div className={styles.ruleLocation}>Find it on: Character page → Identity tab</div>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('houseRules.useGrudgeBook', !character.houseRules.useGrudgeBook)}
-                  className={character.houseRules.useGrudgeBook ? styles.toggleBtnOn : styles.toggleBtnOff}
-                >
-                  {character.houseRules.useGrudgeBook ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-
-            {/* Psychology Tracker */}
-            <div className={styles.ruleItem}>
-              <div className={styles.toggleRow}>
-                <div className={styles.toggleInfo}>
-                  <div className={styles.ruleLabel}>Psychology Tracker</div>
-                  <div className={styles.ruleDesc} style={!character.houseRules.usePsychologyTracker ? { color: 'var(--text-muted)' } : undefined}>
-                    Track phobias, animosity, hatred, and trauma (Archives Vol. II)
-                  </div>
-                  {character.houseRules.usePsychologyTracker && <div className={styles.ruleLocation}>Find it on: Character page → Identity tab → Psychology Tracker panel</div>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('houseRules.usePsychologyTracker', !character.houseRules.usePsychologyTracker)}
-                  className={character.houseRules.usePsychologyTracker ? styles.toggleBtnOn : styles.toggleBtnOff}
-                >
-                  {character.houseRules.usePsychologyTracker ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-
-            {/* Critical Deflection */}
-            <div className={styles.ruleItem}>
-              <div className={styles.toggleRow}>
-                <div className={styles.toggleInfo}>
-                  <div className={styles.ruleLabel}>Critical Deflection</div>
-                  <div className={styles.ruleDesc} style={!character.houseRules.useCriticalDeflection ? { color: 'var(--text-muted)' } : undefined}>
-                    Sacrifice 1 AP to ignore a Critical Wound (Archives Vol. III)
-                  </div>
-                  {character.houseRules.useCriticalDeflection && <div className={styles.ruleLocation}>Find it on: Combat page → Take Damage panel</div>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('houseRules.useCriticalDeflection', !character.houseRules.useCriticalDeflection)}
-                  className={character.houseRules.useCriticalDeflection ? styles.toggleBtnOn : styles.toggleBtnOff}
-                >
-                  {character.houseRules.useCriticalDeflection ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-
-            {/* Enterprises */}
-            <div className={styles.ruleItem}>
-              <div className={styles.toggleRow}>
-                <div className={styles.toggleInfo}>
-                  <div className={styles.ruleLabel}>Enterprises</div>
-                  <div className={styles.ruleDesc} style={!character.houseRules.useEnterprises ? { color: 'var(--text-muted)' } : undefined}>
-                    Track business ventures and income sources (Archives Vol. III)
-                  </div>
-                  {character.houseRules.useEnterprises && <div className={styles.ruleLocation}>Find it on: Estate page → Enterprises tab</div>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('houseRules.useEnterprises', !character.houseRules.useEnterprises)}
-                  className={character.houseRules.useEnterprises ? styles.toggleBtnOn : styles.toggleBtnOff}
-                >
-                  {character.houseRules.useEnterprises ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-
-            {/* Wilderness Travel */}
-            <div className={styles.ruleItem}>
-              <div className={styles.toggleRow}>
-                <div className={styles.toggleInfo}>
-                  <div className={styles.ruleLabel}>Wilderness Travel</div>
-                  <div className={styles.ruleDesc} style={!character.houseRules.useWildernessTravel ? { color: 'var(--text-muted)' } : undefined}>
-                    Stage-by-stage journey tracker for travel through the wilds (Deft Steps)
-                  </div>
-                  {character.houseRules.useWildernessTravel && <div className={styles.ruleLocation}>Find it on: Endeavours page → Travel tab</div>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('houseRules.useWildernessTravel', !character.houseRules.useWildernessTravel)}
-                  className={character.houseRules.useWildernessTravel ? styles.toggleBtnOn : styles.toggleBtnOff}
-                >
-                  {character.houseRules.useWildernessTravel ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-
-            {/* Hunting */}
-            <div className={styles.ruleItem}>
-              <div className={styles.toggleRow}>
-                <div className={styles.toggleInfo}>
-                  <div className={styles.ruleLabel}>Hunting</div>
-                  <div className={styles.ruleDesc} style={!character.houseRules.useHunting ? { color: 'var(--text-muted)' } : undefined}>
-                    Reference tables for hunting game, animals, and lodges (Deft Steps)
-                  </div>
-                  {character.houseRules.useHunting && <div className={styles.ruleLocation}>Find it on: Endeavours page → Hunting tab</div>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('houseRules.useHunting', !character.houseRules.useHunting)}
-                  className={character.houseRules.useHunting ? styles.toggleBtnOn : styles.toggleBtnOff}
-                >
-                  {character.houseRules.useHunting ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-
-            {/* Alternative Channelling Cants */}
-            <div className={styles.ruleItem}>
-              <div className={styles.toggleRow}>
-                <div className={styles.toggleInfo}>
-                  <div className={styles.ruleLabel}>Alternative Channelling Cants</div>
-                  <div className={styles.ruleDesc} style={!character.houseRules.useCants ? { color: 'var(--text-muted)' } : undefined}>
-                    Expend gathered channelling SL for minor magical effects (Archives Vol. III)
-                  </div>
-                  {character.houseRules.useCants && <div className={styles.ruleLocation}>Find it on: Combat page → Spells & Prayers panel</div>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('houseRules.useCants', !character.houseRules.useCants)}
-                  className={character.houseRules.useCants ? styles.toggleBtnOn : styles.toggleBtnOff}
-                >
-                  {character.houseRules.useCants ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </CollapsibleSection>
       </Card>
 

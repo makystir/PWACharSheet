@@ -142,6 +142,16 @@
   font-style: italic;
 }
 
+/* Category heading within Optional Mechanics (mirrors command-palette .groupHeading) */
+.categoryHeading {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
 /* Three-button selector (reuses theme button pattern) */
 .selectorRow {
   display: flex;
