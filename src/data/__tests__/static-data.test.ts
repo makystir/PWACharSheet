@@ -1882,6 +1882,8 @@ describe('Deft Steps — Careers', () => {
     'Poacher': { WS: 'T3', BS: 'T1', S: null, T: null, I: 'T4', Agi: 'T1', Dex: 'T1', Int: 'T2', WP: null, Fel: null },
     'Thief (Burglar)': { WS: null, BS: null, S: 'T3', T: null, I: 'T1', Agi: 'T1', Dex: 'T2', Int: null, WP: 'T1', Fel: 'T4' },
     'Thief (Embezzler)': { WS: null, BS: null, S: 'T3', T: null, I: 'T1', Agi: null, Dex: 'T2', Int: 'T1', WP: 'T1', Fel: 'T4' },
+    'Thief (Pickpocket)': { WS: null, BS: null, S: 'T3', T: null, I: 'T1', Agi: 'T1', Dex: 'T2', Int: null, WP: 'T1', Fel: 'T4' },
+    'Gamekeeper': { WS: 'T2', BS: 'T1', S: null, T: null, I: 'T1', Agi: 'T3', Dex: null, Int: 'T1', WP: 'T4', Fel: null },
   };
 
   // Expected class per new career (design §3, §4.1, §5).
@@ -1896,6 +1898,8 @@ describe('Deft Steps — Careers', () => {
     'Poacher': 'Rangers',
     'Thief (Burglar)': 'Rogues',
     'Thief (Embezzler)': 'Rogues',
+    'Thief (Pickpocket)': 'Rogues',
+    'Gamekeeper': 'Rangers',
   };
 
   const newCareers = Object.keys(EXPECTED_SCHEMES);
@@ -2002,6 +2006,18 @@ describe('Deft Steps — Careers', () => {
     const l4 = CAREER_SCHEMES['Thief (Burglar)'].level4!;
     expect(l4.talents).toContain('Secret Identity');
     expect(l4.talents).not.toContain('Trapper');
+  });
+
+  it('Thief (Pickpocket) swaps Strike to Stun->Fast Hands and adds Perform (Clowning), cumulatively across all tiers', () => {
+    const p = CAREER_SCHEMES['Thief (Pickpocket)'];
+    const levels = [p.level1!, p.level2!, p.level3!, p.level4!];
+    for (const lvl of levels) {
+      // The book's swap applies cumulatively (data-model requires cumulative + no reversion):
+      // Fast Hands present, Strike to Stun absent, Perform (Clowning) present at every tier.
+      expect(lvl.talents, `${lvl.title} should have Fast Hands`).toContain('Fast Hands');
+      expect(lvl.talents, `${lvl.title} should not retain Strike to Stun`).not.toContain('Strike to Stun');
+      expect(lvl.skills, `${lvl.title} should include Perform (Clowning)`).toContain('Perform (Clowning)');
+    }
   });
 
   it('Thief (Embezzler) L1 swaps characteristic Ag->Int and the documented talents', () => {

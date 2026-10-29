@@ -278,6 +278,20 @@
           "Fel": "T4"
         }
       },
+      "Thief (Pickpocket)": {
+        "advance_scheme": {
+          "WS": null,
+          "BS": null,
+          "S": "T3",
+          "T": null,
+          "I": "T1",
+          "Agi": "T1",
+          "Dex": "T2",
+          "Int": null,
+          "WP": "T1",
+          "Fel": "T4"
+        }
+      },
       "Witch": {
         "advance_scheme": {
           "WS": "T1",
@@ -863,6 +877,20 @@
           "Dex": "T1",
           "Int": "T2",
           "WP": null,
+          "Fel": null
+        }
+      },
+      "Gamekeeper": {
+        "advance_scheme": {
+          "WS": "T2",
+          "BS": "T1",
+          "S": null,
+          "T": null,
+          "I": "T1",
+          "Agi": "T3",
+          "Dex": null,
+          "Int": "T1",
+          "WP": "T4",
           "Fel": null
         }
       },

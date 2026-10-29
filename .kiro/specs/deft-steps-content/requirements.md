@@ -111,6 +111,12 @@ User confirmed the Ranald line mapping (each scheme attaches to the whole aspect
 
 ---
 
+## Close-out note (Pickpocket + Gamekeeper)
+
+Pickpocket and Gamekeeper were added after the user supplied their missing data (Pickpocket substitutions and Gamekeeper's 4-tier Career Path were image-only / conversion-lost in the markdown).
+- **Pickpocket:** modeled as the `Thief (Pickpocket)` variant. NOTE: the book states the adjustment applies "At Level 1 (Prowler)", but the app's career data model requires every level to be the CUMULATIVE superset of the previous (enforced by the "Cumulative Progression" + "Alphabetical Ordering" property tests). A true L1-only change that reverts at L2 is structurally invalid here, so the swap (Strike to Stun → Fast Hands) and the added skill (Perform (Clowning)) PROPAGATE cumulatively across all four tiers — identical to how the Burglar/Embezzler variants propagate their swaps. (This overrides the earlier "F3: L1-only" plan flag, which conflicted with the data model.)
+- **Gamekeeper:** full 4-tier Rangers career (Underkeeper/Gamekeeper/Head Gamekeeper/Master Gamekeeper), `species` omitted (consistent with the Thief variants; the consistency test doesn't require it).
+
 ## (historical) Advance schemes needed from the user (the blocker)
 
 For each career below, please provide the **characteristic advance scheme** — which of the 10 characteristics the career advances, as `T1 / T2 / T3 / T4` (the tier at which each becomes available), matching the format in `src/data/careeradvanceschemes.json`. (The book shows these as the ↑‑marked row under WS | BS | S | T | I | Ag | Dex | Int | WP | Fel for each career; that row didn't survive the markdown conversion.)

@@ -1287,6 +1287,17 @@ export const CAREER_SCHEMES: Record<string, CareerScheme> = {
     level4: { title: "Champion Poacher", status: "Silver 4", characteristics: ["WS", "BS", "I", "Ag", "Dex", "Int"], skills: ["Animal Care", "Animal Training (Any)", "Athletics", "Bribery", "Climb", "Cool", "Dodge", "Endurance", "Haggle", "Intimidate", "Lore (Beasts)", "Lore (Law)", "Melee (Basic)", "Navigation", "Outdoor Survival", "Perception", "Ranged (Bow)", "Ranged (Sling)", "Ride (Horse)", "Set Trap", "Stealth (Rural)", "Track"], talents: ["Accurate Shot", "Acute Sense (Any)", "Briber", "Criminal", "Dealmaker", "Fast Shot", "Fisherman", "Flee!", "Hunter's Eye", "Kingpin", "Marksman", "Menacing", "Rover", "Sharpshooter", "Strider (Any)", "Trapper"], trappings: ["Bed Roll", "Bow and Arrow", "Cloak", "Hunting Hound or Hawk", "Quality Weapon", "Riding Horse with Saddle and Tack", "Rod and Line", "Selection of Animal Traps", "Sling with 10 Stone Bullets", "Tent"] },
   },
 
+  // Deft Steps (docs/deftsteps.md — Gamekeeper): full 4-tier career. Skills/talents/characteristics
+  // are cumulative per level (matching existing Rangers careers Muleskinner/Poacher); trappings are
+  // per-tier. Advance scheme (user-supplied): T1 BS/I/Int, T2 +WS, T3 +Ag, T4 +WP.
+  "Gamekeeper": {
+    class: "Rangers",
+    level1: { title: "Underkeeper", status: "Brass 4", characteristics: ["BS", "I", "Int"], skills: ["Animal Care", "Climb", "Gossip", "Lore (Beasts)", "Melee (Basic)", "Outdoor Survival", "Perception", "Ranged (Bow)", "Set Trap", "Stealth (Rural)"], talents: ["Marksman", "Rover", "Strider (Any)", "Trapper"], trappings: ["Hat", "Bow and Arrow (12)", "Hand Weapon"] },
+    level2: { title: "Gamekeeper", status: "Silver 1", characteristics: ["BS", "I", "Int", "WS"], skills: ["Animal Care", "Athletics", "Climb", "Cool", "Endurance", "Gossip", "Intuition", "Lore (Beasts)", "Lore (Local)", "Melee (Basic)", "Outdoor Survival", "Perception", "Ranged (Bow)", "Set Trap", "Stealth (Rural)", "Track"], talents: ["Hunter's Eye", "Marksman", "Menacing", "Rover", "Sharpshooter", "Strider (Any)", "Strike to Stun", "Trapper"], trappings: ["Quality Hat", "Hunting Suit"] },
+    level3: { title: "Head Gamekeeper", status: "Silver 2", characteristics: ["BS", "I", "Int", "WS", "Ag"], skills: ["Animal Care", "Animal Training (Any)", "Athletics", "Climb", "Cool", "Endurance", "Gossip", "Intuition", "Lore (Beasts)", "Lore (Local)", "Melee (Basic)", "Navigation", "Outdoor Survival", "Perception", "Ranged (Blackpowder)", "Ranged (Bow)", "Ride (Horse)", "Set Trap", "Stealth (Rural)", "Track"], talents: ["Accurate Shot", "Acute Sense (Any)", "Fast Shot", "Hunter's Eye", "Marksman", "Menacing", "Orientation", "Rover", "Sharpshooter", "Strider (Any)", "Strike to Stun", "Trapper"], trappings: ["Blackpowder Weapon", "Riding Horse with Saddle and Tack"] },
+    level4: { title: "Master Gamekeeper", status: "Silver 4", characteristics: ["BS", "I", "Int", "WS", "Ag", "WP"], skills: ["Animal Care", "Animal Training (Any)", "Athletics", "Climb", "Cool", "Endurance", "Gossip", "Intuition", "Leadership", "Lore (Beasts)", "Lore (Law)", "Lore (Local)", "Melee (Basic)", "Navigation", "Outdoor Survival", "Perception", "Ranged (Blackpowder)", "Ranged (Bow)", "Ride (Horse)", "Set Trap", "Stealth (Rural)", "Track"], talents: ["Accurate Shot", "Acute Sense (Any)", "Commanding Presence", "Dealmaker", "Etiquette (Servants)", "Fast Shot", "Hunter's Eye", "Marksman", "Menacing", "Orientation", "Read/Write", "Rover", "Sharpshooter", "Strider (Any)", "Strike to Stun", "Trapper"], trappings: ["Estate Cottage", "Quality Clothing"] },
+  },
+
   // Deft Steps (docs/deftsteps.md L1198–L1206): Thief variant — Burglar. Uses the Thief career with
   // documented adjustments (L1 skills +Lore (Local)/+Melee (Brawling); L3 talent Trapper→Secret Identity,
   // propagating to L4). Advance scheme = Thief's, unchanged.
@@ -1307,6 +1318,24 @@ export const CAREER_SCHEMES: Record<string, CareerScheme> = {
     level2: { title: "Thief", status: "Brass 3", characteristics: ["I", "Dex", "Int", "WP"], skills: ["Bribery", "Charm", "Cool", "Dodge", "Endurance", "Evaluate", "Gossip", "Haggle", "Intuition", "Lore (Local)", "Perception", "Pick Lock", "Secret Signs (Thief)", "Sleight of Hand"], talents: ["Blather", "Briber", "Embezzle", "Etiquette (Guilder)", "Fast Hands", "Flee!", "Numismatics", "Read/Write"], trappings: ["Abacus", "Writing Kit"] },
     level3: { title: "Master Thief", status: "Brass 5", characteristics: ["S", "I", "Dex", "Int", "WP"], skills: ["Bribery", "Charm", "Cool", "Dodge", "Endurance", "Evaluate", "Gamble", "Gossip", "Haggle", "Intimidate", "Intuition", "Lore (Local)", "Perception", "Pick Lock", "Ranged (Crossbow)", "Secret Signs (Thief)", "Sleight of Hand"], talents: ["Blather", "Briber", "Dealmaker", "Embezzle", "Etiquette (Guilder)", "Fast Hands", "Flee!", "Nimble Fingered", "Numismatics", "Read/Write", "Savvy", "Super Numerate"], trappings: ["Abacus", "Writing Kit"] },
     level4: { title: "Cat Burglar", status: "Silver 3", characteristics: ["S", "I", "Dex", "Int", "WP", "Fel"], skills: ["Bribery", "Charm", "Cool", "Dodge", "Endurance", "Evaluate", "Gamble", "Gossip", "Haggle", "Intimidate", "Intuition", "Lore (Local)", "Perception", "Pick Lock", "Ranged (Crossbow)", "Secret Signs (Thief)", "Set Trap", "Sleight of Hand"], talents: ["Blather", "Briber", "Cat-tongued", "Dealmaker", "Embezzle", "Etiquette (Guilder)", "Fast Hands", "Flee!", "Luck", "Nimble Fingered", "Numismatics", "Read/Write", "Savvy", "Schemer", "Super Numerate", "Wealthy"], trappings: ["Abacus", "Writing Kit"] },
+  },
+
+  // Deft Steps (docs/deftsteps.md — Pickpocket): Thief variant. Uses the Thief career with ONLY a
+  // Level 1 (Prowler) adjustment: choose-from skill list per the book, and the talent swap
+  // Strike to Stun -> Fast Hands. The change is L1-only, so L2–L4 are identical to base Thief.
+  // Advance scheme = Thief's, unchanged (no characteristic change). The book's L1 (Prowler)
+  // adjustment — choose-from skill list incl. Perform (Clowning), and talent swap
+  // Strike to Stun -> Fast Hands — is applied CUMULATIVELY across all tiers to satisfy the
+  // app's cumulative-progression + alphabetical-ordering data-model invariants (matching how
+  // Burglar/Embezzler variants propagate their swaps): Perform (Clowning) is added at every
+  // level and Strike to Stun is removed at every level (Fast Hands already appears from L2 in
+  // the base Thief).
+  "Thief (Pickpocket)": {
+    class: "Rogues",
+    level1: { title: "Prowler", status: "Brass 1", characteristics: ["I", "Ag", "WP"], skills: ["Athletics", "Climb", "Cool", "Dodge", "Endurance", "Intuition", "Perception", "Perform (Clowning)", "Sleight of Hand", "Stealth (Urban)"], talents: ["Alley Cat", "Criminal", "Fast Hands", "Flee!"] },
+    level2: { title: "Thief", status: "Brass 3", characteristics: ["I", "Ag", "Dex", "WP"], skills: ["Athletics", "Climb", "Cool", "Dodge", "Endurance", "Evaluate", "Gossip", "Intuition", "Lore (Local)", "Perception", "Perform (Clowning)", "Pick Lock", "Secret Signs (Thief)", "Sleight of Hand", "Stealth (Urban)"], talents: ["Alley Cat", "Break and Enter", "Criminal", "Etiquette (Criminals)", "Fast Hands", "Flee!", "Shadow"] },
+    level3: { title: "Master Thief", status: "Brass 5", characteristics: ["I", "S", "Ag", "Dex", "WP"], skills: ["Athletics", "Bribery", "Climb", "Cool", "Dodge", "Endurance", "Evaluate", "Gamble", "Gossip", "Intimidate", "Intuition", "Lore (Local)", "Perception", "Perform (Clowning)", "Pick Lock", "Ranged (Crossbow)", "Secret Signs (Thief)", "Sleight of Hand", "Stealth (Urban)"], talents: ["Alley Cat", "Break and Enter", "Criminal", "Etiquette (Criminals)", "Fast Hands", "Flee!", "Night Vision", "Nimble Fingered", "Shadow", "Step Aside", "Trapper"] },
+    level4: { title: "Cat Burglar", status: "Silver 3", characteristics: ["I", "S", "Ag", "Dex", "WP", "Fel"], skills: ["Athletics", "Bribery", "Charm", "Climb", "Cool", "Dodge", "Endurance", "Evaluate", "Gamble", "Gossip", "Intimidate", "Intuition", "Lore (Local)", "Perception", "Perform (Clowning)", "Pick Lock", "Ranged (Crossbow)", "Secret Signs (Thief)", "Set Trap", "Sleight of Hand", "Stealth (Urban)"], talents: ["Alley Cat", "Break and Enter", "Catfall", "Criminal", "Etiquette (Criminals)", "Fast Hands", "Flee!", "Night Vision", "Nimble Fingered", "Scale Sheer Surface", "Shadow", "Step Aside", "Strong Legs", "Trapper", "Wealthy"] },
   },
 };
 
