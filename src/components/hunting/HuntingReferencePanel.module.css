@@ -1,0 +1,167 @@
+/* Hunting reference (Deft Steps, "Hunter and Hunted") — read-only CSS Module */
+
+.sectionGap {
+  composes: sectionGap from '../shared/styles/shared.module.css';
+}
+
+.guidance {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-left: 2px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+}
+
+.advisory {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  font-style: italic;
+  margin: 6px 0 0;
+}
+
+.caption {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 6px 0 0;
+}
+
+.footnote {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 8px 0 0;
+}
+
+.flagNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--warning, #c8a832);
+  line-height: 1.45;
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  background: rgba(200, 168, 76, 0.1);
+  border: 1px solid var(--accent-gold-dark);
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Generic reference table ─────────────────────────────────────────────── */
+
+.table {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+}
+
+.row {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+
+.headRow {
+  border-top: none;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+}
+
+.cellPrimary {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.considerationsRow {
+  grid-template-columns: minmax(120px, 1.4fr) minmax(140px, 2fr) minmax(90px, 1fr);
+}
+
+.fastBuckRow {
+  grid-template-columns: minmax(90px, 1.2fr) minmax(70px, 0.8fr) minmax(90px, 1.4fr) minmax(70px, 0.8fr);
+}
+
+.equipmentRow {
+  grid-template-columns: minmax(130px, 1.6fr) minmax(60px, 0.8fr) minmax(40px, 0.5fr) minmax(80px, 1fr);
+}
+
+/* ─── Trait lists (hounds / hawks) ───────────────────────────────────────── */
+
+.traitList {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.traitRow {
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+
+.traitHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.traitName {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.traitTest {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.traitDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 2px 0 0;
+}
+
+/* ─── Lodge ───────────────────────────────────────────────────────────────── */
+
+.subHeading {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin: 10px 0 4px;
+}
+
+.lodgeList {
+  display: flex;
+  flex-direction: column;
+}
+
+.lodgeFloor {
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+
+.lodgeFloorName {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.lodgeFloorDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 2px 0 0;
+}

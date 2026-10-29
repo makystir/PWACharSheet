@@ -14,6 +14,7 @@ import { SubTabBar } from '../shared/SubTabBar';
 import { useTabOrder } from '../../hooks/useTabOrder';
 import { saveLastSubTab, loadLastSubTab } from '../../logic/sub-tab-store';
 import { JourneyTrackerPanel } from '../wilderness-travel/JourneyTrackerPanel';
+import { HuntingReferencePanel } from '../hunting/HuntingReferencePanel';
 import styles from './EndeavoursPage.module.css';
 import { Toast } from '../shared/Toast';
 import { useUndoToast } from '../../hooks/useUndoToast';
@@ -49,7 +50,7 @@ interface EndeavoursPageProps {
   onSubTabChange?: (tab: string) => void;
 }
 
-type EndeavoursSubTab = 'endeavours' | 'travel';
+type EndeavoursSubTab = 'endeavours' | 'travel' | 'hunting';
 
 /** Get the CSS class for an entry row based on its status */
 function getEntryRowClass(status: EntryStatus): string {
@@ -87,22 +88,31 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
   // rendered at all → zero DOM footprint, mirroring EstatePage's
   // useEnterprises-gated Enterprises tab.
   const useWildernessTravel = character.houseRules.useWildernessTravel === true;
+  // Optional Hunting reference (Deft Steps). Its own toggle, independent of
+  // Wilderness Travel. When off, the Hunting sub-tab is not registered and its
+  // panel never mounts → zero DOM footprint.
+  const useHunting = character.houseRules.useHunting === true;
 
-  // Memoised so it has a stable identity per useWildernessTravel value and can
-  // be referenced from effect dependency arrays without changing every render.
-  const VALID_SUBTABS: EndeavoursSubTab[] = useMemo(
-    () => (useWildernessTravel ? ['endeavours', 'travel'] : ['endeavours']),
-    [useWildernessTravel],
-  );
+  // Memoised so it has a stable identity per toggle value and can be referenced
+  // from effect dependency arrays without changing every render.
+  const VALID_SUBTABS: EndeavoursSubTab[] = useMemo(() => {
+    const t: EndeavoursSubTab[] = ['endeavours'];
+    if (useWildernessTravel) t.push('travel');
+    if (useHunting) t.push('hunting');
+    return t;
+  }, [useWildernessTravel, useHunting]);
 
-  // Tab reordering — conditionally include the Travel tab.
+  // Tab reordering — conditionally include the Travel and Hunting tabs.
   const defaultTabsList = useMemo(() => {
     const tabs = [{ id: 'endeavours', label: 'Endeavours' }];
     if (useWildernessTravel) {
       tabs.push({ id: 'travel', label: 'Travel' });
     }
+    if (useHunting) {
+      tabs.push({ id: 'hunting', label: 'Hunting' });
+    }
     return tabs;
-  }, [useWildernessTravel]);
+  }, [useWildernessTravel, useHunting]);
 
   const { orderedTabs, isEditMode, toggleEditMode, moveLeft, moveRight, resetOrder, isDefaultOrder, saveError } = useTabOrder({
     pageKey: 'endeavours',
@@ -132,12 +142,12 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
       saveLastSubTab('endeavours', fallback);
       onSubTabChange?.(fallback);
     }
-    // Intentionally narrow: this is specifically the reaction to the wilderness
-    // travel house-rule toggling. Re-running on activeSubTab/orderedTabs/
-    // onSubTabChange changes would fight normal tab navigation, so only
-    // useWildernessTravel belongs here.
+    // Intentionally narrow: this is specifically the reaction to an optional
+    // house-rule toggling (Wilderness Travel / Hunting) that can invalidate the
+    // current tab. Re-running on activeSubTab/orderedTabs/onSubTabChange changes
+    // would fight normal tab navigation, so only the toggles belong here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useWildernessTravel]);
+  }, [useWildernessTravel, useHunting]);
 
   // Sync from external subTab prop (e.g. URL hash changes).
   // Intentional setState-in-effect: mirrors an external routing input into
@@ -318,16 +328,19 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
     setToastMessage('Endeavour added');
   };
 
-  // When the Wilderness Travel house rule is off there is only one tab, so the
-  // sub-tab bar is hidden and the downtime tracker renders exactly as before.
-  const showEndeavoursContent = !useWildernessTravel || activeSubTab === 'endeavours';
+  // Show the sub-tab bar only when more than one tab is registered (i.e. at
+  // least one optional mechanic is on). With a single tab there is nothing to
+  // switch between, so the downtime tracker renders exactly as before (zero
+  // chrome added when all optional mechanics are off).
+  const showSubTabBar = VALID_SUBTABS.length > 1;
+  const showEndeavoursContent = !showSubTabBar || activeSubTab === 'endeavours';
 
   return (
     <div className={styles.sectionGap}>
-      {/* Sub-tab navigation — only rendered when the Wilderness Travel house
-          rule is on (otherwise there is a single tab and nothing to switch
-          between, so zero chrome is added). */}
-      {useWildernessTravel && (
+      {/* Sub-tab navigation — only rendered when more than one tab is
+          registered (an optional mechanic is on); otherwise there is a single
+          tab and nothing to switch between, so zero chrome is added. */}
+      {showSubTabBar && (
         <SubTabBar
           tabs={orderedTabs}
           activeTab={activeSubTab}
@@ -693,6 +706,9 @@ export function EndeavoursPage({ character, updateCharacter, subTab, onSubTabCha
 
       {/* Wilderness Travel — double-guarded (active tab AND toggle on) so a
           stale hash never mounts the panel when the house rule is off. */}
+      {activeSubTab === 'hunting' && useHunting && (
+        <HuntingReferencePanel character={character} />
+      )}
       {activeSubTab === 'travel' && useWildernessTravel && (
         <JourneyTrackerPanel character={character} updateCharacter={updateCharacter} />
       )}

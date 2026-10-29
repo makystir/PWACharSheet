@@ -879,6 +879,26 @@ export function SettingsPage({ character, characterId, update, updateCharacter, 
               </div>
             </div>
 
+            {/* Hunting */}
+            <div className={styles.ruleItem}>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleInfo}>
+                  <div className={styles.ruleLabel}>Hunting</div>
+                  <div className={styles.ruleDesc} style={!character.houseRules.useHunting ? { color: 'var(--text-muted)' } : undefined}>
+                    Reference tables for hunting game, animals, and lodges (Deft Steps)
+                  </div>
+                  {character.houseRules.useHunting && <div className={styles.ruleLocation}>Find it on: Endeavours page → Hunting tab</div>}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('houseRules.useHunting', !character.houseRules.useHunting)}
+                  className={character.houseRules.useHunting ? styles.toggleBtnOn : styles.toggleBtnOff}
+                >
+                  {character.houseRules.useHunting ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
+
             {/* Alternative Channelling Cants */}
             <div className={styles.ruleItem}>
               <div className={styles.toggleRow}>

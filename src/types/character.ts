@@ -760,6 +760,16 @@ export interface HouseRules {
    */
   useWildernessTravel: boolean;
   /**
+   * Optional mechanic (Deft Steps, Light Fingers — "Hunter and Hunted" chapter,
+   * docs/deftsteps.md): enables the read-only Hunting reference (game/terrain
+   * tables, animal values, hunting animals & trained traits, and the Typical
+   * Hunting Lodge description). Default false; when false the Hunting sub-tab has
+   * zero UI footprint and adds no persisted data (its own toggle, independent of
+   * useWildernessTravel). Backfilled to false for older saves via deepMerge
+   * against BLANK_CHARACTER.
+   */
+  useHunting: boolean;
+  /**
    * House rule: items marked as inside a backpack contribute 0 to the
    * character's carried encumbrance (carrying capacity is unchanged).
    */
@@ -1177,6 +1187,7 @@ export const BLANK_CHARACTER: Character = {
     useEnterprises: false,
     useCants: false,
     useWildernessTravel: false,
+    useHunting: false,
     ignoreBackpackEnc: false,
     // Default initiative rule: roll 1d10 + Initiative (Core p.156).
     initiativeFormula: 'initiativePlusD10',
